@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Shift extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'start_time',
+        'end_time',
+        'late_min',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'late_min' => 'integer',
+    ];
+}
+
+

@@ -1,0 +1,188 @@
+@extends('layouts.app')
+
+@section('title', 'Form Builder')
+@section('page_title', 'Form Builder - Lead Form')
+
+@push('styles')
+<style>
+    .fb-card { border-radius: 10px; }
+    .fb-header { background: linear-gradient(135deg, #6f42c1, #0d6efd); color:#fff; }
+    .fb-header .btn-primary { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
+    .fb-section-title { font-size: .9rem; color: #6c757d; margin: .25rem 0; font-weight: 600; }
+    .fb-field-list { max-height: 420px; overflow:auto; }
+    .fb-field-list .form-check { margin-bottom: .35rem; }
+    .code-area { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+</style>
+@endpush
+
+@section('content')
+<div class="container mt-4">
+    <div class="card fb-card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center fb-header">
+            <h5 class="mb-0 text-white"><i class="bi bi-ui-checks me-2"></i>Lead Form Builder</h5>
+            <button class="btn btn-primary btn-sm" id="fb-generate-btn"><i class="bi bi-magic me-1"></i>Generate Form</button>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-lg-5">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="fb-section-title">Select Fields (from <code>indiamartleads</code>)</div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-1" id="fb-select-all">Select all</button>
+                            <button class="btn sm btn-outline-secondary" id="fb-clear-all">Clear</button>
+                        </div>
+                    </div>
+                    <div id="fb-field-list" class="fb-field-list border rounded p-2">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+                <div class="col-12 col-lg-7">
+                    <div class="fb-section-title">Form Preview</div>
+                    <div id="fb-preview" class="p-3 border rounded bg-light" style="min-height:420px"></div>
+                    <div class="mt-3">
+                        <label class="form-label">Generated HTML</label>
+                        <textarea id="fb-generated-html" class="form-control code-area" rows="10" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+async function loadFields(){
+    const list = document.getElementById('fb-field-list');
+    list.innerHTML = '<div class="text-muted">Loading fields…</div>';
+    try{
+        const res = await fetch(`{{ route('formbuilder.fields') }}`);
+        const data = await res.json();
+        if (data.error){
+            list.innerHTML = `<div class=\"text-danger\">${data.error}</div>`;
+            return;
+        }
+        const cols = data.columns || [];
+        const skip = ['id','created_at','updated_at','deleted_at'];
+        list.innerHTML='';
+        cols.forEach(col=>{
+            if (skip.includes(col.name)) return;
+            const id = `col_${col.name}`;
+            const wrap = document.createElement('div');
+            wrap.className='form-check';
+            const cb = document.createElement('input');
+            cb.type='checkbox';
+            cb.className='form-check-input';
+            cb.id=id;
+            cb.dataset.name=col.name;
+            cb.dataset.type=col.data_type;
+            cb.checked = !!col.required;
+            cb.addEventListener('change', buildPreview);
+            const label = document.createElement('label');
+            label.className='form-check-label';
+            const req = col.required ? ' <span class="text-danger">*</span>' : '';
+            label.setAttribute('for', id);
+            label.innerHTML = `${col.name}${req} <small class=\"text-muted\">(${col.data_type})</small>`;
+            wrap.appendChild(cb);
+            wrap.appendChild(label);
+            list.appendChild(wrap);
+        });
+        buildPreview();
+    }catch(e){
+        list.innerHTML = `<div class=\"text-danger\">${e.message}</div>`
+    }
+}
+
+function toggleAll(state){
+    document.querySelectorAll('#fb-field-list input[type="checkbox"]').forEach(cb=>{ cb.checked = state; });
+    buildPreview();
+}
+
+function inferInputType(field){
+    const name = (field.name||'').toLowerCase();
+    const t = (field.data_type||'').toLowerCase();
+    if (name.includes('email')) return 'email';
+    if (name.includes('phone') || name.includes('mobile')) return 'tel';
+    if (["int","bigint","integer","smallint","mediumint","tinyint","decimal","double","float"].includes(t)) return 'number';
+    if (t === 'timestamp' || t === 'datetime') return 'datetime-local';
+    if (t === 'date') return 'date';
+    if (t.includes('text')) return 'textarea';
+    return 'text';
+}
+
+function toTitle(str){ return (str||'').replaceAll('_',' ').replace(/\b\w/g, c=>c.toUpperCase()); }
+
+function buildPreview(){
+    const preview = document.getElementById('fb-preview');
+    preview.innerHTML='';
+    const form = document.createElement('form');
+    form.className='row g-3';
+
+    const selected = Array.from(document.querySelectorAll('#fb-field-list input[type="checkbox"]'))
+        .filter(cb=>cb.checked)
+        .map(cb=>({name: cb.dataset.name, data_type: cb.dataset.type}));
+
+    selected.forEach(f=>{
+        const group = document.createElement('div');
+        group.className='col-12';
+        const label = document.createElement('label');
+        label.className='form-label fw-semibold';
+        label.textContent = toTitle(f.name);
+        let control;
+        const t = inferInputType(f);
+        if (t==='textarea'){
+            control = document.createElement('textarea');
+            control.className='form-control';
+            control.rows=3;
+        } else {
+            control = document.createElement('input');
+            control.type = t;
+            control.className='form-control';
+        }
+        control.name = f.name;
+        control.placeholder = `Enter ${toTitle(f.name)}`;
+        group.appendChild(label);
+        group.appendChild(control);
+        form.appendChild(group);
+    });
+
+    const actions = document.createElement('div');
+    actions.className='col-12 text-end';
+    const btn = document.createElement('button');
+    btn.type='submit';
+    btn.className='btn btn-primary btn-sm';
+    btn.textContent='Submit';
+    actions.appendChild(btn);
+    form.appendChild(actions);
+
+    document.getElementById('fb-preview').appendChild(form);
+
+    const tmp = document.createElement('div');
+    tmp.appendChild(form.cloneNode(true));
+    document.getElementById('fb-generated-html').value = prettyHtml(tmp.innerHTML);
+}
+
+function prettyHtml(html){
+    const tab='  ';
+    let out='';
+    let indent=0;
+    html.replace(/></g,'>$<').split('<').forEach(seg=>{
+        if(!seg) return;
+        if (seg.startsWith('/')) indent = Math.max(0, indent-1);
+        out += `${' '.repeat(indent)}<${seg}\n`;
+        if(!seg.startsWith('/') && !seg.endsWith('/>') && !seg.startsWith('input')){
+            indent++;
+        }
+    });
+    return out.trim();
+}
+
+// init
+window.addEventListener('DOMContentLoaded', () => {
+    loadFields();
+    document.getElementById('fb-generate-btn').addEventListener('click', buildPreview);
+    document.getElementById('fb-select-all').addEventListener('click', () => toggleAll(true));
+    document.getElementById('fb-clear-all').addEventListener('click', () => toggleAll(false));
+});
+</script>
+@endpush
