@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.or.session' => \App\Http\Middleware\AuthOrSession::class,
         ]);
         
+        // Apply tenant database middleware to all api routes (run FIRST)
+        $middleware->api(prepend: [
+            \App\Http\Middleware\SetTenantDatabase::class,
+        ]);
+
         // Apply tenant database middleware to all web routes
         $middleware->web(append: [
             \App\Http\Middleware\SetTenantDatabase::class,

@@ -7,6 +7,8 @@ use Illuminate\Support\Str;
 
 class Tenant extends Model
 {
+    protected $connection = 'mysql';
+
     protected $fillable = [
         'tenant_name',
         'tenant_code',

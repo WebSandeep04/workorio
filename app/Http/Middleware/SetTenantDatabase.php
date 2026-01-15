@@ -18,6 +18,16 @@ class SetTenantDatabase
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Check for Header (API / Explicit)
+        if ($request->hasHeader('X-Tenant-ID')) {
+             $tenantId = $request->header('X-Tenant-ID');
+
+             $this->switchTenant($tenantId);
+             return $next($request);
+        }
+        
+
+
         // Check if user is authenticated via Auth facade (master database users - super admin only)
         if (Auth::check()) {
             $user = Auth::user();
@@ -33,36 +43,13 @@ class SetTenantDatabase
             $tenantId = $this->getTenantIdFromUser($user);
             
             if ($tenantId) {
-                // Get tenant from master database
-                $tenant = \App\Models\Tenant::find($tenantId);
-                
-                if ($tenant) {
-                    // Create connection if it doesn't exist
-                    if (!TenantDatabaseService::connectionExists($tenant->id)) {
-                        TenantDatabaseService::createConnection($tenant);
-                    }
-                    
-                    // Set default connection for this request
-                    TenantDatabaseService::setDefaultConnection($tenant->id);
-                }
+                $this->switchTenant($tenantId);
             }
         }
         // Check if user is authenticated via session (tenant database users)
         elseif (session()->has('user_id')) {
             $tenantId = session('tenant_id', 1); // Default to tenant 1 if not set
-            
-            // Get tenant from master database
-            $tenant = \App\Models\Tenant::find($tenantId);
-            
-            if ($tenant) {
-                // Create connection if it doesn't exist
-                if (!TenantDatabaseService::connectionExists($tenant->id)) {
-                    TenantDatabaseService::createConnection($tenant);
-                }
-                
-                // Set default connection for this request
-                TenantDatabaseService::setDefaultConnection($tenant->id);
-            }
+            $this->switchTenant($tenantId);
         }
         
         return $next($request);
@@ -85,5 +72,22 @@ class SetTenantDatabase
         // Option 3: Determine from user email domain or other logic
         // $emailDomain = explode('@', $user->email)[1];
         // return $this->getTenantIdByDomain($emailDomain);
+    }
+    private function switchTenant($tenantId)
+    {
+        // Get tenant from master database
+        $tenant = \App\Models\Tenant::find($tenantId);
+        
+        if ($tenant) {
+
+            // Create connection if it doesn't exist
+            if (!TenantDatabaseService::connectionExists($tenant->id)) {
+                TenantDatabaseService::createConnection($tenant);
+            }
+            
+            // Set default connection for this request
+            TenantDatabaseService::setDefaultConnection($tenant->id);
+
+        }
     }
 }

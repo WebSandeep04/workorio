@@ -15,12 +15,7 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        // Debug logging
-        \Log::info('API Login Attempt', [
-            'content_type' => $request->header('Content-Type'),
-            'input' => $request->all(),
-            'raw_content' => $request->getContent()
-        ]);
+
 
         $data = $request->all();
         // Fallback: Manually parse JSON if body exists but inputs are empty (missing Header case)
@@ -81,7 +76,10 @@ class AuthController extends Controller
                 $user = User::where('email', $email)->first();
                 $passwordOk = $user ? Hash::check($password, $user->password) : false;
                 
-                if ($user && $passwordOk) {
+                // Check if user has login permission (default is 1 if column exists, but treat null as true for backward compatibility if needed, though migration sets default 1)
+                $isLoginAllowed = $user ? ($user->is_login ?? 1) : 0;
+                
+                if ($user && $passwordOk && $isLoginAllowed) {
                     // Generate API Token
                     $token = $user->createToken('API Token')->plainTextToken;
                     
