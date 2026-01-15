@@ -998,19 +998,19 @@ function renderTasksTable(tasks, page = 1) {
       // Status text
       let statusHtml = '';
       if (task.is_done) {
-        statusHtml = '<span class="fw-bold text-success">Done</span>';
+        statusHtml = '<span class="text-success">Done</span>';
       } else if (task.status) {
         let statusColor = task.status.color || '#6c757d';
-        statusHtml = `<span class="fw-bold" style="color: ${statusColor}">${task.status.name}</span>`;
+        statusHtml = `<span style="color: ${statusColor}">${task.status.name}</span>`;
       } else {
-        statusHtml = '<span class="fw-bold text-warning">Pending</span>';
+        statusHtml = '<span class="text-warning">Pending</span>';
       }
       
       // Priority text
       let priorityHtml = 'N/A';
       if (task.priority) {
         let priorityColor = task.priority.color || '#6c757d';
-        priorityHtml = `<span class="fw-bold" style="color: ${priorityColor}">${task.priority.name}</span>`;
+        priorityHtml = `<span style="color: ${priorityColor}">${task.priority.name}</span>`;
       }
       
       // Assigned users
@@ -1031,7 +1031,7 @@ function renderTasksTable(tasks, page = 1) {
       // Due date
       let dueDateRaw = task.due_date ? new Date(task.due_date).toLocaleDateString('en-GB') : 'N/A';
       let dueDate = isOverdue 
-          ? `<span class="text-danger fw-bold" title="Overdue">${dueDateRaw}</span>` 
+          ? `<span class="text-danger" title="Overdue">${dueDateRaw}</span>` 
           : dueDateRaw;
       
       // Created at
@@ -1066,7 +1066,7 @@ function renderTasksTable(tasks, page = 1) {
               ${(task.task_name || 'N/A').length > 7 ? (task.task_name || 'N/A').substring(0, 7) + '...' : (task.task_name || 'N/A')}
             </a>
           </td>
-          <td><span class="fw-bold" style="color: ${typeColor}">${typeBadge.toUpperCase()}</span></td>
+          <td><span style="color: ${typeColor}">${typeBadge.toUpperCase()}</span></td>
           <td>${priorityHtml}</td>
           <td>${statusHtml}</td>
           <td>${dueDate}</td>
