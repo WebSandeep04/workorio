@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 230.29 46.18">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-2 {
+        fill: url(#linear-gradient-4);
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-4 {
+        font-family: Bahnschrift-LightSemiCondensed, Bahnschrift;
+        font-size: 14.37px;
+        font-variation-settings: 'wght' 300, 'wdth' 87;
+        font-weight: 300;
+      }
+
+      .cls-5 {
+        font-family: Bahnschrift-Bold, Bahnschrift;
+        font-size: 40.03px;
+        font-variation-settings: 'wght' 700, 'wdth' 100;
+        font-weight: 700;
+      }
+
+      .cls-6 {
+        font-family: Montserrat-Medium, Montserrat;
+        font-size: 7.44px;
+        font-weight: 500;
+      }
+
+      .cls-7 {
+        fill: url(#linear-gradient);
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="21.91" y1="4.69" x2="13.22" y2="32.11" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#08adf8"/>
+      <stop offset="1" stop-color="#4700fc"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="19.46" y1="21.32" x2="25.98" y2="42.59" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-3" x1="-1.49" y1="12.53" x2="9.48" y2="30.12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1c0ef8"/>
+      <stop offset="1" stop-color="#fc06fa"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-4" x1="44.7" y1=".31" x2="28.82" y2="39.74" xlink:href="#linear-gradient"/>
+  </defs>
+  <g>
+    <g>
+      <path class="cls-7" d="M12.97,31.12c-1.75-.75-2.68-2.26-3.02-4.84,3.25-4.01,4.65-8.85,5.74-13.81.26-1.19.51-2.39.8-3.76,2.73-.2,5.92-.41,8.76-.62-.22,1.35-.45,2.36-.68,3.46-.85,4.03-2.09,7.93-4.07,11.56-1.12,2.06-2.36,4.04-4,5.76-.99,1.03-2.13,1.76-3.53,2.25Z"/>
+      <path class="cls-1" d="M16.61,30.68c2.1-1.84,3.57-4.01,4.8-6.29,1.22-2.25,2.18-4.85,3.47-7.17.04.28.07.71.08.99.02,1.28.04,2.56.03,3.85-.04,3.95.67,7.8,1.44,11.65.35,1.73.88,3.38,1.63,4.98.54,1.14,1.18,2.14,2.35,2.98-1.2.22-2.26.5-3.34.58-1.8.14-3.6.23-5.41-.13-1.34-.27-2.18-1.04-2.82-2.14-1.03-1.77-1.52-3.73-1.83-5.73-.18-1.15-.27-2.31-.41-3.57Z"/>
+      <path class="cls-3" d="M11.5,32c-2.42.62-4.71.66-6.96-.18-1.4-.52-2.18-1.5-2.4-3.08-.4-2.83-.13-5.66-.27-8.48-.05-.95-.1-1.92-.26-2.86-.33-1.94-.41-2.04-1.61-3.6,1.49,0,2.88-.08,4.25.02,2.22.16,3.64,1.81,4.04,4.25.39,2.39.2,4.79.29,7.19.03.74.05,1.49.16,2.23.24,1.59.99,2.91,2.22,3.95.16.13.29.3.54.56Z"/>
+    </g>
+    <path class="cls-2" d="M46.45,10.34s0-.07.01-.11c.05-.61.09-1.22.1-1.83-.01-.48,0-.93-.02-1.31h.92s.01,0,.02-.01h2.97c-2.88-2.44-5.57-4.71-8.37-7.08-2.86,2.39-5.73,4.77-8.59,7.16.04.09.07.17.11.26h3.87c-.85,9.96-3.9,19-9.57,27.2.44,1.29.3.94.76,2.23.4,1.12,1.72,3.63,3.02,4.45,1.23-.7,2.48-1.7,3.44-2.79,1.95-2.2,3.61-4.6,4.92-7.24,2.04-4.11,3.6-8.41,4.78-12.84.71-2.66,1.39-5.34,1.64-8.09h0Z"/>
+  </g>
+  <text class="cls-5" transform="translate(56.56 35.36)"><tspan x="0" y="0">workorio</tspan></text>
+  <text class="cls-4" transform="translate(205.71 35.36)"><tspan x="0" y="0">.com</tspan></text>
+  <text class="cls-6" transform="translate(218.03 13.77)"><tspan x="0" y="0">TM</tspan></text>
+</svg>

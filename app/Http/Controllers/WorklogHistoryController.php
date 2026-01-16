@@ -13,8 +13,8 @@ class WorklogHistoryController extends Controller
     {
         $user = $this->getCurrentUser();
         
-        // Check if user has worklog permission
-        if (!$user || !$user->is_worklog) {
+        // Check if user has worklog permission (allow if is_worklog is true OR user is admin/role_id=1)
+        if (!$user || (!$user->is_worklog && $user->role_id != 1)) {
             return redirect()->back()->with('error', 'You do not have permission to access worklog functionality.');
         }
         
