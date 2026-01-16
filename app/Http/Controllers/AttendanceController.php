@@ -1298,7 +1298,72 @@ class AttendanceController extends Controller
             'month' => 'required|date_format:Y-m'
         ]);
 
+        $data = $this->_fetchMonthlyReportData($request->month);
+
+        return response()->json($data);
+    }
+
+    public function exportMonthlyReport(Request $request)
+    {
+        $request->validate([
+            'month' => 'required|date_format:Y-m'
+        ]);
+
         $month = $request->month;
+        $data = $this->_fetchMonthlyReportData($month);
+        
+        $filename = "attendance_report_{$month}.csv";
+        
+        $headers = [
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        ];
+
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
+            
+            // Header Row
+            $header = ['User'];
+            foreach ($data['month']['dates'] as $d) {
+                $header[] = $d['day'] . '(' . $d['day_name'] . ')';
+            }
+            $header = array_merge($header, ['Work Days', 'Present', 'Half Day', 'Holiday Work', 'Leave', 'Absent']);
+            fputcsv($file, $header);
+
+            // Data Rows
+            foreach ($data['data'] as $item) {
+                $row = [$item['user']['name']];
+                
+                // Daily statuses
+                if (isset($item['daily_statuses'])) {
+                    foreach ($item['daily_statuses'] as $status) {
+                        $row[] = $status['code'];
+                    }
+                }
+                
+                // Summaries
+                $s = $item['summary'];
+                $row[] = $s['total_working_days'];
+                $row[] = $s['total_present'];
+                $row[] = $s['total_halfday'];
+                $row[] = $s['total_holidays_worked'];
+                $row[] = $s['days_on_leave'];
+                $row[] = $s['days_absent'];
+                
+                fputcsv($file, $row);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    private function _fetchMonthlyReportData($month)
+    {
         $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
 
@@ -1418,12 +1483,6 @@ class AttendanceController extends Controller
                 ];
             }
 
-            // Calculate summary (keep existing logic for summary columns if needed, or remove if user only wants grid)
-            // User asked for "status of each user each day" AND "left side users".
-            // I will keep the summary calculation as it's useful context, but the MAIN thing is the daily grid.
-            // Actually, for performance, I can simplify summary here or just reuse the existing calc.
-            // Let's reuse existing calc for accurate summary numbers alongside the grid.
-            
             // Re-format leaves for the summary function
              $userLeavesSummary = $allLeaves->get($user->id, collect())
                 ->pluck('date')
@@ -1444,15 +1503,15 @@ class AttendanceController extends Controller
             ];
         }
 
-        return response()->json([
+        return [
             'month' => [
                 'display' => $startDate->format('F Y'),
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date' => $endDate->format('Y-m-d'),
-                'dates' => $dates // Send dates for table header
+                'dates' => $dates
             ],
             'data' => $reportData
-        ]);
+        ];
     }
 
     private function calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves)

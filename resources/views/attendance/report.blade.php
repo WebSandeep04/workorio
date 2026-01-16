@@ -362,6 +362,9 @@
                 <button type="button" id="loadMonthlyReport" class="btn-load">
                     <i class="bi bi-play-circle me-1"></i> Load Summary
                 </button>
+                <button type="button" id="exportMonthlyReport" class="btn-load" style="background-color: #434afa; color: white;">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                </button>
             </div>
 
             <div class="modern-card data-table-card" id="monthlyTableCard" style="display:none;">
@@ -397,7 +400,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loadReport').addEventListener('click', loadReport);
     document.getElementById('loadMonthlyReport').addEventListener('click', loadMonthlySummary);
+    document.getElementById('exportMonthlyReport').addEventListener('click', exportMonthlyReport);
 });
+
+function exportMonthlyReport() {
+    const month = document.getElementById('monthly_month').value;
+    if(!month) return;
+    window.location.href = `/attendance/export-monthly-report?month=${month}`;
+}
 
 function loadReport(){
     const userId = document.getElementById('user_id').value;
