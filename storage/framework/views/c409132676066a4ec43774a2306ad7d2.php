@@ -498,8 +498,8 @@ function loadMonthlySummary(){
         success: function(res){
             // 1. Build Header
             let headerRow = '<tr><th class="sticky-col" style="min-width:150px; background:#fff; left:0; z-index:10; border-right:2px solid #f1f3f5;">User</th>';
-            headerRow += '<th style="min-width:60px;">Present</th><th style="min-width:60px;">Absent</th>'; // Brief summary
             
+            // Dates
             if(res.month && res.month.dates){
                 res.month.dates.forEach(d => {
                     const isSunday = d.is_sunday;
@@ -510,6 +510,14 @@ function loadMonthlySummary(){
                     </th>`;
                 });
             }
+            
+            // Summary Columns (at end)
+            headerRow += '<th style="min-width:60px;">Work Days</th>';
+            headerRow += '<th style="min-width:50px;">Present</th>';
+            headerRow += '<th style="min-width:50px;">Half Day</th>';
+            headerRow += '<th style="min-width:50px;">Holiday Work</th>';
+            headerRow += '<th style="min-width:50px;">Leave</th>';
+            headerRow += '<th style="min-width:50px;">Absent</th>';
             headerRow += '</tr>';
             thead.innerHTML = headerRow;
 
@@ -523,10 +531,6 @@ function loadMonthlySummary(){
                     
                     let rowHtml = `<td class="sticky-col fw-bold text-dark" style="background:#fff; left:0; z-index:5; border-right:2px solid #f1f3f5;">${item.user.name}</td>`;
                     
-                    // Brief Summary Columns
-                    rowHtml += `<td class="text-success fw-bold">${s.total_present + s.total_halfday}</td>`;
-                    rowHtml += `<td class="text-danger fw-bold">${s.days_absent}</td>`;
-                    
                     // Daily Statuses
                     if(item.daily_statuses){
                         item.daily_statuses.forEach(dayStat => {
@@ -538,6 +542,14 @@ function loadMonthlySummary(){
                              </td>`;
                         });
                     }
+                    
+                    // Summary Columns (at end)
+                    rowHtml += `<td class="text-center fw-bold">${s.total_working_days}</td>`;
+                    rowHtml += `<td class="text-center text-success fw-bold">${s.total_present}</td>`;
+                    rowHtml += `<td class="text-center text-warning fw-bold">${s.total_halfday}</td>`;
+                    rowHtml += `<td class="text-center text-info fw-bold">${s.total_holidays_worked}</td>`;
+                    rowHtml += `<td class="text-center text-secondary fw-bold">${s.days_on_leave}</td>`;
+                    rowHtml += `<td class="text-center text-danger fw-bold">${s.days_absent}</td>`;
                     
                     tr.innerHTML = rowHtml;
                     tbody.appendChild(tr);

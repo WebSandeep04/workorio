@@ -1315,8 +1315,13 @@ class AttendanceController extends Controller
             $curr->addDay();
         }
 
-        // Get all users
-        $users = User::orderBy('name')->get(); 
+        // Get all users who are active employees AND not admin (role_id != 1)
+        $users = User::where('role_id', '!=', 1)
+            ->whereHas('employee', function($query) {
+                $query->where('status', 'active');
+            })
+            ->orderBy('name')
+            ->get(); 
 
         // Get all attendance for the month
         $allAttendances = Attendance::with(['movements' => function($query) {
