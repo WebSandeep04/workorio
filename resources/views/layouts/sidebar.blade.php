@@ -95,27 +95,35 @@
                 $sections = \App\Services\MenuBuilder::build();
             @endphp
             @foreach($sections as $section)
-                @php
-                    $sectionHasActive = collect($section['items'] ?? [])->contains(function ($item) {
-                        return isset($item['route']) && request()->routeIs($item['route']);
-                    });
-                @endphp
-                <div class="menu-section">
-                    <a class="sidebar-link sidebar-dropdown {{ $sectionHasActive ? '' : '' }}" data-section-key="{{ $section['key'] }}" data-bs-toggle="collapse" href="#menu_{{ $section['key'] }}" role="button" aria-expanded="{{ $sectionHasActive ? 'true' : 'false' }}" aria-controls="menu_{{ $section['key'] }}" title="{{ $section['title'] }}">
-                        <span class="link-label"><i class="{{ $section['icon'] }}"></i><span>{{ $section['title'] }}</span></span>
-                        <i class="bi bi-chevron-down"></i>
-                    </a>
-                    <div class="collapse sidebar-sub {{ $sectionHasActive ? 'show' : '' }}" id="menu_{{ $section['key'] }}">
-                        @foreach($section['items'] as $item)
-                            @php
-                                $itemActive = isset($item['route']) && request()->routeIs($item['route']);
-                            @endphp
-                            <a href="{{ route($item['route']) }}" class="sidebar-sublink {{ $itemActive ? 'active' : '' }}" title="{{ $item['title'] }}">
-                                <i class="{{ $item['icon'] }}"></i><span>{{ $item['title'] }}</span>
-                            </a>
-                        @endforeach
+                @if(isset($section['route']))
+                    <div class="menu-section">
+                        <a href="{{ route($section['route']) }}" class="sidebar-link {{ request()->routeIs($section['route']) ? 'active' : '' }}" title="{{ $section['title'] }}">
+                            <span class="link-label"><i class="{{ $section['icon'] }}"></i><span>{{ $section['title'] }}</span></span>
+                        </a>
                     </div>
-                </div>
+                @else
+                    @php
+                        $sectionHasActive = collect($section['items'] ?? [])->contains(function ($item) {
+                            return isset($item['route']) && request()->routeIs($item['route']);
+                        });
+                    @endphp
+                    <div class="menu-section">
+                        <a class="sidebar-link sidebar-dropdown {{ $sectionHasActive ? '' : '' }}" data-section-key="{{ $section['key'] }}" data-bs-toggle="collapse" href="#menu_{{ $section['key'] }}" role="button" aria-expanded="{{ $sectionHasActive ? 'true' : 'false' }}" aria-controls="menu_{{ $section['key'] }}" title="{{ $section['title'] }}">
+                            <span class="link-label"><i class="{{ $section['icon'] }}"></i><span>{{ $section['title'] }}</span></span>
+                            <i class="bi bi-chevron-down"></i>
+                        </a>
+                        <div class="collapse sidebar-sub {{ $sectionHasActive ? 'show' : '' }}" id="menu_{{ $section['key'] }}">
+                            @foreach($section['items'] as $item)
+                                @php
+                                    $itemActive = isset($item['route']) && request()->routeIs($item['route']);
+                                @endphp
+                                <a href="{{ route($item['route']) }}" class="sidebar-sublink {{ $itemActive ? 'active' : '' }}" title="{{ $item['tooltip'] ?? $item['title'] }}">
+                                    <i class="{{ $item['icon'] }}"></i><span>{{ $item['title'] }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             @endforeach
         </div>
 

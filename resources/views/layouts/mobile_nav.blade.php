@@ -104,21 +104,28 @@
         <!-- Dynamic sections based on tenant features and role -->
         @php($sections = \App\Services\MenuBuilder::build())
         @foreach($sections as $section)
-            <div class="mobile-menu-section">
-                <a class="mobile-menu-toggle" data-bs-toggle="collapse" href="#mobileMenu_{{ $section['key'] }}" role="button" aria-expanded="false" aria-controls="mobileMenu_{{ $section['key'] }}" title="{{ $section['title'] }}">
+            @if(isset($section['route']))
+                <a href="{{ route($section['route']) }}" class="mobile-menu-item" title="{{ $section['title'] }}">
                     <i class="{{ $section['icon'] }} me-3"></i>
                     <span>{{ $section['title'] }}</span>
-                    <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <div class="collapse" id="mobileMenu_{{ $section['key'] }}">
-                    @foreach($section['items'] as $item)
-                        <a href="{{ route($item['route']) }}" class="mobile-menu-subitem" title="{{ $item['title'] }}">
-                            <i class="{{ $item['icon'] }} me-3"></i>
-                            <span>{{ $item['title'] }}</span>
-                        </a>
-                    @endforeach
+            @else
+                <div class="mobile-menu-section">
+                    <a class="mobile-menu-toggle" data-bs-toggle="collapse" href="#mobileMenu_{{ $section['key'] }}" role="button" aria-expanded="false" aria-controls="mobileMenu_{{ $section['key'] }}" title="{{ $section['title'] }}">
+                        <i class="{{ $section['icon'] }} me-3"></i>
+                        <span>{{ $section['title'] }}</span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="mobileMenu_{{ $section['key'] }}">
+                        @foreach($section['items'] as $item)
+                            <a href="{{ route($item['route']) }}" class="mobile-menu-subitem" title="{{ $item['tooltip'] ?? $item['title'] }}">
+                                <i class="{{ $item['icon'] }} me-3"></i>
+                                <span>{{ $item['title'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
                 </div>
-            </div>
+            @endif
         @endforeach
 
             <!-- Logout Button -->

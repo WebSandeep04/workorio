@@ -183,8 +183,8 @@ class MenuBuilder
                 }
                 $filteredSection = static::filterItems($section, $user);
                 
-                // Only add section if it has items after filtering
-                if (!empty($filteredSection['items'])) {
+                // Only add section if it has items after filtering or it's a standalone section
+                if (!empty($filteredSection['items']) || (!empty($filteredSection) && isset($filteredSection['route']))) {
                     $sections[] = $filteredSection;
                 }
             }
@@ -202,8 +202,8 @@ class MenuBuilder
                 // Filter section items based on user permissions
                 $filteredSection = static::filterItems($section, $user);
                 
-                // Only add section if user has permissions for any items
-                if (!empty($filteredSection['items'])) {
+                // Only add section if user has permissions for any items or it's a standalone section
+                if (!empty($filteredSection['items']) || (!empty($filteredSection) && isset($filteredSection['route']))) {
                     $sections[] = $filteredSection;
                 }
             }
@@ -214,6 +214,48 @@ class MenuBuilder
 
     private static function filterItems(array $section, $user): array
     {
+        // Handle standalone sections (no items, but has route)
+        if (!isset($section['items']) && isset($section['route'])) {
+            $roleName = optional($user->role)->role_name;
+            $tenant = $user->tenant;
+
+            // Check feature flag
+            if (isset($section['feature_flag']) && (!$tenant || !$tenant->{$section['feature_flag']})) {
+                return [];
+            }
+
+            // Admin access
+            if ($roleName === 'admin') {
+                return $section;
+            }
+
+            // Custom roles permission check
+            if ($roleName !== 'admin' && $roleName !== 'user') {
+                if (isset($section['permission']) && !$user->hasPermission($section['permission'])) {
+                    return [];
+                }
+                if (!isset($section['permission'])) {
+                    return [];
+                }
+            }
+
+            // Condition check
+            if (isset($section['condition'])) {
+                if ($section['condition'] === 'has_subordinates' && $user->subordinates()->count() <= 0) {
+                    return [];
+                }
+                if ($section['condition'] === 'is_manager' && (!isset($user->is_manager) || $user->is_manager != 1)) {
+                    return [];
+                }
+            }
+
+            return $section;
+        }
+
+        if (!isset($section['items'])) {
+            return [];
+        }
+
         $items = [];
         $roleName = optional($user->role)->role_name;
         

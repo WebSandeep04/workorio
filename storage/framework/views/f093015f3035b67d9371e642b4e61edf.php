@@ -104,21 +104,28 @@
         <!-- Dynamic sections based on tenant features and role -->
         <?php ($sections = \App\Services\MenuBuilder::build()); ?>
         <?php $__currentLoopData = $sections; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $section): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <div class="mobile-menu-section">
-                <a class="mobile-menu-toggle" data-bs-toggle="collapse" href="#mobileMenu_<?php echo e($section['key']); ?>" role="button" aria-expanded="false" aria-controls="mobileMenu_<?php echo e($section['key']); ?>" title="<?php echo e($section['title']); ?>">
+            <?php if(isset($section['route'])): ?>
+                <a href="<?php echo e(route($section['route'])); ?>" class="mobile-menu-item" title="<?php echo e($section['title']); ?>">
                     <i class="<?php echo e($section['icon']); ?> me-3"></i>
                     <span><?php echo e($section['title']); ?></span>
-                    <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <div class="collapse" id="mobileMenu_<?php echo e($section['key']); ?>">
-                    <?php $__currentLoopData = $section['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <a href="<?php echo e(route($item['route'])); ?>" class="mobile-menu-subitem" title="<?php echo e($item['title']); ?>">
-                            <i class="<?php echo e($item['icon']); ?> me-3"></i>
-                            <span><?php echo e($item['title']); ?></span>
-                        </a>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            <?php else: ?>
+                <div class="mobile-menu-section">
+                    <a class="mobile-menu-toggle" data-bs-toggle="collapse" href="#mobileMenu_<?php echo e($section['key']); ?>" role="button" aria-expanded="false" aria-controls="mobileMenu_<?php echo e($section['key']); ?>" title="<?php echo e($section['title']); ?>">
+                        <i class="<?php echo e($section['icon']); ?> me-3"></i>
+                        <span><?php echo e($section['title']); ?></span>
+                        <i class="bi bi-chevron-down ms-auto"></i>
+                    </a>
+                    <div class="collapse" id="mobileMenu_<?php echo e($section['key']); ?>">
+                        <?php $__currentLoopData = $section['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <a href="<?php echo e(route($item['route'])); ?>" class="mobile-menu-subitem" title="<?php echo e($item['tooltip'] ?? $item['title']); ?>">
+                                <i class="<?php echo e($item['icon']); ?> me-3"></i>
+                                <span><?php echo e($item['title']); ?></span>
+                            </a>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
             <!-- Logout Button -->

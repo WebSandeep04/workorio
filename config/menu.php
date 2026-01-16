@@ -13,36 +13,53 @@ return [
             'items' => [
                 ['route' => 'alldata', 'title' => 'All Data', 'icon' => 'bi bi-collection', 'permission' => 'sales.alldata'],
                 // ['route' => 'sales-analytics', 'title' => 'Sales Analytics', 'icon' => 'bi bi-bar-chart', 'permission' => 'sales.analytics'],
-                ['route' => 'lead', 'title' => 'Leads', 'icon' => 'bi bi-person-lines-fill', 'permission' => 'sales.leads'],
+                // ['route' => 'lead', 'title' => 'Leads', 'icon' => 'bi bi-person-lines-fill', 'permission' => 'sales.leads'],
                 ['route' => 'myleads', 'title' => 'My Leads', 'icon' => 'bi bi-person', 'permission' => 'sales.myleads'],
                 ['route' => 'teamleads', 'title' => 'Team Leads', 'icon' => 'bi bi-people', 'condition' => 'has_subordinates', 'permission' => 'sales.teamleads'],
                 ['route' => 'assignedleads', 'title' => 'Assigned Leads', 'icon' => 'bi bi-person-check', 'condition' => 'is_manager', 'permission' => 'sales.assignedleads'],
                 ['route' => 'followup', 'title' => 'Follow Up', 'icon' => 'bi bi-bell', 'permission' => 'sales.followup'],
-                ['route' => 'calling', 'title' => 'Calling Board', 'icon' => 'bi bi-telephone', 'permission' => 'sales.calling'],
-                ['route' => 'calling.my', 'title' => 'My Calls', 'icon' => 'bi bi-person', 'permission' => 'sales.calling.my'],
-                ['route' => 'calling.todays', 'title' => 'Today\'s Calls', 'icon' => 'bi bi-calendar-date', 'permission' => 'sales.calling.todays'],
-                ['route' => 'calling.junk', 'title' => 'Junk Calls', 'icon' => 'bi bi-trash', 'permission' => 'sales.calling.junk'],
+
                 ['route' => 'quotation', 'title' => 'Quotation', 'icon' => 'bi bi-file-text', 'permission' => 'sales.quotation'],
                 ['route' => 'payment-followup', 'title' => 'Payment Followup', 'icon' => 'bi bi-cash-coin', 'permission' => 'sales.payment_followup'],
-                ['route' => 'subscriptions.index', 'title' => 'Subscriptions', 'icon' => 'bi bi-repeat', 'permission' => 'subscription.view'],
+
                 ['route' => 'formbuilder.index', 'title' => 'Lead Form', 'icon' => 'bi bi-ui-checks-grid', 'permission' => 'sales.leadform'],
                 // IndiaMART
                 ['route' => 'indiamart.index', 'title' => 'External Leads', 'icon' => 'bi bi-bag', 'permission' => 'sales.indiamart'],
                 ['route' => 'indiamart.junk.index', 'title' => 'External Junk Leads', 'icon' => 'bi bi-trash', 'permission' => 'sales.indiamart.junk'],
             ],
         ],
+        [
+            'key' => 'admin_tele_calling',
+            'title' => 'Tele Calling',
+            'icon' => 'bi bi-telephone-outbound',
+            'feature_flag' => 'is_sales_enabled',
+            'roles' => ['admin'],
+            'items' => [
+                ['route' => 'calling', 'title' => 'Calling Board', 'icon' => 'bi bi-telephone', 'permission' => 'sales.calling'],
+                ['route' => 'calling.my', 'title' => 'My Calls', 'icon' => 'bi bi-person', 'permission' => 'sales.calling.my'],
+                ['route' => 'calling.todays', 'title' => 'Today\'s Calls', 'icon' => 'bi bi-calendar-date', 'permission' => 'sales.calling.todays'],
+                ['route' => 'calling.junk', 'title' => 'Junk Calls', 'icon' => 'bi bi-trash', 'permission' => 'sales.calling.junk'],
+            ],
+        ],
+        [
+            'key' => 'admin_subs_renewal',
+            'title' => 'Subs & Renewal',
+            'route' => 'subscriptions.index',
+            'icon' => 'bi bi-arrow-repeat',
+            'feature_flag' => 'is_sales_enabled',
+            'roles' => ['admin'],
+            'permission' => 'subscription.view',
+        ],
         // Admin gets full worklog access when worklog is enabled
         [
             'key' => 'admin_worklog_operational',
-            'title' => 'Worklog',
+            'title' => 'Timesheet',
             'icon' => 'bi bi-clock',
             'feature_flag' => 'is_worklog_enabled',
             'roles' => ['admin'],
             'items' => [
-                ['route' => 'worklog', 'title' => 'Worklog', 'icon' => 'bi bi-clipboard-check', 'permission' => 'worklog.entry'],
-                ['route' => 'worklog-history', 'title' => 'Worklog History', 'icon' => 'bi bi-clock-history', 'permission' => 'worklog.history'],
-                ['route' => 'leave.index', 'title' => 'Leave', 'icon' => 'bi bi-calendar-minus', 'permission' => 'worklog.leave'],
-                ['route' => 'worklog-approvals', 'title' => 'Worklog Approvals', 'icon' => 'bi bi-check2-square', 'permission' => 'worklog.approvals'],
+                ['route' => 'worklog', 'title' => 'Timesheet', 'icon' => 'bi bi-clipboard-check', 'permission' => 'worklog.entry'],
+                ['route' => 'worklog-history', 'title' => 'Timesheet History', 'icon' => 'bi bi-clock-history', 'permission' => 'worklog.history'],
                 ['route' => 'worklog-missing-summary', 'title' => 'Missing Entries Summary', 'icon' => 'bi bi-exclamation-triangle', 'permission' => 'worklog.missing_summary'],
             ],
         ],
@@ -62,13 +79,13 @@ return [
         // Calendar - separate section
         [
             'key' => 'calendar_section',
-            'title' => 'Calendar',
+            'title' => 'Social Media Calendar',
             'icon' => 'bi bi-calendar3',
             'feature_flag' => 'is_worklog_enabled',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'calendar.index', 'title' => 'Calendar', 'icon' => 'bi bi-calendar3', 'permission' => 'calendar.view'],
-                ['route' => 'calendar-client-event.links', 'title' => 'Client-Event Links', 'icon' => 'bi bi-diagram-2', 'permission' => 'calendar.client_event_links'],
+                ['route' => 'calendar-client-event.links', 'title' => 'Manage Calendar', 'icon' => 'bi bi-diagram-2', 'permission' => 'calendar.client_event_links'],
             ],
         ],
         // Master - separate section 
@@ -91,14 +108,14 @@ return [
         // Tasks - separate section placed below Worklog
         [
             'key' => 'admin_tasks',
-            'title' => 'Tasks',
+            'title' => 'Tasks & Reminders',
             'icon' => 'bi bi-list-task',
             'feature_flag' => 'is_worklog_enabled',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'all-tasks.index', 'title' => 'All Tasks', 'icon' => 'bi bi-card-list', 'permission' => 'task.view'],
-                ['route' => 'task.index', 'title' => 'Task', 'icon' => 'bi bi-list-task', 'permission' => 'task.my_created'],
-                ['route' => 'my-tasks.index', 'title' => 'My Tasks', 'icon' => 'bi bi-person-check', 'permission' => 'task.my_tasks'],
+                ['route' => 'task.index', 'title' => 'Task', 'tooltip' => 'Task assign by me', 'icon' => 'bi bi-list-task', 'permission' => 'task.my_created'],
+                ['route' => 'my-tasks.index', 'title' => 'My Tasks', 'tooltip' => 'Task assign to me', 'icon' => 'bi bi-person-check', 'permission' => 'task.my_tasks'],
             ],
         ],
         // Admin gets full attendance access when attendance is enabled
@@ -109,8 +126,9 @@ return [
             'feature_flag' => 'is_attendance_enabled',
             'roles' => ['admin'],
             'items' => [
-                ['route' => 'attendance', 'title' => 'Attendance', 'icon' => 'bi bi-person-check', 'permission' => 'attendance.entry'],
+                ['route' => 'attendance', 'title' => 'Mark Attendance', 'icon' => 'bi bi-person-check', 'permission' => 'attendance.entry'],
                 ['route' => 'attendance.history', 'title' => 'Attendance History', 'icon' => 'bi bi-journal-text', 'permission' => 'attendance.history'],
+                ['route' => 'leave.index', 'title' => 'Leave', 'icon' => 'bi bi-calendar-minus', 'permission' => 'worklog.leave'],
             ],
         ],
         // Reports section
@@ -123,7 +141,7 @@ return [
             'items' => [
                 // ['route' => 'attendance.stats-view', 'title' => 'Attendance Stats', 'icon' => 'bi bi-bar-chart', 'permission' => 'attendance.stats'],
                 ['route' => 'attendance.report', 'title' => 'Attendance Report', 'icon' => 'bi bi-file-earmark-text', 'permission' => 'attendance.report'],
-                ['route' => 'reports.worklog', 'title' => 'Worklog Report', 'icon' => 'bi bi-journals'],
+                ['route' => 'reports.worklog', 'title' => 'Timesheet Report', 'icon' => 'bi bi-journals'],
                 ['route' => 'reports.user-worklog', 'title' => 'User-wise Report', 'icon' => 'bi bi-person-lines-fill'],
             ],
         ],
@@ -143,12 +161,11 @@ return [
         [
             'key' => 'petty_cash_section',
             'title' => 'Petty Cash',
+            'route' => 'petty-cash.index',
             'icon' => 'bi bi-cash-stack',
             'feature_flag' => 'is_petty_cash_enable',
             'roles' => ['admin'],
-            'items' => [
-                ['route' => 'petty-cash.index', 'title' => 'Cash', 'icon' => 'bi bi-currency-dollar', 'permission' => 'petty_cash.view'],
-            ],
+            'permission' => 'petty_cash.view',
         ],
         // Approvals section
         [
@@ -159,6 +176,7 @@ return [
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'approvals.petty', 'title' => 'Petty Approval', 'icon' => 'bi bi-cash', 'permission' => 'approvals.petty'],
+                ['route' => 'worklog-approvals', 'title' => 'Timesheet Approvals', 'icon' => 'bi bi-check2-square', 'permission' => 'worklog.approvals'],
             ],
         ],
                 // Software Setup - Consolidated Setup Section
