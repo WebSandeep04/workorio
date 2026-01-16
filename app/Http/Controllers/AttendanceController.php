@@ -1292,6 +1292,164 @@ class AttendanceController extends Controller
         ]);
     }
 
+    public function getMonthlyReportData(Request $request): JsonResponse
+    {
+        $request->validate([
+            'month' => 'required|date_format:Y-m'
+        ]);
+
+        $month = $request->month;
+        $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
+
+        // Generate all dates in the month
+        $dates = [];
+        $curr = $startDate->copy();
+        while ($curr->lte($endDate)) {
+            $dates[] = [
+                'date' => $curr->format('Y-m-d'),
+                'day' => $curr->format('d'),
+                'day_name' => $curr->format('D'), // Mon, Tue
+                'is_sunday' => $curr->dayOfWeek === Carbon::SUNDAY
+            ];
+            $curr->addDay();
+        }
+
+        // Get all users
+        $users = User::orderBy('name')->get(); 
+
+        // Get all attendance for the month
+        $allAttendances = Attendance::with(['movements' => function($query) {
+                $query->orderBy('time');
+            }])
+            ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->get()
+            ->groupBy('user_id');
+
+        // Get holidays
+        $holidaysData = Holiday::whereBetween('holiday_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->get()
+            ->keyBy(function($item) {
+                return $item->holiday_date->format('Y-m-d');
+            });
+        $holidays = $holidaysData->keys()->toArray();
+
+        // Get all leaves
+        $allLeaves = Leave::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->get()
+            ->groupBy('user_id');
+
+        $reportData = [];
+
+        foreach ($users as $user) {
+            $userAttendances = $allAttendances->get($user->id, collect());
+            // Key by date for easy lookup - Ensure we use Y-m-d format
+            $attendancesByDate = $userAttendances->keyBy(function($item) {
+                return \Carbon\Carbon::parse($item->date)->format('Y-m-d');
+            });
+
+            $userLeaves = $allLeaves->get($user->id, collect())
+                ->pluck('date')
+                ->map(function($date) {
+                    return $date->format('Y-m-d');
+                })
+                ->unique()
+                ->toArray(); // Just array of leave dates
+            
+            $dailyStatuses = [];
+            
+            foreach ($dates as $d) {
+                $dateStr = $d['date'];
+                $statusCode = '-';
+                $statusClass = '';
+                
+                // Priority Logic:
+                // 1. Attendance (Present/Half Day)
+                // 2. Holiday (if no attendance)
+                // 3. Sunday (if no attendance)
+                // 4. Leave (if no attendance and on working day)
+                // 5. Absent
+                
+                if (isset($attendancesByDate[$dateStr])) {
+                    $att = $attendancesByDate[$dateStr];
+                    $hours = $this->calculateHours($att->movements);
+                    
+                    // Check if it was a Holiday/Sunday working
+                    if ($d['is_sunday'] || in_array($dateStr, $holidays)) {
+                        $statusCode = 'H/W'; // Holiday Working
+                        $statusClass = 'text-info fw-bold';
+                    } else {
+                        // Normal Working Day
+                        if ($hours >= 7) {
+                            $statusCode = 'P'; // Present
+                            $statusClass = 'text-success fw-bold';
+                        } elseif ($hours >= 4) {
+                            $statusCode = 'P2'; // Half Day
+                            $statusClass = 'text-warning fw-bold';
+                        } else {
+                            $statusCode = 'P'; // Falling back to P if punched in but low hours (or could be absent)
+                            $statusClass = 'text-success'; 
+                        }
+                    }
+
+                } elseif (in_array($dateStr, $holidays)) {
+                    $statusCode = 'H'; // Holiday
+                    $statusClass = 'text-secondary';
+                } elseif ($d['is_sunday']) {
+                    $statusCode = 'S'; // Sunday
+                    $statusClass = 'text-danger small';
+                } elseif (in_array($dateStr, $userLeaves)) {
+                    $statusCode = 'L'; // Leave
+                    $statusClass = 'text-warning';
+                } else {
+                    $statusCode = 'A'; // Absent
+                    $statusClass = 'text-danger fw-bold';
+                }
+                
+                $dailyStatuses[] = [
+                    'date' => $dateStr,
+                    'code' => $statusCode,
+                    'class' => $statusClass
+                ];
+            }
+
+            // Calculate summary (keep existing logic for summary columns if needed, or remove if user only wants grid)
+            // User asked for "status of each user each day" AND "left side users".
+            // I will keep the summary calculation as it's useful context, but the MAIN thing is the daily grid.
+            // Actually, for performance, I can simplify summary here or just reuse the existing calc.
+            // Let's reuse existing calc for accurate summary numbers alongside the grid.
+            
+            // Re-format leaves for the summary function
+             $userLeavesSummary = $allLeaves->get($user->id, collect())
+                ->pluck('date')
+                ->map(function($date) { return $date->format('Y-m-d'); })
+                ->unique()
+                ->values()
+                ->toArray();
+
+            $summary = $this->calculateMonthlySummary($userAttendances, $startDate, $endDate, $holidays, $userLeavesSummary);
+
+            $reportData[] = [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name
+                ],
+                'summary' => $summary,
+                'daily_statuses' => $dailyStatuses
+            ];
+        }
+
+        return response()->json([
+            'month' => [
+                'display' => $startDate->format('F Y'),
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
+                'dates' => $dates // Send dates for table header
+            ],
+            'data' => $reportData
+        ]);
+    }
+
     private function calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves)
     {
         $totalWorkingDays = 0;

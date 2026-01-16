@@ -166,6 +166,8 @@
     position: sticky; top: 0; z-index: 5; white-space: nowrap; font-family: Montserrat;
   }
   .data-table-card .custom-table thead th:last-child { border-right: none; }
+  
+  .sticky-col { position: sticky !important; }
 
   .data-table-card .custom-table tbody td {
     font-size: 0.85rem; padding: 0.65rem 0.75rem; color: #0f172a;
@@ -190,130 +192,211 @@
       font-size: 0.75rem;
   }
   .btn-view-details:hover { background-color: #3538d4; color: white; }
+  .btn-view-details:hover { background-color: #3538d4; color: white; }
+
+  /* Tab Styles */
+  .nav-tabs { border-bottom: 2px solid #e2e8f0; }
+  .nav-tabs .nav-link { 
+      border: none; 
+      color: #64748b; 
+      font-weight: 600; 
+      padding: 0.75rem 1.5rem;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+  }
+  .nav-tabs .nav-link:hover { color: #434afa; border-color: transparent; }
+  .nav-tabs .nav-link.active { 
+      color: #434afa; 
+      border-bottom: 2px solid #434afa; 
+      background: transparent;
+  }
+  .nav-tabs .nav-link i { font-size: 1.1em; }
 </style>
 @endpush
 
 <div class="container-fluid px-2 mt-2">
 
-    <!-- Filters -->
-    <div class="filter-bar">
-        <div class="filter-group">
-            <label class="filter-label">User</label>
-            <select id="user_id" class="form-select-custom">
-                @foreach($users as $u)
-                    <option value="{{ $u->id }}">{{ $u->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="filter-group">
-            <label class="filter-label">Month</label>
-            <input type="month" id="month" class="form-control-custom" value="{{ now()->format('Y-m') }}">
-        </div>
-        <button type="button" id="loadReport" class="btn-load">
-            <i class="bi bi-play-circle me-1"></i> Load Report
-        </button>
-    </div>
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="user-tab" data-bs-toggle="tab" data-bs-target="#user-tab-pane" type="button" role="tab" aria-controls="user-tab-pane" aria-selected="true">
+                <i class="bi bi-person me-1"></i> User Wise
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly-tab-pane" type="button" role="tab" aria-controls="monthly-tab-pane" aria-selected="false">
+                <i class="bi bi-calendar3 me-1"></i> Monthly Summary
+            </button>
+        </li>
+    </ul>
 
-    <!-- Summary Cards -->
-    <div id="reportSummary" class="summary-cards" style="display:none;">
-        <div class="summary-card">
-            <div class="summary-card-icon icon-blue">
-                <i class="bi bi-calendar-check"></i>
+    <div class="tab-content" id="reportTabsContent">
+        
+        <!-- User Wise Tab -->
+        <div class="tab-pane fade show active" id="user-tab-pane" role="tabpanel" aria-labelledby="user-tab" tabindex="0">
+            <!-- Filters -->
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label">User</label>
+                    <select id="user_id" class="form-select-custom">
+                        @foreach($users as $u)
+                            <option value="{{ $u->id }}">{{ $u->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Month</label>
+                    <input type="month" id="month" class="form-control-custom" value="{{ now()->format('Y-m') }}">
+                </div>
+                <button type="button" id="loadReport" class="btn-load">
+                    <i class="bi bi-play-circle me-1"></i> Load Report
+                </button>
             </div>
-            <div class="summary-card-content">
-                <div class="summary-card-label">Total Working Days</div>
-                <div class="summary-card-value" id="sumWorkingDays">0</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-icon icon-green">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="summary-card-content">
-                <div class="summary-card-label">Total Present</div>
-                <div class="summary-card-value" id="sumPresent">0</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-icon icon-orange">
-                <i class="bi bi-x-circle"></i>
-            </div>
-            <div class="summary-card-content">
-                <div class="summary-card-label">Total Absent</div>
-                <div class="summary-card-value" id="sumAbsent">0</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-icon icon-purple">
-                <i class="bi bi-circle-half"></i>
-            </div>
-            <div class="summary-card-content">
-                <div class="summary-card-label">Total Halfday</div>
-                <div class="summary-card-value" id="sumHalfday">0</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-icon icon-red">
-                <i class="bi bi-calendar-x"></i>
-            </div>
-            <div class="summary-card-content">
-                <div class="summary-card-label">Total Leave</div>
-                <div class="summary-card-value" id="sumLeave">0</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-icon icon-teal">
-                <i class="bi bi-calendar-check-fill"></i>
-            </div>
-            <div class="summary-card-content">
-                <div class="summary-card-label">Holiday Working</div>
-                <div class="summary-card-value" id="sumHolidayWorking">0</div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Table Card -->
-    <div class="modern-card data-table-card" id="dailyTableCard" style="display:none;">
-        <div class="modern-card-body">
-            <div class="table-scroll">
-                <table class="table custom-table" id="dailyTable">
-                    <thead>
-                        <tr>
-                            <th style="min-width:140px;">Date</th>
-                            <th>Status</th>
-                            <th>First In</th>
-                            <th>Last Out</th>
-                            <th>Total (H:MM)</th>
-                            <th>Office</th>
-                            <th>Field</th>
-                            <th>Break</th>
-                            <th>Late Reason</th>
-                            <th class="text-center">Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Data loaded via JS -->
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="4" class="text-end">TOTAL</td>
-                            <td id="ftTotal"></td>
-                            <td id="ftOffice"></td>
-                            <td id="ftField"></td>
-                            <td id="ftBreak"></td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
+            <!-- Summary Cards -->
+            <div id="reportSummary" class="summary-cards" style="display:none;">
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-blue">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Working Days</div>
+                        <div class="summary-card-value" id="sumWorkingDays">0</div>
+                    </div>
+                </div>
+                <!-- ... other cards ... -->
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-green">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Present</div>
+                        <div class="summary-card-value" id="sumPresent">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-orange">
+                        <i class="bi bi-x-circle"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Absent</div>
+                        <div class="summary-card-value" id="sumAbsent">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-purple">
+                        <i class="bi bi-circle-half"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Halfday</div>
+                        <div class="summary-card-value" id="sumHalfday">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-red">
+                        <i class="bi bi-calendar-x"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Leave</div>
+                        <div class="summary-card-value" id="sumLeave">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-teal">
+                        <i class="bi bi-calendar-check-fill"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Holiday Working</div>
+                        <div class="summary-card-value" id="sumHolidayWorking">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="modern-card data-table-card" id="dailyTableCard" style="display:none;">
+                <div class="modern-card-body">
+                    <div class="table-scroll">
+                        <table class="table custom-table" id="dailyTable">
+                            <thead>
+                                <tr>
+                                    <th style="min-width:140px;">Date</th>
+                                    <th>Status</th>
+                                    <th>First In</th>
+                                    <th>Last Out</th>
+                                    <th>Total (H:MM)</th>
+                                    <th>Office</th>
+                                    <th>Field</th>
+                                    <th>Break</th>
+                                    <th>Late Reason</th>
+                                    <th class="text-center">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data loaded via JS -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="text-end">TOTAL</td>
+                                    <td id="ftTotal"></td>
+                                    <td id="ftOffice"></td>
+                                    <td id="ftField"></td>
+                                    <td id="ftBreak"></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Monthly Tab -->
+        <div class="tab-pane fade" id="monthly-tab-pane" role="tabpanel" aria-labelledby="monthly-tab" tabindex="0">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label">Month</label>
+                    <input type="month" id="monthly_month" class="form-control-custom" value="{{ now()->format('Y-m') }}">
+                </div>
+                <button type="button" id="loadMonthlyReport" class="btn-load">
+                    <i class="bi bi-play-circle me-1"></i> Load Summary
+                </button>
+            </div>
+
+            <div class="modern-card data-table-card" id="monthlyTableCard" style="display:none;">
+                <div class="modern-card-body">
+                    <div class="table-scroll">
+                        <table class="table custom-table" id="monthlyTable">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Total Work Days</th>
+                                    <th>Present</th>
+                                    <th>Absent</th>
+                                    <th>Half Day</th>
+                                    <th>Leave</th>
+                                    <th>Sunday/Holiday Work</th>
+                                    <th>Total Hours</th>
+                                    <th>Avg Hrs/Day</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loadReport').addEventListener('click', loadReport);
+    document.getElementById('loadMonthlyReport').addEventListener('click', loadMonthlySummary);
 });
 
 function loadReport(){
@@ -391,6 +474,80 @@ function loadReport(){
         },
         error: function(xhr){
             tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">Failed to load report. Please try again.</td></tr>';
+            console.error(xhr.responseText);
+        }
+    });
+}
+function loadMonthlySummary(){
+    const month = document.getElementById('monthly_month').value;
+    const thead = document.querySelector('#monthlyTable thead');
+    const tbody = document.querySelector('#monthlyTable tbody');
+    const tableCard = document.getElementById('monthlyTableCard');
+    
+    if(!month) return;
+
+    tableCard.style.display = 'block';
+    
+    // Show loading state
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading summary matrix...</td></tr>';
+    
+    $.ajax({
+        url: '/attendance/monthly-report-data',
+        method: 'POST',
+        data: { month: month, _token: '{{ csrf_token() }}' },
+        success: function(res){
+            // 1. Build Header
+            let headerRow = '<tr><th class="sticky-col" style="min-width:150px; background:#fff; left:0; z-index:10; border-right:2px solid #f1f3f5;">User</th>';
+            headerRow += '<th style="min-width:60px;">Present</th><th style="min-width:60px;">Absent</th>'; // Brief summary
+            
+            if(res.month && res.month.dates){
+                res.month.dates.forEach(d => {
+                    const isSunday = d.is_sunday;
+                    const style = isSunday ? 'color:red; background:#fff0f0;' : '';
+                    headerRow += `<th class="text-center" style="min-width:35px; ${style}">
+                        <div style="font-size:0.7em;">${d.day}</div>
+                        <div style="font-size:0.6em;">${d.day_name}</div>
+                    </th>`;
+                });
+            }
+            headerRow += '</tr>';
+            thead.innerHTML = headerRow;
+
+            // 2. Build Body
+            tbody.innerHTML = '';
+            
+            if(res.data && res.data.length > 0) {
+                res.data.forEach(function(item){
+                    const s = item.summary;
+                    const tr = document.createElement('tr');
+                    
+                    let rowHtml = `<td class="sticky-col fw-bold text-dark" style="background:#fff; left:0; z-index:5; border-right:2px solid #f1f3f5;">${item.user.name}</td>`;
+                    
+                    // Brief Summary Columns
+                    rowHtml += `<td class="text-success fw-bold">${s.total_present + s.total_halfday}</td>`;
+                    rowHtml += `<td class="text-danger fw-bold">${s.days_absent}</td>`;
+                    
+                    // Daily Statuses
+                    if(item.daily_statuses){
+                        item.daily_statuses.forEach(dayStat => {
+                             let bgStyle = '';
+                             if(dayStat.code === 'S' || dayStat.code === 'H') bgStyle = 'background-color:#f8f9fa;'; 
+                             
+                             rowHtml += `<td class="text-center ${dayStat.class}" style="${bgStyle} font-size:0.85rem;">
+                                ${dayStat.code}
+                             </td>`;
+                        });
+                    }
+                    
+                    tr.innerHTML = rowHtml;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                 tbody.innerHTML = '<tr><td colspan="35" class="text-center py-4 text-muted">No data found for this month.</td></tr>';
+            }
+        },
+        error: function(xhr){
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load summary. Please try again.</td></tr>';
             console.error(xhr.responseText);
         }
     });
