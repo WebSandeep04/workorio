@@ -22,7 +22,7 @@
         <img src="/img/logo.png" alt="Logo" style="height: 40px;" class="me-2">
     </div>
     <div>
-        <span class="me-3" style="font-weight:600">Don't have an account?</span><a href="{{ url('/register') }}" class="btn singupbtn">Sign Up</a>
+        <span class="me-3" style="font-weight:600">Don't have an account?</span><a href="<?php echo e(url('/register')); ?>" class="btn singupbtn">Sign Up</a>
     </div>
 </header>
 
@@ -30,33 +30,42 @@
     <div class="login-card">
         <h3 class="text-center mb-4">Verify OTP</h3>
         <p class="text-center text-muted mb-4">
-            We've sent a 6-digit OTP to <strong>{{ session('reset_email') }}</strong><br>
+            We've sent a 6-digit OTP to <strong><?php echo e(session('reset_email')); ?></strong><br>
             Enter the code below to reset your password.
         </p>
 
-        @if(session('success'))
+        <?php if(session('success')): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
+                <?php echo e(session('success')); ?>
+
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        @endif
+        <?php endif; ?>
 
-        @if(session('error'))
+        <?php if(session('error')): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ session('error') }}
+                <?php echo e(session('error')); ?>
+
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        @endif
+        <?php endif; ?>
 
-        <form method="POST" action="{{ url('/verify-otp') }}">
-            @csrf
-            <input type="hidden" name="email" value="{{ session('reset_email') }}">
+        <form method="POST" action="<?php echo e(url('/verify-otp')); ?>">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="email" value="<?php echo e(session('reset_email')); ?>">
 
             <div class="mb-4">
                 <label for="otp" class="form-label">Enter OTP Code</label>
                 <input
                     type="text"
-                    class="form-control @error('otp') is-invalid @enderror text-center"
+                    class="form-control <?php $__errorArgs = ['otp'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?> text-center"
                     id="otp"
                     name="otp"
                     placeholder="000000"
@@ -66,11 +75,19 @@
                     autofocus
                     style="font-size: 24px; letter-spacing: 8px;"
                 />
-                @error('otp')
+                <?php $__errorArgs = ['otp'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
                     <div class="invalid-feedback">
-                        {{ $message }}
+                        <?php echo e($message); ?>
+
                     </div>
-                @enderror
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 <div class="form-text text-center">
                     <small>Enter the 6-digit code sent to your email</small>
                 </div>
@@ -81,13 +98,13 @@
             </button>
 
             <div class="text-center mb-3">
-                <a href="{{ url('/forgot-password') }}" class="text-decoration-none">
+                <a href="<?php echo e(url('/forgot-password')); ?>" class="text-decoration-none">
                     <i class="bi bi-arrow-left me-1"></i>Back to Forgot Password
                 </a>
             </div>
 
             <div class="text-center">
-                <a href="{{ url('/login') }}" class="text-decoration-none">
+                <a href="<?php echo e(url('/login')); ?>" class="text-decoration-none">
                     <i class="bi bi-house me-1"></i>Back to Login
                 </a>
             </div>
@@ -139,3 +156,4 @@ document.querySelector('form').addEventListener('submit', function(e) {
 </script>
 </body>
 </html>
+<?php /**PATH D:\laravel\leadmanagement (akrati ui work)\resources\views/auth/verify-otp.blade.php ENDPATH**/ ?>

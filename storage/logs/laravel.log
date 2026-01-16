@@ -4689,3 +4689,14 @@
 [2026-01-16 05:07:15] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-01-16 05:07:15] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
 [2026-01-16 05:07:15] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-16 05:32:26] local.INFO: sendOtp: Generated OTP 417032 for email sandeep@triserv360.com in tenant 1 on connection tenant_1  
+[2026-01-16 05:32:41] local.INFO: verifyOtp: Attempting verification for sandeep@triserv360.com with OTP 417032  
+[2026-01-16 05:32:41] local.INFO: verifyOtp: Session tenant_id: 1  
+[2026-01-16 05:32:41] local.INFO: verifyOtp: Current DB connection: tenant_1  
+[2026-01-16 05:32:41] local.INFO: verifyOtp: Query Result: Found  
+[2026-01-16 05:32:41] local.INFO: verifyOtp: Expiry check - Expires at: 2026-01-16 05:42:21, Now: 2026-01-16 05:32:41, Is Past: No  
+[2026-01-16 05:33:20] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-01-16 05:33:20] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-16 05:33:20] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-16 05:33:20] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-01-16 05:33:20] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

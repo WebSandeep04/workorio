@@ -101,30 +101,39 @@ public function showRegisterForm(){
     public function sendOtp(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email'
-        ], [
-            'email.exists' => 'No account found with this email address.'
+            'email' => 'required|email'
         ]);
 
-        $user = User::where('email', $request->email)->first();
-        
-        if (!$user) {
+        // Find user across all tenants
+        $foundUser = $this->findUserByEmailInTenants($request->email);
+
+        if (!$foundUser) {
             return back()->withErrors(['email' => 'No account found with this email address.']);
         }
 
+        $user = $foundUser['user'];
+        $tenantId = $foundUser['tenant_id'];
+
         try {
+            // Set connection to the found tenant
+            TenantDatabaseService::setDefaultConnection((int)$tenantId);
+
             // Create OTP
             $otp = PasswordResetOtp::createOtp($request->email);
             
             // Send OTP email
             Mail::to($request->email)->send(new PasswordResetOtpMail($otp->otp, $user->name));
             
-            // Store email in session for next step
+            // Store email and tenant_id in session for next step
             session(['reset_email' => $request->email]);
+            session(['reset_tenant_id' => $tenantId]);
             
+            \Log::info("sendOtp: Generated OTP {$otp->otp} for email {$request->email} in tenant {$tenantId} on connection " . DB::getDefaultConnection());
+
             return redirect('/verify-otp')->with('success', 'OTP has been sent to your email address.');
             
         } catch (\Exception $e) {
+            \Log::error('Send OTP failed', ['error' => $e->getMessage()]);
             return back()->withErrors(['email' => 'Failed to send OTP. Please try again.']);
         }
     }
@@ -147,10 +156,32 @@ public function showRegisterForm(){
             'otp' => 'required|string|size:6'
         ]);
 
+        // Check if already verified in session (prevent double submission error)
+        if (session('verified_otp') === $request->otp) {
+            \Log::info("verifyOtp: OTP already verified in session, redirecting.");
+            return redirect('/reset-password');
+        }
+
+        $tenantId = session('reset_tenant_id');
+        
+        \Log::info("verifyOtp: Attempting verification for {$request->email} with OTP {$request->otp}");
+        \Log::info("verifyOtp: Session tenant_id: " . ($tenantId ?? 'NULL'));
+
+        if ($tenantId) {
+             TenantDatabaseService::setDefaultConnection((int)$tenantId);
+        }
+        
+        \Log::info("verifyOtp: Current DB connection: " . DB::getDefaultConnection());
+
         $otp = PasswordResetOtp::where('email', $request->email)
             ->where('otp', $request->otp)
             ->where('used', false)
             ->first();
+
+        \Log::info("verifyOtp: Query Result: " . ($otp ? 'Found' : 'Not Found'));
+        if ($otp) {
+             \Log::info("verifyOtp: Expiry check - Expires at: {$otp->expires_at}, Now: " . now() . ", Is Past: " . ($otp->expires_at->isPast() ? 'Yes' : 'No'));
+        }
 
         if (!$otp || $otp->isExpired()) {
             return back()->withErrors(['otp' => 'Invalid or expired OTP. Please request a new one.']);
@@ -188,6 +219,11 @@ public function showRegisterForm(){
             'password' => 'required|string|min:6|confirmed'
         ]);
 
+        $tenantId = session('reset_tenant_id');
+        if ($tenantId) {
+             TenantDatabaseService::setDefaultConnection((int)$tenantId);
+        }
+
         // Verify OTP again for security
         $otp = PasswordResetOtp::where('email', $request->email)
             ->where('otp', $request->otp)
@@ -205,7 +241,7 @@ public function showRegisterForm(){
         ]);
 
         // Clear session data
-        session()->forget(['reset_email', 'verified_otp', 'user_name']);
+        session()->forget(['reset_email', 'verified_otp', 'user_name', 'reset_tenant_id']);
 
         return redirect('/login')->with('success', 'Password reset successfully! Please login with your new password.');
     }
@@ -264,7 +300,7 @@ public function showRegisterForm(){
     }
 
     /**
-     * Get tenant ID from email
+     * Get tenant ID from email (helper)
      */
     private function getTenantIdFromEmail($email)
     {
@@ -296,4 +332,41 @@ public function showRegisterForm(){
         return null;
     }
 
+    /**
+     * Find user by email across all tenants
+     */
+    private function findUserByEmailInTenants($email)
+    {
+        // Get all tenants from master database
+        DB::setDefaultConnection('mysql');
+        $tenants = Tenant::all();
+        
+        foreach ($tenants as $tenant) {
+            try {
+                // Create tenant connection if it doesn't exist
+                if (!TenantDatabaseService::connectionExists($tenant->id)) {
+                    TenantDatabaseService::createConnection($tenant);
+                }
+                
+                // Set tenant connection
+                TenantDatabaseService::setDefaultConnection($tenant->id);
+                
+                // Try to find user in this tenant database
+                $user = User::where('email', $email)->first();
+                
+                if ($user) {
+                    return [
+                        'user' => $user,
+                        'tenant_id' => $tenant->id
+                    ];
+                }
+            } catch (\Exception $e) {
+                // Continue to next tenant if this one fails
+                \Log::warning('AuthController@findUserByEmailInTenants tenant check failed', ['tenant_id' => $tenant->id, 'error' => $e->getMessage()]);
+                continue;
+            }
+        }
+        
+        return null;
+    }
 }
