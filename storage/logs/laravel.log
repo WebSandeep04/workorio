@@ -4589,3 +4589,20 @@
 [2026-01-15 07:12:49] local.INFO: Middleware: No X-Tenant-ID header found  
 [2026-01-15 07:12:49] local.INFO: Middleware: Switching to tenant: 1  
 [2026-01-15 07:12:49] local.INFO: Middleware: Switched default connection to: tenant_1  
+[2026-01-15 09:16:56] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-01-15 09:16:56] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-15 09:16:56] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-15 09:16:56] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-15 09:16:56] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-15 12:27:50] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"field"} 
+[2026-01-15 12:27:51] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":830,"movement_id":1920} 
+[2026-01-15 12:28:32] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-01-15 12:28:32] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":830,"movement_id":1922} 
+[2026-01-15 15:24:24] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-01-15 15:24:25] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":830,"movement_id":1927} 
+[2026-01-15 15:24:31] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"field"} 
+[2026-01-15 15:24:31] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":830,"movement_id":1929} 
+[2026-01-15 15:24:49] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-01-15 15:24:49] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":830,"movement_id":1933} 
+[2026-01-15 15:36:21] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-01-15 15:36:21] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":830,"movement_id":1936} 
