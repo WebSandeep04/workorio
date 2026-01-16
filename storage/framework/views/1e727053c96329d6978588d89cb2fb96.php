@@ -56,6 +56,7 @@
             <tr>
               <th>Status</th>
               <th>Prospect</th>
+              <th>Remark</th>
               <th>Lead</th>
               <th>Contact Person</th>
               <th>Contact No.</th>
@@ -68,7 +69,6 @@
               <th>Source</th>
               <th>Product</th>
               <th>Ticket</th>
-              <th>Remark</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -91,6 +91,8 @@
 <div class="mt-2 d-flex justify-content-center">
   <ul class="pagination" id="paginationsearchLinks"></ul>
 </div>
+
+<?php echo $__env->make('partials.remarks-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <?php $__env->stopSection(); ?>
 
@@ -499,15 +501,15 @@ function loadData(page = 1) {
 
       data.forEach(item => {
         const rawRemark = item.latest_remark || '';
-        const displayRemark = rawRemark.length > 12 ? rawRemark.substring(0, 12) + '...' : rawRemark;
-        const remark = rawRemark
-          ? `<a href="/remark?sales_record_id=${item.id}" class="text-decoration-underline text-primary" title="${rawRemark}">${displayRemark}</a>`
-          : '-';
+        const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
+        const fullRemark = rawRemark.replace(/"/g, '&quot;');
+
 
         tbody.append(`
           <tr>
             <td>${item.status_name ?? '-'}</td>
             <td>${item.prospectus_name ?? '-'}</td>
+            <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
             <td>${item.leads_name ?? '-'}</td>
             <td>${item.contact_person ?? '-'}</td>
             <td>${item.contact_number ?? '-'}</td>
@@ -520,7 +522,6 @@ function loadData(page = 1) {
             <td>${item.source_name ?? '-'}</td>
             <td>${item.product_name ?? '-'}</td>
             <td>${item.ticket_value ?? '-'}</td>
-            <td>${remark}</td>
           </tr>
         `);
       });
@@ -607,13 +608,14 @@ function loadSearchData(page = 1) {
       } else {
         data.forEach((item) => {
           const rawRemark = item.last_remark || ''; 
-          const displayRemark = rawRemark.length > 12 ? rawRemark.substring(0, 12) + '...' : rawRemark;
-          const remark = rawRemark ? `<a href="#" title="${rawRemark}">${displayRemark}</a>` : '-';
+          const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
+          const fullRemark = rawRemark.replace(/"/g, '&quot;');
           
           tbody.append(`
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
+              <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
@@ -626,7 +628,6 @@ function loadSearchData(page = 1) {
               <td>${item.source_name ?? '-'}</td>
               <td>${item.product_name ?? '-'}</td>
               <td>${item.ticket_value ?? '-'}</td>
-              <td>${remark}</td>
             </tr>
           `);
         });
@@ -665,12 +666,13 @@ function loadFilteredFollowups(page = 1) {
       } else {
         data.forEach(function (item) {
           const rawRemark = item.last_remark || item.latest_remark || '';
-          const displayRemark = rawRemark.length > 12 ? rawRemark.substring(0, 12) + '...' : rawRemark;
-           const remark = rawRemark ? `<a href="#" title="${rawRemark}">${displayRemark}</a>` : '-';
+          const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
+          const fullRemark = rawRemark.replace(/"/g, '&quot;');
           tbody.append(`
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
+              <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
@@ -683,7 +685,6 @@ function loadFilteredFollowups(page = 1) {
               <td>${item.source_name ?? '-'}</td>
               <td>${item.product_name ?? '-'}</td>
               <td>${item.ticket_value ?? '-'}</td>
-              <td>${remark}</td>
             </tr>
           `);
         });

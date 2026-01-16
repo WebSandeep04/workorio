@@ -2,42 +2,75 @@
 <div class="modal fade" id="remarksModal" tabindex="-1" aria-labelledby="remarksModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(to right, #6a11cb, #2575fc); color: white;">
-                <h5 class="modal-title" id="remarksModalLabel">Lead Details & Remarks</h5>
+            <div class="modal-header" style="background-color: #434AFA; color: white; border-bottom: none;">
+                <h5 class="modal-title" id="remarksModalLabel" style="font-size: 1rem; font-weight: 700;">Lead Details & Remarks</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div class="d-flex">
-                    <!-- First Part: Lead Details (5 columns) -->
-                    <div class="col-5 pe-3">
-                        <div class="card h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                            <div class="card-header">
-                                <h6 class="mb-0">Lead Information</h6>
-                            </div>
-                            <div class="card-body">
-                                <p><strong>Lead Name:</strong> <span id="modalLeadName">-</span></p>
-                                <p><strong>Contact Person:</strong> <span id="modalContactPerson">-</span></p>
-                                <p><strong>Contact Number:</strong> <span id="modalContactNumber">-</span></p>
-                                <p><strong>Email:</strong> <span id="modalEmail">-</span></p>
-                                <p><strong>State:</strong> <span id="modalState">-</span></p>
-                                <p><strong>City:</strong> <span id="modalCity">-</span></p>
-                                <p><strong>Product:</strong> <span id="modalProduct">-</span></p>
-                                <p><strong>Business Type:</strong> <span id="modalBusiness">-</span></p>
-                                <p><strong>Status:</strong> <span id="modalStatus">-</span></p>
-                                <p><strong>Ticket Value:</strong> <span id="modalTicketValue">-</span></p>
-                                <p><strong>Next Follow-up:</strong> <span id="modalNextFollowUp">-</span></p>
+            <div class="modal-body p-0">
+                <div class="container-fluid p-0">
+                    <div class="row g-0">
+                        <!-- Left Part: Lead Details -->
+                        <div class="col-12 col-lg-5 bg-primary-custom" style="background-color: white !important;">
+                            <div class="p-3 h-100">
+                                <h6 class="fw-bold mb-3 border-bottom pb-2" style="color: #434AFA; border-color: #dee2e6 !important;">Lead Information</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-borderless lead-info-table mb-0">
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">Lead Name:</th>
+                                                <td id="modalLeadName">-</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Contact Person:</th>
+                                                <td id="modalContactPerson">-</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Contact Number:</th>
+                                                <td id="modalContactNumber">-</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Email:</th>
+                                                <td id="modalEmail">-</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">State:</th>
+                                                <td id="modalState">-</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">City:</th>
+                                                <td id="modalCity">-</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Product:</th>
+                                                <td id="modalProduct">-</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Business Type:</th>
+                                                <td id="modalBusiness">-</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Status:</th>
+                                                <td id="modalStatus">-</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Ticket Value:</th>
+                                                <td id="modalTicketValue">-</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">Next Follow-up:</th>
+                                                <td id="modalNextFollowUp">-</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- Second Part: Remarks (7 columns) -->
-                    <div class="col-7 ps-3">
-                        <div class="card h-100">
-                            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                                <h6 class="mb-0">Remarks History</h6>
-                            </div>
-                            <div class="card-body">
-                                <div id="remarksList" style="height: 400px; overflow-y: auto;">
+                        
+                        <!-- Right Part: Remarks -->
+                        <div class="col-12 col-lg-7 bg-light">
+                            <div class="p-3 h-100">
+                                <h6 class="fw-bold mb-3 text-primary-custom border-bottom pb-2">Remarks History</h6>
+                                <div id="remarksList" style="height: 400px; overflow-y: auto; padding-right: 5px;">
                                     <!-- Remarks will be loaded here -->
                                 </div>
                             </div>
@@ -45,8 +78,8 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -54,96 +87,72 @@
 
 <style>
 /* Modal Styles */
+.table-responsive{
+    padding: 15px !important;
+    border-left: 4px solid #434AFA;
+}
 .modal-xl {
-    max-width: 95%;
+    max-width: 90%;
 }
 
 .modal-content {
-    border-radius: 15px;
+    border-radius: 12px;
     border: none;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
 }
 
 .modal-header {
-    border-radius: 15px 15px 0 0;
-    border-bottom: none;
+    border-radius: 0;
 }
 
-.modal-footer {
-    border-radius: 0 0 15px 15px;
-    border-top: none;
+.bg-primary-custom {
+    background-color: #f8f9fa !important;
 }
 
-/* Flex layout for side-by-side sections */
-.modal-body .d-flex {
-    gap: 0;
-}
-
-.modal-body .col-5 {
-    flex: 0 0 41.666667%;
-    max-width: 41.666667%;
-}
-
-.modal-body .col-7 {
-    flex: 0 0 58.333333%;
-    max-width: 58.333333%;
-}
-
-/* Card styling */
-.modal-body .card {
-    border: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.modal-body .card.h-100 {
-    height: 100% !important;
+.text-primary-custom {
+    color: #434AFA !important;
 }
 
 /* Scrollbar styling */
 #remarksList {
     scrollbar-width: thin;
-    scrollbar-color: #667eea #f8f9fa;
+    scrollbar-color: #434AFA #e9ecef;
 }
 
 #remarksList::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 #remarksList::-webkit-scrollbar-track {
-    background: #f8f9fa;
-    border-radius: 4px;
+    background: #e9ecef;
+    border-radius: 3px;
 }
 
 #remarksList::-webkit-scrollbar-thumb {
-    background-color: #667eea;
-    border-radius: 4px;
+    background-color: #434AFA;
+    border-radius: 3px;
 }
 
-.card-body p {
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
+.lead-info-table th {
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #495057;
+    padding: 0.25rem 0.5rem 0.25rem 0;
+    width: 35%;
+    vertical-align: top;
 }
 
-.card-body p strong {
-    color: rgba(255, 255, 255, 0.9);
+.lead-info-table td {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #212529;
+    padding: 0.25rem 0;
+    vertical-align: top;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .modal-body .d-flex {
-        flex-direction: column;
-    }
-    
-    .modal-body .col-5,
-    .modal-body .col-7 {
-        flex: 0 0 100%;
-        max-width: 100%;
-        margin-bottom: 1rem;
-    }
-    
-    .modal-body .col-5 {
-        margin-bottom: 1rem;
-    }
+.border-white-50 {
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 </style>
 
@@ -184,7 +193,7 @@ window.showRemarksModal = function(salesRecordId) {
             if (response.remarks && response.remarks.length > 0) {
                 response.remarks.forEach(function(remark) {
                     remarksHtml += `
-                        <div class="card mb-3" style="border-left: 4px solid #667eea;">
+                        <div class="card mb-3" style="border-left: 4px solid #434AFA;">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">

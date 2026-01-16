@@ -36,6 +36,7 @@
             <tr>
               <th>Status</th>
               <th>Prospect</th>
+              <th>Remark</th>
               <th>Lead</th>
               <th>Contact Person</th>
               <th>Contact No.</th>
@@ -48,7 +49,6 @@
               <th>Source</th>
               <th>Product</th>
               <th>Ticket</th>
-              <th>Remark</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -473,6 +473,7 @@ function loadFollowups(page = 1) {
           <tr>
             <td>${item.status_name ?? '-'}</td>
             <td>${item.prospectus_name ?? '-'}</td>
+            <td>${remark}</td>
             <td>${item.leads_name ?? '-'}</td>
             <td>${item.contact_person ?? '-'}</td>
             <td>${item.contact_number ?? '-'}</td>
@@ -485,7 +486,6 @@ function loadFollowups(page = 1) {
             <td>${item.source_name ?? '-'}</td>
             <td>${item.product_name ?? '-'}</td>
             <td>${item.ticket_value ?? '-'}</td>
-            <td>${remark}</td>
           </tr>
         `);
       });
@@ -610,6 +610,7 @@ $('#followupSearch').on('keyup', function () {
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
+              <td>${displayRemark ?? '-'}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
@@ -622,7 +623,6 @@ $('#followupSearch').on('keyup', function () {
               <td>${item.source_name ?? '-'}</td>
               <td>${item.product_name ?? '-'}</td>
               <td>${item.ticket_value ?? '-'}</td>
-              <td>${displayRemark ?? '-'}</td>
             </tr>
           `);
         });
@@ -666,6 +666,7 @@ function loadFilteredFollowups(page = 1) {
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
+              <td>${remark}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
@@ -678,7 +679,6 @@ function loadFilteredFollowups(page = 1) {
               <td>${item.source_name ?? '-'}</td>
               <td>${item.product_name ?? '-'}</td>
               <td>${item.ticket_value ?? '-'}</td>
-              <td>${remark}</td>
             </tr>
           `);
         });

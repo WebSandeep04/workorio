@@ -9,20 +9,46 @@
     <!-- Lead Details -->
     <div class="col-md-3 d-flex">
       <div class="card shadow-sm w-100 h-100">
-        <div class="card-header text-white py-2 px-3" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
+        <div class="card-header text-white py-2 px-3" style="background-color: #434afa;">
           <strong>Lead Details</strong>
         </div>
         @if($record)
         @php $first = $record; @endphp
-        <div class="card-body p-3 small text-light" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
-          <p><strong>Lead:</strong> {{ $first->leads_name ?? '--' }}</p>
-          <p><strong>Contact Person:</strong> {{ $first->contact_person ?? '--' }}</p>
-          <p><strong>Contact No:</strong> {{ $first->contact_number ?? '--' }}</p>
-          <p><strong>Email:</strong> {{ $first->email ?? '--' }}</p>
-          <p><strong>State:</strong> {{ $first->state->state_name ?? '--' }}</p>
-          <p><strong>City:</strong> {{ $first->city->city_name ?? '--' }}</p>
-          <p><strong>Product:</strong> {{ $first->product->product_name ?? '--' }}</p>
-          <p><strong>Business Type:</strong> {{ $first->businessType->business_name ?? '--' }}</p>
+        <div class="card-body p-3 small text-light" style="background-color: #434afa;">
+          <div class="d-flex flex-column gap-2">
+            <div class="row g-0">
+              <div class="col-5">Lead:</div>
+              <div class="col-7 fw-bold">{{ $first->leads_name ?? '--' }}</div>
+            </div>
+            <div class="row g-0">
+              <div class="col-5">Contact Person:</div>
+              <div class="col-7 fw-bold">{{ $first->contact_person ?? '--' }}</div>
+            </div>
+            <div class="row g-0">
+              <div class="col-5">Contact No:</div>
+              <div class="col-7 fw-bold">{{ $first->contact_number ?? '--' }}</div>
+            </div>
+            <div class="row g-0">
+              <div class="col-5">Email:</div>
+              <div class="col-7 fw-bold text-break">{{ $first->email ?? '--' }}</div>
+            </div>
+            <div class="row g-0">
+              <div class="col-5">State:</div>
+              <div class="col-7 fw-bold">{{ $first->state->state_name ?? '--' }}</div>
+            </div>
+            <div class="row g-0">
+              <div class="col-5">City:</div>
+              <div class="col-7 fw-bold">{{ $first->city->city_name ?? '--' }}</div>
+            </div>
+            <div class="row g-0">
+              <div class="col-5">Product:</div>
+              <div class="col-7 fw-bold">{{ $first->product->product_name ?? '--' }}</div>
+            </div>
+            <div class="row g-0">
+              <div class="col-5">Business Type:</div>
+              <div class="col-7 fw-bold">{{ $first->businessType->business_name ?? '--' }}</div>
+            </div>
+          </div>
 
           <div id="latestQuoteBox" class="lq-box lq-inline" style="display:none;">
             <span class="lq-label me-1">Latest Quote</span>
@@ -41,7 +67,7 @@
           <input type="hidden" id="lq_entity_id" value="{{ $first->customer_id ?? $first->prospectus_id }}">
         </div>
         @endif
-        <div class="text-center pb-3 mt-auto" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
+        <div class="text-center pb-3 mt-auto" style="background-color: #434afa;">
           <button type="button" class="btn btn-sm btn-warning w-75" onclick="openEditProspectModal()">Edit</button>
         </div>
       </div>
@@ -50,10 +76,10 @@
     <!-- Remark Form -->
     <div class="col-md-4 d-flex">
       <div class="card shadow-sm w-100 h-100">
-        <div class="card-header text-white py-2 px-3" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
+        <div class="card-header text-white py-2 px-3" style="background-color: #434afa;">
           <strong>Add/Edit Remark</strong>
         </div>
-        <div class="card-body p-3 d-flex flex-column text-white" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
+        <div class="card-body p-3 d-flex flex-column text-white" style="background-color: #434afa;">
           <form id="remarkForm" class="flex-grow-1 d-flex flex-column">
             <input type="hidden" name="sales_record_id" id="sales_record_id" value="{{ $record->id }}">
             <input type="hidden" name="remark_id" id="remark_id" value="">
@@ -96,10 +122,10 @@
     <!-- Previous Remarks -->
     <div class="col-md-5 d-flex">
       <div class="card shadow-sm w-100 h-100">
-        <div class="card-header text-white py-2 px-3" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
+        <div class="card-header text-white py-2 px-3" style="background-color: #434afa;">
           <strong>Previous Remarks</strong>
         </div>
-       <div class="card-body p-3 overflow-auto" style="max-height: 500px; background: linear-gradient(to right, #6a11cb, #2575fc);" id="remarkList">
+       <div class="card-body p-3 overflow-auto" style="max-height: 500px; background-color: #434afa;" id="remarkList">
 
           <ul class="list-group small" id="remarkList">
             @php $allRemarks = $record->remarks()->orderBy('remark_date','desc')->get(); @endphp
@@ -193,7 +219,7 @@
       </div>
 
       <!-- Footer -->
-      <div class="modal-footer justify-content-center" style="background: linear-gradient(135deg, #1e3c72, #2a5298)">
+      <div class="modal-footer justify-content-center" style="background-color: #434afa;">
         <button type="submit" onclick="updateProspect(event)" class="btn btn-warning fw-bold" form="editProspectusForm">Update Prospectus</button>
       </div>
 

@@ -22,7 +22,7 @@
         <img src="/img/logoblack.png" alt="Logo" style="height: 40px;" class="me-2">
     </div>
     <div>
-        <span class="me-3" style="font-weight:600">Don't have an account?</span><a href="{{ url('/register') }}" class="btn singupbtn">Sign Up</a>
+        <span class="me-3" style="font-weight:600">Don't have an account?</span><a href="<?php echo e(url('/register')); ?>" class="btn singupbtn">Sign Up</a>
     </div>
 </header>
 
@@ -31,40 +31,57 @@
         <h3 class="text-center mb-4">Forgot Password</h3>
         <p class="text-center text-muted mb-4">Enter your email address and we'll send you an OTP to reset your password.</p>
 
-        @if(session('success'))
+        <?php if(session('success')): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
+                <?php echo e(session('success')); ?>
+
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        @endif
+        <?php endif; ?>
 
-        @if(session('error'))
+        <?php if(session('error')): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ session('error') }}
+                <?php echo e(session('error')); ?>
+
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        @endif
+        <?php endif; ?>
 
-        <form method="POST" action="{{ url('/forgot-password') }}">
-            @csrf
+        <form method="POST" action="<?php echo e(url('/forgot-password')); ?>">
+            <?php echo csrf_field(); ?>
 
             <div class="mb-3">
                 <label for="email" class="form-label">Email address</label>
                 <input
                     type="email"
-                    class="form-control @error('email') is-invalid @enderror"
+                    class="form-control <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                     id="email"
                     name="email"
                     placeholder="Enter your email"
-                    value="{{ old('email') }}"
+                    value="<?php echo e(old('email')); ?>"
                     required
                     autofocus
                 />
-                @error('email')
+                <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
                     <div class="invalid-feedback">
-                        {{ $message }}
+                        <?php echo e($message); ?>
+
                     </div>
-                @enderror
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
             </div>
 
             <button type="submit" class="btn w-100 loginbtn d-block mx-auto mb-3">
@@ -72,7 +89,7 @@
             </button>
 
             <div class="text-center">
-                <a href="{{ url('/login') }}" class="text-decoration-none">
+                <a href="<?php echo e(url('/login')); ?>" class="text-decoration-none">
                     <i class="bi bi-arrow-left me-1"></i>Back to Login
                 </a>
             </div>
@@ -84,3 +101,4 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+<?php /**PATH D:\laravel\leadmanagement (akrati ui work)\resources\views/auth/forgot-password.blade.php ENDPATH**/ ?>

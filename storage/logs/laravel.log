@@ -4606,3 +4606,86 @@
 [2026-01-15 15:24:49] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":830,"movement_id":1933} 
 [2026-01-15 15:36:21] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
 [2026-01-15 15:36:21] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":830,"movement_id":1936} 
+[2026-01-16 03:46:39] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-01-16 03:46:39] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-16 03:46:39] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-16 03:46:39] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-16 03:46:39] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-16 03:47:50] local.INFO: getRemarks called with ID: 376  
+[2026-01-16 03:47:50] local.INFO: Sales record found: 376  
+[2026-01-16 03:47:50] local.INFO: Remarks count: 1  
+[2026-01-16 03:47:50] local.INFO: Returning response successfully  
+[2026-01-16 03:51:42] local.INFO: getRemarks called with ID: 370  
+[2026-01-16 03:51:42] local.INFO: Sales record found: 370  
+[2026-01-16 03:51:42] local.INFO: Remarks count: 1  
+[2026-01-16 03:51:42] local.INFO: Returning response successfully  
+[2026-01-16 03:52:50] local.INFO: getRemarks called with ID: 517  
+[2026-01-16 03:52:50] local.INFO: Sales record found: 517  
+[2026-01-16 03:52:50] local.INFO: Remarks count: 2  
+[2026-01-16 03:52:50] local.INFO: Returning response successfully  
+[2026-01-16 03:55:30] local.INFO: getRemarks called with ID: 370  
+[2026-01-16 03:55:30] local.INFO: Sales record found: 370  
+[2026-01-16 03:55:30] local.INFO: Remarks count: 1  
+[2026-01-16 03:55:30] local.INFO: Returning response successfully  
+[2026-01-16 03:57:14] local.INFO: getRemarks called with ID: 26  
+[2026-01-16 03:57:14] local.INFO: Sales record found: 26  
+[2026-01-16 03:57:14] local.INFO: Remarks count: 4  
+[2026-01-16 03:57:14] local.INFO: Returning response successfully  
+[2026-01-16 04:00:11] local.INFO: getRemarks called with ID: 5238  
+[2026-01-16 04:00:11] local.INFO: Sales record found: 5238  
+[2026-01-16 04:00:11] local.INFO: Remarks count: 3  
+[2026-01-16 04:00:11] local.INFO: Returning response successfully  
+[2026-01-16 04:02:13] local.INFO: getRemarks called with ID: 5363  
+[2026-01-16 04:02:13] local.INFO: Sales record found: 5363  
+[2026-01-16 04:02:13] local.INFO: Remarks count: 1  
+[2026-01-16 04:02:13] local.INFO: Returning response successfully  
+[2026-01-16 04:03:18] local.INFO: getRemarks called with ID: 5238  
+[2026-01-16 04:03:18] local.INFO: Sales record found: 5238  
+[2026-01-16 04:03:18] local.INFO: Remarks count: 3  
+[2026-01-16 04:03:18] local.INFO: Returning response successfully  
+[2026-01-16 04:03:42] local.INFO: getRemarks called with ID: 5363  
+[2026-01-16 04:03:42] local.INFO: Sales record found: 5363  
+[2026-01-16 04:03:42] local.INFO: Remarks count: 1  
+[2026-01-16 04:03:42] local.INFO: Returning response successfully  
+[2026-01-16 04:06:48] local.INFO: getRemarks called with ID: 82  
+[2026-01-16 04:06:48] local.INFO: Sales record found: 82  
+[2026-01-16 04:06:48] local.INFO: Remarks count: 2  
+[2026-01-16 04:06:48] local.INFO: Returning response successfully  
+[2026-01-16 04:08:41] local.INFO: getRemarks called with ID: 5238  
+[2026-01-16 04:08:41] local.INFO: Sales record found: 5238  
+[2026-01-16 04:08:41] local.INFO: Remarks count: 3  
+[2026-01-16 04:08:41] local.INFO: Returning response successfully  
+[2026-01-16 04:11:58] local.INFO: getRemarks called with ID: 26  
+[2026-01-16 04:11:58] local.INFO: Sales record found: 26  
+[2026-01-16 04:11:58] local.INFO: Remarks count: 4  
+[2026-01-16 04:11:58] local.INFO: Returning response successfully  
+[2026-01-16 04:13:39] local.INFO: getRemarks called with ID: 293  
+[2026-01-16 04:13:39] local.INFO: Sales record found: 293  
+[2026-01-16 04:13:39] local.INFO: Remarks count: 35  
+[2026-01-16 04:13:39] local.INFO: Returning response successfully  
+[2026-01-16 04:16:35] local.INFO: getRemarks called with ID: 5238  
+[2026-01-16 04:16:35] local.INFO: Sales record found: 5238  
+[2026-01-16 04:16:35] local.INFO: Remarks count: 3  
+[2026-01-16 04:16:35] local.INFO: Returning response successfully  
+[2026-01-16 04:26:19] local.INFO: getRemarks called with ID: 5230  
+[2026-01-16 04:26:19] local.INFO: Sales record found: 5230  
+[2026-01-16 04:26:19] local.INFO: Remarks count: 2  
+[2026-01-16 04:26:19] local.INFO: Returning response successfully  
+[2026-01-16 04:27:12] local.INFO: getRemarks called with ID: 26  
+[2026-01-16 04:27:12] local.INFO: Sales record found: 26  
+[2026-01-16 04:27:12] local.INFO: Remarks count: 4  
+[2026-01-16 04:27:12] local.INFO: Returning response successfully  
+[2026-01-16 04:27:39] local.INFO: getRemarks called with ID: 5250  
+[2026-01-16 04:27:39] local.INFO: Sales record found: 5250  
+[2026-01-16 04:27:39] local.INFO: Remarks count: 1  
+[2026-01-16 04:27:39] local.INFO: Returning response successfully  
+[2026-01-16 04:30:19] local.ERROR: AuthController@login start {"email":"fauzia@triserv360.com"} 
+[2026-01-16 04:30:19] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-16 04:30:19] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-16 04:30:19] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":11,"name":"Fauzia Praveen","email":"fauzia@triserv360.com","role_id":6,"tenant_id":1}} 
+[2026-01-16 04:30:19] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-16 05:07:15] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-01-16 05:07:15] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-16 05:07:15] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-16 05:07:15] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-16 05:07:15] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

@@ -4,6 +4,8 @@
 
 <?php $__env->startPush('styles'); ?>
 <style>
+
+
   .container-fluid {
     padding: 0.5rem;
     padding-right: 0.5rem;
