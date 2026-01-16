@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
+
 class CalendarController extends Controller
 {
     public function index()
@@ -226,6 +227,15 @@ class CalendarController extends Controller
             }
         }
 
+        // Fetch all missed reasons
+        $missedReasons = [];
+        if (Schema::hasTable('calendar_missed_reasons')) {
+            $missedReasons = DB::table('calendar_missed_reasons')
+                ->where('is_active', 1)
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        }
+
         // Fetch all calendar statuses
         $statuses = [];
         if (Schema::hasTable('calendar_statuses')) {
@@ -277,7 +287,8 @@ class CalendarController extends Controller
             'client_statuses' => $clientStatuses,
             'client_missed_reasons' => $clientMissedReasons,
             'client_descriptions' => $clientDescriptions,
-            'checked_checklist_options' => $checkedChecklistOptions
+            'checked_checklist_options' => $checkedChecklistOptions,
+            'missed_reasons' => $missedReasons
         ]);
     }
 

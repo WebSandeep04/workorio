@@ -169,6 +169,7 @@
             window.currentCheckedChecklistOptions = checkedChecklistOptions;
             window.currentClientMissedReasons = clientMissedReasons;
             window.currentClientDescriptions = clientDescriptions;
+            window.availableMissedReasons = resp.missed_reasons || [];
             
             let blocks = '';
             if (clients.length === 0){
@@ -281,33 +282,29 @@
 
         // Check if status is "missed" - show missed reasons
         if (statusName === 'missed') {
-            // Fetch missed reasons
-            $.get("{{ route('calendar-missed-reasons.fetch') }}").done(function(missedReasons){
-                if (!missedReasons || missedReasons.length === 0) {
-                    $missedReasonContainer.hide().html('');
-                } else {
-                    let missedReasonHtml = '<div class="checklist-card mt-2">';
-                    missedReasonHtml += '<div class="checklist-title"><i class="bi bi-calendar-x"></i> Select Missed Reason</div>';
-                    missedReasonHtml += '<div class="checklist-scroll">';
-                    
-                    const currentMissedReasonId = window.currentClientMissedReasons && window.currentClientMissedReasons[clientId] ? window.currentClientMissedReasons[clientId] : null;
-                    
-                    missedReasons.forEach(function(reason){
-                        const reasonId = `missed_reason_${clientId}_${reason.id}`;
-                        const checked = (currentMissedReasonId && currentMissedReasonId == reason.id) ? 'checked' : '';
-                        missedReasonHtml += `<div class="form-check">\
-                            <input class="form-check-input date-missed-reason" type="radio" name="missed_reason_${clientId}" id="${reasonId}" value="${reason.id}" data-client-id="${clientId}" data-reason-id="${reason.id}" ${checked}>\
-                            <label class="form-check-label" for="${reasonId}">${escapeHtml(reason.name)}</label>\
-                        </div>`;
-                    });
-                    
-                    missedReasonHtml += '</div>';
-                    missedReasonHtml += '</div>';
-                    $missedReasonContainer.html(missedReasonHtml).show();
-                }
-            }).fail(function(){
+            const missedReasons = window.availableMissedReasons || [];
+            if (missedReasons.length === 0) {
                 $missedReasonContainer.hide().html('');
-            });
+            } else {
+                let missedReasonHtml = '<div class="checklist-card mt-2">';
+                missedReasonHtml += '<div class="checklist-title"><i class="bi bi-calendar-x"></i> Select Missed Reason</div>';
+                missedReasonHtml += '<div class="checklist-scroll">';
+                
+                const currentMissedReasonId = window.currentClientMissedReasons && window.currentClientMissedReasons[clientId] ? window.currentClientMissedReasons[clientId] : null;
+                
+                missedReasons.forEach(function(reason){
+                    const reasonId = `missed_reason_${clientId}_${reason.id}`;
+                    const checked = (currentMissedReasonId && currentMissedReasonId == reason.id) ? 'checked' : '';
+                    missedReasonHtml += `<div class="form-check">\
+                        <input class="form-check-input date-missed-reason" type="radio" name="missed_reason_${clientId}" id="${reasonId}" value="${reason.id}" data-client-id="${clientId}" data-reason-id="${reason.id}" ${checked}>\
+                        <label class="form-check-label" for="${reasonId}">${escapeHtml(reason.name)}</label>\
+                    </div>`;
+                });
+                
+                missedReasonHtml += '</div>';
+                missedReasonHtml += '</div>';
+                $missedReasonContainer.html(missedReasonHtml).show();
+            }
         } else {
             $missedReasonContainer.hide().html('');
         }

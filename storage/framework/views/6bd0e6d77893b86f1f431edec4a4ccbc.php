@@ -69,7 +69,6 @@
               <th>Source</th>
               <th>Product</th>
               <th>Ticket</th>
-              <th>Remark</th>
             </tr>
           </thead>
           <tbody></tbody>
