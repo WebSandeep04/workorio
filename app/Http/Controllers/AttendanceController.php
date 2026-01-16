@@ -1306,11 +1306,15 @@ class AttendanceController extends Controller
         $totalLeaves = 0; // Count all leaves for summary display
         $presentDays = 0; // Days with >= 7 hours
         $halfDays = 0; // Days with >= 4 hours but < 7 hours
+        $totalSundays = 0;
+        $totalHolidaysWorked = 0;
         
         // Calculate total working days (excluding Sundays and holidays)
         $currentDate = $startDate->copy();
         while ($currentDate->lte($endDate)) {
-            if ($currentDate->dayOfWeek !== Carbon::SUNDAY && !in_array($currentDate->format('Y-m-d'), $holidays)) {
+            if ($currentDate->dayOfWeek === Carbon::SUNDAY) {
+                $totalSundays++;
+            } elseif (!in_array($currentDate->format('Y-m-d'), $holidays)) {
                 $totalWorkingDays++;
             }
             $currentDate->addDay();
@@ -1330,6 +1334,11 @@ class AttendanceController extends Controller
             if (in_array($dateStr, $holidays)) {
                 // If user has attendance on a holiday, mark it (don't count as leave)
                 $holidaysWithAttendance[] = $dateStr;
+            }
+            
+            // Count total holidays worked (Sunday OR Holiday with attendance)
+            if ($attendanceDate->dayOfWeek === Carbon::SUNDAY || in_array($dateStr, $holidays)) {
+                $totalHolidaysWorked++;
             }
             
             // Only count attendance on working days (not Sundays or holidays) for work stats
@@ -1427,6 +1436,10 @@ class AttendanceController extends Controller
             'days_absent' => $daysAbsent,
             'days_on_leave' => $totalLeaves, // Show total leaves count (all leaves) for summary display
             'attendance_percentage' => $attendancePercentage,
+            'total_present' => $presentDays,
+            'total_halfday' => $halfDays,
+            'total_sundays' => $totalSundays,
+            'total_holidays_worked' => $totalHolidaysWorked,
             'total_hours' => round($totalHours, 2),
             'total_office_hours' => round($totalOfficeHours, 2),
             'total_field_hours' => round($totalFieldHours, 2),

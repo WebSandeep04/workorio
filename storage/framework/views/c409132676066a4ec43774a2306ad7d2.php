@@ -48,6 +48,8 @@
   .icon-green { background: linear-gradient(135deg, #10b981, #34d399); }
   .icon-purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
   .icon-orange { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+  .icon-red { background: linear-gradient(135deg, #ef4444, #f87171); }
+  .icon-teal { background: linear-gradient(135deg, #0d9488, #2dd4bf); }
 
   .summary-card-content { flex-grow: 1; }
   .summary-card-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #64748b; font-family: Montserrat; }
@@ -219,35 +221,53 @@
                 <i class="bi bi-calendar-check"></i>
             </div>
             <div class="summary-card-content">
-                <div class="summary-card-label">Working Days</div>
+                <div class="summary-card-label">Total Working Days</div>
                 <div class="summary-card-value" id="sumWorkingDays">0</div>
             </div>
         </div>
         <div class="summary-card">
             <div class="summary-card-icon icon-green">
-                <i class="bi bi-briefcase"></i>
+                <i class="bi bi-check-circle"></i>
             </div>
             <div class="summary-card-content">
-                <div class="summary-card-label">Days Worked</div>
-                <div class="summary-card-value" id="sumDaysWorked">0</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-icon icon-purple">
-                <i class="bi bi-percent"></i>
-            </div>
-            <div class="summary-card-content">
-                <div class="summary-card-label">Attendance %</div>
-                <div class="summary-card-value" id="sumAttendancePct">0%</div>
+                <div class="summary-card-label">Total Present</div>
+                <div class="summary-card-value" id="sumPresent">0</div>
             </div>
         </div>
         <div class="summary-card">
             <div class="summary-card-icon icon-orange">
-                <i class="bi bi-clock-history"></i>
+                <i class="bi bi-x-circle"></i>
             </div>
             <div class="summary-card-content">
-                <div class="summary-card-label">Total Hours</div>
-                <div class="summary-card-value" id="sumTotalHours">0:00</div>
+                <div class="summary-card-label">Total Absent</div>
+                <div class="summary-card-value" id="sumAbsent">0</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-icon icon-purple">
+                <i class="bi bi-circle-half"></i>
+            </div>
+            <div class="summary-card-content">
+                <div class="summary-card-label">Total Halfday</div>
+                <div class="summary-card-value" id="sumHalfday">0</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-icon icon-red">
+                <i class="bi bi-calendar-x"></i>
+            </div>
+            <div class="summary-card-content">
+                <div class="summary-card-label">Total Leave</div>
+                <div class="summary-card-value" id="sumLeave">0</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-icon icon-teal">
+                <i class="bi bi-calendar-check-fill"></i>
+            </div>
+            <div class="summary-card-content">
+                <div class="summary-card-label">Holiday Working</div>
+                <div class="summary-card-value" id="sumHolidayWorking">0</div>
             </div>
         </div>
     </div>
@@ -317,9 +337,11 @@ function loadReport(){
         success: function(res){
             const s = res.summary;
             document.getElementById('sumWorkingDays').textContent = s.total_working_days;
-            document.getElementById('sumDaysWorked').innerHTML = `${s.days_worked} <small class="text-muted fw-normal fs-7 ms-1">(Leave ${s.days_on_leave}, Abs ${s.days_absent})</small>`;
-            document.getElementById('sumAttendancePct').textContent = s.attendance_percentage + '%';
-            document.getElementById('sumTotalHours').textContent = hoursClock(s.total_hours);
+            document.getElementById('sumPresent').textContent = s.total_present;
+            document.getElementById('sumAbsent').textContent = s.days_absent;
+            document.getElementById('sumHalfday').textContent = s.total_halfday;
+            document.getElementById('sumLeave').textContent = s.days_on_leave;
+            document.getElementById('sumHolidayWorking').textContent = s.total_holidays_worked;
             summaryDiv.style.display = 'grid';
             
             tbody.innerHTML = '';
