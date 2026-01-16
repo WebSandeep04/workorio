@@ -22,7 +22,8 @@ class WorklogReportController extends Controller
         }
         
         $customers = Customer::select('id', 'name')->orderBy('name')->get();
-        return view('worklog.report', compact('customers'));
+        $users = \App\Models\User::select('id','name')->orderBy('name')->get();
+        return view('worklog.report', compact('customers', 'users'));
     }
 
     /**
