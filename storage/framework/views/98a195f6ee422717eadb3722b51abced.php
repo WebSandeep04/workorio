@@ -9,7 +9,7 @@
         </button>
         <div class="sidebar-header">
             <div class="sidebar-logo">
-                <img src="<?php echo e(asset('img/logoblack.png')); ?>" alt="Triserv Logo" class="brand-logo">
+                <img src="<?php echo e(asset('img/logoformenu.svg')); ?>" alt="Triserv Logo" class="brand-logo">
             </div>
         </div>
 

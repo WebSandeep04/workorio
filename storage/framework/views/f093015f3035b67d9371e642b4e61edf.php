@@ -1,11 +1,35 @@
-<!-- Mobile Menu Button -->
-<div class="mobile-menu-button d-md-none">
-    <button class="mobile-toggle-btn" type="button" id="mobileMenuToggle" aria-label="Toggle navigation">
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
-        <span class="hamburger-line"></span>
+<!-- Mobile Header Bar -->
+<div class="mobile-header-bar d-md-none">
+    <div class="mobile-menu-button">
+        <button class="mobile-toggle-btn" type="button" id="mobileMenuToggle" aria-label="Toggle navigation">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
         </button>
     </div>
+    
+    <div class="mobile-header-logo">
+        <img src="<?php echo e(asset('img/logoformenu.svg')); ?>" alt="Workorio Logo">
+    </div>
+    
+    <!-- Mobile Notification Bell in Header -->
+    <div id="mobile-notification-bell" style="position: relative;">
+        <button id="mobile-bell-btn" class="btn btn-sm text-dark p-1" title="Notifications" style="background: transparent; border: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-bell" style="font-size: 1.25rem;"></i>
+            <span id="mobile-notification-count" style="position: absolute; top: 5px; right: 5px; background: #ff4444; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: none; align-items: center; justify-content: center;">0</span>
+        </button>
+        <div id="mobile-notification-dropdown" style="position: absolute; top: 50px; right: 0; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 300px; max-height: 300px; display: none; z-index: 1100; overflow: hidden;">
+            <div style="padding: 10px 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold; font-size: 14px; color: #333;">Notifications</span>
+                <div>
+                    <button id="mobile-mark-all-read-btn" class="btn btn-sm btn-link p-0 me-2" style="font-size: 11px; text-decoration: none;" title="Mark all as read">Mark all read</button>
+                    <button id="mobile-clear-all-btn" class="btn btn-sm btn-link p-0 text-danger" style="font-size: 11px; text-decoration: none;" title="Clear all">Clear all</button>
+                </div>
+            </div>
+            <div id="mobile-notification-list" style="max-height: 240px; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
 
 <!-- Mobile Sidebar Overlay -->
 <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
@@ -16,23 +40,6 @@
         <div class="d-flex justify-content-between align-items-center">
             <img src="<?php echo e(asset('img/logoblack.png')); ?>" alt="Triserv Logo" class="img-fluid" style="max-height: 30px;">
             <div class="d-flex align-items-center">
-                <!-- Mobile Notification Bell -->
-                <div id="mobile-notification-bell" class="me-3" style="position: relative;">
-                    <button id="mobile-bell-btn" class="btn btn-sm text-dark p-1" title="Notifications" style="background: rgba(0,0,0,0.1); border: none; border-radius: 4px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin-left: 10px;">
-                        🔔
-                        <span id="mobile-notification-count" style="position: absolute; top: -2px; right: -2px; background: #ff4444; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: none; align-items: center; justify-content: center;">0</span>
-                    </button>
-                    <div id="mobile-notification-dropdown" style="position: absolute; top: 40px; right: 0; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 300px; max-height: 300px; display: none; z-index: 1000; overflow: hidden;">
-                        <div style="padding: 10px 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: bold; font-size: 14px; color: #333;">Notifications</span>
-                            <div>
-                                <button id="mobile-mark-all-read-btn" class="btn btn-sm btn-link p-0 me-2" style="font-size: 11px; text-decoration: none;" title="Mark all as read">Mark all read</button>
-                                <button id="mobile-clear-all-btn" class="btn btn-sm btn-link p-0 text-danger" style="font-size: 11px; text-decoration: none;" title="Clear all">Clear all</button>
-                            </div>
-                        </div>
-                        <div id="mobile-notification-list" style="max-height: 240px; overflow-y: auto;"></div>
-                    </div>
-                </div>
                 <button class="btn-close-mobile" id="closeMobileSidebar">
                     <i class="bi bi-x-lg"></i>
                 </button>
@@ -129,12 +136,40 @@
 </div>
 
 <style>
-/* Mobile Menu Button Styles */
-.mobile-menu-button {
+/* Mobile Header Bar */
+.mobile-header-bar {
     position: fixed;
-    top: 15px;
-    left: 15px;
-    z-index: 1060;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    z-index: 1045;
+}
+
+.mobile-header-logo img {
+    height: 28px;
+    max-width: 150px;
+    object-fit: contain;
+}
+
+/* Push content down on mobile */
+@media (max-width: 768px) {
+    .main {
+        padding-top: 75px !important;
+    }
+}
+
+/* Mobile Menu Button Styles - Adapted for Header */
+.mobile-menu-button {
+    /* Previously fixed, now static/relative within flex container */
+    position: relative;
+    z-index: auto;
     transition: opacity 0.3s ease;
 }
 
