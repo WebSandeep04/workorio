@@ -176,6 +176,31 @@ Fetch user's attendance records with summary stats.
   }
   ```
 
+### 6. Active Employees Birthdays
+Fetch list of all active employees with their names and dates of birth.
+
+- **Endpoint**: `GET /api/employees/birthdays`
+- **Headers**: Same as other requests (`Authorization`, `X-Tenant-ID`)
+- **Response**:
+  ```json
+  {
+      "success": true,
+      "count": 10,
+      "data": [
+          {
+              "name": "Alice Smith",
+              "dob": "1992-05-15",
+              "employee_code": "EMP001"
+          },
+          {
+              "name": "Bob Jones",
+              "dob": "1988-11-23",
+              "employee_code": "EMP042"
+          }
+      ]
+  }
+  ```
+
 ---
 
 ## 5. UI Implementation Checklist

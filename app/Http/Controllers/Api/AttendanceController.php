@@ -772,9 +772,6 @@ class AttendanceController extends Controller
     /**
      * Calculate duration in minutes from movements
      */
-    /**
-     * Calculate duration in minutes from movements
-     */
     private function calculateDuration($movements): int
     {
         $totalMinutes = 0;
