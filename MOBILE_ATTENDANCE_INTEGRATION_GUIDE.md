@@ -144,6 +144,38 @@ There is no "late" or "task" check for breaks, but you cannot start a break if o
 - **End Break**: `POST /api/attendance/break/end`
 - **UI Rule**: When a Break is active (`status.break.can_end == true`), **Disable** Office and Field buttons. User *must* end the break first.
 
+### 5. Attendance History
+Fetch user's attendance records with summary stats.
+
+- **Endpoint**: `GET /api/attendance/history`
+- **Query Params**: `page`, `per_page`, `month`, `year`
+- **Response**:
+  ```json
+  {
+      "data": [
+          {
+              "id": 105,
+              "date": "2024-01-17",
+              "display_date": "Wed, Jan 17, 2024",
+              "status": "Present",
+              "punch_in": "09:00 AM",
+              "punch_out": "06:00 PM",
+              "field_in": "-",
+              "field_out": "-",
+              "total_office_time": "09:00 hrs",
+              "formatted_hours": {
+                  "office": "9h 00m",
+                  "field": "-",
+                  "total": "9h 00m"
+              },
+              "cycles": { "office": 1, "field": 0, "break": 1 }
+          }
+      ],
+      "current_page": 1,
+      "last_page": 5
+  }
+  ```
+
 ---
 
 ## 5. UI Implementation Checklist

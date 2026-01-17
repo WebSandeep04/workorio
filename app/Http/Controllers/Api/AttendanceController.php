@@ -667,6 +667,168 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Get attendance history with summary details
+     */
+    public function getHistory(Request $request): JsonResponse
+    {
+        $user = $this->getCurrentUser();
+        
+        $request->validate([
+            'month' => 'nullable|integer|min:1|max:12',
+            'year' => 'nullable|integer|min:2020',
+            'per_page' => 'nullable|integer|min:1|max:100'
+        ]);
+
+        $query = Attendance::with(['movements' => function ($q) {
+                $q->orderBy('time', 'asc');
+            }])
+            ->where('user_id', $user->id);
+
+        // Filter by Month/Year if provided, otherwise default to full history paginate
+        if ($request->has('month') && $request->has('year')) {
+            $startDate = Carbon::createFromDate($request->year, $request->month, 1)->startOfMonth();
+            $endDate = Carbon::createFromDate($request->year, $request->month, 1)->endOfMonth();
+            $query->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+        }
+
+        $attendances = $query->orderBy('date', 'desc')
+            ->paginate($request->input('per_page', 15));
+
+        $data = $attendances->getCollection()->map(function ($attendance) {
+            $movements = $attendance->movements;
+            
+            // Filter movements by type
+            $officeMovements = $movements->where('movement_type', 'office');
+            $fieldMovements = $movements->where('movement_type', 'field');
+            $breakMovements = $movements->where('movement_type', 'break');
+            
+            // Calculate Times (Sum of durations)
+            // Note: If columns start existing in DB, we can prefer them:
+            // $officeTime = $attendance->total_office_time ?? $this->calculateDuration($officeMovements);
+            $officeTime = $this->calculateDuration($officeMovements);
+            $fieldTime = $this->calculateDuration($fieldMovements);
+            $breakTime = $this->calculateDuration($breakMovements); 
+            
+            // Calculate Cycles
+            $cycles = [
+                'office' => $this->calculateCycles($officeMovements),
+                'field' => $this->calculateCycles($fieldMovements),
+                'break' => $this->calculateCycles($breakMovements),
+            ];
+            
+            // Determine Punch In / Out details
+            $firstPunchIn = $movements->whereIn('movement_type', ['office', 'field'])
+                ->where('movement_action', 'in')
+                ->sortBy('time')
+                ->first();
+                
+            $lastPunchOut = $movements->whereIn('movement_type', ['office', 'field'])
+                ->where('movement_action', 'out')
+                ->sortByDesc('time')
+                ->first();
+
+            $firstFieldIn = $fieldMovements->where('movement_action', 'in')->sortBy('time')->first();
+            $lastFieldOut = $fieldMovements->where('movement_action', 'out')->sortByDesc('time')->first();
+
+            // Status Logic
+            $status = 'Absent';
+            if ($firstPunchIn) {
+                $status = 'Present';
+                // Detect Late?
+                // if ($attendance->is_late) $status = 'Late'; 
+            }
+
+            return [
+                'id' => $attendance->id,
+                'date' => $attendance->date->format('Y-m-d'),
+                'display_date' => $attendance->date->format('D, M d, Y'),
+                'status' => $status,
+                'punch_in' => $firstPunchIn ? Carbon::parse($firstPunchIn->time)->timezone('Asia/Kolkata')->format('h:i A') : '-',
+                'punch_out' => $lastPunchOut ? Carbon::parse($lastPunchOut->time)->timezone('Asia/Kolkata')->format('h:i A') : '-',
+                'field_in' => $firstFieldIn ? Carbon::parse($firstFieldIn->time)->timezone('Asia/Kolkata')->format('h:i A') : '-',
+                'field_out' => $lastFieldOut ? Carbon::parse($lastFieldOut->time)->timezone('Asia/Kolkata')->format('h:i A') : '-',
+                'total_office_time' => $this->formatDuration($officeTime),
+                'total_field_time' => $this->formatDuration($fieldTime),
+                'total_break_time' => $this->formatDuration($breakTime),
+                'total_office_minutes' => $officeTime,
+                'total_field_minutes' => $fieldTime,
+                'total_break_minutes' => $breakTime,
+                'cycles' => $cycles,
+                'movements_count' => $movements->count(),
+                'formatted_hours' => [
+                   'office' => $this->formatHoursMinutes($officeTime),
+                   'field' => $this->formatHoursMinutes($fieldTime),
+                   'total' => $this->formatHoursMinutes($officeTime + $fieldTime)
+                ]
+            ];
+        });
+
+        // Set the transformed collection back to paginator
+        $attendances->setCollection($data);
+
+        return response()->json($attendances);
+    }
+    
+    /**
+     * Calculate duration in minutes from movements
+     */
+    /**
+     * Calculate duration in minutes from movements
+     */
+    private function calculateDuration($movements): int
+    {
+        $totalMinutes = 0;
+        $inTime = null;
+
+        foreach ($movements as $movement) {
+            // Force IST Timezone for calculation consistency
+            if ($movement->movement_action === 'in' || $movement->movement_action === 'start') {
+                $inTime = Carbon::parse($movement->time)->timezone('Asia/Kolkata');
+            } elseif (($movement->movement_action === 'out' || $movement->movement_action === 'end') && $inTime) {
+                $outTime = Carbon::parse($movement->time)->timezone('Asia/Kolkata');
+                // Use absolute difference to prevent negative values
+                $totalMinutes += abs($outTime->diffInMinutes($inTime));
+                $inTime = null;
+            }
+        }
+
+        // Handle active sessions
+        if ($inTime) {
+            $nowIst = Carbon::now('Asia/Kolkata');
+            
+            // Check if active session is essentially "today" (or just currently valid)
+            // We calculate duration up to now regardless of day boundary if it's considered an active shift.
+            // But strict logic: if inTime is today in IST.
+            if ($inTime->isSameDay($nowIst)) {
+                 $totalMinutes += abs($nowIst->diffInMinutes($inTime));
+            }
+        }
+
+        return $totalMinutes;
+    }
+
+    /**
+     * Format minutes to H:i format (e.g., "08:30" hrs)
+     */
+    private function formatDuration($minutes): string
+    {
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+        return sprintf('%02d:%02d hrs', $hours, $mins);
+    }
+
+    /**
+     * Format minutes to "Xh Ym" format
+     */
+    private function formatHoursMinutes($totalMinutes)
+    {
+        if ($totalMinutes <= 0) return '-';
+        $hours = floor($totalMinutes / 60);
+        $minutes = $totalMinutes % 60;
+        return sprintf('%dh %02dm', $hours, $minutes);
+    }
+
+    /**
      * Automatically punch out from field work when starting office work
      */
     private function autoPunchOutField($attendance): void

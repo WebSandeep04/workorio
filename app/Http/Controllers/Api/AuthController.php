@@ -83,13 +83,25 @@ class AuthController extends Controller
                     // Generate API Token
                     $token = $user->createToken('API Token')->plainTextToken;
                     
+                    // Load employee details with shift
+                    $employee = $user->employee()->with('shiftRelation')->first();
+                    
                     return [
                         'id' => $user->id,
                         'name' => $user->name,
                         'email' => $user->email,
                         'role_id' => $user->role_id,
                         'tenant_id' => $tenant->id,
-                        'token' => $token
+                        'token' => $token,
+                        'employee_details' => $employee ? [
+                            'date_of_birth' => $employee->date_of_birth,
+                            'shift' => $employee->shiftRelation ? [
+                                'id' => $employee->shiftRelation->id,
+                                'name' => $employee->shiftRelation->name,
+                                'start_time' => $employee->shiftRelation->start_time,
+                                'end_time' => $employee->shiftRelation->end_time,
+                            ] : null
+                        ] : null
                     ];
                 }
             } catch (\Exception $e) {
