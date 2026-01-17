@@ -28,6 +28,9 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     // Active Employees Birthdays
     Route::get('/employees/birthdays', [\App\Http\Controllers\Api\EmployeeController::class, 'getActiveEmployeesBirthdayList']);
 
+    // Upcoming Holidays
+    Route::get('/holidays/upcoming', [\App\Http\Controllers\Api\HolidayController::class, 'getUpcomingHolidays']);
+
     // Leave Routes
     Route::get('/leave', [\App\Http\Controllers\Api\LeaveController::class, 'index']);
     Route::post('/leave', [\App\Http\Controllers\Api\LeaveController::class, 'store']);

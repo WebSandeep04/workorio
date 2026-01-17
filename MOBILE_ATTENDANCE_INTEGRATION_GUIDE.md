@@ -201,6 +201,35 @@ Fetch list of all active employees with their names and dates of birth.
   }
   ```
 
+### 7. Upcoming Holidays
+Fetch list of all upcoming holidays for the current year.
+
+- **Endpoint**: `GET /api/holidays/upcoming`
+- **Headers**: Same as other requests (`Authorization`, `X-Tenant-ID`)
+- **Response**:
+  ```json
+  {
+      "success": true,
+      "count": 5,
+      "data": [
+          {
+              "id": 1,
+              "name": "Republic Day",
+              "date": "2026-01-26",
+              "day": "Monday",
+              "display_date": "Jan 26, 2026"
+          },
+          {
+              "id": 2,
+              "name": "Holi",
+              "date": "2026-03-04",
+              "day": "Wednesday",
+              "display_date": "Mar 04, 2026"
+          }
+      ]
+  }
+  ```
+
 ---
 
 ## 5. UI Implementation Checklist
