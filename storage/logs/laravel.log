@@ -988,3 +988,29 @@
 [2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
 [2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
 [2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 05:16:46] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-01-17 05:16:46] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-17 05:16:46] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":false,"is_login":1} 
+[2026-01-17 05:16:46] local.ERROR: AuthController@login user lookup result {"found":false,"data":null} 
+[2026-01-17 05:16:54] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-01-17 05:16:54] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-17 05:16:55] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-17 05:16:55] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-01-17 05:16:55] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-17 06:32:52] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-01-17 06:32:53] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-17 06:32:54] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-17 06:32:54] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-01-17 06:32:54] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-17 06:46:25] local.ERROR: AuthController@login start {"email":"areesha@triserv360.com"} 
+[2026-01-17 06:46:25] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-17 06:46:25] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-17 06:46:25] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":10,"name":"Areesha Kulsoom","email":"areesha@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-17 06:46:25] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-17 06:47:50] local.INFO: Report descriptions found {"date":"2025-12-19","descriptions":["Late punch-in: Other (requires brief explanation)"]} 
+[2026-01-17 06:47:50] local.INFO: Report descriptions found {"date":"2025-12-20","descriptions":["Late punch-in: Work-related reason (approved call / task)"]} 
+[2026-01-17 06:47:50] local.INFO: Report descriptions found {"date":"2025-12-22","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 06:47:50] local.INFO: Report descriptions found {"date":"2025-12-24","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 06:47:50] local.INFO: Report descriptions found {"date":"2025-12-26","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 06:47:50] local.INFO: Report descriptions found {"date":"2025-12-29","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 06:47:50] local.INFO: Report descriptions found {"date":"2025-12-30","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
