@@ -895,3 +895,96 @@
 [2026-01-16 15:45:27] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-01-16 15:45:27] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
 [2026-01-16 15:45:27] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-17 03:46:04] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-01-17 03:46:06] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-17 03:46:06] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-17 03:46:06] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-17 03:46:06] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-17 03:54:01] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 03:54:01] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
+[2026-01-17 03:54:01] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 03:54:01] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 03:54:01] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 03:54:01] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 03:54:01] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 03:54:01] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:04:12] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:04:12] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
+[2026-01-17 04:04:12] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:04:12] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:04:12] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:04:12] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:04:12] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:04:12] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:05:13] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:05:13] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
+[2026-01-17 04:05:13] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:05:13] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:05:13] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:05:13] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:05:13] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:05:13] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:06:41] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:06:41] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
+[2026-01-17 04:06:41] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:06:41] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:06:41] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:06:41] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:06:41] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:06:41] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:00] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:00] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
+[2026-01-17 04:10:00] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:00] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:01] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:10:01] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:01] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:01] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:10] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:10] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
+[2026-01-17 04:10:10] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:10] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:10] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:10:10] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:10] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:10] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:36] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:36] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
+[2026-01-17 04:10:36] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:36] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:36] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:10:36] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:36] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:10:36] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:13:20] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:13:20] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
+[2026-01-17 04:13:20] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:13:20] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:13:20] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:13:20] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:13:20] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:13:20] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:14:10] local.INFO: Report descriptions found {"date":"2025-12-19","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:14:10] local.INFO: Report descriptions found {"date":"2025-12-22","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:14:10] local.INFO: Report descriptions found {"date":"2025-12-23","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:14:10] local.INFO: Report descriptions found {"date":"2025-12-24","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:14:10] local.INFO: Report descriptions found {"date":"2025-12-25","descriptions":["Late punch-in: Other (requires brief explanation)"]} 
+[2026-01-17 04:14:10] local.INFO: Report descriptions found {"date":"2025-12-26","descriptions":["Late punch-in: Other (requires brief explanation)"]} 
+[2026-01-17 04:14:10] local.INFO: Report descriptions found {"date":"2025-12-29","descriptions":["Late punch-in: Health-related (self or dependent)"]} 
+[2026-01-17 04:14:10] local.INFO: Report descriptions found {"date":"2025-12-31","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:17:16] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:16] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
+[2026-01-17 04:17:16] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:16] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:16] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:17:16] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:16] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:16] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
+[2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-17 04:17:59] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 

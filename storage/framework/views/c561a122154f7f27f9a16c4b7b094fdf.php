@@ -462,9 +462,15 @@
 
   @media (max-width: 767px){
     .container-fluid{
-      margin-left: 20px;
+      padding-left: 0.5rem;
       padding-right: 0.5rem;
-      margin-right: 0;
+      margin-left: 0;
+    }
+
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
     }
 
     .data-table-card .custom-table tbody td {
@@ -472,11 +478,16 @@
     }
     
     .table-search {
-      flex-direction: column;
+      flex-direction: row;
+      gap: 0.5rem;
+    }
+    
+    .table-search-field {
+        width: 100%;
     }
     
     .table-search-btn {
-      width: 100%;
+      width: auto;
     }
   }
 </style>

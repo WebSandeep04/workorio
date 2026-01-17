@@ -1222,6 +1222,12 @@ class AttendanceController extends Controller
             'month' => 'required|date_format:Y-m'
         ]);
 
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return response()->json([
+                'message' => 'Cannot generate report for future months.'
+            ], 422);
+        }
+
         $userId = $request->user_id;
         $month = $request->month;
         
@@ -1298,6 +1304,12 @@ class AttendanceController extends Controller
             'month' => 'required|date_format:Y-m'
         ]);
 
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return response()->json([
+                'message' => 'Cannot generate report for future months.'
+            ], 422);
+        }
+
         $data = $this->_fetchMonthlyReportData($request->month);
 
         return response()->json($data);
@@ -1308,6 +1320,10 @@ class AttendanceController extends Controller
         $request->validate([
             'month' => 'required|date_format:Y-m'
         ]);
+
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return back()->with('error', 'Cannot generate report for future months.');
+        }
 
         $month = $request->month;
         $data = $this->_fetchMonthlyReportData($month);
@@ -1447,15 +1463,15 @@ class AttendanceController extends Controller
                     // Check if it was a Holiday/Sunday working
                     if ($d['is_sunday'] || in_array($dateStr, $holidays)) {
                         $statusCode = 'H/W'; // Holiday Working
-                        $statusClass = 'text-info fw-bold';
+                        $statusClass = 'text-info';
                     } else {
                         // Normal Working Day
                         if ($hours >= 7) {
                             $statusCode = 'P'; // Present
-                            $statusClass = 'text-success fw-bold';
+                            $statusClass = 'text-success';
                         } elseif ($hours >= 4) {
                             $statusCode = 'P2'; // Half Day
-                            $statusClass = 'text-warning fw-bold';
+                            $statusClass = 'text-warning';
                         } else {
                             $statusCode = 'P'; // Falling back to P if punched in but low hours (or could be absent)
                             $statusClass = 'text-success'; 
@@ -1473,7 +1489,7 @@ class AttendanceController extends Controller
                     $statusClass = 'text-warning';
                 } else {
                     $statusCode = 'A'; // Absent
-                    $statusClass = 'text-danger fw-bold';
+                    $statusClass = 'text-danger';
                 }
                 
                 $dailyStatuses[] = [

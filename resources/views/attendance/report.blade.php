@@ -52,7 +52,7 @@
   .icon-teal { background: linear-gradient(135deg, #0d9488, #2dd4bf); }
 
   .summary-card-content { flex-grow: 1; }
-  .summary-card-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #64748b; font-family: Montserrat; }
+  .summary-card-label { font-size: 0.7rem; font-weight: 700;  color: #000; font-family: Montserrat; }
   .summary-card-value { font-size: 1.1rem; font-weight: 700; line-height: 1; color: #0f172a; font-family: Montserrat; }
 
   /* Controls (Filter Form) */
@@ -194,24 +194,41 @@
   .btn-view-details:hover { background-color: #3538d4; color: white; }
   .btn-view-details:hover { background-color: #3538d4; color: white; }
 
-  /* Tab Styles */
-  .nav-tabs { border-bottom: 2px solid #e2e8f0; }
-  .nav-tabs .nav-link { 
-      border: none; 
-      color: #64748b; 
-      font-weight: 600; 
-      padding: 0.75rem 1.5rem;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: all 0.2s;
+
+  
+  /* Custom Toast */
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1060;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
-  .nav-tabs .nav-link:hover { color: #434afa; border-color: transparent; }
-  .nav-tabs .nav-link.active { 
-      color: #434afa; 
-      border-bottom: 2px solid #434afa; 
-      background: transparent;
+  .custom-toast {
+    background: #fff;
+    color: #333;
+    padding: 12px 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    transform: translateX(120%);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border-left: 5px solid #434afa;
+    font-family: Montserrat, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
   }
-  .nav-tabs .nav-link i { font-size: 1.1em; }
+  .custom-toast.show { transform: translateX(0); }
+  .custom-toast.success { border-left-color: #10b981; }
+  .custom-toast.error { border-left-color: #ef4444; }
+  .custom-toast i { font-size: 1.25rem; }
+  .custom-toast.success i { color: #10b981; }
+  .custom-toast.error i { color: #ef4444; }
 </style>
 @endpush
 
@@ -394,7 +411,10 @@
         </div>
 
     </div>
+    </div>
 </div>
+
+<div id="toastContainer" class="toast-container"></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -406,6 +426,12 @@ document.addEventListener('DOMContentLoaded', function() {
 function exportMonthlyReport() {
     const month = document.getElementById('monthly_month').value;
     if(!month) return;
+    
+    
+    if (isFutureMonth(month)) {
+        showToast('Cannot generate report for future months.', 'error');
+        return;
+    }
     window.location.href = `/attendance/export-monthly-report?month=${month}`;
 }
 
@@ -417,6 +443,11 @@ function loadReport(){
     const summaryDiv = document.getElementById('reportSummary');
     
     if(!userId || !month) return;
+
+    if (isFutureMonth(month)) {
+        showToast('Cannot generate report for future months.', 'error');
+        return;
+    }
 
     // Loading State
     summaryDiv.style.display = 'none';
@@ -443,6 +474,11 @@ function loadReport(){
             if(res.daily_breakdown && res.daily_breakdown.length > 0) {
                 res.daily_breakdown.forEach(function(d, idx){
                     const tr = document.createElement('tr');
+                    // Check for Sunday
+                    if(d.status === 'sunday') {
+                        tr.style.backgroundColor = '#ffd1d1'; // Light pink
+                    }
+                    
                     const firstIn = findFirstIn(d.movements);
                     const lastOut = findLastOut(d.movements);
                     
@@ -455,7 +491,7 @@ function loadReport(){
                         <td>${hoursClock(d.office_hours)}</td>
                         <td>${hoursClock(d.field_hours)}</td>
                         <td>${hoursClock(d.break_time)}</td>
-                        <td><small class="text-muted text-break" style="font-size:0.7em;">${d.description||'-'}</small></td>
+                        <td class="text-break" style="color: #000; font-size: 0.85rem;">${d.description||'-'}</td>
                         <td class="text-center">
                             <button class="btn-view-details shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#mov-${idx}" aria-expanded="false">
                                 <i class="bi bi-chevron-down"></i>
@@ -483,7 +519,11 @@ function loadReport(){
             document.getElementById('ftBreak').textContent = hoursClock(tb);
         },
         error: function(xhr){
-            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-danger">Failed to load report. Please try again.</td></tr>';
+            let msg = 'Failed to load report. Please try again.';
+            if(xhr.responseJSON && xhr.responseJSON.message) {
+                msg = xhr.responseJSON.message;
+            }
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-danger">${msg}</td></tr>`;
             console.error(xhr.responseText);
         }
     });
@@ -495,6 +535,11 @@ function loadMonthlySummary(){
     const tableCard = document.getElementById('monthlyTableCard');
     
     if(!month) return;
+
+    if (isFutureMonth(month)) {
+        showToast('Cannot generate report for future months.', 'error');
+        return;
+    }
 
     tableCard.style.display = 'block';
     
@@ -569,7 +614,11 @@ function loadMonthlySummary(){
             }
         },
         error: function(xhr){
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load summary. Please try again.</td></tr>';
+            let msg = 'Failed to load summary. Please try again.';
+            if(xhr.responseJSON && xhr.responseJSON.message) {
+                msg = xhr.responseJSON.message;
+            }
+            tbody.innerHTML = `<tr><td colspan="35" class="text-center py-4 text-danger">${msg}</td></tr>`;
             console.error(xhr.responseText);
         }
     });
@@ -658,6 +707,38 @@ function renderMovements(movements){
     });
     html += '</tbody></table></div></div>';
     return html;
+}
+</script>
+
+<script>
+function isFutureMonth(monthStr) {
+    if (!monthStr) return false;
+    const [year, month] = monthStr.split('-').map(Number);
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1-12
+    
+    if (year > currentYear) return true;
+    if (year === currentYear && month > currentMonth) return true;
+    
+    return false;
+}
+
+function showToast(message, type = 'success') {
+    const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+    const toastHtml = `
+        <div class="custom-toast ${type}">
+            <i class="bi ${icon}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    const $toast = $(toastHtml);
+    $('#toastContainer').append($toast);
+    setTimeout(() => $toast.addClass('show'), 100);
+    setTimeout(() => {
+        $toast.removeClass('show');
+        setTimeout(() => $toast.remove(), 400);
+    }, 4000);
 }
 </script>
 @endsection
