@@ -22,9 +22,6 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     // Additional Helper for validation checks
     Route::get('/attendance/check-validation', [AttendanceController::class, 'checkWorklogValidation']);
 
-    // Attendance History/Summary
-    Route::get('/attendance/history', [AttendanceController::class, 'getHistory']);
-
     // Leave Routes
     Route::get('/leave', [\App\Http\Controllers\Api\LeaveController::class, 'index']);
     Route::post('/leave', [\App\Http\Controllers\Api\LeaveController::class, 'store']);

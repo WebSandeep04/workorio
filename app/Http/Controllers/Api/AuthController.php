@@ -86,6 +86,28 @@ class AuthController extends Controller
                     // Load employee details with shift
                     $employee = $user->employee()->with('shiftRelation')->first();
                     
+                    $shiftDetails = null;
+                    if ($employee && $employee->shiftRelation) {
+                        $shift = $employee->shiftRelation;
+                        // Assuming times are stored as H:i:s and are in UTC (as per request)
+                        // parsing them as today's time in UTC then converting to IST
+                        try {
+                            // Using today's date + time string
+                            $startTime = \Carbon\Carbon::parse($shift->start_time, 'UTC')->setTimezone('Asia/Kolkata')->format('H:i:s');
+                            $endTime = \Carbon\Carbon::parse($shift->end_time, 'UTC')->setTimezone('Asia/Kolkata')->format('H:i:s');
+                        } catch (\Exception $e) {
+                            $startTime = $shift->start_time; // Fallback
+                            $endTime = $shift->end_time;
+                        }
+
+                        $shiftDetails = [
+                            'id' => $shift->id,
+                            'name' => $shift->name,
+                            'start_time' => $startTime,
+                            'end_time' => $endTime,
+                        ];
+                    }
+
                     return [
                         'id' => $user->id,
                         'name' => $user->name,
@@ -95,12 +117,7 @@ class AuthController extends Controller
                         'token' => $token,
                         'employee_details' => $employee ? [
                             'date_of_birth' => $employee->date_of_birth,
-                            'shift' => $employee->shiftRelation ? [
-                                'id' => $employee->shiftRelation->id,
-                                'name' => $employee->shiftRelation->name,
-                                'start_time' => $employee->shiftRelation->start_time,
-                                'end_time' => $employee->shiftRelation->end_time,
-                            ] : null
+                            'shift' => $shiftDetails
                         ] : null
                     ];
                 }
