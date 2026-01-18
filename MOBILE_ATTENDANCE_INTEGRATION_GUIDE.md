@@ -157,7 +157,8 @@ Call this on screen load to determine which buttons to show.
   2. Call API.
   3. **Success (200)**: Refresh Status.
   4. **Error (422)**: Check if `require_late_reason` is true.
-     - **Yes**: Show Input Modal -> User enters reason -> Call API again with `late_reason`.
+     - **Yes**: The response will include a `late_reasons` array (e.g., `[{ "id": 1, "reason": "Traffic" }]`).
+     - **Action**: Show Input Modal using this list for selection -> User selects reason -> Call API again with `late_reason` string (or ID if backend expects ID, but currently it expects string).
      - **No**: Show error message toast.
 
 ### 3. Punch Out (Office or Field)
@@ -288,7 +289,11 @@ Fetch list of all upcoming holidays for the current year.
 {
     "success": false,
     "require_late_reason": true,
-    "message": "Please provide a reason for late punch-in."
+    "message": "Please provide a reason for late punch-in.",
+    "late_reasons": [
+        { "id": 1, "reason": "Traffic" },
+        { "id": 2, "reason": "Vehicle Breakdown" }
+    ]
 }
 ```
 

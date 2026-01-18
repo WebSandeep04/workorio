@@ -167,10 +167,12 @@ class AttendanceController extends Controller
                     if ($now->greaterThan($cutoffTime)) {
                         // User is late; require reason
                         if (empty($request->late_reason)) {
+                            $lateReasons = \App\Models\LateReason::where('active', true)->get(['id', 'reason']);
                             return response()->json([
                                 'success' => false,
                                 'require_late_reason' => true,
                                 'message' => 'Please provide a reason for late punch-in.',
+                                'late_reasons' => $lateReasons
                             ], 422);
                         }
                         $description = 'Late punch-in: ' . $request->late_reason;

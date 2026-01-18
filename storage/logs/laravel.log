@@ -113,3 +113,28 @@
 [2026-01-18 07:29:35] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
 [2026-01-18 07:29:52] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
 [2026-01-18 07:29:52] local.INFO: Punch-in movement created (API) {"user_id":7,"attendance_id":860,"movement_id":1981} 
+[2026-01-18 07:38:51] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 07:41:07] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 07:47:04] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 07:49:19] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 07:49:58] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 07:50:33] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 07:51:49] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 07:52:34] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 07:56:45] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 07:57:04] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 07:57:05] local.INFO: Punch-in movement created (API) {"user_id":7,"attendance_id":861,"movement_id":1982} 
+[2026-01-18 07:58:44] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 08:00:54] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 08:03:23] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 08:03:41] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 08:03:41] local.INFO: Punch-in movement created (API) {"user_id":7,"attendance_id":862,"movement_id":1983} 
+[2026-01-18 08:03:42] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 08:04:24] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"field"} 
+[2026-01-18 08:04:24] local.INFO: Punch-in movement created (API) {"user_id":7,"attendance_id":862,"movement_id":1985} 
+[2026-01-18 08:04:33] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 08:04:34] local.INFO: Punch-in movement created (API) {"user_id":7,"attendance_id":862,"movement_id":1987} 
+[2026-01-18 08:04:58] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"field"} 
+[2026-01-18 08:04:58] local.INFO: Punch-in movement created (API) {"user_id":7,"attendance_id":862,"movement_id":1990} 
+[2026-01-18 08:05:03] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-01-18 08:05:03] local.INFO: Punch-in movement created (API) {"user_id":7,"attendance_id":862,"movement_id":1992} 
