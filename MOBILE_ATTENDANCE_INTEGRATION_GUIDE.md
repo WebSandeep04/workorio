@@ -107,6 +107,42 @@ Call this on screen load to determine which buttons to show.
   }
   ```
 
+  **Response (Not Started / Default State):**
+  This structure helps UI avoid "undefined" errors on first load.
+  ```json
+  {
+      "attendance": null,
+      "movements": [],
+      "status": {
+          "office": {
+              "status": "Ready for New Cycle",
+              "badge_class": "badge-secondary",
+              "can_start": true,
+              "can_end": false,
+              "current_cycle": 1
+          },
+          "field": {
+              "status": "Ready for New Cycle",
+              "badge_class": "badge-secondary",
+              "can_start": true,
+              "can_end": false,
+              "current_cycle": 1
+          },
+          "break": {
+              "status": "Ready for New Cycle",
+              "badge_class": "badge-secondary",
+              "can_start": true,
+              "can_end": false,
+              "current_cycle": 1
+          }
+      },
+      "worklog_validation": {
+          "can_perform_attendance": true,
+          "message": ""
+      }
+  }
+  ```
+
 ### 2. Punch In (Office or Field)
 - **Endpoint**: `POST /api/attendance/punch-in`
 - **Body**:

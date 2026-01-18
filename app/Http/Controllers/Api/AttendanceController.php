@@ -512,7 +512,32 @@ class AttendanceController extends Controller
             return response()->json([
                 'attendance' => null,
                 'movements' => [],
-                'status' => 'not_started',
+                'status' => [
+                    'office' => [
+                        'status' => 'Ready for New Cycle',
+                        'badge_class' => 'badge-secondary',
+                        'can_start' => true,
+                        'can_end' => false,
+                        'current_cycle' => 1,
+                        'last_action_time' => null
+                    ],
+                    'field' => [
+                        'status' => 'Ready for New Cycle',
+                        'badge_class' => 'badge-secondary',
+                        'can_start' => true,
+                        'can_end' => false,
+                        'current_cycle' => 1,
+                        'last_action_time' => null
+                    ],
+                    'break' => [
+                        'status' => 'Ready for New Cycle',
+                        'badge_class' => 'badge-secondary',
+                        'can_start' => true,
+                        'can_end' => false,
+                        'current_cycle' => 1,
+                        'last_action_time' => null
+                    ]
+                ],
                 'cycles' => [
                     'office_cycles' => 0,
                     'field_cycles' => 0,
