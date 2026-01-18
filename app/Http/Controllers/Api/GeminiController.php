@@ -29,8 +29,61 @@ class GeminiController extends Controller
         // Updated URL per user request for gemini-2.0-flash
         $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
+
         // Prompt to instruct Gemini to extract specific fields
-        $prompt = "Extract the following details from the text below and return ONLY a valid JSON object with these keys: name, designation, company, email, phone, website, address. If a field is not found, set it to null. Do not use markdown formatting or explanations. \n\nText: " . $text;
+        $prompt = <<<EOT
+You are an AI data extraction service.
+
+Your task is to extract structured business card information from OCR text
+and return the result strictly in the JSON format defined below.
+
+Rules:
+- Use ONLY the keys provided in the schema.
+- Fill values only if they are clearly present in the text.
+- If a value is missing or unclear, return null.
+- Do NOT guess or hallucinate.
+- Clean and normalize values (trim spaces, lowercase emails, remove symbols from phone numbers).
+- Phone numbers should be digits only (include country code if available).
+- Social media links should be returned as a JSON object.
+- The response must be valid JSON only. No explanation, no extra text.
+
+Database JSON Schema:
+
+{
+  "name": null,
+  "designation": null,
+  "company_name": null,
+
+  "email": null,
+  "phone_primary": null,
+  "phone_secondary": null,
+  "website": null,
+
+  "address": null,
+  "city": null,
+  "state": null,
+  "pincode": null,
+  "country": null,
+
+  "social_links": {
+    "linkedin": null,
+    "twitter": null,
+    "facebook": null,
+    "instagram": null,
+    "other": []
+  },
+
+  "raw_text": null,
+  "card_image_url": null,
+  "raw_ai_response": null
+}
+
+OCR Text:
+<<<
+$text
+>>>
+EOT;
+
 
         try {
             // Updated to send API Key in headers
