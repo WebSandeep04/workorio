@@ -63,6 +63,13 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/tasks/{id}/toggle-done', [TaskApiController::class, 'toggleDone']);
     Route::post('/tasks/{id}/remarks', [TaskApiController::class, 'addRemark']);
     Route::delete('/tasks/{id}/images/{imageId}', [TaskApiController::class, 'deleteImage']);
+
+    // Business Card Routes
+    Route::get('/business-cards', [\App\Http\Controllers\Api\BusinessCardController::class, 'index']);
+    Route::post('/business-cards', [\App\Http\Controllers\Api\BusinessCardController::class, 'store']);
+    Route::get('/business-cards/{id}', [\App\Http\Controllers\Api\BusinessCardController::class, 'show']);
+    Route::put('/business-cards/{id}', [\App\Http\Controllers\Api\BusinessCardController::class, 'update']);
+    Route::delete('/business-cards/{id}', [\App\Http\Controllers\Api\BusinessCardController::class, 'destroy']);
 });
 
 
