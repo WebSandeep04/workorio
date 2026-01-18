@@ -37,6 +37,16 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::put('/leave/{id}', [\App\Http\Controllers\Api\LeaveController::class, 'update']);
     Route::delete('/leave/{id}', [\App\Http\Controllers\Api\LeaveController::class, 'destroy']);
     Route::get('/leave/types', [\App\Http\Controllers\Api\LeaveController::class, 'getLeaveTypes']);
+
+    // Worklog Routes
+    Route::get('/worklog/form-data', [\App\Http\Controllers\Api\WorklogApiController::class, 'getFormData']);
+    Route::get('/worklog/projects/{customerId}', [\App\Http\Controllers\Api\WorklogApiController::class, 'getProjects']);
+    Route::get('/worklog/services/{customerId}', [\App\Http\Controllers\Api\WorklogApiController::class, 'getServices']);
+    Route::get('/worklog/modules/{serviceId}', [\App\Http\Controllers\Api\WorklogApiController::class, 'getModules']);
+    Route::post('/worklog/validate-date', [\App\Http\Controllers\Api\WorklogApiController::class, 'validateDate']);
+    Route::post('/worklog/submit', [\App\Http\Controllers\Api\WorklogApiController::class, 'submit']);
+    Route::get('/worklog/history', [\App\Http\Controllers\Api\WorklogApiController::class, 'history']);
+    Route::delete('/worklog/{id}', [\App\Http\Controllers\Api\WorklogApiController::class, 'destroy']);
 });
 
 
