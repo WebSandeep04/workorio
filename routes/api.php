@@ -66,3 +66,6 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
 });
 
 
+    // Gemini Business Card Scanner
+    use App\Http\Controllers\Api\GeminiController;
+    Route::post('/gemini/parse-card', [GeminiController::class, 'parseCard']);
