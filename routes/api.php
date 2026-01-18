@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\TaskApiController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -47,6 +48,21 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/worklog/submit', [\App\Http\Controllers\Api\WorklogApiController::class, 'submit']);
     Route::get('/worklog/history', [\App\Http\Controllers\Api\WorklogApiController::class, 'history']);
     Route::delete('/worklog/{id}', [\App\Http\Controllers\Api\WorklogApiController::class, 'destroy']);
+
+    // Task Routes
+    Route::get('/tasks/form-data', [TaskApiController::class, 'getFormData']);
+    Route::get('/tasks/created', [TaskApiController::class, 'createdTasks']);
+    Route::get('/tasks/assigned', [TaskApiController::class, 'myTasks']);
+    Route::post('/tasks', [TaskApiController::class, 'store']);
+    Route::get('/tasks/{id}', [TaskApiController::class, 'show']);
+    Route::post('/tasks/{id}', [TaskApiController::class, 'update']); // Use POST for multipart updates
+    Route::delete('/tasks/{id}', [TaskApiController::class, 'destroy']);
+    
+    // Task Actions
+    Route::post('/tasks/{id}/status', [TaskApiController::class, 'updateStatus']);
+    Route::post('/tasks/{id}/toggle-done', [TaskApiController::class, 'toggleDone']);
+    Route::post('/tasks/{id}/remarks', [TaskApiController::class, 'addRemark']);
+    Route::delete('/tasks/{id}/images/{imageId}', [TaskApiController::class, 'deleteImage']);
 });
 
 
