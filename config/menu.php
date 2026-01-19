@@ -250,6 +250,7 @@ return [
                         ['route' => 'checklist.index', 'title' => 'Checklist', 'icon' => 'bi bi-list-check', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'checklist.index'],
                         // Asset Management Setup (show if asset management is enabled)
                         ['route' => 'asset-type.index', 'title' => 'Asset Types', 'icon' => 'bi bi-box', 'feature_flag' => 'is_asset_management_enable'],
+                        ['route' => 'asset-category.index', 'title' => 'Asset Categories', 'icon' => 'bi bi-tags', 'feature_flag' => 'is_asset_management_enable'],
                     ],
                 ],
 
