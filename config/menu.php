@@ -251,6 +251,7 @@ return [
                         // Asset Management Setup (show if asset management is enabled)
                         ['route' => 'asset-type.index', 'title' => 'Asset Types', 'icon' => 'bi bi-box', 'feature_flag' => 'is_asset_management_enable'],
                         ['route' => 'asset-category.index', 'title' => 'Asset Categories', 'icon' => 'bi bi-tags', 'feature_flag' => 'is_asset_management_enable'],
+                        ['route' => 'asset-status.index', 'title' => 'Asset Status', 'icon' => 'bi bi-check2-circle', 'feature_flag' => 'is_asset_management_enable'],
                     ],
                 ],
 

@@ -1182,4 +1182,11 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/asset-category', [\App\Http\Controllers\AssetCategoryController::class, 'store'])->name('asset-category.store');
     Route::put('/asset-category/{id}', [\App\Http\Controllers\AssetCategoryController::class, 'update'])->name('asset-category.update');
     Route::delete('/asset-category/{id}', [\App\Http\Controllers\AssetCategoryController::class, 'destroy'])->name('asset-category.destroy');
+
+    // Asset Statuses
+    Route::get('/asset-status', [\App\Http\Controllers\AssetStatusController::class, 'index'])->name('asset-status.index');
+    Route::get('/asset-status/fetch', [\App\Http\Controllers\AssetStatusController::class, 'fetch'])->name('asset-status.fetch');
+    Route::post('/asset-status', [\App\Http\Controllers\AssetStatusController::class, 'store'])->name('asset-status.store');
+    Route::put('/asset-status/{id}', [\App\Http\Controllers\AssetStatusController::class, 'update'])->name('asset-status.update');
+    Route::delete('/asset-status/{id}', [\App\Http\Controllers\AssetStatusController::class, 'destroy'])->name('asset-status.destroy');
 });
