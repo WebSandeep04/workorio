@@ -167,6 +167,13 @@ class RoleMasterController extends Controller
                 'permissions' => [
                     'contact_management.access' => 'Contact Management: Access',
                 ]
+            ],
+            'asset_management' => [
+                'enabled' => (bool) ($tenant->is_asset_management_enable ?? true),
+                'setup_enabled' => false,
+                'permissions' => [
+                    'asset_management.access' => 'Asset Management: Access',
+                ]
             ]
         ];
 
@@ -350,6 +357,13 @@ class RoleMasterController extends Controller
                 'setup_enabled' => false,
                 'permissions' => [
                     'contact_management.access' => 'Contact Management: Access',
+                ]
+            ],
+            'asset_management' => [
+                'enabled' => (bool) ($tenant->is_asset_management_enable ?? true),
+                'setup_enabled' => false,
+                'permissions' => [
+                    'asset_management.access' => 'Asset Management: Access',
                 ]
             ]
         ];

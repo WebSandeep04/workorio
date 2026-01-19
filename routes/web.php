@@ -1164,3 +1164,8 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::put('/contact-management/{id}', [\App\Http\Controllers\ContactManagementController::class, 'update'])->name('contactmanagement.update');
     Route::delete('/contact-management/{id}', [\App\Http\Controllers\ContactManagementController::class, 'destroy'])->name('contactmanagement.destroy');
 });
+
+// Asset Management
+Route::middleware(['auth.or.session'])->group(function () {
+    Route::get('/asset-management', [\App\Http\Controllers\AssetManagementController::class, 'index'])->name('asset-management.index');
+});

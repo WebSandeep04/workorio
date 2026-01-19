@@ -23,6 +23,8 @@ class Tenant extends Model
         'is_document_management_enabled',
         'is_petty_cash_enable',
         'is_approval_enabled',
+        'is_contact_management',
+        'is_asset_management_enable',
     ];
 
     protected static function booted()

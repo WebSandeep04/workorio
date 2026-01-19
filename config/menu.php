@@ -189,6 +189,16 @@ return [
             'roles' => ['admin'],
             'permission' => 'contact_management.access',
         ],
+        // Asset Management section
+        [
+            'key' => 'asset_management',
+            'title' => 'Asset Management',
+            'route' => 'asset-management.index',
+            'icon' => 'bi bi-box-seam',
+            'feature_flag' => 'is_asset_management_enable',
+            'roles' => ['admin'],
+            'permission' => 'asset_management.access',
+        ],
                 // Software Setup - Consolidated Setup Section
                 [
                     'key' => 'software_setup',
