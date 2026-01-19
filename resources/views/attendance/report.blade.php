@@ -17,7 +17,7 @@
   /* Summary Cards */
   .summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 0.75rem;
     margin-bottom: 1rem;
   }
@@ -306,7 +306,7 @@
                         <i class="bi bi-circle-half"></i>
                     </div>
                     <div class="summary-card-content">
-                        <div class="summary-card-label">Total Halfday</div>
+                        <div class="summary-card-label">Total Half day</div>
                         <div class="summary-card-value" id="sumHalfday">0</div>
                     </div>
                 </div>
