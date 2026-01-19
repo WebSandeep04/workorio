@@ -1168,4 +1168,11 @@ Route::middleware(['auth.or.session'])->group(function () {
 // Asset Management
 Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/asset-management', [\App\Http\Controllers\AssetManagementController::class, 'index'])->name('asset-management.index');
+    
+    // Asset Types
+    Route::get('/asset-type', [\App\Http\Controllers\AssetTypeController::class, 'index'])->name('asset-type.index');
+    Route::get('/asset-type/fetch', [\App\Http\Controllers\AssetTypeController::class, 'fetch'])->name('asset-type.fetch');
+    Route::post('/asset-type', [\App\Http\Controllers\AssetTypeController::class, 'store'])->name('asset-type.store');
+    Route::put('/asset-type/{id}', [\App\Http\Controllers\AssetTypeController::class, 'update'])->name('asset-type.update');
+    Route::delete('/asset-type/{id}', [\App\Http\Controllers\AssetTypeController::class, 'destroy'])->name('asset-type.destroy');
 });

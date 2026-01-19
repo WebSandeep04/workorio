@@ -248,6 +248,8 @@ return [
                         ['route' => 'calendar-clients.index', 'title' => 'Calendar Clients', 'icon' => 'bi bi-people', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'calendar.clients'],
                         ['route' => 'calendar-client-social.index', 'title' => 'Client Social Handles', 'icon' => 'bi bi-link-45deg', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'calendar.client_social'],
                         ['route' => 'checklist.index', 'title' => 'Checklist', 'icon' => 'bi bi-list-check', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'checklist.index'],
+                        // Asset Management Setup (show if asset management is enabled)
+                        ['route' => 'asset-type.index', 'title' => 'Asset Types', 'icon' => 'bi bi-box', 'feature_flag' => 'is_asset_management_enable'],
                     ],
                 ],
 
