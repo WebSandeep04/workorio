@@ -1189,4 +1189,11 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/asset-status', [\App\Http\Controllers\AssetStatusController::class, 'store'])->name('asset-status.store');
     Route::put('/asset-status/{id}', [\App\Http\Controllers\AssetStatusController::class, 'update'])->name('asset-status.update');
     Route::delete('/asset-status/{id}', [\App\Http\Controllers\AssetStatusController::class, 'destroy'])->name('asset-status.destroy');
+
+    // Suppliers
+    Route::get('/supplier', [\App\Http\Controllers\SupplierController::class, 'index'])->name('supplier.index');
+    Route::get('/supplier/fetch', [\App\Http\Controllers\SupplierController::class, 'fetch'])->name('supplier.fetch');
+    Route::post('/supplier', [\App\Http\Controllers\SupplierController::class, 'store'])->name('supplier.store');
+    Route::put('/supplier/{id}', [\App\Http\Controllers\SupplierController::class, 'update'])->name('supplier.update');
+    Route::delete('/supplier/{id}', [\App\Http\Controllers\SupplierController::class, 'destroy'])->name('supplier.destroy');
 });
