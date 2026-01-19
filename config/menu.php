@@ -179,6 +179,16 @@ return [
                 ['route' => 'worklog-approvals', 'title' => 'Timesheet Approvals', 'icon' => 'bi bi-check2-square', 'permission' => 'worklog.approvals'],
             ],
         ],
+        // Contact Management section
+        [
+            'key' => 'contact_management',
+            'title' => 'Contact Management',
+            'route' => 'contactmanagement.index',
+            'icon' => 'bi bi-person-lines-fill',
+            'feature_flag' => 'is_contact_management',
+            'roles' => ['admin'],
+            'permission' => 'contact_management.access',
+        ],
                 // Software Setup - Consolidated Setup Section
                 [
                     'key' => 'software_setup',

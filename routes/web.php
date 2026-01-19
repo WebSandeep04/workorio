@@ -1153,3 +1153,14 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/public/form/{tenant}/{form}', [FormBuilderController::class, 'publicView'])->name('public.form.view');
     Route::post('/public/form/{tenant}/{form}/submit', [FormBuilderController::class, 'publicSubmit'])->name('public.form.submit');
 });
+
+// Contact Management
+Route::middleware(['auth.or.session'])->group(function () {
+    Route::get('/contact-management', [\App\Http\Controllers\ContactManagementController::class, 'index'])->name('contactmanagement.index');
+    Route::get('/contact-management/fetch', [\App\Http\Controllers\ContactManagementController::class, 'fetch'])->name('contactmanagement.fetch');
+    Route::get('/contact-management/stats', [\App\Http\Controllers\ContactManagementController::class, 'getSummaryStats'])->name('contactmanagement.stats');
+    Route::post('/contact-management/store', [\App\Http\Controllers\ContactManagementController::class, 'store'])->name('contactmanagement.store');
+    Route::get('/contact-management/{id}/edit', [\App\Http\Controllers\ContactManagementController::class, 'edit'])->name('contactmanagement.edit');
+    Route::put('/contact-management/{id}', [\App\Http\Controllers\ContactManagementController::class, 'update'])->name('contactmanagement.update');
+    Route::delete('/contact-management/{id}', [\App\Http\Controllers\ContactManagementController::class, 'destroy'])->name('contactmanagement.destroy');
+});

@@ -160,6 +160,13 @@ class RoleMasterController extends Controller
                 'permissions' => [
                     'approvals.petty' => 'Approvals: Petty Approval',
                 ]
+            ],
+            'contact_management' => [
+                'enabled' => (bool) ($tenant->is_contact_management ?? true),
+                'setup_enabled' => false,
+                'permissions' => [
+                    'contact_management.access' => 'Contact Management: Access',
+                ]
             ]
         ];
 
@@ -336,6 +343,13 @@ class RoleMasterController extends Controller
                 'setup_enabled' => false,
                 'permissions' => [
                     'approvals.petty' => 'Approvals: Petty Approval',
+                ]
+            ],
+            'contact_management' => [
+                'enabled' => (bool) ($tenant->is_contact_management ?? true),
+                'setup_enabled' => false,
+                'permissions' => [
+                    'contact_management.access' => 'Contact Management: Access',
                 ]
             ]
         ];
