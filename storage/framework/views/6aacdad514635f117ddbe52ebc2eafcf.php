@@ -290,7 +290,7 @@
   }
 
   .form-label-modern {
-    color: #434AFA;
+    color: #000;
     font-weight: 600;
     margin-bottom: 0.5rem;
     display: flex;
@@ -372,6 +372,10 @@
       margin-bottom: 1rem;
       border: 1px solid #eee;
   }
+
+  .form-control{
+    background-color: #f0f0f0;
+  }
 </style>
 <?php $__env->stopPush(); ?>
 
@@ -447,7 +451,7 @@
                                 <p class="section-hint">Who is this for and what are we delivering?</p>
                             </div>
                         </div>
-                        <div class="row g-2">
+                        <div class="row">
                             <div class="col-md-6">
                                 <label for="customer_id" class="form-label-modern">Customer <span class="text-danger">*</span></label>
                                 <select class="form-select form-select-modern" id="customer_id" name="customer_id" required>
@@ -597,23 +601,23 @@
                         <div class="row g-2">
                             <div class="col-md-6">
                                 <label for="edit_customer_id" class="form-label-modern">Customer <span class="text-danger">*</span></label>
-                                <select class="form-select form-select-modern" id="edit_customer_id" required>
+                                <select class="form-select form-select-modern" id="edit_customer_id" name="customer_id" required>
                                     <option value="">Select Customer</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_service_id" class="form-label-modern">Service <span class="text-danger">*</span></label>
-                                <select class="form-select form-select-modern" id="edit_service_id" required>
+                                <select class="form-select form-select-modern" id="edit_service_id" name="service_id" required>
                                     <option value="">Select Service</option>
                                 </select>
                             </div>
                             <div class="col-md-12">
                                 <label for="edit_project_name" class="form-label-modern">Project Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control form-control-modern" id="edit_project_name" required>
+                                <input type="text" class="form-control form-control-modern" id="edit_project_name" name="project_name" required>
                             </div>
                             <div class="col-md-12">
                                 <label for="edit_description" class="form-label-modern">Description</label>
-                                <textarea class="form-control form-control-modern" id="edit_description" rows="3" placeholder="Update goals, scope, or key notes"></textarea>
+                                <textarea class="form-control form-control-modern" id="edit_description" name="description" rows="3" placeholder="Update goals, scope, or key notes"></textarea>
                             </div>
                         </div>
                     </div>
@@ -629,15 +633,15 @@
                         <div class="row g-2">
                             <div class="col-md-6">
                                 <label for="edit_start_date" class="form-label-modern">Start Date</label>
-                                <input type="date" class="form-control form-control-modern" id="edit_start_date">
+                                <input type="date" class="form-control form-control-modern" id="edit_start_date" name="start_date">
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_end_date" class="form-label-modern">End Date</label>
-                                <input type="date" class="form-control form-control-modern" id="edit_end_date">
+                                <input type="date" class="form-control form-control-modern" id="edit_end_date" name="end_date">
                             </div>
                             <div class="col-md-6">
                                 <label for="edit_status" class="form-label-modern">Status <span class="text-danger">*</span></label>
-                                <select class="form-select form-select-modern" id="edit_status" required>
+                                <select class="form-select form-select-modern" id="edit_status" name="status" required>
                                     <option value="pending">Pending</option>
                                     <option value="in_progress">In Progress</option>
                                     <option value="completed">Completed</option>
@@ -646,13 +650,13 @@
                             </div>
                             <div class="col-md-6 d-flex align-items-end">
                                 <div class="form-check form-switch mb-2">
-                                    <input class="form-check-input" type="checkbox" id="edit_critical_path_enabled">
+                                    <input class="form-check-input" type="checkbox" id="edit_critical_path_enabled" name="critical_path_enabled" value="1">
                                     <label class="form-check-label" for="edit_critical_path_enabled">Enable Critical Path</label>
                                 </div>
                             </div>
                             <div class="col-md-12 d-none" id="edit_critical_path_template_wrapper">
                                 <label for="edit_critical_path_template_id" class="form-label-modern">Workflow Template</label>
-                                <select class="form-select form-select-modern" id="edit_critical_path_template_id">
+                                <select class="form-select form-select-modern" id="edit_critical_path_template_id" name="workflow_template_id">
                                     <option value="">Select Template</option>
                                 </select>
                                 <small class="text-muted d-block mt-1">Pick the workflow template that should remain tied to this project.</small>
@@ -664,22 +668,22 @@
                         <div class="section-heading">
                             <span class="badge rounded-pill bg-warning-subtle text-warning"><i class="bi bi-cash-coin"></i></span>
                             <div>
-                                <h6 class="section-title">Financial Overview</h6>
-                                <p class="section-hint">Adjust values as the project evolves.</p>
+                                 <h6 class="section-title">Financial Overview</h6>
+                                 <p class="section-hint">Adjust values as the project evolves.</p>
                             </div>
                         </div>
                         <div class="row g-2">
                             <div class="col-md-4">
                                 <label for="edit_original_value" class="form-label-modern">Original Value</label>
-                                <input type="number" step="0.01" class="form-control form-control-modern" id="edit_original_value">
+                                <input type="number" step="0.01" class="form-control form-control-modern" id="edit_original_value" name="original_value">
                             </div>
                             <div class="col-md-4">
                                 <label for="edit_estimated_value" class="form-label-modern">Estimated Value</label>
-                                <input type="number" step="0.01" class="form-control form-control-modern" id="edit_estimated_value" readonly>
+                                <input type="number" step="0.01" class="form-control form-control-modern" id="edit_estimated_value" name="estimated_value" readonly>
                             </div>
                             <div class="col-md-4">
                                 <label for="edit_profit_value" class="form-label-modern">Profit / Loss</label>
-                                <input type="number" step="0.01" class="form-control form-control-modern" id="edit_profit_value" readonly>
+                                <input type="number" step="0.01" class="form-control form-control-modern" id="edit_profit_value" name="profit_value" readonly>
                             </div>
                         </div>
                     </div>
@@ -711,6 +715,7 @@
         </form>
     </div>
 </div>
+
 
 <!-- Description Modal -->
 <div class="modal fade modal-modern" id="customerProjectDescriptionModal" tabindex="-1" aria-labelledby="customerProjectDescriptionModalLabel" aria-hidden="true" data-bs-backdrop="static">
@@ -835,6 +840,7 @@ $(function () {
     loadCustomers();
     loadServices();
     loadWorkflowTemplates();
+    loadUsers();
 
     function loadCustomerProjects(page = 1) {
         let search = $('#search').val();
@@ -1059,7 +1065,15 @@ $(function () {
 
     // Load users for assignment
     function loadUsers() {
+        console.log('Fetching users from:', "<?php echo e(route('fetchUsersForManager')); ?>");
         $.get("<?php echo e(route('fetchUsersForManager')); ?>", function (users) {
+            console.log('Users fetched:', users);
+            if (!users || users.length === 0) {
+                 console.warn('No users returned from API');
+                 $('#assign_users_container').html('<p class="text-danger">No users found.</p>');
+                 return;
+            }
+            
             let html = '';
             let editHtml = '';
             users.forEach(u => {
@@ -1102,6 +1116,10 @@ $(function () {
                 recalcEditEstimates();
             });
             $(document).on('input', '.edit-days-input', recalcEditEstimates);
+        }).fail(function(xhr, status, error) {
+            console.error('Error fetching users:', status, error);
+            console.error('Response:', xhr.responseText);
+            $('#assign_users_container').html('<p class="text-danger">Error loading users. Check console.</p>');
         });
     }
     

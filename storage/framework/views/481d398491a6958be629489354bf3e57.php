@@ -2,180 +2,263 @@
 <div class="modal fade" id="remarksModal" tabindex="-1" aria-labelledby="remarksModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header" style="background-color: #434AFA; color: white; border-bottom: none;">
-                <h5 class="modal-title" id="remarksModalLabel" style="font-size: 1rem; font-weight: 700;">Lead Details & Remarks</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header lead-header">
+                <h5 class="modal-title text-white fw-bold" id="remarksModalLabel">
+                    Lead Details and Remarks
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0">
-                <div class="container-fluid p-0">
-                    <div class="row g-0">
-                        <!-- Left Part: Lead Details -->
-                        <div class="col-12 col-lg-5 bg-primary-custom" style="background-color: white !important;">
-                            <div class="p-3 h-100">
-                                <h6 class="fw-bold mb-3 border-bottom pb-2" style="color: #434AFA; border-color: #dee2e6 !important;">Lead Information</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-sm table-borderless lead-info-table mb-0">
-                                        <tbody>
-                                            <tr>
-                                                <th scope="row">Lead Name:</th>
-                                                <td id="modalLeadName">-</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">Contact Person:</th>
-                                                <td id="modalContactPerson">-</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">Contact Number:</th>
-                                                <td id="modalContactNumber">-</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">Email:</th>
-                                                <td id="modalEmail">-</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">State:</th>
-                                                <td id="modalState">-</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">City:</th>
-                                                <td id="modalCity">-</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">Product:</th>
-                                                <td id="modalProduct">-</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">Business Type:</th>
-                                                <td id="modalBusiness">-</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">Status:</th>
-                                                <td id="modalStatus">-</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">Ticket Value:</th>
-                                                <td id="modalTicketValue">-</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row">Next Follow-up:</th>
-                                                <td id="modalNextFollowUp">-</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+              <!-- Body -->
+            <div class="modal-body">
+
+                <!-- Lead Summary -->
+                <div class="card lead-summary mb-4">
+                    <div class="card-header bg-white fw-bold">
+                        Lead Summary
+                        <span class="float-end small">
+                            Next Follow-up: <span id="modalNextFollowUp" class ="fw-bold">-</span>
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+
+                            <!-- Left -->
+                            <div>
+                                <h5 class="fw-bold mb-1" id="modalLeadName">-</h5>
+                                <div class="text" id="modalBusiness">-</div>
+                                <div class="mt-2">
+                                    <span id="modalProduct">-</span>  <span class="badge status-pill" id="modalStatus">-</span>
+                                </div>
+                                <div class="mt-2 small">
+                                    <i class="bi bi-telephone-fill"></i>
+                                    <span id="modalContactNumber">-</span>
+                                    &nbsp;&nbsp;
+                                    <i class="bi bi-envelope-fill"></i>
+                                    <span id="modalEmail">-</span>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <!-- Right Part: Remarks -->
-                        <div class="col-12 col-lg-7 bg-light">
-                            <div class="p-3 h-100">
-                                <h6 class="fw-bold mb-3 text-primary-custom border-bottom pb-2">Remarks History</h6>
-                                <div id="remarksList" style="height: 400px; overflow-y: auto; padding-right: 5px;">
-                                    <!-- Remarks will be loaded here -->
+                    
+                    
+                            <!-- Right -->
+                            <div class=" text-left">
+                                <div>
+                                    <i class="bi bi-person-fill"></i>
+                                    <span id="modalContactPerson">-</span>
+                                </div>
+
+                                <div>
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                    <span id="modalCity">-</span>,
+                                    <span id="modalState">-</span>
+                                </div>
+
+                                <div>
+                                    <i class="bi bi-cash-stack text-primary"></i>
+                                    Ticket Value: <span id="modalTicketValue">-</span>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
+
+                <!-- Remarks -->
+                 <span class="texted fw-bold card2" >Follow-up Remarks:</span>
+                <div class="card mt-1">
+                    <div class="card-body">
+                        <div id="remarksList" class="remarks-timeline">
+                            <!-- Remarks injected here -->
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-            </div>
+
         </div>
     </div>
 </div>
 
 <style>
-/* Modal Styles */
-.table-responsive{
-    padding: 15px !important;
-    border-left: 4px solid #434AFA;
-}
 .modal-xl {
-    max-width: 90%;
+    max-width: 70%;
 }
 
-.modal-content {
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
+.card{
+    padding: 15px;
 }
 
-.modal-header {
-    border-radius: 0;
+.card2 {
+    margin-top: 10px;
 }
 
-.bg-primary-custom {
-    background-color: #f8f9fa !important;
+.modal-body{
+    padding: 40px;
+    background: #f0f0f0; 
 }
 
-.text-primary-custom {
-    color: #434AFA !important;
+.lead-header {
+    background: #434AFA;
+    padding: 12px 20px;
 }
 
-/* Scrollbar styling */
-#remarksList {
-    scrollbar-width: thin;
-    scrollbar-color: #434AFA #e9ecef;
+.lead-summary {
+    border-radius: 10px;
 }
 
-#remarksList::-webkit-scrollbar {
+.status-pill {
+    background: #d1f5ea;
+    color: #0f766e;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.remarks-timeline {
+    max-height: 420px;
+    overflow-y: auto;
+    padding-left: 10px;
+    padding-top: 10px;
+}
+
+.remark-item {
+    position: relative;
+    padding-left: 30px;
+    padding-bottom: 25px;
+    border-left: 2px solid #e9ecef;
+}
+
+.remark-item:last-child {
+    border-left-color: transparent;
+    padding-bottom: 0;
+}
+
+.remark-item::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    background: #434AFA;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #434AFA;
+    z-index: 1;
+}
+
+.remark-date {
+    position: relative;
+    background: #434AFA;
+    color: white;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+/* Arrow for the date bubble */
+.remark-date::after {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid #434AFA;
+}
+
+.remark-text {
+    font-size: 14px;
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    border: 1px solid #f1f5f9;
+}
+
+.remarks-timeline::-webkit-scrollbar {
     width: 6px;
 }
 
-#remarksList::-webkit-scrollbar-track {
-    background: #e9ecef;
-    border-radius: 3px;
+.remarks-timeline::-webkit-scrollbar-thumb {
+    background: #c7c9ff;
+    border-radius: 6px;
 }
 
-#remarksList::-webkit-scrollbar-thumb {
-    background-color: #434AFA;
-    border-radius: 3px;
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .modal-xl {
+        max-width: 95%;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+
+    .lead-summary .card-body .d-flex {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Right side info becomes full width and normal text align */
+    .lead-summary .card-body .text-left {
+        width: 100%;
+        text-align: left !important;
+        margin-top: 10px;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+    }
+    
+    /* Ensure icons align nicely in stacked mode */
+    .lead-summary .card-body .text-left > div {
+        margin-bottom: 5px;
+    }
 }
 
-.lead-info-table th {
-    font-weight: 600;
-    font-size: 0.75rem;
-    color: #495057;
-    padding: 0.25rem 0.5rem 0.25rem 0;
-    width: 35%;
-    vertical-align: top;
-}
+@media (max-width: 576px) {
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    .modal-body {
+        padding: 15px;
+    }
 
-.lead-info-table td {
-    font-weight: 500;
-    font-size: 0.85rem;
-    color: #212529;
-    padding: 0.25rem 0;
-    vertical-align: top;
-}
-
-.border-white-50 {
-    border-color: rgba(255, 255, 255, 0.2) !important;
+    .card {
+        padding: 10px;
+    }
+    
+    .remark-item {
+        margin-bottom: 15px;
+        padding-left: 20px;
+    }
+    
+    .remark-date {
+        font-size: 11px;
+        padding: 2px 8px;
+    }
+    
+    .lead-header h5 {
+        font-size: 1.1rem;
+    }
 }
 </style>
 
 <script>
-// Make sure function is globally accessible
-window.showRemarksModal = function(salesRecordId) {
-    console.log('Opening remarks modal for sales record ID:', salesRecordId);
-    
-    // Show loading state
-    $('#remarksList').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading remarks...</div>');
-    
-    // Reset fields while loading
-    $('#modalLeadName').text('Loading...');
-    
-    // Fetch remarks data
+window.showRemarksModal = function (salesRecordId) {
+
+    $('#remarksList').html('<div class="text-center">Loading...</div>');
+
     $.ajax({
         url: '<?php echo e(route("team-analytics.remarks")); ?>',
         type: 'GET',
-        data: {
-            sales_record_id: salesRecordId
-        },
-        success: function(response) {
-            // Update lead details
+        data: { sales_record_id: salesRecordId },
+
+        success: function (response) {
+
             $('#modalLeadName').text(response.sales_record.leads_name || '-');
             $('#modalContactPerson').text(response.sales_record.contact_person || '-');
             $('#modalContactNumber').text(response.sales_record.contact_number || '-');
@@ -187,68 +270,32 @@ window.showRemarksModal = function(salesRecordId) {
             $('#modalStatus').text(response.sales_record.status_name || '-');
             $('#modalTicketValue').text(response.sales_record.ticket_value || '-');
             $('#modalNextFollowUp').text(response.sales_record.next_follow_up_date || '-');
-            
-            // Update remarks list
+
             let remarksHtml = '';
+
             if (response.remarks && response.remarks.length > 0) {
-                response.remarks.forEach(function(remark) {
+                response.remarks.forEach(function (remark) {
                     remarksHtml += `
-                        <div class="card mb-3" style="border-left: 4px solid #434AFA;">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <h6 class="card-subtitle mb-2 text-muted">
-                                            <i class="fas fa-calendar-alt"></i> ${remark.date}
-                                        </h6>
-                                        <p class="card-text">${remark.remark}</p>
-                                    </div>
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock"></i> ${remark.created_at}
-                                    </small>
-                                </div>
-                            </div>
+                        <div class="remark-item">
+                            <div class="remark-date">${remark.date}</div>
+                            <div class="remark-text">${remark.remark}</div>
                         </div>
                     `;
                 });
             } else {
-                remarksHtml = '<div class="text-center text-muted"><i class="fas fa-info-circle"></i> No remarks found for this lead.</div>';
+                remarksHtml = '<div class="text-center text-muted">No remarks found</div>';
             }
-            
+
             $('#remarksList').html(remarksHtml);
-            
-            // Show the modal
             $('#remarksModal').modal('show');
         },
-        error: function(xhr) {
-            console.error('Error loading remarks:', xhr);
-            console.error('Response Text:', xhr.responseText);
-            console.error('Status:', xhr.status);
-            
-            let errorMsg = 'Error loading remarks. Please try again.';
-            if (xhr.responseJSON && xhr.responseJSON.message) {
-                errorMsg = xhr.responseJSON.message;
-            } else if (xhr.responseJSON && xhr.responseJSON.error) {
-                errorMsg = xhr.responseJSON.error;
-            }
-            
-            $('#remarksList').html('<div class="text-center text-danger"><i class="fas fa-exclamation-triangle"></i> ' + errorMsg + '</div>');
-            
-            // Reset lead details to show error state
-            $('#modalLeadName').text('-');
-            $('#modalContactPerson').text('-');
-            $('#modalContactNumber').text('-');
-            $('#modalEmail').text('-');
-            $('#modalState').text('-');
-            $('#modalCity').text('-');
-            $('#modalProduct').text('-');
-            $('#modalBusiness').text('-');
-            $('#modalStatus').text('-');
-            $('#modalTicketValue').text('-');
-            $('#modalNextFollowUp').text('-');
-            
+
+        error: function () {
+            $('#remarksList').html('<div class="text-danger text-center">Failed to load remarks</div>');
             $('#remarksModal').modal('show');
         }
     });
 };
 </script>
+
 <?php /**PATH D:\laravel\leadmanagement (akrati ui work)\resources\views/partials/remarks-modal.blade.php ENDPATH**/ ?>

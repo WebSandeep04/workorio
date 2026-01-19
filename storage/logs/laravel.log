@@ -1,38 +1,10 @@
-[2026-01-19 05:30:57] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
-[2026-01-19 05:30:57] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
-[2026-01-19 05:30:58] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
-[2026-01-19 05:30:58] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
-[2026-01-19 05:30:58] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-15","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-16","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:50:07] local.INFO: Report descriptions found {"date":"2026-01-17","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-15","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-16","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 05:51:33] local.INFO: Report descriptions found {"date":"2026-01-17","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-02","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-03","descriptions":["Late punch-in: Traffic / transport delay (unavoidable)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-05","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-06","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-08","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-09","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-12","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-13","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-15","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-16","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
-[2026-01-19 06:08:53] local.INFO: Report descriptions found {"date":"2026-01-17","descriptions":["Late punch-in: Personal planning issue (overslept / late start)"]} 
+[2026-01-19 09:03:33] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-01-19 09:03:33] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-19 09:03:34] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-19 09:03:34] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-19 09:03:34] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-19 09:16:02] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-01-19 09:16:02] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-19 09:16:03] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-19 09:16:03] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-19 09:16:03] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

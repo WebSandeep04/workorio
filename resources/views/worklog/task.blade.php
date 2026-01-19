@@ -4,8 +4,6 @@
 
 @push('styles')
 <style>
-
-
   .container-fluid {
     padding: 0.5rem;
     padding-right: 0.5rem;
@@ -350,7 +348,7 @@
   }
 
   .pagination .page-item.active .page-link {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #434AFA;
     border-color: #667eea;
     color: white;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
@@ -467,21 +465,21 @@
 
   /* Slim colorful form accents */
   .form-accent {
-    background: linear-gradient(135deg, #eef2ff 0%, #f0f9ff 100%);
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 10px 12px;
     margin-bottom: 10px;
   }
   .chip-toggle {
-    display:inline-flex; align-items:center; gap:8px; padding:4px 10px; border-radius:999px;
-    background:#ffffff; border:1px solid #dbeafe; color:#1d4ed8; font-weight:600; font-size:12px;
+    display:inline-flex; align-items:center; gap:8px; padding:4px 10px; 
+     color:#1d4ed8; font-weight:600; font-size:12px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
   .chip-toggle .form-check-input { margin-left:8px; width:36px; height:18px; }
   .chip-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-  .chip-row .title { font-weight:700; letter-spacing:.2px; color:#0f172a; font-size:0.9rem; }
+  .chip-row .title { font-weight:700; letter-spacing:.2px; color: #0f172a; font-size:0.9rem; }
 
+    .chip-title{
+        border-bottom: none !important;
+        font-weight: 700;
+    }
   @media (max-width: 767px){
     .container-fluid{
       padding-left: 0.5rem;
@@ -511,7 +509,90 @@
     .table-search-btn {
       width: auto;
     }
+
   }
+
+  .form-control{
+        background: #DFDFDF;
+        font-size: 14px;
+        border-radius: 3px;
+    }
+
+    label{
+        font-weight: 700;
+    }
+
+    .file-upload-box {
+  border: 3px dashed #434AFA;
+  border-radius: 12px;
+  background-color: #f3f4f6;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.file-upload-box:hover {
+  border: 3px solid blue;
+}
+
+.upload-icon {
+  font-size: 42px;
+  color: #434AFA;
+}
+
+.task-type-wrapper {
+  display: inline-flex;
+  align-items: right;
+  border: 1px solid #434AFA;
+  border-radius: 3px;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.task-type-title {
+  background: #434AFA;
+  color: #fff;
+  padding: 6px 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.task-type-option {
+  display: flex;
+  align-items: right;
+  gap: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  border-left: 1px solid #434AFA;
+  background: #fff;
+  color: #000;
+  white-space: nowrap;
+}
+
+/* hide default radio */
+.task-type-option input {
+  accent-color: #4c6fff;
+  cursor: pointer;
+}
+
+/* active (selected) state */
+.task-type-option:has(input:checked) {
+  background: #eef2ff;
+  font-weight: 500;
+}
+
+.subHeader{
+    display: flex !important;
+    gap: 10px !important;
+}
+
+.btn-close{
+    margin-top: 2px !important;
+}
+
+.select{
+    background-color: #434AFA;
+}
+
 </style>
 @endpush
 
@@ -670,40 +751,45 @@
 <div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="createTaskModalLabel">Create New Task</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header"> 
+                 <h5 class="modal-title" id="createTaskModalLabel">Create New Task</h5>
+                <div>
+                    <div class="subHeader">
+                        <div class="mb-2">
+                            <label class="form-label" id="label_task_type">
+                            </label>
+
+                            <div class="task-type-wrapper">
+                                <span class="task-type-title">Select opt...</span>
+
+                                <label class="task-type-option">
+                                <input type="radio" name="task_type" value="task" checked>
+                                Task
+                                </label>
+
+                                <label class="task-type-option">
+                                <input type="radio" name="task_type" value="qc">
+                                Qc
+                                </label>
+
+                                <label class="task-type-option">
+                                <input type="radio" name="task_type" value="cp">
+                                CP
+                                </label>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
             </div>
             <form id="taskForm">
                 <div class="modal-body form-compact">
                     @csrf
-                    <!-- Task Type Selection (moved to top) -->
-                    <div class="mb-2">
-                        <label class="form-label" id="label_task_type">Type <span class="text-danger">*</span></label>
-                        <div class="form-check form-check-inline me-3">
-                            <input class="form-check-input" type="radio" name="task_type" id="task_type_task" value="task" checked>
-                            <label class="form-check-label" for="task_type_task" style="margin-right:8px;">
-                                Task
-                            </label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="task_type" id="task_type_qc" value="qc">
-                            <label class="form-check-label" for="task_type_qc">
-                                QC
-                            </label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="task_type" id="task_type_cp" value="cp">
-                            <label class="form-check-label" for="task_type_cp">
-                                Critical Path
-                            </label>
-                        </div>
-                    </div>
-
+                    
                     <!-- Recurring (Top, colorful) -->
                     <div class="form-accent mb-2" id="recurrenceSection">
                         <div class="chip-row">
-                            <div class="title"><i class="bi bi-arrow-repeat me-1 text-primary"></i>Recurring</div>
+                            <div class="chip-title">Recurring</div>
                             <label class="chip-toggle">
                                 Enable
                                 <input class="form-check-input" type="checkbox" id="is_recurring">
@@ -768,9 +854,9 @@
                         <!-- Customer Select -->
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="customer_id" class="form-label" id="label_customer">Customer <span class="text-danger">*</span></label>
+                                <label for="customer_id" class="form-label" id="label_customer">Clients</label>
                                 <select name="customer_id" id="customer_id" class="form-select form-select-sm" required>
-                                    <option value="">Select Customer</option>
+                                    <option value="" class="select">Select Customer</option>
                                 </select>
                             </div>
                         </div>
@@ -778,7 +864,7 @@
                         <!-- User Select -->
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label" id="label_user">Assign Users <span class="text-danger">*</span></label>
+                                <label class="form-label" id="label_user">Assign To</label>
                                 <div id="assignUsersContainer" class="assign-users-grid" data-input-name="user_ids[]"></div>
                                 <small class="text-muted">Select one or more users to assign this task/QC.</small>
                             </div>
@@ -786,64 +872,82 @@
                     </div>
 
                     <!-- Task Name -->
-                    <div class="mb-3">
-                        <label for="task_name" class="form-label" id="label_task_name">Task Name <span class="text-danger">*</span></label>
-                        <input type="text" name="task_name" id="task_name" class="form-control form-control-sm" required placeholder="Enter task name...">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="due_date" class="form-label" id="label_due_date">Due Date</label>
-                        <input type="date" name="due_date" id="due_date" class="form-control form-control-sm">
-                    </div>
-
-                    <!-- Task Description -->
-                    <div class="mb-3">
-                        <label for="task" class="form-label" id="label_task_desc">Task Description <span class="text-danger">*</span></label>
-                        <textarea name="task" id="task" class="form-control form-control-sm" rows="3" required placeholder="Enter task details..."></textarea>
-                    </div>
-
-                    
-
-                    
-
-                    <!-- Image Upload with Add More -->
-                    <div class="mb-3">
-                        <label for="task_images" class="form-label" id="label_images">Upload Images (Multiple)</label>
-                        <div class="d-flex gap-2">
-                            <input type="file" id="task_images" class="form-control form-control-sm" multiple accept="image/*">
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="addMoreImagesBtn" style="white-space: nowrap;">
-                                <i class="bi bi-plus-circle"></i> Add More
-                            </button>
+                    <div class="row">
+                        <div class="mb-3 col-md-8">
+                            <label for="task_name" class="form-label" id="label_task_name">Task Name</label>
+                            <input type="text" name="task_name" id="task_name" class="form-control form-control-sm" required placeholder="Enter task name...">
                         </div>
-                        <small class="help-text">You can select or paste images (Ctrl+V). Max 5MB per image. Click "Add More" to add batches.</small>
-                        <div id="imagePreview" class="mt-2 p-2 border rounded" tabindex="0" style="min-height:56px;">
-                            <small class="text-muted">No images selected yet</small>
+
+                        <div class="mb-3 col-md-4">
+                            <label for="due_date" class="form-label" id="label_due_date">Due Date</label>
+                            <input type="date" name="due_date" id="due_date" class="form-control form-control-sm">
                         </div>
-                        <div id="selectedImagesList" class="mt-2"></div>
                     </div>
 
-                    <!-- Task Status Select -->
-                    <div class="mb-3">
-                        <label for="task_status_id" class="form-label" id="label_task_status">Task Status <span class="text-danger">*</span></label>
-                        <select name="task_status_id" id="task_status_id" class="form-select form-select-sm" required>
-                            <option value="">Select Status</option>
-                        </select>
-                    </div>
+                    <div class = "row">
+                        <!-- Task Description -->
+                        <div class="mb-3 col-8">
+                            <label for="task" class="form-label" id="label_task_desc">Description</label>
+                            <textarea name="task" id="task" class="form-control form-control-sm" rows="4" required placeholder="Enter..."></textarea>
+                            
+                            <div class="row mt-3">
+                                <!-- Task Status Select -->
+                                <div class="mb-3 col-4">
+                                    <label for="task_status_id" class="form-label" id="label_task_status">Status</label>
+                                    <select name="task_status_id" id="task_status_id" class="form-select form-select-sm" required>
+                                        <option value="">Select Status</option>
+                                    </select>
+                                </div>
 
-                    <!-- Task Priority Select -->
-                    <div class="mb-3">
-                        <label for="task_priority_id" class="form-label" id="label_task_priority">Task Priority</label>
-                        <select name="task_priority_id" id="task_priority_id" class="form-select form-select-sm">
-                            <option value="">Select Priority</option>
-                        </select>
+                                <!-- Task Priority Select -->
+                                <div class="mb-3 col-4">
+                                    <label for="task_priority_id" class="form-label" id="label_task_priority">Priority</label>
+                                    <select name="task_priority_id" id="task_priority_id" class="form-select form-select-sm">
+                                        <option value="">Select Priority</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                            <!-- Image Upload with Add More -->
+                        <div class="mb-3 col-4">
+                            <div class="file-upload-box text-center p-4">
+
+                                <!-- Upload Icon -->
+                                <div class="upload-icon mb-3">
+                                <i class="bi bi-cloud-arrow-up" style ="color: #434AFA;"></i>
+                                </div>
+
+                                <!-- File Input -->
+                                <input
+                                type="file" name="images[]" id="task_images" class="d-none" multiple accept="image/*" style= "background: #DfDfDf;"
+                                >
+
+                                <!-- Browse Button -->
+                                <button
+                                type="button"
+                                class="btn btn-sm btn-primary mb-2" style= "background: #434AFA;"
+                                onclick="document.getElementById('task_images').click()"
+                                >
+                                Browse Files
+                                </button>
+
+                                <!-- Helper Text -->
+                                <p style="color: black;" >Drop or Paste Here</p>
+
+                            </div>
+
+                            <!-- Preview -->
+                            <div id="imagePreview" class="mt-2 d-flex gap-2 flex-wrap"></div>
+                            <div id="selectedImagesList" class="mt-2"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary" id="createTaskSubmitBtn">
-                        <i class="bi bi-plus-circle"></i> Create Task
+                <div class = "p-4">
+                    <button type="submit" class="btn btn-primary" style = "background: #434AFa;" id="createTaskSubmitBtn">
+                        Submit
                     </button>
                 </div>
+
             </form>
         </div>
     </div>
@@ -929,39 +1033,40 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div>
+                    <div class="subHeader">
+                        <div class="mb-2">
+                            <div class="task-type-wrapper">
+                                <span class="task-type-title">Select opt...</span>
+
+                                <label class="task-type-option" for="edit_task_type_task">
+                                <input type="radio" name="edit_task_type" id="edit_task_type_task" value="task" checked>
+                                Task
+                                </label>
+
+                                <label class="task-type-option" for="edit_task_type_qc">
+                                <input type="radio" name="edit_task_type" id="edit_task_type_qc" value="qc">
+                                Qc
+                                </label>
+
+                                <label class="task-type-option" for="edit_task_type_cp">
+                                <input type="radio" name="edit_task_type" id="edit_task_type_cp" value="cp">
+                                CP
+                                </label>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
             </div>
             <form id="editTaskForm">
                 <div class="modal-body form-compact">
                     <input type="hidden" id="edit_task_id">
                     
-                    <!-- Task Type Selection for Edit -->
-                    <div class="mb-3">
-                        <label class="form-label">Task Type <span class="text-danger">*</span></label>
-                        <div class="form-check form-check-inline me-3">
-                            <input class="form-check-input" type="radio" name="edit_task_type" id="edit_task_type_task" value="task">
-                            <label class="form-check-label" for="edit_task_type_task">
-                                Task
-                            </label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="edit_task_type" id="edit_task_type_qc" value="qc">
-                            <label class="form-check-label" for="edit_task_type_qc">
-                                QC
-                            </label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="edit_task_type" id="edit_task_type_cp" value="cp">
-                            <label class="form-check-label" for="edit_task_type_cp">
-                                Critical Path
-                            </label>
-                        </div>
-                    </div>
-
                     <!-- Recurring (Top of Edit) -->
                     <div class="form-accent mb-2" id="editRecurrenceSection">
                         <div class="chip-row">
-                            <div class="title"><i class="bi bi-arrow-repeat me-1 text-primary"></i>Recurring</div>
+                            <div class="chip-title">Recurring</div>
                             <label class="chip-toggle">
                                 Enable
                                 <input class="form-check-input" type="checkbox" id="edit_is_recurring">
@@ -1023,61 +1128,93 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="edit_customer_id" class="form-label">Customer <span class="text-danger">*</span></label>
-                        <select name="customer_id" id="edit_customer_id" class="form-select form-select-sm" required>
-                            <option value="">Select Customer</option>
-                        </select>
+                    <div class="row">
+                        <div class="mb-3 col-md-6">
+                            <label for="edit_customer_id" class="form-label">Customer <span class="text-danger">*</span></label>
+                            <select name="customer_id" id="edit_customer_id" class="form-select form-select-sm" required>
+                                <option value="">Select Customer</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3 col-md-6">
+                            <label class="form-label">Assign Users <span class="text-danger">*</span></label>
+                            <div id="editAssignUsersContainer" class="assign-users-grid" data-input-name="user_ids[]"></div>
+                            <small class="text-muted">Select one or more assignees for this task.</small>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="edit_task_name" class="form-label">Task Name <span class="text-danger">*</span></label>
-                        <input type="text" name="task_name" id="edit_task_name" class="form-control form-control-sm" required placeholder="Enter task name...">
+                  <div class="row">
+                      <div class="col-md-8">
+                            <label for="edit_task_name" class="form-label">Task Name</label>
+                            <input type="text" name="task_name" id="edit_task_name" class="form-control form-control-sm" required placeholder="Enter task name...">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="edit_due_date" class="form-label">Due Date</label>
+                            <input type="date" name="due_date" id="edit_due_date" class="form-control form-control-sm">
+                        </div>
                     </div>
+                    
+                    <div class="row">
+                        <div class="mt-3 col-md-8">
+                            <label for="edit_task" class="form-label">Task Description</label>
+                            <textarea name="task" id="edit_task" class="form-control form-control-sm" rows="3" required placeholder="Enter task details..."></textarea>
 
-                    <div class="mb-3">
-                        <label for="edit_due_date" class="form-label">Due Date</label>
-                        <input type="date" name="due_date" id="edit_due_date" class="form-control form-control-sm">
-                    </div>
+                            <div class="row">
+                                <div class="mt-3 col-md-4">
+                                    <label for="edit_task_status_id" class="form-label">Task Status <span class="text-danger">*</span></label>
+                                    <select name="task_status_id" id="edit_task_status_id" class="form-select form-select-sm" required>
+                                        <option value="">Select Status</option>
+                                    </select>
+                                </div>
 
-                    <div class="mb-3">
-                        <label for="edit_task" class="form-label">Task Description <span class="text-danger">*</span></label>
-                        <textarea name="task" id="edit_task" class="form-control form-control-sm" rows="3" required placeholder="Enter task details..."></textarea>
-                    </div>
+                                <div class="mt-3 col-md-4">
+                                    <label for="edit_task_priority_id" class="form-label">Task Priority</label>
+                                    <select name="task_priority_id" id="edit_task_priority_id" class="form-select form-select-sm">
+                                        <option value="">Select Priority</option>
+                                    </select>
+                                </div>
+                           </div>
+                        </div>
+                        <!-- Image Upload for Edit -->
 
+                        <div class="mt-3 col-4">
+                            <div class="file-upload-box text-center p-4">
 
-                    <!-- Image Upload for Edit -->
-                    <div class="mb-3">
-                        <label for="edit_task_images" class="form-label">Add More Images (Optional)</label>
-                        <input type="file" name="images[]" id="edit_task_images" class="form-control form-control-sm" multiple accept="image/*">
-                        <small class="help-text">You can select or paste images (Ctrl+V). Max 5MB per image.</small>
-                        <div id="editImagePreview" class="mt-2" tabindex="0" style="min-height:56px;"></div>
-                        <div id="existingImages" class="mt-2"></div>
-                    </div>
+                                <!-- Upload Icon -->
+                                <div class="upload-icon mb-3">
+                                <i class="bi bi-cloud-arrow-up" style ="color: #434AFA;"></i>
+                                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Assign Users <span class="text-danger">*</span></label>
-                        <div id="editAssignUsersContainer" class="assign-users-grid" data-input-name="user_ids[]"></div>
-                        <small class="text-muted">Select one or more assignees for this task.</small>
-                    </div>
+                                <!-- File Input -->
+                                <input
+                                type="file" name="images[]" id="edit_task_images" class="d-none" multiple accept="image/*" style= "background: #DfDfDf;"
+                                >
 
-                    <div class="mb-3">
-                        <label for="edit_task_status_id" class="form-label">Task Status <span class="text-danger">*</span></label>
-                        <select name="task_status_id" id="edit_task_status_id" class="form-select form-select-sm" required>
-                            <option value="">Select Status</option>
-                        </select>
-                    </div>
+                                <!-- Browse Button -->
+                                <button
+                                type="button"
+                                class="btn btn-sm btn-primary mb-2" style= "background: #434AFA;"
+                                onclick="document.getElementById('edit_task_images').click()"
+                                >
+                                Browse Files
+                                </button>
 
-                    <div class="mb-3">
-                        <label for="edit_task_priority_id" class="form-label">Task Priority</label>
-                        <select name="task_priority_id" id="edit_task_priority_id" class="form-select form-select-sm">
-                            <option value="">Select Priority</option>
-                        </select>
+                                <!-- Helper Text -->
+                                <p style="color: black;" >Drop or Paste Here</p>
+
+                            </div>
+
+                            <!-- Preview -->
+                            <div id="editImagePreview" class="mt-2 d-flex gap-2 flex-wrap"></div>
+                            <div id="existingImages" class="mt-2"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-sm btn-primary">Update Task</button>
+                <div class = "p-4">
+                    <button type="submit" class="btn btn-sm btn-primary" style = "background: #434AFa;">
+                        Submit
+                    </button>
                 </div>
             </form>
         </div>
@@ -1152,8 +1289,8 @@ $(document).ready(function() {
         $('#label_task_priority').contents().first()[0].textContent = priorityLabelMap[type] || priorityLabelMap.task;
         
         // Submit button
-        const submitLabel = type === 'qc' ? 'Create QC' : (type === 'cp' ? 'Create CP Task' : 'Create Task');
-        $('#createTaskSubmitBtn').html(`<i class="bi bi-plus-circle"></i> ${submitLabel}`);
+        const submitLabel = type === 'qc' ? 'Create QC' : (type === 'cp' ? 'Create CP Task' : 'Submit');
+        $('#createTaskSubmitBtn').html(`${submitLabel}`);
 
         // Recurrence visibility
         if (isQC || isCP) {
