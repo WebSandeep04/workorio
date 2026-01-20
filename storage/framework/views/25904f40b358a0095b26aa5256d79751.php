@@ -249,6 +249,99 @@
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
+
+  /* Dashboard Cards CSS */
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .summary-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #eceef3;
+    padding: 0.4rem;
+    box-shadow: 0px 4px 4px 0px #0000000A;
+    transition: all 0.3s ease;
+    width: 100%;
+    min-height: 55px;
+    height: 55px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .summary-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .icon-sunrise { background: linear-gradient(135deg, #f97316, #fb923c); }
+  .icon-emerald { background: linear-gradient(135deg, #34d399, #10b981); }
+  .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+  .icon-rose { background: linear-gradient(135deg, #fb7185, #f43f5e); }
+  
+  .summary-card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
+    min-width: 0;
+  }
+  
+  .summary-card-label {
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 0.15rem;
+    color: #000;
+    line-height: 1.1;
+  }
+
+  .summary-card-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin: 0;
+    color: #101828;
+    line-height: 1;
+  }
+
+  /* Filter Box CSS */
+  .filterBox {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+    background: #434AFA;
+    padding: 0.75rem;
+    color: #fff;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 10px rgba(67, 74, 250, 0.3);
+  }
+
+  .filterBox .form-label-modern {
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-size: 10px;
+  }
+
+  .filterBox .form-control-modern {
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 2px;
+    padding: 0.35rem 0.5rem;
+    background: rgba(255, 255, 255, 0.98);
+    color: #000;
+    font-size: 10px;
+    width: 100%;
+  }
   
   .spin {
     animation: spin 1s linear infinite;
@@ -350,19 +443,87 @@
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
-  <div class="d-flex justify-content-between align-items-center mb-2">
-      <div class="table-search" style="margin-bottom:0; width: auto; flex-grow: 1;">
-        <div class="table-search-field">
-          <i class="bi bi-search"></i>
-          <input type="text" id="search" placeholder="Search Assignments (Asset, Employee)..." />
-        </div>
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <div class="summary-card card-1">
+      <div class="summary-card-icon icon-sunrise">
+        <i class="bi bi-box-seam text-white"></i>
       </div>
-      <div class="ms-2">
-           <button class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createAssignmentModal">
-              <i class="bi bi-plus me-1"></i>Assign Asset
-            </button>
+      <div class="summary-card-content">
+        <div class="summary-card-label">Total Assets</div>
+        <div class="summary-card-value" id="totalAssets">0</div>
       </div>
+    </div>
+    <div class="summary-card card-2">
+      <div class="summary-card-icon icon-emerald">
+        <i class="bi bi-check-circle text-white"></i>
+      </div>
+      <div class="summary-card-content">
+        <div class="summary-card-label">Available</div>
+        <div class="summary-card-value" id="availableAssets">0</div>
+      </div>
+    </div>
+    <div class="summary-card card-3">
+      <div class="summary-card-icon icon-sky">
+        <i class="bi bi-person-check text-white"></i>
+      </div>
+      <div class="summary-card-content">
+        <div class="summary-card-label">Assigned</div>
+        <div class="summary-card-value" id="assignedAssets">0</div>
+      </div>
+    </div>
+    <div class="summary-card card-4">
+      <div class="summary-card-icon icon-rose">
+        <i class="bi bi-exclamation-triangle text-white"></i>
+      </div>
+      <div class="summary-card-content">
+        <div class="summary-card-label">Return Due</div>
+        <div class="summary-card-value" id="returnDue">0</div>
+      </div>
+    </div>
   </div>
+
+  <!-- Filters -->
+   <div class="filterBox d-flex justify-content-between align-items-center mb-4 gap-3">
+       <div class="d-flex flex-column flex-grow-1">
+           <label class="form-label-modern">Employee</label>
+           <select class="form-control-modern w-100 arrow-white" id="filter_employee_id">
+                <option value="">All Employees</option>
+                <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                     <option value="<?php echo e($employee->id); ?>"><?php echo e($employee->name); ?></option>
+                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+           </select>
+       </div>
+       <div class="d-flex flex-column flex-grow-1">
+           <label class="form-label-modern">Category</label>
+           <select class="form-control-modern w-100 arrow-white" id="filter_category_id">
+               <option value="">All Categories</option>
+               <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                   <option value="<?php echo e($category->id); ?>"><?php echo e($category->name); ?></option>
+               <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+           </select>
+       </div>
+       <div class="d-flex flex-column flex-grow-1">
+           <label class="form-label-modern">From Date</label>
+           <input type="date" class="form-control-modern w-100" id="filter_from_date">
+       </div>
+       <div class="d-flex flex-column flex-grow-1">
+           <label class="form-label-modern">To Date</label>
+           <input type="date" class="form-control-modern w-100" id="filter_to_date">
+       </div>
+   </div>
+
+  <div class="table-search mb-2">
+    <div class="table-search-field">
+      <i class="bi bi-search"></i>
+      <input type="text" id="search" placeholder="Search assignments..." />
+    </div>
+    <button type="button" class="table-search-btn ms-auto" data-bs-toggle="modal" data-bs-target="#createAssignmentModal">
+      <i class="bi bi-plus me-1"></i> Assign Asset
+    </button>
+  </div>
+
+  <h4 class="mb-2" style="font-size: 10px; font-weight: bold; color: #434AFA; margin-left: 2px;">ASSET ASSIGNMENT LIST</h4>
 
   <div class="modern-card data-table-card">
     <div class="modern-card-body">
@@ -573,6 +734,35 @@ function buildSimplePagination($container, current, last) {
 $(function () {
   let searchTimeout;
   loadAssignments();
+  loadStats();
+
+  $('#filter_from_date, #filter_to_date, #filter_category_id, #filter_employee_id').change(function() {
+      loadAssignments();
+      loadStats();
+  });
+
+
+
+  function loadStats() {
+      // Build query params for stats too if we want stats to filter? 
+      // User said "add filter from to date filter by users filter by category" - usually filters apply to stats too in dashboards.
+      // But user demand "cards to show total assets... whose due date passed".
+      // Usually "Total Assets" is global. "Return Due" might be global.
+      // But if I filter by Category, Total Assets should probably respect that.
+      // I'll pass filters to stats endpoint too.
+      
+      let queryParams = `?from_date=${$('#filter_from_date').val()}`;
+      queryParams += `&to_date=${$('#filter_to_date').val()}`;
+      queryParams += `&category_id=${$('#filter_category_id').val()}`;
+      queryParams += `&employee_id=${$('#filter_employee_id').val()}`;
+
+      $.get(`<?php echo e(route('asset-management.stats')); ?>${queryParams}`, function(data) {
+          $('#totalAssets').text(data.total_assets);
+          $('#availableAssets').text(data.available_assets);
+          $('#assignedAssets').text(data.assigned_assets);
+          $('#returnDue').text(data.return_due); // Using updated ID
+      });
+  }
 
   // Load Assignments Table
   function loadAssignments(page = 1) {
@@ -582,7 +772,13 @@ $(function () {
       <tr><td colspan="7" class="loading-state"><i class="bi bi-arrow-repeat spin"></i><p class="mt-2 mb-0">Loading assignments...</p></td></tr>
     `);
     
-    $.get(`<?php echo e(route('asset-management.fetch')); ?>?page=${page}&search=${search}`, function (data) {
+    let queryParams = `page=${page}&search=${search}`;
+    queryParams += `&from_date=${$('#filter_from_date').val()}`;
+    queryParams += `&to_date=${$('#filter_to_date').val()}`;
+    queryParams += `&category_id=${$('#filter_category_id').val()}`;
+    queryParams += `&employee_id=${$('#filter_employee_id').val()}`;
+
+    $.get(`<?php echo e(route('asset-management.fetch')); ?>?${queryParams}`, function (data) {
       if (!data.data || data.data.length === 0) {
         $('#assignmentsTable tbody').html(`
           <tr>

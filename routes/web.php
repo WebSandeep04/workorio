@@ -1169,6 +1169,7 @@ Route::middleware(['auth.or.session'])->group(function () {
 Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/asset-management', [\App\Http\Controllers\AssetManagementController::class, 'index'])->name('asset-management.index');
     Route::get('/asset-management/fetch', [\App\Http\Controllers\AssetManagementController::class, 'fetch'])->name('asset-management.fetch');
+    Route::get('/asset-management/stats', [\App\Http\Controllers\AssetManagementController::class, 'getSummaryStats'])->name('asset-management.stats');
     Route::get('/asset-management/get-assets', [\App\Http\Controllers\AssetManagementController::class, 'getAssetsByCategory'])->name('asset-management.get-assets');
     Route::post('/asset-management/store', [\App\Http\Controllers\AssetManagementController::class, 'store'])->name('asset-management.store');
     Route::get('/asset-management/{id}', [\App\Http\Controllers\AssetManagementController::class, 'show'])->name('asset-assignment.show');
