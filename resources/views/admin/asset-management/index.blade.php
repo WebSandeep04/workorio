@@ -492,9 +492,14 @@
                   <input type="text" class="form-control form-control-modern" id="edit_asset_name" disabled readonly>
               </div>
               
-               <div class="col-md-6">
-                  <label class="form-label-modern">Employee</label>
-                  <input type="text" class="form-control form-control-modern" id="edit_employee_name" disabled readonly>
+              <div class="col-md-6">
+                  <label for="edit_employee_id" class="form-label-modern">Employee <span class="text-danger">*</span></label>
+                  <select class="form-select form-control-modern" id="edit_employee_id" name="employee_id" required>
+                      <option value="">Select Employee</option>
+                       @foreach($employees as $employee)
+                            <option value="{{ $employee->id }}">{{ $employee->name }} ({{ $employee->employee_code }})</option>
+                        @endforeach
+                  </select>
               </div>
               
               <div class="col-md-6">
@@ -691,7 +696,7 @@ $(function () {
         $.get(`/asset-management/${id}`, function(data) {
             $('#edit_id').val(data.id);
             $('#edit_asset_name').val(data.asset ? data.asset.name : 'Unknown');
-            $('#edit_employee_name').val(data.employee ? data.employee.name : 'Unknown');
+            $('#edit_employee_id').val(data.employee_id);
             $('#edit_status').val(data.status);
             $('#edit_return_date').val(data.return_date || '');
             $('#edit_description').val(data.description || '');

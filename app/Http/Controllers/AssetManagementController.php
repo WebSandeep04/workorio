@@ -78,13 +78,25 @@ class AssetManagementController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
+             'employee_id' => 'required|exists:employees,id',
              'return_date' => 'nullable|date',
              'status' => 'required|string',
              'description' => 'nullable|string'
         ]);
 
         $assignment = AssetAssignment::findOrFail($id);
+
+        if ($assignment->employee_id != $request->employee_id) {
+            \App\Models\AssetAssignmentLog::create([
+                'asset_assignment_id' => $assignment->id,
+                'previous_employee_id' => $assignment->employee_id,
+                'new_employee_id' => $request->employee_id,
+                'updated_by' => auth()->id() ?? null,
+            ]);
+        }
+
         $assignment->update([
+             'employee_id' => $request->employee_id,
              'return_date' => $request->return_date,
              'status' => $request->status,
              'description' => $request->description
