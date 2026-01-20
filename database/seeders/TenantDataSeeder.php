@@ -75,7 +75,43 @@ class TenantDataSeeder extends Seeder
         $this->seedBranches();
         $this->seedDepartments();
         
+        // 13. Asset Statuses
+        $this->seedAssetStatuses();
+        
         $this->command->info('Minimal tenant data seeded successfully.');
+    }
+
+    /**
+     * Seed Asset Statuses
+     */
+    private function seedAssetStatuses(): void
+    {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('asset_statuses')) {
+            $this->command->warn('asset_statuses table not found, skipping asset status seeding.');
+            return;
+        }
+
+        $statuses = [
+            'Available',
+            'Assigned',
+            'Damaged',
+            'Lost',
+            'Under Maintenance',
+            'Broken'
+        ];
+
+        foreach ($statuses as $status) {
+            DB::table('asset_statuses')->updateOrInsert(
+                ['name' => $status],
+                [
+                    'name' => $status,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
+
+        $this->command->info('✅ Seeded asset statuses.');
     }
 
     /**

@@ -1168,6 +1168,12 @@ Route::middleware(['auth.or.session'])->group(function () {
 // Asset Management
 Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/asset-management', [\App\Http\Controllers\AssetManagementController::class, 'index'])->name('asset-management.index');
+    Route::get('/asset-management/fetch', [\App\Http\Controllers\AssetManagementController::class, 'fetch'])->name('asset-management.fetch');
+    Route::get('/asset-management/get-assets', [\App\Http\Controllers\AssetManagementController::class, 'getAssetsByCategory'])->name('asset-management.get-assets');
+    Route::post('/asset-management/store', [\App\Http\Controllers\AssetManagementController::class, 'store'])->name('asset-management.store');
+    Route::get('/asset-management/{id}', [\App\Http\Controllers\AssetManagementController::class, 'show'])->name('asset-assignment.show');
+    Route::put('/asset-management/{id}', [\App\Http\Controllers\AssetManagementController::class, 'update'])->name('asset-management.update');
+    Route::delete('/asset-management/{id}', [\App\Http\Controllers\AssetManagementController::class, 'destroy'])->name('asset-management.destroy');
     
     // Asset Types
     Route::get('/asset-type', [\App\Http\Controllers\AssetTypeController::class, 'index'])->name('asset-type.index');
