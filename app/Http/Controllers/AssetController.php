@@ -18,8 +18,7 @@ class AssetController extends Controller
         
         $categories = AssetCategory::all(); // Pass categories for dropdown
         $statuses = \App\Models\AssetStatus::all();
-        $employees = Employee::select('id', 'name', 'employee_code')->get();
-        return view('software-setup.assets.index', compact('categories', 'statuses', 'employees'));
+        return view('software-setup.assets.index', compact('categories', 'statuses'));
     }
 
     public function fetch(Request $request)
@@ -33,7 +32,7 @@ class AssetController extends Controller
              ]);
         }
 
-        $query = Asset::with(['category', 'assignee']);
+        $query = Asset::with(['category']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -59,7 +58,6 @@ class AssetController extends Controller
         $request->validate([
             'asset_id' => 'required|string|unique:assets,asset_id',
             'asset_category_id' => 'required|exists:asset_categories,id',
-            'assigned_to' => 'nullable|exists:employees,id',
             'status' => 'required|string',
             'custom_fields' => 'nullable|array' // Field values keyed by field ID or name? Name is better for display, but ID is stable. 
                                                 // Actually, we store user input.
@@ -69,7 +67,6 @@ class AssetController extends Controller
         $asset = Asset::create([
             'asset_id' => $request->asset_id,
             'asset_category_id' => $request->asset_category_id,
-            'assigned_to' => $request->assigned_to,
             'status' => $request->status,
             'custom_fields_data' => $request->custom_fields // Laravel casts this to json
         ]);
@@ -82,7 +79,6 @@ class AssetController extends Controller
         $request->validate([
             'asset_id' => 'required|string|unique:assets,asset_id,' . $id,
             'asset_category_id' => 'required|exists:asset_categories,id',
-            'assigned_to' => 'nullable|exists:employees,id',
             'status' => 'required|string',
             'custom_fields' => 'nullable|array'
         ]);
@@ -91,7 +87,6 @@ class AssetController extends Controller
         $asset->update([
             'asset_id' => $request->asset_id,
             'asset_category_id' => $request->asset_category_id,
-            'assigned_to' => $request->assigned_to,
             'status' => $request->status,
             'custom_fields_data' => $request->custom_fields
         ]);
@@ -106,19 +101,10 @@ class AssetController extends Controller
     }
     
     public function show($id) {
-         return response()->json(Asset::with(['category', 'assignee'])->findOrFail($id));
+         return response()->json(Asset::with(['category'])->findOrFail($id));
     }
 
-    public function searchEmployees(Request $request)
-    {
-        $query = $request->get('q');
-        $employees = Employee::where('name', 'like', "%{$query}%")
-                            ->orWhere('employee_code', 'like', "%{$query}%")
-                            ->select('id', 'name', 'employee_code')
-                            ->limit(10)
-                            ->get();
-        return response()->json($employees);
-    }
+
     
     // Helper to get generic category fields if needed, 
     // though the frontend can use AssetCategoryController@show

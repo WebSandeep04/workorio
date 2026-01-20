@@ -372,14 +372,13 @@
             <tr>
               <th>Asset ID</th>
               <th>Category</th>
-              <th>Assigned To</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td colspan="5" class="loading-state">
+              <td colspan="4" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
                 <p class="mt-2 mb-0">Loading assets...</p>
               </td>
@@ -428,15 +427,7 @@
                 </select>
               </div>
               
-              <div class="col-md-6">
-                  <label for="assigned_to" class="form-label-modern">Assigned To</label>
-                  <select class="form-select form-control-modern" id="assigned_to" name="assigned_to">
-                      <option value="">Select Employee</option>
-                      <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                          <option value="<?php echo e($employee->id); ?>"><?php echo e($employee->name); ?> (<?php echo e($employee->employee_code); ?>)</option>
-                      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                  </select>
-              </div>
+
               
               <div class="col-md-6">
                 <label for="status" class="form-label-modern">Status <span class="text-danger">*</span></label>
@@ -498,15 +489,7 @@
                 </select>
               </div>
               
-              <div class="col-md-6">
-                  <label for="edit_assigned_to" class="form-label-modern">Assigned To</label>
-                  <select class="form-select form-control-modern" id="edit_assigned_to" name="assigned_to">
-                      <option value="">Select Employee</option>
-                      <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                          <option value="<?php echo e($employee->id); ?>"><?php echo e($employee->name); ?> (<?php echo e($employee->employee_code); ?>)</option>
-                      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                  </select>
-              </div>
+
               
               <div class="col-md-6">
                 <label for="edit_status" class="form-label-modern">Status <span class="text-danger">*</span></label>
@@ -584,14 +567,14 @@ $(function () {
     let search = $('#search').val();
     
     $('#assetsTable tbody').html(`
-      <tr><td colspan="5" class="loading-state"><i class="bi bi-arrow-repeat spin"></i><p class="mt-2 mb-0">Loading assets...</p></td></tr>
+      <tr><td colspan="4" class="loading-state"><i class="bi bi-arrow-repeat spin"></i><p class="mt-2 mb-0">Loading assets...</p></td></tr>
     `);
     
     $.get(`<?php echo e(route('assets.fetch')); ?>?page=${page}&search=${search}`, function (data) {
       if (!data.data || data.data.length === 0) {
         $('#assetsTable tbody').html(`
           <tr>
-            <td colspan="5" class="empty-state">
+            <td colspan="4" class="empty-state">
               <i class="bi bi-inbox"></i>
               <h5>No Assets Found</h5>
             </td>
@@ -608,7 +591,6 @@ $(function () {
           <tr style="animation-delay: ${i * 0.1}s;">
             <td><strong>${asset.asset_id}</strong></td>
             <td>${asset.category ? asset.category.name : '-'}</td>
-            <td>${asset.assignee ? asset.assignee.name : '<span class="text-muted">Unassigned</span>'}</td>
             <td><span class="badge bg-light text-dark border">${asset.status}</span></td>
             <td>
               <div class="d-flex gap-2 justify-content-center">
@@ -753,9 +735,6 @@ $(function () {
             $('#edit_asset_id').val(data.asset_id);
             $('#edit_asset_category_id').val(data.asset_category_id);
             
-            // Set value for regular select dropdown
-            $('#edit_assigned_to').val(data.assigned_to || '');
-
             $('#edit_status').val(data.status);
             
             // Load fields with existing data

@@ -20,7 +20,6 @@ return new class extends Migration
             $table->id();
             $table->string('asset_id')->unique(); // User entered custom ID
             $table->foreignId('asset_category_id')->constrained()->onDelete('cascade');
-            $table->foreignId('assigned_to')->nullable()->constrained('employees')->onDelete('set null'); // Linking to employees table
             $table->json('custom_fields_data')->nullable(); // Stores key-value pairs of custom fields
             $table->string('status'); // e.g., Available, Assigned, Damaged, Lost
             $table->timestamps();
