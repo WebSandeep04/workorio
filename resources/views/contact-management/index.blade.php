@@ -330,6 +330,7 @@
             <th>Email</th>
             <th>Phone</th>
             <th>Address</th>
+            <th>Other Text</th>
             <th>Remark</th>
             <th>Actions</th>
           </tr>
@@ -437,8 +438,13 @@
           </div>
 
           <div class="mb-3">
-            <label for="raw_text" class="form-label-modern">Remark</label>
+            <label for="raw_text" class="form-label-modern">Other Text</label>
             <textarea class="form-control form-control-modern" id="raw_text" name="raw_text" rows="2"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="remark" class="form-label-modern">Remark</label>
+            <textarea class="form-control form-control-modern" id="remark" name="remark" rows="2"></textarea>
           </div>
 
         </form>
@@ -645,6 +651,7 @@ $(document).ready(function() {
             $('#website').val(data.website);
             $('#address').val(data.address);
             $('#raw_text').val(data.raw_text);
+            $('#remark').val(data.remark);
             $('#city').val(data.city);
             $('#state').val(data.state);
             $('#country').val(data.country);
@@ -676,6 +683,7 @@ $(document).ready(function() {
              $('#card_pincode').text(v(data.pincode));
              
              $('#card_remark').text(v(data.raw_text));
+             $('#card_new_remark').text(v(data.remark));
              
              $('#viewCardModal').modal('show');
         });
@@ -731,9 +739,9 @@ $(document).ready(function() {
                  const formatCell = (text, label) => {
                     if(!text) return '-';
                     let str = String(text);
-                    if(str.length > 10) {
+                    if(str.length > 7) {
                         let safeContent = str.replace(/"/g, '&quot;');
-                        return `<span class="view-details" data-bs-toggle="modal" data-bs-target="#viewDetailsModal" data-title="${label}" data-content="${safeContent}" style="cursor:pointer;">${str.substring(0, 10)}...</span>`;
+                        return `<span class="view-details" data-bs-toggle="modal" data-bs-target="#viewDetailsModal" data-title="${label}" data-content="${safeContent}" style="cursor:pointer;">${str.substring(0, 7)}...</span>`;
                     }
                     return str;
                 };
@@ -749,7 +757,8 @@ $(document).ready(function() {
                             <td>${formatCell(contact.email, 'Email')}</td>
                             <td>${formatCell(contact.phone_primary, 'Phone')}</td>
                             <td>${formatCell(contact.address, 'Address')}</td>
-                            <td>${formatCell(contact.raw_text, 'Remark')}</td>
+                            <td>${formatCell(contact.raw_text, 'Other Text')}</td>
+                            <td>${formatCell(contact.remark, 'Remark')}</td>
                             <td>
                                 <button class="btn btn-sm text-info view-card-btn" data-id="${contact.id}" title="View Card"><i class="bi bi-eye"></i></button>
                                 <button class="btn btn-sm text-primary edit-btn" data-id="${contact.id}"><i class="bi bi-pencil"></i></button>

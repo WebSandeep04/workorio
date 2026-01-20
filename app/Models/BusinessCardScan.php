@@ -29,7 +29,8 @@ class BusinessCardScan extends TenantModel
         'raw_ai_response',
         'is_converted',
         'sales_record_id',
-        'created_by'
+        'created_by',
+        'remark'
     ];
 
     protected $casts = [

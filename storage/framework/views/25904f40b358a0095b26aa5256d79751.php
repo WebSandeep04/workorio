@@ -194,14 +194,19 @@
     border-radius: 4px;
   }
 
+  /* Utility overridden for delete button specific */
   .btn-action-delete {
-   color: white;
-   background: #343AFA !important;
+    color: white !important;
+    background: #434AFA !important;
     border-radius: 4px;
+    border: none !important;
+    box-shadow: none !important;
   }
-
-  .btn-action i {
-    font-size: 0.8rem;
+  
+  .btn-action-delete:hover {
+     background: #434AFA !important; /* Keep same bg or slightly darker if desired, but user wants uniform */
+     box-shadow: none !important;
+     transform: translateY(-2px);
   }
 
   /* Specific Action Buttons */
