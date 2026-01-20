@@ -20,7 +20,8 @@ class AssetManagementController extends Controller
         $employees = Employee::where('status', 'Active')->get();
         $statuses = AssetStatus::all();
         $suppliers = Supplier::all();
-        return view('admin.asset-management.index', compact('categories', 'employees', 'statuses', 'suppliers'));
+        $assetTypes = \App\Models\AssetType::all();
+        return view('admin.asset-management.index', compact('categories', 'employees', 'statuses', 'suppliers', 'assetTypes'));
     }
 
     public function fetch(Request $request)

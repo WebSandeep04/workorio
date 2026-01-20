@@ -432,6 +432,16 @@
                     @endforeach
                 </select>
               </div>
+              <div class="col-md-6">
+                <label for="asset_type_id" class="form-label-modern">Asset Type</label>
+                <select class="form-select form-control-modern" id="asset_type_id" name="asset_type_id">
+                    <option value="">Select Type</option>
+                    @foreach($assetTypes as $type)
+                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                    @endforeach
+                </select>
+              </div>
+              </div>
               
 
               
@@ -504,6 +514,15 @@
                     <option value="">Select Category</option>
                     @foreach($categories as $category)
                         <option value="{{ $category->id }}">{{ $category->name }}</option>
+                    @endforeach
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_asset_type_id" class="form-label-modern">Asset Type</label>
+                <select class="form-select form-control-modern" id="edit_asset_type_id" name="asset_type_id">
+                    <option value="">Select Type</option>
+                    @foreach($assetTypes as $type)
+                        <option value="{{ $type->id }}">{{ $type->name }}</option>
                     @endforeach
                 </select>
               </div>
@@ -765,6 +784,7 @@ $(function () {
             $('#edit_asset_id').val(data.asset_id);
             $('#edit_name').val(data.name);
             $('#edit_asset_category_id').val(data.asset_category_id);
+            $('#edit_asset_type_id').val(data.asset_type_id);
             
             $('#edit_status').val(data.status);
             $('#edit_supplier_id').val(data.supplier_id);

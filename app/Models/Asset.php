@@ -10,6 +10,7 @@ class Asset extends Model
         'asset_id',
         'name',
         'asset_category_id',
+        'asset_type_id',
         'supplier_id',
         'custom_fields_data',
         'status'
@@ -22,6 +23,11 @@ class Asset extends Model
     public function category()
     {
         return $this->belongsTo(AssetCategory::class, 'asset_category_id');
+    }
+
+    public function assetType()
+    {
+        return $this->belongsTo(AssetType::class, 'asset_type_id');
     }
 
     public function supplier()

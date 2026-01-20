@@ -19,7 +19,8 @@ class AssetController extends Controller
         $categories = AssetCategory::all(); // Pass categories for dropdown
         $statuses = \App\Models\AssetStatus::all();
         $suppliers = \App\Models\Supplier::all();
-        return view('software-setup.assets.index', compact('categories', 'statuses', 'suppliers'));
+        $assetTypes = \App\Models\AssetType::all();
+        return view('software-setup.assets.index', compact('categories', 'statuses', 'suppliers', 'assetTypes'));
     }
 
     public function fetch(Request $request)
@@ -33,7 +34,7 @@ class AssetController extends Controller
              ]);
         }
 
-        $query = Asset::with(['category', 'supplier', 'currentAssignment.employee']);
+        $query = Asset::with(['category', 'supplier', 'assetType', 'currentAssignment.employee']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -60,6 +61,7 @@ class AssetController extends Controller
             'asset_id' => 'required|string|unique:assets,asset_id',
             'name' => 'required|string',
             'asset_category_id' => 'required|exists:asset_categories,id',
+            'asset_type_id' => 'nullable|exists:asset_types,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'status' => 'required|string',
             'custom_fields' => 'nullable|array' // Field values keyed by field ID or name? Name is better for display, but ID is stable. 
@@ -71,6 +73,7 @@ class AssetController extends Controller
             'asset_id' => $request->asset_id,
             'name' => $request->name,
             'asset_category_id' => $request->asset_category_id,
+            'asset_type_id' => $request->asset_type_id,
             'supplier_id' => $request->supplier_id,
             'status' => $request->status,
             'custom_fields_data' => $request->custom_fields // Laravel casts this to json
@@ -85,6 +88,7 @@ class AssetController extends Controller
             'asset_id' => 'required|string|unique:assets,asset_id,' . $id,
             'name' => 'required|string',
             'asset_category_id' => 'required|exists:asset_categories,id',
+            'asset_type_id' => 'nullable|exists:asset_types,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'status' => 'required|string',
             'custom_fields' => 'nullable|array'
@@ -95,6 +99,7 @@ class AssetController extends Controller
             'asset_id' => $request->asset_id,
             'name' => $request->name,
             'asset_category_id' => $request->asset_category_id,
+            'asset_type_id' => $request->asset_type_id,
             'supplier_id' => $request->supplier_id,
             'status' => $request->status,
             'custom_fields_data' => $request->custom_fields

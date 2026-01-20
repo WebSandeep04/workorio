@@ -432,6 +432,16 @@
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
               </div>
+              <div class="col-md-6">
+                <label for="asset_type_id" class="form-label-modern">Asset Type</label>
+                <select class="form-select form-control-modern" id="asset_type_id" name="asset_type_id">
+                    <option value="">Select Type</option>
+                    <?php $__currentLoopData = $assetTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($type->id); ?>"><?php echo e($type->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </select>
+              </div>
+              </div>
               
 
               
@@ -504,6 +514,15 @@
                     <option value="">Select Category</option>
                     <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <option value="<?php echo e($category->id); ?>"><?php echo e($category->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_asset_type_id" class="form-label-modern">Asset Type</label>
+                <select class="form-select form-control-modern" id="edit_asset_type_id" name="asset_type_id">
+                    <option value="">Select Type</option>
+                    <?php $__currentLoopData = $assetTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($type->id); ?>"><?php echo e($type->name); ?></option>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
               </div>
@@ -765,6 +784,7 @@ $(function () {
             $('#edit_asset_id').val(data.asset_id);
             $('#edit_name').val(data.name);
             $('#edit_asset_category_id').val(data.asset_category_id);
+            $('#edit_asset_type_id').val(data.asset_type_id);
             
             $('#edit_status').val(data.status);
             $('#edit_supplier_id').val(data.supplier_id);

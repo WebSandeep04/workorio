@@ -717,12 +717,13 @@
           @csrf
           <div class="row g-3">
               <div class="col-md-6">
-                <label for="create_asset_tag" class="form-label-modern">Asset ID / Tag <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-modern" id="create_asset_tag" name="asset_id" required placeholder="e.g. LP-001">
-              </div>
-              <div class="col-md-6">
-                <label for="create_asset_name" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-modern" id="create_asset_name" name="name" required placeholder="e.g. Dell Latitude">
+                <label for="create_asset_type_id" class="form-label-modern">Asset Type</label>
+                <select class="form-select form-control-modern" id="create_asset_type_id" name="asset_type_id">
+                    <option value="">Select Type</option>
+                    @foreach($assetTypes as $type)
+                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                    @endforeach
+                </select>
               </div>
               <div class="col-md-6">
                 <label for="create_asset_category_id" class="form-label-modern">Category <span class="text-danger">*</span></label>
@@ -734,13 +735,12 @@
                 </select>
               </div>
               <div class="col-md-6">
-                <label for="create_asset_status" class="form-label-modern">Status <span class="text-danger">*</span></label>
-                <select class="form-select form-control-modern" id="create_asset_status" name="status" required>
-                    <option value="">Select Status</option>
-                    @foreach($statuses as $status)
-                        <option value="{{ $status->name }}">{{ $status->name }}</option>
-                    @endforeach
-                </select>
+                <label for="create_asset_tag" class="form-label-modern">Asset ID / Tag <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-modern" id="create_asset_tag" name="asset_id" required placeholder="e.g. LP-001">
+              </div>
+              <div class="col-md-6">
+                <label for="create_asset_name" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-modern" id="create_asset_name" name="name" required placeholder="e.g. Dell Latitude">
               </div>
               <div class="col-md-6">
                    <label for="create_asset_supplier_id" class="form-label-modern">Supplier</label>
@@ -751,6 +751,15 @@
                        @endforeach
                    </select>
                </div>
+              <div class="col-md-6">
+                <label for="create_asset_status" class="form-label-modern">Status <span class="text-danger">*</span></label>
+                <select class="form-select form-control-modern" id="create_asset_status" name="status" required>
+                    <option value="">Select Status</option>
+                    @foreach($statuses as $status)
+                        <option value="{{ $status->name }}">{{ $status->name }}</option>
+                    @endforeach
+                </select>
+              </div>
           </div>
           
           <div class="mt-4" id="new_asset_custom_fields_section" style="display:none;">
@@ -789,12 +798,13 @@
           
           <div class="row g-3">
               <div class="col-md-6">
-                <label for="edit_asset_tag" class="form-label-modern">Asset ID / Tag <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-modern" id="edit_asset_tag" name="asset_id" required>
-              </div>
-              <div class="col-md-6">
-                <label for="edit_asset_name_field" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-modern" id="edit_asset_name_field" name="name" required>
+                <label for="edit_asset_type_id" class="form-label-modern">Asset Type</label>
+                <select class="form-select form-control-modern" id="edit_asset_type_id" name="asset_type_id">
+                    <option value="">Select Type</option>
+                    @foreach($assetTypes as $type)
+                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                    @endforeach
+                </select>
               </div>
               <div class="col-md-6">
                 <label for="edit_asset_cat_id" class="form-label-modern">Category <span class="text-danger">*</span></label>
@@ -806,13 +816,12 @@
                 </select>
               </div>
               <div class="col-md-6">
-                <label for="edit_asset_status_field" class="form-label-modern">Status <span class="text-danger">*</span></label>
-                <select class="form-select form-control-modern" id="edit_asset_status_field" name="status" required>
-                    <option value="">Select Status</option>
-                    @foreach($statuses as $status)
-                        <option value="{{ $status->name }}">{{ $status->name }}</option>
-                    @endforeach
-                </select>
+                <label for="edit_asset_tag" class="form-label-modern">Asset ID / Tag <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-modern" id="edit_asset_tag" name="asset_id" required>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_asset_name_field" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-modern" id="edit_asset_name_field" name="name" required>
               </div>
               <div class="col-md-6">
                    <label for="edit_asset_supplier_id" class="form-label-modern">Supplier</label>
@@ -823,6 +832,15 @@
                        @endforeach
                    </select>
                </div>
+              <div class="col-md-6">
+                <label for="edit_asset_status_field" class="form-label-modern">Status <span class="text-danger">*</span></label>
+                <select class="form-select form-control-modern" id="edit_asset_status_field" name="status" required>
+                    <option value="">Select Status</option>
+                    @foreach($statuses as $status)
+                        <option value="{{ $status->name }}">{{ $status->name }}</option>
+                    @endforeach
+                </select>
+              </div>
           </div>
 
           <div class="mt-4" id="edit_asset_custom_fields_section" style="display:none;">
@@ -1480,15 +1498,21 @@ $(function () {
 
   $(document).on('click', '.editAssetBtn', function() {
       const id = $(this).data('id');
-      $.get(`/assets/${id}`, function(data) {
+      $.get(`/assets/${id}`)
+        .done(function(data) {
           $('#edit_asset_pk').val(data.id);
           $('#edit_asset_tag').val(data.asset_id);
           $('#edit_asset_name_field').val(data.name);
           $('#edit_asset_cat_id').val(data.asset_category_id);
+          $('#edit_asset_type_id').val(data.asset_type_id);
           $('#edit_asset_status_field').val(data.status);
           $('#edit_asset_supplier_id').val(data.supplier_id);
           renderEditAssetCustomFields(data.asset_category_id, 'edit_asset_custom_fields_container', 'edit_asset_custom_fields_section', data.custom_fields_data);
           $('#editAssetModal').modal('show');
+      })
+      .fail(function(xhr) {
+          console.error(xhr);
+          showAlert('danger', 'Error loading asset. Please ensure database migrations are run.');
       });
   });
   
