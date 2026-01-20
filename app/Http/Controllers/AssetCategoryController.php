@@ -51,7 +51,7 @@ class AssetCategoryController extends Controller
             'name' => 'required|string|max:255|unique:asset_categories,name,' . $id,
             'fields' => 'nullable|array',
             'fields.*.name' => 'required|string',
-            'fields.*.type' => 'required|in:text,dropdown',
+            'fields.*.type' => 'required|in:text,dropdown,date',
             'fields.*.options' => 'nullable|array' // allow array of strings
         ]);
 
@@ -108,7 +108,7 @@ class AssetCategoryController extends Controller
             'name' => 'required|string|max:255|unique:asset_categories,name',
             'fields' => 'nullable|array',
             'fields.*.name' => 'required|string',
-            'fields.*.type' => 'required|in:text,dropdown',
+            'fields.*.type' => 'required|in:text,dropdown,date',
             'fields.*.options' => 'nullable|array'
         ]);
 

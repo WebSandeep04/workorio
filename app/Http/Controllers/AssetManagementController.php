@@ -6,6 +6,7 @@ use App\Models\Asset;
 use App\Models\AssetCategory;
 use App\Models\AssetAssignment;
 use App\Models\Employee;
+use App\Models\Supplier;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Request;
 
@@ -18,7 +19,8 @@ class AssetManagementController extends Controller
         $categories = AssetCategory::all();
         $employees = Employee::where('status', 'Active')->get();
         $statuses = AssetStatus::all();
-        return view('admin.asset-management.index', compact('categories', 'employees', 'statuses'));
+        $suppliers = Supplier::all();
+        return view('admin.asset-management.index', compact('categories', 'employees', 'statuses', 'suppliers'));
     }
 
     public function fetch(Request $request)
@@ -130,13 +132,23 @@ class AssetManagementController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-             'employee_id' => 'required|exists:employees,id',
+             'employee_id' => 'nullable|exists:employees,id',
              'return_date' => 'nullable|date',
              'status' => 'required|string',
              'description' => 'nullable|string'
         ]);
 
         $assignment = AssetAssignment::findOrFail($id);
+
+        if (empty($request->employee_id)) {
+            $assignment->update([
+                 'status' => 'returned',
+                 'return_date' => $request->return_date ?? now(),
+                 'description' => $request->description
+            ]);
+            Asset::where('id', $assignment->asset_id)->update(['status' => 'Available']);
+            return response()->json(['success' => true, 'message' => 'Asset unassigned successfully']);
+        }
 
         if ($assignment->employee_id != $request->employee_id) {
             \App\Models\AssetAssignmentLog::create([

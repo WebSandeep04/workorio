@@ -516,14 +516,14 @@
   <!-- View Mode Switch -->
   <div class="d-flex mb-2">
       <div class="btn-group" role="group" aria-label="View Toggle">
-          <input type="radio" class="btn-check" name="viewMode" id="viewModeAssignments" value="assignments" checked>
-          <label class="btn btn-outline-primary" for="viewModeAssignments" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;">Assignments</label>
-
-          <input type="radio" class="btn-check" name="viewMode" id="viewModeAssets" value="assets">
+          <input type="radio" class="btn-check" name="viewMode" id="viewModeAssets" value="assets" checked>
           <label class="btn btn-outline-primary" for="viewModeAssets" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;">Assets List</label>
 
           <input type="radio" class="btn-check" name="viewMode" id="viewModeUser" value="user_view">
           <label class="btn btn-outline-primary" for="viewModeUser" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;">By User</label>
+
+          <input type="radio" class="btn-check" name="viewMode" id="viewModeAssignments" value="assignments">
+          <label class="btn btn-outline-primary" for="viewModeAssignments" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;">Assignments</label>
       </div>
   </div>
 
@@ -582,13 +582,15 @@
               <th>Asset ID</th>
               <th>Name</th>
               <th>Category</th>
+              <th>Supplier</th>
               <th>Status</th>
+              <th>Assigned To</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
              <tr>
-              <td colspan="5" class="loading-state">
+              <td colspan="7" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
                 <p class="mt-2 mb-0">Loading assets...</p>
               </td>
@@ -740,6 +742,15 @@
                     @endforeach
                 </select>
               </div>
+              <div class="col-md-6">
+                   <label for="create_asset_supplier_id" class="form-label-modern">Supplier</label>
+                   <select class="form-select form-control-modern" id="create_asset_supplier_id" name="supplier_id">
+                       <option value="">Select Supplier</option>
+                       @foreach($suppliers as $supplier)
+                           <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                       @endforeach
+                   </select>
+               </div>
           </div>
           
           <div class="mt-4" id="new_asset_custom_fields_section" style="display:none;">
@@ -803,6 +814,15 @@
                     @endforeach
                 </select>
               </div>
+              <div class="col-md-6">
+                   <label for="edit_asset_supplier_id" class="form-label-modern">Supplier</label>
+                   <select class="form-select form-control-modern" id="edit_asset_supplier_id" name="supplier_id">
+                       <option value="">Select Supplier</option>
+                       @foreach($suppliers as $supplier)
+                           <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                       @endforeach
+                   </select>
+               </div>
           </div>
 
           <div class="mt-4" id="edit_asset_custom_fields_section" style="display:none;">
@@ -846,8 +866,8 @@
               </div>
               
               <div class="col-md-6">
-                  <label for="edit_employee_id" class="form-label-modern">Employee <span class="text-danger">*</span></label>
-                  <select class="form-select form-control-modern" id="edit_employee_id" name="employee_id" required>
+                  <label for="edit_employee_id" class="form-label-modern">Employee</label>
+                  <select class="form-select form-control-modern" id="edit_employee_id" name="employee_id">
                       <option value="">Select Employee</option>
                        @foreach($employees as $employee)
                             <option value="{{ $employee->id }}">{{ $employee->name }} ({{ $employee->employee_code }})</option>
@@ -1093,7 +1113,11 @@ $(function () {
           success: function() {
               $('#createAssignmentModal').modal('hide');
               $('#createAssignmentForm')[0].reset();
-              loadAssignments();
+              const mode = $('input[name="viewMode"]:checked').val();
+              if(mode === 'assignments') loadAssignments();
+              else if (mode === 'user_view') loadAssignmentsByUser();
+              else loadAssetsList();
+              loadStats();
               showAlert('success', 'Asset assigned successfully');
           },
           error: function(xhr) {
@@ -1231,7 +1255,11 @@ $(function () {
           data: $(this).serialize(),
           success: function() {
               $('#editAssignmentModal').modal('hide');
-              loadAssignments();
+              const mode = $('input[name="viewMode"]:checked').val();
+              if(mode === 'assignments') loadAssignments();
+              else if (mode === 'user_view') loadAssignmentsByUser();
+              else loadAssetsList();
+              loadStats();
               showAlert('success', 'Assignment updated successfully');
           },
           error: function(xhr) {
@@ -1292,6 +1320,8 @@ $(function () {
                                ${optionsHtml}
                            </select>
                        `;
+                   } else if (String(field.type).toLowerCase() === 'date') {
+                       inputHtml = `<input type="date" class="form-control form-control-modern" name="custom_fields[${field.name}]" onclick="this.showPicker()">`;
                    } else {
                        inputHtml = `<input type="text" class="form-control form-control-modern" name="custom_fields[${field.name}]">`;
                    }
@@ -1334,6 +1364,10 @@ $(function () {
               $('#createAssetForm')[0].reset();
               $('#new_asset_custom_fields_section').hide();
               showAlert('success', 'Asset created successfully. You can now assign it.');
+              const mode = $('input[name="viewMode"]:checked').val();
+              if(mode === 'assignments') loadAssignments();
+              else if (mode === 'user_view') loadAssignmentsByUser();
+              else loadAssetsList();
               loadStats(); 
           },
           error: function(xhr) {
@@ -1403,14 +1437,14 @@ $(function () {
       let search = $('#search').val();
       let categoryId = $('#filter_category_id').val();
       
-      $('#assetsListTable tbody').html('<tr><td colspan="5" class="loading-state"><i class="bi bi-arrow-repeat spin"></i><p class="mt-2 mb-0">Loading assets...</p></td></tr>');
+      $('#assetsListTable tbody').html('<tr><td colspan="7" class="loading-state"><i class="bi bi-arrow-repeat spin"></i><p class="mt-2 mb-0">Loading assets...</p></td></tr>');
       
       let q = `page=${page}&search=${search}`;
       if(categoryId) q += `&category_id=${categoryId}`; 
 
       $.get(`{{ route('assets.fetch') }}?${q}`, function(data) {
            if (!data.data || data.data.length === 0) {
-              $('#assetsListTable tbody').html('<tr><td colspan="5" class="empty-state"><i class="bi bi-inbox"></i><h5>No Assets Found</h5></td></tr>');
+               $('#assetsListTable tbody').html('<tr><td colspan="8" class="empty-state"><i class="bi bi-inbox"></i><h5>No Assets Found</h5></td></tr>');
               if(page === 1) $('#paginationLinks').empty();
               return;
            }
@@ -1421,9 +1455,17 @@ $(function () {
                        <td><strong>${asset.asset_id}</strong></td>
                        <td>${asset.name}</td>
                        <td>${asset.category ? asset.category.name : '-'}</td>
+                       <td>${asset.supplier ? asset.supplier.name : '-'}</td>
                        <td><span class="badge bg-light text-dark border">${asset.status}</span></td>
                        <td>
+                           ${asset.current_assignment && asset.current_assignment.employee ? 
+                             `<span class="fw-bold text-primary">${asset.current_assignment.employee.name}</span>` 
+                             : '<span class="text-muted">-</span>'}
+                       </td>
+                       <td>
                            <div class="d-flex gap-2 justify-content-center">
+                               <button class="btn-action btn-action-assign assignAssetBtn" data-id="${asset.id}" data-cat-id="${asset.asset_category_id}" title="Assign" ${asset.status !== 'Available' ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}><i class="bi bi-person-plus"></i></button>
+
                                <button class="btn-action btn-action-edit editAssetBtn" data-id="${asset.id}" title="Edit"><i class="bi bi-pencil"></i></button>
                                <button class="btn-action btn-action-delete deleteAssetBtn" data-id="${asset.id}" title="Delete"><i class="bi bi-trash"></i></button>
                            </div>
@@ -1444,6 +1486,7 @@ $(function () {
           $('#edit_asset_name_field').val(data.name);
           $('#edit_asset_cat_id').val(data.asset_category_id);
           $('#edit_asset_status_field').val(data.status);
+          $('#edit_asset_supplier_id').val(data.supplier_id);
           renderEditAssetCustomFields(data.asset_category_id, 'edit_asset_custom_fields_container', 'edit_asset_custom_fields_section', data.custom_fields_data);
           $('#editAssetModal').modal('show');
       });
@@ -1471,6 +1514,8 @@ $(function () {
                            });
                        }
                        inputHtml = `<select class="form-select form-control-modern" name="custom_fields[${field.name}]">${optionsHtml}</select>`;
+                   } else if (String(field.type).toLowerCase() === 'date') {
+                       inputHtml = `<input type="date" class="form-control form-control-modern" name="custom_fields[${field.name}]" value="${value}" onclick="this.showPicker()">`;
                    } else {
                        inputHtml = `<input type="text" class="form-control form-control-modern" name="custom_fields[${field.name}]" value="${value}">`;
                    }
@@ -1527,6 +1572,33 @@ $(function () {
       }
   });
 
+  // Assign Asset from List
+   $(document).on('click', '.assignAssetBtn', function() {
+       const assetId = $(this).data('id');
+       const catId = $(this).data('cat-id');
+
+       $('#category_id').val(catId);
+       const $assetSelect = $('#asset_id');
+       
+       $('#createAssignmentModal').modal('show');
+       $assetSelect.html('<option value="">Loading...</option>').prop('disabled', true);
+       
+       $.get("{{ route('asset-management.get-assets') }}", { category_id: catId }, function(data) {
+             let options = '<option value="">Select Asset</option>';
+             if(data.length > 0) {
+                 data.forEach(asset => {
+                     const selected = asset.id == assetId ? 'selected' : '';
+                     options += `<option value="${asset.id}" ${selected}>${asset.name} (${asset.asset_id})</option>`;
+                 });
+                 $assetSelect.html(options).prop('disabled', false);
+             } else {
+                 $assetSelect.html('<option value="">No available assets</option>').prop('disabled', true);
+             }
+       });
+   });
+
+   // Initial View Setup
+   $('input[name="viewMode"]:checked').trigger('change');
 });
 </script>
 @endpush

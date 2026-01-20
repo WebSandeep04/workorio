@@ -373,6 +373,7 @@
               <th>Asset ID</th>
               <th>Name</th>
               <th>Category</th>
+              <th>Supplier</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -443,6 +444,15 @@
                     @endforeach
                 </select>
               </div>
+              <div class="col-md-6">
+                 <label for="supplier_id" class="form-label-modern">Supplier</label>
+                 <select class="form-select form-control-modern" id="supplier_id" name="supplier_id">
+                     <option value="">Select Supplier</option>
+                     @foreach($suppliers as $supplier)
+                         <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                     @endforeach
+                 </select>
+               </div>
           </div>
           
           <div class="mt-4" id="customFieldsSection" style="display:none;">
@@ -509,6 +519,15 @@
                     @endforeach
                 </select>
               </div>
+              <div class="col-md-6">
+                 <label for="edit_supplier_id" class="form-label-modern">Supplier</label>
+                 <select class="form-select form-control-modern" id="edit_supplier_id" name="supplier_id">
+                     <option value="">Select Supplier</option>
+                     @foreach($suppliers as $supplier)
+                         <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                     @endforeach
+                 </select>
+               </div>
           </div>
 
           <div class="mt-4" id="editCustomFieldsSection" style="display:none;">
@@ -601,6 +620,7 @@ $(function () {
             <td><strong>${asset.asset_id}</strong></td>
             <td>${asset.name}</td>
             <td>${asset.category ? asset.category.name : '-'}</td>
+            <td>${asset.supplier ? asset.supplier.name : '-'}</td>
             <td><span class="badge bg-light text-dark border">${asset.status}</span></td>
             <td>
               <div class="d-flex gap-2 justify-content-center">
@@ -747,6 +767,7 @@ $(function () {
             $('#edit_asset_category_id').val(data.asset_category_id);
             
             $('#edit_status').val(data.status);
+            $('#edit_supplier_id').val(data.supplier_id);
             
             // Load fields with existing data
             renderCustomFields(data.asset_category_id, 'edit_custom_fields_container', 'editCustomFieldsSection', data.custom_fields_data);

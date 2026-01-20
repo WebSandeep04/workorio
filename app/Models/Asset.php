@@ -10,6 +10,7 @@ class Asset extends Model
         'asset_id',
         'name',
         'asset_category_id',
+        'supplier_id',
         'custom_fields_data',
         'status'
     ];
@@ -21,5 +22,20 @@ class Asset extends Model
     public function category()
     {
         return $this->belongsTo(AssetCategory::class, 'asset_category_id');
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function assignments()
+    {
+        return $this->hasMany(AssetAssignment::class);
+    }
+
+    public function currentAssignment()
+    {
+        return $this->hasOne(AssetAssignment::class)->where('status', 'assigned')->latest();
     }
 }

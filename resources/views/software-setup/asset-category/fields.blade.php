@@ -283,6 +283,7 @@ $(function() {
                         <select class="form-select form-control-modern field-type field-type-select">
                             <option value="text" ${type === 'text' ? 'selected' : ''}>Text Input</option>
                             <option value="dropdown" ${type === 'dropdown' ? 'selected' : ''}>Dropdown Menu</option>
+                            <option value="date" ${type === 'date' ? 'selected' : ''}>Date Picker</option>
                         </select>
                     </div>
                     <div class="col-md-4">
