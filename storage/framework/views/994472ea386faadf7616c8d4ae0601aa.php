@@ -109,6 +109,7 @@
       font-weight: 600;
       transition: all 0.2s;
       margin-top: 1rem;
+      margin-bottom: 6rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -196,6 +197,22 @@
         <h2 class="mb-1 fw-bold"><?php echo e($category->name); ?></h2>
         <p class="mb-0 opacity-75">Configure custom fields for this asset category. These fields will appear when adding assets.</p>
     </div> -->
+
+    <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center mb-3 py-2 px-3" role="alert" style="border-left: 4px solid #ffc107; background-color: #fffbf0; border-radius: 6px; border-top: 1px solid #ffeeba; border-bottom: 1px solid #ffeeba; border-right: 1px solid #ffeeba; font-size: 0.85rem;">
+      <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" style="font-size: 1.1rem; color: #ffc107;"></i>
+      <div class="flex-grow-1">
+        <strong style="color: #856404;">Important Note:</strong> The following fields are pre-built. Please <strong>DO NOT</strong> create custom fields for them:
+        <div class="d-flex flex-wrap gap-1 mt-1">
+            <span class="badge bg-warning text-dark border border-warning text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem; padding: 0.25em 0.5em;">Asset Type</span>
+            <span class="badge bg-warning text-dark border border-warning text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem; padding: 0.25em 0.5em;">Category</span>
+            <span class="badge bg-warning text-dark border border-warning text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem; padding: 0.25em 0.5em;">Asset ID</span>
+            <span class="badge bg-warning text-dark border border-warning text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem; padding: 0.25em 0.5em;">Remark</span>
+            <span class="badge bg-warning text-dark border border-warning text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem; padding: 0.25em 0.5em;">Supplier</span>
+            <span class="badge bg-warning text-dark border border-warning text-uppercase" style="letter-spacing: 0.5px; font-size: 0.7rem; padding: 0.25em 0.5em;">Status</span>
+        </div>
+      </div>
+      <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close" style="top: 50%; transform: translateY(-50%); padding: 0.5rem 0.7rem;"></button>
+    </div>
 
     <form id="fieldsForm">
         <?php echo csrf_field(); ?>

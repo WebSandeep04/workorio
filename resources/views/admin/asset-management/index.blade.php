@@ -203,6 +203,24 @@
   .btn-action i {
     font-size: 0.8rem;
   }
+
+  /* Specific Action Buttons */
+  .assignAssetBtn {
+      color: white !important;
+      background: #434AFA !important;
+      border-radius: 4px;
+  }
+  
+  .historyAssetBtn {
+      color: white !important;
+      background: #434AFA !important;
+      border-radius: 4px;
+  }
+  
+  .assignAssetBtn[disabled] {
+      background: #e9ecef !important;
+      color: #adb5bd !important;
+  }
   
   /* Pagination */
   .pagination .page-link {
@@ -952,6 +970,39 @@
     </div>
   </div>
 </div>
+
+ <!-- Asset History Modal -->
+ <div class="modal fade modal-modern" id="assetHistoryModal" tabindex="-1" aria-hidden="true">
+   <div class="modal-dialog modal-dialog-centered modal-lg">
+     <div class="modal-content">
+       <div class="modal-header border-bottom" style="background-color: #434AFA; color: white;">
+         <h5 class="modal-title fw-bold"><i class="bi bi-clock-history me-2"></i>Asset History</h5>
+         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+       </div>
+       <div class="modal-body p-0">
+         <div class="table-responsive">
+             <table class="table table-hover mb-0" id="assetHistoryTable">
+                 <thead class="bg-light">
+                     <tr>
+                         <th style="width: 15%">Type</th>
+                         <th style="width: 20%">Date</th>
+                         <th style="width: 30%">Employee / Details</th>
+                         <th style="width: 20%">Return Date</th>
+                         <th style="width: 15%">Status</th>
+                     </tr>
+                 </thead>
+                 <tbody>
+                     <!-- Content -->
+                 </tbody>
+             </table>
+         </div>
+       </div>
+       <div class="modal-footer bg-light py-2">
+           <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+       </div>
+     </div>
+   </div>
+ </div>
 @endsection
 
 @push('scripts')
@@ -1485,6 +1536,7 @@ $(function () {
                                <button class="btn-action btn-action-assign assignAssetBtn" data-id="${asset.id}" data-cat-id="${asset.asset_category_id}" title="Assign" ${asset.status !== 'Available' ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}><i class="bi bi-person-plus"></i></button>
 
                                <button class="btn-action btn-action-edit editAssetBtn" data-id="${asset.id}" title="Edit"><i class="bi bi-pencil"></i></button>
+                               <button class="btn-action btn-action-view historyAssetBtn" data-id="${asset.id}" title="History"><i class="bi bi-clock-history"></i></button>
                                <button class="btn-action btn-action-delete deleteAssetBtn" data-id="${asset.id}" title="Delete"><i class="bi bi-trash"></i></button>
                            </div>
                        </td>
@@ -1620,6 +1672,67 @@ $(function () {
              }
        });
    });
+
+    // Asset History Logic
+    $(document).on('click', '.historyAssetBtn', function() {
+        const id = $(this).data('id');
+        const $modal = $('#assetHistoryModal');
+        const $tbody = $('#assetHistoryTable tbody');
+        
+        $tbody.html('<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Loading history...</p></td></tr>');
+        $modal.modal('show');
+        
+        $.get(`/assets/${id}/history`, function(data) {
+             $tbody.empty();
+             if(!data || data.length === 0) {
+                 $tbody.html('<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-info-circle mb-2" style="font-size:1.5rem"></i><p>No history found for this asset.</p></td></tr>');
+                 return;
+             }
+             
+             let rows = '';
+             data.forEach(assignment => {
+                 // Main Assignment Row
+                 const statusBadge = assignment.status === 'assigned' 
+                    ? '<span class="badge bg-success">Active</span>' 
+                    : '<span class="badge bg-secondary">Returned</span>';
+                 const assignedDate = new Date(assignment.assigned_date).toLocaleDateString();
+                 const returnDate = assignment.return_date ? new Date(assignment.return_date).toLocaleDateString() : '-';
+                 
+                 rows += `
+                    <tr class="table-light">
+                        <td><span class="badge bg-primary">Assignment</span></td>
+                        <td>${assignedDate}</td>
+                        <td><strong>${assignment.employee ? assignment.employee.name : 'Unknown'}</strong></td>
+                        <td>${returnDate}</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                 `;
+                 
+                 // Logs (Updates/Reassignments)
+                 if(assignment.logs && assignment.logs.length > 0) {
+                     assignment.logs.forEach(log => {
+                         const logDate = new Date(log.created_at).toLocaleDateString();
+                         rows += `
+                            <tr>
+                                <td class="ps-4"><i class="bi bi-arrow-return-right text-muted"></i> <small class="text-muted">Update</small></td>
+                                <td><small>${logDate}</small></td>
+                                <td colspan="3">
+                                    <small class="text-muted">
+                                        Reassigned from <strong>${log.previous_employee ? log.previous_employee.name : '-'}</strong> 
+                                        to <strong>${log.new_employee ? log.new_employee.name : '-'}</strong>
+                                    </small>
+                                </td>
+                            </tr>
+                         `;
+                     });
+                 }
+                 
+             });
+             $tbody.html(rows);
+        }).fail(function() {
+            $tbody.html('<tr><td colspan="5" class="text-center text-danger py-4">Error loading history.</td></tr>');
+        });
+    });
 
    // Initial View Setup
    $('input[name="viewMode"]:checked').trigger('change');

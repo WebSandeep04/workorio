@@ -122,4 +122,35 @@ class AssetController extends Controller
     
     // Helper to get generic category fields if needed, 
     // though the frontend can use AssetCategoryController@show
+    
+    public function history($id)
+    {
+        // Get all assignments for this asset (active and historic)
+        // We include the employee (who had it), and logs (changes to the assignment)
+        $assignments = \App\Models\AssetAssignment::where('asset_id', $id)
+            ->with(['employee', 'asset']) // Load employee
+            ->orderBy('assigned_date', 'desc')
+            ->get();
+            
+        // For each assignment, we can also see logs if manual changes happened
+        // But mainly the list of assignments IS the history.
+        // We can also fetch pure logs if needed, but let's send assignments structure.
+        
+        // Let's also fetch logs separately if the user wants purely "Log" table rows
+        // But since logs are children of assignments, better to attach them.
+        
+        // Actually, let's look at the screenshot requirement.
+        // It shows a table of logs. 
+        // We will return a merged timeline or just the raw data.
+        
+        foreach($assignments as $assignment) {
+             // attach logs manually or via relationship if defined
+             $assignment->logs = \App\Models\AssetAssignmentLog::where('asset_assignment_id', $assignment->id)
+                                ->with(['previousEmployee', 'newEmployee'])
+                                ->orderBy('created_at', 'desc')
+                                ->get();
+        }
+        
+        return response()->json($assignments);
+    }
 }

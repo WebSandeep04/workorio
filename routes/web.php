@@ -1212,6 +1212,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/assets/search-employees', [\App\Http\Controllers\AssetController::class, 'searchEmployees'])->name('assets.search-employees');
     Route::post('/assets', [\App\Http\Controllers\AssetController::class, 'store'])->name('assets.store');
     Route::get('/assets/{id}', [\App\Http\Controllers\AssetController::class, 'show'])->name('assets.show');
+    Route::get('/assets/{id}/history', [\App\Http\Controllers\AssetController::class, 'history'])->name('assets.history');
     Route::put('/assets/{id}', [\App\Http\Controllers\AssetController::class, 'update'])->name('assets.update');
     Route::delete('/assets/{id}', [\App\Http\Controllers\AssetController::class, 'destroy'])->name('assets.destroy');
 });
