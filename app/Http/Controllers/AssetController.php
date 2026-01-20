@@ -59,11 +59,11 @@ class AssetController extends Controller
     {
         $request->validate([
             'asset_id' => 'required|string|unique:assets,asset_id',
-            'name' => 'required|string',
             'asset_category_id' => 'required|exists:asset_categories,id',
             'asset_type_id' => 'nullable|exists:asset_types,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'status' => 'required|string',
+            'remark' => 'nullable|string',
             'custom_fields' => 'nullable|array' // Field values keyed by field ID or name? Name is better for display, but ID is stable. 
                                                 // Actually, we store user input.
                                                 // Let's expect 'custom_fields' as [field_name => value]
@@ -71,11 +71,11 @@ class AssetController extends Controller
 
         $asset = Asset::create([
             'asset_id' => $request->asset_id,
-            'name' => $request->name,
             'asset_category_id' => $request->asset_category_id,
             'asset_type_id' => $request->asset_type_id,
             'supplier_id' => $request->supplier_id,
             'status' => $request->status,
+            'remark' => $request->remark,
             'custom_fields_data' => $request->custom_fields // Laravel casts this to json
         ]);
 
@@ -86,22 +86,22 @@ class AssetController extends Controller
     {
         $request->validate([
             'asset_id' => 'required|string|unique:assets,asset_id,' . $id,
-            'name' => 'required|string',
             'asset_category_id' => 'required|exists:asset_categories,id',
             'asset_type_id' => 'nullable|exists:asset_types,id',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'status' => 'required|string',
+            'remark' => 'nullable|string',
             'custom_fields' => 'nullable|array'
         ]);
 
         $asset = Asset::findOrFail($id);
         $asset->update([
             'asset_id' => $request->asset_id,
-            'name' => $request->name,
             'asset_category_id' => $request->asset_category_id,
             'asset_type_id' => $request->asset_type_id,
             'supplier_id' => $request->supplier_id,
             'status' => $request->status,
+            'remark' => $request->remark,
             'custom_fields_data' => $request->custom_fields
         ]);
 

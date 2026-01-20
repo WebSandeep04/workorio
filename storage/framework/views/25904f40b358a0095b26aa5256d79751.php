@@ -580,7 +580,7 @@
           <thead>
             <tr>
               <th>Asset ID</th>
-              <th>Name</th>
+              <th>Remark</th>
               <th>Category</th>
               <th>Supplier</th>
               <th>Status</th>
@@ -739,8 +739,8 @@
                 <input type="text" class="form-control form-control-modern" id="create_asset_tag" name="asset_id" required placeholder="e.g. LP-001">
               </div>
               <div class="col-md-6">
-                <label for="create_asset_name" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-modern" id="create_asset_name" name="name" required placeholder="e.g. Dell Latitude">
+                <label for="create_asset_remark" class="form-label-modern">Remark</label>
+                <textarea class="form-control form-control-modern" id="create_asset_remark" name="remark" rows="1" placeholder="Enter remark"></textarea>
               </div>
               <div class="col-md-6">
                    <label for="create_asset_supplier_id" class="form-label-modern">Supplier</label>
@@ -820,8 +820,8 @@
                 <input type="text" class="form-control form-control-modern" id="edit_asset_tag" name="asset_id" required>
               </div>
               <div class="col-md-6">
-                <label for="edit_asset_name_field" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-modern" id="edit_asset_name_field" name="name" required>
+                <label for="edit_asset_remark_field" class="form-label-modern">Remark</label>
+                <textarea class="form-control form-control-modern" id="edit_asset_remark_field" name="remark" rows="1"></textarea>
               </div>
               <div class="col-md-6">
                    <label for="edit_asset_supplier_id" class="form-label-modern">Supplier</label>
@@ -1471,7 +1471,7 @@ $(function () {
                rows += `
                    <tr style="animation-delay: ${i * 0.1}s;">
                        <td><strong>${asset.asset_id}</strong></td>
-                       <td>${asset.name}</td>
+                       <td>${asset.remark ? (asset.remark.length > 50 ? asset.remark.substring(0, 50) + '...' : asset.remark) : '-'}</td>
                        <td>${asset.category ? asset.category.name : '-'}</td>
                        <td>${asset.supplier ? asset.supplier.name : '-'}</td>
                        <td><span class="badge bg-light text-dark border">${asset.status}</span></td>
@@ -1502,7 +1502,7 @@ $(function () {
         .done(function(data) {
           $('#edit_asset_pk').val(data.id);
           $('#edit_asset_tag').val(data.asset_id);
-          $('#edit_asset_name_field').val(data.name);
+          $('#edit_asset_remark_field').val(data.remark);
           $('#edit_asset_cat_id').val(data.asset_category_id);
           $('#edit_asset_type_id').val(data.asset_type_id);
           $('#edit_asset_status_field').val(data.status);

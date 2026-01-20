@@ -13,7 +13,8 @@ class Asset extends Model
         'asset_type_id',
         'supplier_id',
         'custom_fields_data',
-        'status'
+        'status',
+        'remark'
     ];
 
     protected $casts = [
