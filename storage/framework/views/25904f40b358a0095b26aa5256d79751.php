@@ -194,19 +194,14 @@
     border-radius: 4px;
   }
 
-  /* Utility overridden for delete button specific */
   .btn-action-delete {
-    color: white !important;
-    background: #434AFA !important;
+   color: white;
+   background: #343AFA !important;
     border-radius: 4px;
-    border: none !important;
-    box-shadow: none !important;
   }
-  
-  .btn-action-delete:hover {
-     background: #434AFA !important; /* Keep same bg or slightly darker if desired, but user wants uniform */
-     box-shadow: none !important;
-     transform: translateY(-2px);
+
+  .btn-action i {
+    font-size: 0.8rem;
   }
 
   /* Specific Action Buttons */
@@ -1510,11 +1505,17 @@ $(function () {
   function loadAssetsList(page = 1) {
       let search = $('#search').val();
       let categoryId = $('#filter_category_id').val();
+      let employeeId = $('#filter_employee_id').val();
+      let fromDate = $('#filter_from_date').val();
+      let toDate = $('#filter_to_date').val();
       
       $('#assetsListTable tbody').html('<tr><td colspan="7" class="loading-state"><i class="bi bi-arrow-repeat spin"></i><p class="mt-2 mb-0">Loading assets...</p></td></tr>');
       
       let q = `page=${page}&search=${search}`;
       if(categoryId) q += `&category_id=${categoryId}`; 
+      if(employeeId) q += `&employee_id=${employeeId}`;
+      if(fromDate) q += `&from_date=${fromDate}`;
+      if(toDate) q += `&to_date=${toDate}`; 
 
       $.get(`<?php echo e(route('assets.fetch')); ?>?${q}`, function(data) {
            if (!data.data || data.data.length === 0) {

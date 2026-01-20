@@ -50,6 +50,24 @@ class AssetController extends Controller
             $query->where('asset_category_id', $request->category_id);
         }
 
+        if ($request->filled('employee_id')) {
+            $query->whereHas('currentAssignment', function($q) use ($request) {
+                $q->where('employee_id', $request->employee_id);
+            });
+        }
+
+        if ($request->filled('from_date')) {
+             $query->whereHas('currentAssignment', function($q) use ($request) {
+                $q->whereDate('assigned_date', '>=', $request->from_date);
+             });
+        }
+
+        if ($request->filled('to_date')) {
+             $query->whereHas('currentAssignment', function($q) use ($request) {
+                $q->whereDate('assigned_date', '<=', $request->to_date);
+             });
+        }
+
         $assets = $query->latest()->paginate(10);
 
         return response()->json($assets);
