@@ -19,6 +19,7 @@ return new class extends Migration
         Schema::create('assets', function (Blueprint $table) {
             $table->id();
             $table->string('asset_id')->unique(); // User entered custom ID
+            $table->string('name');
             $table->foreignId('asset_category_id')->constrained()->onDelete('cascade');
             $table->json('custom_fields_data')->nullable(); // Stores key-value pairs of custom fields
             $table->string('status'); // e.g., Available, Assigned, Damaged, Lost

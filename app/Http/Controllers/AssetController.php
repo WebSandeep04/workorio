@@ -57,6 +57,7 @@ class AssetController extends Controller
     {
         $request->validate([
             'asset_id' => 'required|string|unique:assets,asset_id',
+            'name' => 'required|string',
             'asset_category_id' => 'required|exists:asset_categories,id',
             'status' => 'required|string',
             'custom_fields' => 'nullable|array' // Field values keyed by field ID or name? Name is better for display, but ID is stable. 
@@ -66,6 +67,7 @@ class AssetController extends Controller
 
         $asset = Asset::create([
             'asset_id' => $request->asset_id,
+            'name' => $request->name,
             'asset_category_id' => $request->asset_category_id,
             'status' => $request->status,
             'custom_fields_data' => $request->custom_fields // Laravel casts this to json
@@ -78,6 +80,7 @@ class AssetController extends Controller
     {
         $request->validate([
             'asset_id' => 'required|string|unique:assets,asset_id,' . $id,
+            'name' => 'required|string',
             'asset_category_id' => 'required|exists:asset_categories,id',
             'status' => 'required|string',
             'custom_fields' => 'nullable|array'
@@ -86,6 +89,7 @@ class AssetController extends Controller
         $asset = Asset::findOrFail($id);
         $asset->update([
             'asset_id' => $request->asset_id,
+            'name' => $request->name,
             'asset_category_id' => $request->asset_category_id,
             'status' => $request->status,
             'custom_fields_data' => $request->custom_fields

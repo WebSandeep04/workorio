@@ -8,6 +8,7 @@ class Asset extends Model
 {
     protected $fillable = [
         'asset_id',
+        'name',
         'asset_category_id',
         'custom_fields_data',
         'status'

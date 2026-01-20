@@ -371,6 +371,7 @@
           <thead>
             <tr>
               <th>Asset ID</th>
+              <th>Name</th>
               <th>Category</th>
               <th>Status</th>
               <th>Actions</th>
@@ -416,6 +417,10 @@
               <div class="col-md-6">
                 <label for="asset_id" class="form-label-modern">Asset ID / Tag <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-modern" id="asset_id" name="asset_id" required placeholder="e.g. LP-001">
+              </div>
+              <div class="col-md-6">
+                <label for="name" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-modern" id="name" name="name" required placeholder="e.g. Dell Latitude 5420">
               </div>
               <div class="col-md-6">
                 <label for="asset_category_id" class="form-label-modern">Category <span class="text-danger">*</span></label>
@@ -478,6 +483,10 @@
               <div class="col-md-6">
                 <label for="edit_asset_id" class="form-label-modern">Asset ID / Tag <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-modern" id="edit_asset_id" name="asset_id" required>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_name" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-modern" id="edit_name" name="name" required>
               </div>
               <div class="col-md-6">
                 <label for="edit_asset_category_id" class="form-label-modern">Category <span class="text-danger">*</span></label>
@@ -590,6 +599,7 @@ $(function () {
         rows += `
           <tr style="animation-delay: ${i * 0.1}s;">
             <td><strong>${asset.asset_id}</strong></td>
+            <td>${asset.name}</td>
             <td>${asset.category ? asset.category.name : '-'}</td>
             <td><span class="badge bg-light text-dark border">${asset.status}</span></td>
             <td>
@@ -733,6 +743,7 @@ $(function () {
         $.get(`/assets/${id}`, function(data) {
             $('#edit_id').val(data.id);
             $('#edit_asset_id').val(data.asset_id);
+            $('#edit_name').val(data.name);
             $('#edit_asset_category_id').val(data.asset_category_id);
             
             $('#edit_status').val(data.status);
