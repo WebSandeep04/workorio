@@ -9,17 +9,16 @@ use App\Models\Employee;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Request;
 
+use App\Models\AssetStatus;
+
 class AssetManagementController extends Controller
 {
     public function index()
     {
-        if(request()->ajax()) {
-            return $this->fetch(request());
-        }
-
         $categories = AssetCategory::all();
-        $employees = Employee::select('id', 'name', 'employee_code')->get();
-        return view('admin.asset-management.index', compact('categories', 'employees'));
+        $employees = Employee::where('status', 'Active')->get();
+        $statuses = AssetStatus::all();
+        return view('admin.asset-management.index', compact('categories', 'employees', 'statuses'));
     }
 
     public function fetch(Request $request)
