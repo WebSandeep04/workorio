@@ -1198,4 +1198,13 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/supplier', [\App\Http\Controllers\SupplierController::class, 'store'])->name('supplier.store');
     Route::put('/supplier/{id}', [\App\Http\Controllers\SupplierController::class, 'update'])->name('supplier.update');
     Route::delete('/supplier/{id}', [\App\Http\Controllers\SupplierController::class, 'destroy'])->name('supplier.destroy');
+
+    // Assets (Individual Items)
+    Route::get('/assets', [\App\Http\Controllers\AssetController::class, 'index'])->name('assets.index');
+    Route::get('/assets/fetch', [\App\Http\Controllers\AssetController::class, 'fetch'])->name('assets.fetch');
+    Route::get('/assets/search-employees', [\App\Http\Controllers\AssetController::class, 'searchEmployees'])->name('assets.search-employees');
+    Route::post('/assets', [\App\Http\Controllers\AssetController::class, 'store'])->name('assets.store');
+    Route::get('/assets/{id}', [\App\Http\Controllers\AssetController::class, 'show'])->name('assets.show');
+    Route::put('/assets/{id}', [\App\Http\Controllers\AssetController::class, 'update'])->name('assets.update');
+    Route::delete('/assets/{id}', [\App\Http\Controllers\AssetController::class, 'destroy'])->name('assets.destroy');
 });

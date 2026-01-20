@@ -253,6 +253,7 @@ return [
                         ['route' => 'asset-category.index', 'title' => 'Asset Categories', 'icon' => 'bi bi-tags', 'feature_flag' => 'is_asset_management_enable'],
                         ['route' => 'asset-status.index', 'title' => 'Asset Status', 'icon' => 'bi bi-check2-circle', 'feature_flag' => 'is_asset_management_enable'],
                         ['route' => 'supplier.index', 'title' => 'Suppliers', 'icon' => 'bi bi-truck', 'feature_flag' => 'is_asset_management_enable'],
+                        ['route' => 'assets.index', 'title' => 'Open Assets', 'icon' => 'bi bi-box-seam', 'feature_flag' => 'is_asset_management_enable'],
                     ],
                 ],
 
