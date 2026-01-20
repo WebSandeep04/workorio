@@ -4,7 +4,6 @@
 <style>
   /* Base Styles */
   body {
-    background-color: #fca5a5; /* Use layout background */
     font-family: 'Montserrat', sans-serif;
   }
 
