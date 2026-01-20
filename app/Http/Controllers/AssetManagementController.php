@@ -32,6 +32,39 @@ class AssetManagementController extends Controller
              ]);
         }
 
+        // Group By User Logic
+        if ($request->group_by === 'user') {
+             $query = AssetAssignment::where('status', 'assigned')
+                ->select('employee_id', \Illuminate\Support\Facades\DB::raw('count(*) as asset_count'))
+                ->groupBy('employee_id')
+                ->with('employee');
+
+             if ($request->filled('search')) {
+                 $search = $request->search;
+                 $query->whereHas('employee', function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('employee_code', 'like', "%{$search}%");
+                 });
+             }
+             
+             if ($request->filled('category_id')) {
+                 $query->whereHas('asset', function($q) use ($request) {
+                     $q->where('asset_category_id', $request->category_id);
+                 });
+             }
+             if ($request->filled('employee_id')) {
+                 $query->where('employee_id', $request->employee_id);
+             }
+             if ($request->filled('from_date')) {
+                $query->whereDate('assigned_date', '>=', $request->from_date);
+             }
+             if ($request->filled('to_date')) {
+                 $query->whereDate('assigned_date', '<=', $request->to_date);
+             }
+
+             return response()->json($query->paginate(10));
+        }
+
         $query = AssetAssignment::with(['asset', 'employee', 'asset.category']);
 
         if ($request->filled('search')) {

@@ -521,6 +521,9 @@
 
           <input type="radio" class="btn-check" name="viewMode" id="viewModeAssets" value="assets">
           <label class="btn btn-outline-primary" for="viewModeAssets" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;">Assets List</label>
+
+          <input type="radio" class="btn-check" name="viewMode" id="viewModeUser" value="user_view">
+          <label class="btn btn-outline-primary" for="viewModeUser" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;">By User</label>
       </div>
   </div>
 
@@ -588,6 +591,28 @@
               <td colspan="5" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
                 <p class="mt-2 mb-0">Loading assets...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Assignments By User Table -->
+      <div class="table-responsive" id="assignmentsByUserTableContainer" style="display:none;">
+        <table class="table custom-table" id="assignmentsByUserTable">
+          <thead>
+            <tr>
+              <th>Employee Name</th>
+              <th>Employee Code</th>
+              <th class="text-center">Asset Count (Assigned)</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+             <tr>
+              <td colspan="4" class="loading-state">
+                <i class="bi bi-arrow-repeat spin"></i>
+                <p class="mt-2 mb-0">Loading user data...</p>
               </td>
             </tr>
           </tbody>
@@ -859,6 +884,36 @@
     </div>
   </div>
 </div>
+<!-- User Assets Modal -->
+<div class="modal fade modal-modern" id="userAssetsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Assigned Assets: <span id="userAssetsModalName"></span></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+          <div class="table-responsive">
+            <table class="table custom-table mb-0" id="userAssetsModalTable">
+              <thead>
+                <tr>
+                  <th>Asset Name</th>
+                  <th>Asset ID</th>
+                  <th>Category</th>
+                  <th>Assigned Date</th>
+                  <th>Return Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                  <!-- Content -->
+              </tbody>
+            </table>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
@@ -1070,6 +1125,90 @@ $(function () {
             
             $('#editAssignmentModal').modal('show');
         });
+  });
+
+   function loadAssignmentsByUser(page = 1) {
+      let search = $('#search').val();
+      let categoryId = $('#filter_category_id').val();
+      let employeeId = $('#filter_employee_id').val();
+      let fromDate = $('#filter_from_date').val();
+      let toDate = $('#filter_to_date').val();
+
+      $('#assignmentsByUserTable tbody').html('<tr><td colspan="4" class="loading-state"><i class="bi bi-arrow-repeat spin"></i><p class="mt-2 mb-0">Loading user data...</p></td></tr>');
+      
+      let q = `page=${page}&search=${search}&group_by=user`;
+      if(categoryId) q += `&category_id=${categoryId}`;
+      if(employeeId) q += `&employee_id=${employeeId}`;
+      if(fromDate) q += `&from_date=${fromDate}`;
+      if(toDate) q += `&to_date=${toDate}`;
+
+      // Use asset-management/fetch URL directly or verify route name
+      $.get(`asset-management/fetch?${q}`, function(data) {
+           if (!data.data || data.data.length === 0) {
+              $('#assignmentsByUserTable tbody').html('<tr><td colspan="4" class="empty-state"><i class="bi bi-inbox"></i><h5>No Assignments Found</h5></td></tr>');
+              if(page === 1) $('#paginationLinks').empty();
+              return;
+           }
+           let rows = '';
+           $.each(data.data, function(i, item) {
+               const empName = item.employee ? item.employee.name : 'Unknown';
+               const empCode = item.employee ? (item.employee.employee_code || '-') : '-';
+               const count = item.asset_count;
+               
+               rows += `
+                   <tr style="animation-delay: ${i * 0.1}s;">
+                       <td>
+                           <div class="d-flex align-items-center">
+                               <div class="avatar-circle me-2 bg-primary text-white" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:0.8rem;">${empName.charAt(0)}</div>
+                               <div><div class="fw-bold">${empName}</div></div>
+                           </div>
+                       </td>
+                       <td>${empCode}</td>
+                       <td class="text-center"><span class="badge bg-primary rounded-pill">${count}</span></td>
+                       <td class="text-center">
+                           <button class="btn btn-sm btn-outline-primary viewUserAssetsBtn" data-id="${item.employee_id}" data-name="${empName}">
+                               <i class="bi bi-eye me-1"></i> View Details
+                           </button>
+                       </td>
+                   </tr>
+               `;
+           });
+           $('#assignmentsByUserTable tbody').html(rows);
+           buildSimplePagination($('#paginationLinks'), data.current_page || 1, data.last_page || 1);
+      });
+   }
+   
+   $(document).on('click', '.viewUserAssetsBtn', function() {
+       const empId = $(this).data('id');
+       const empName = $(this).data('name');
+       $('#userAssetsModalName').text(empName);
+       $('#userAssetsModalTable tbody').html('<tr><td colspan="6" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>');
+       $('#userAssetsModal').modal('show');
+       
+       $.get(`asset-management/fetch?employee_id=${empId}&per_page=100`, function(data) {
+             let rows = '';
+             if(!data.data || data.data.length === 0) {
+                 rows = '<tr><td colspan="6" class="text-center text-muted">No assignments found.</td></tr>';
+             } else {
+                 $.each(data.data, function(i, assign) {
+                     const assetName = assign.asset ? assign.asset.name : '-';
+                     const assetCode = assign.asset ? assign.asset.asset_id : '-';
+                     const cat = assign.asset && assign.asset.category ? assign.asset.category.name : '-';
+                     
+                     rows += `
+                        <tr>
+                            <td>${assetName}</td>
+                            <td>${assetCode}</td>
+                            <td>${cat}</td>
+                            <td>${assign.assigned_date}</td>
+                            <td>${assign.return_date || '-'}</td>
+                            <td><span class="badge bg-light text-dark border">${assign.status}</span></td>
+                        </tr>
+                     `;
+                 });
+             }
+             $('#userAssetsModalTable tbody').html(rows);
+       });
    });
    
    $('#edit_status').change(function() {
@@ -1212,14 +1351,19 @@ $(function () {
   // --- View Switching & Assets List Logic ---
   $('input[name="viewMode"]').change(function() {
       const mode = $(this).val();
+      $('#assignmentsTableContainer, #assetsListTableContainer, #assignmentsByUserTableContainer').hide();
+      
       if(mode === 'assignments') {
           $('#assignmentsTableContainer').show();
-          $('#assetsListTableContainer').hide();
           $('#listTitle').text('ASSET ASSIGNMENT LIST');
           $('.table-search-btn[data-bs-target="#createAssignmentModal"]').show();
           loadAssignments();
+      } else if (mode === 'user_view') {
+          $('#assignmentsByUserTableContainer').show();
+          $('#listTitle').text('ASSIGNMENTS BY USER');
+          $('.table-search-btn[data-bs-target="#createAssignmentModal"]').show();
+          loadAssignmentsByUser();
       } else {
-          $('#assignmentsTableContainer').hide();
           $('#assetsListTableContainer').show();
           $('#listTitle').text('ALL ASSETS LIST');
           $('.table-search-btn[data-bs-target="#createAssignmentModal"]').hide(); 
@@ -1230,6 +1374,7 @@ $(function () {
   $('#filter_from_date, #filter_to_date, #filter_category_id, #filter_employee_id').off('change').change(function() {
       const mode = $('input[name="viewMode"]:checked').val();
       if(mode === 'assignments') loadAssignments();
+      else if (mode === 'user_view') loadAssignmentsByUser();
       else loadAssetsList();
       loadStats();
   });
@@ -1239,6 +1384,7 @@ $(function () {
       searchTimeout = setTimeout(() => {
           const mode = $('input[name="viewMode"]:checked').val();
           if(mode === 'assignments') loadAssignments(1);
+          else if (mode === 'user_view') loadAssignmentsByUser(1);
           else loadAssetsList(1);
       }, 300);
   });
@@ -1249,6 +1395,7 @@ $(function () {
        if(!page) return;
        const mode = $('input[name="viewMode"]:checked').val();
        if(mode === 'assignments') loadAssignments(page);
+       else if (mode === 'user_view') loadAssignmentsByUser(page);
        else loadAssetsList(page);
    });
 
