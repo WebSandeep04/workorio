@@ -416,12 +416,13 @@
           @csrf
           <div class="row g-3">
               <div class="col-md-6">
-                <label for="asset_id" class="form-label-modern">Asset ID / Tag <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-modern" id="asset_id" name="asset_id" required placeholder="e.g. LP-001">
-              </div>
-              <div class="col-md-6">
-                <label for="name" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-modern" id="name" name="name" required placeholder="e.g. Dell Latitude 5420">
+                <label for="asset_type_id" class="form-label-modern">Asset Type</label>
+                <select class="form-select form-control-modern" id="asset_type_id" name="asset_type_id">
+                    <option value="">Select Type</option>
+                    @foreach($assetTypes as $type)
+                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                    @endforeach
+                </select>
               </div>
               <div class="col-md-6">
                 <label for="asset_category_id" class="form-label-modern">Category <span class="text-danger">*</span></label>
@@ -433,26 +434,12 @@
                 </select>
               </div>
               <div class="col-md-6">
-                <label for="asset_type_id" class="form-label-modern">Asset Type</label>
-                <select class="form-select form-control-modern" id="asset_type_id" name="asset_type_id">
-                    <option value="">Select Type</option>
-                    @foreach($assetTypes as $type)
-                        <option value="{{ $type->id }}">{{ $type->name }}</option>
-                    @endforeach
-                </select>
+                <label for="asset_id" class="form-label-modern">Asset ID / Tag <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-modern" id="asset_id" name="asset_id" required placeholder="e.g. LP-001">
               </div>
-              </div>
-              
-
-              
               <div class="col-md-6">
-                <label for="status" class="form-label-modern">Status <span class="text-danger">*</span></label>
-                <select class="form-select form-control-modern" id="status" name="status" required>
-                    <option value="">Select Status</option>
-                    @foreach($statuses as $status)
-                        <option value="{{ $status->name }}">{{ $status->name }}</option>
-                    @endforeach
-                </select>
+                <label for="name" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-modern" id="name" name="name" required placeholder="e.g. Dell Latitude 5420">
               </div>
               <div class="col-md-6">
                  <label for="supplier_id" class="form-label-modern">Supplier</label>
@@ -463,6 +450,15 @@
                      @endforeach
                  </select>
                </div>
+              <div class="col-md-6">
+                <label for="status" class="form-label-modern">Status <span class="text-danger">*</span></label>
+                <select class="form-select form-control-modern" id="status" name="status" required>
+                    <option value="">Select Status</option>
+                    @foreach($statuses as $status)
+                        <option value="{{ $status->name }}">{{ $status->name }}</option>
+                    @endforeach
+                </select>
+              </div>
           </div>
           
           <div class="mt-4" id="customFieldsSection" style="display:none;">
@@ -501,12 +497,13 @@
           
           <div class="row g-3">
               <div class="col-md-6">
-                <label for="edit_asset_id" class="form-label-modern">Asset ID / Tag <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-modern" id="edit_asset_id" name="asset_id" required>
-              </div>
-              <div class="col-md-6">
-                <label for="edit_name" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control form-control-modern" id="edit_name" name="name" required>
+                <label for="edit_asset_type_id" class="form-label-modern">Asset Type</label>
+                <select class="form-select form-control-modern" id="edit_asset_type_id" name="asset_type_id">
+                    <option value="">Select Type</option>
+                    @foreach($assetTypes as $type)
+                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                    @endforeach
+                </select>
               </div>
               <div class="col-md-6">
                 <label for="edit_asset_category_id" class="form-label-modern">Category <span class="text-danger">*</span></label>
@@ -518,17 +515,22 @@
                 </select>
               </div>
               <div class="col-md-6">
-                <label for="edit_asset_type_id" class="form-label-modern">Asset Type</label>
-                <select class="form-select form-control-modern" id="edit_asset_type_id" name="asset_type_id">
-                    <option value="">Select Type</option>
-                    @foreach($assetTypes as $type)
-                        <option value="{{ $type->id }}">{{ $type->name }}</option>
-                    @endforeach
-                </select>
+                <label for="edit_asset_id" class="form-label-modern">Asset ID / Tag <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-modern" id="edit_asset_id" name="asset_id" required>
               </div>
-              
-
-              
+              <div class="col-md-6">
+                <label for="edit_name" class="form-label-modern">Asset Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-modern" id="edit_name" name="name" required>
+              </div>
+              <div class="col-md-6">
+                  <label for="edit_supplier_id" class="form-label-modern">Supplier</label>
+                  <select class="form-select form-control-modern" id="edit_supplier_id" name="supplier_id">
+                      <option value="">Select Supplier</option>
+                      @foreach($suppliers as $supplier)
+                          <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                      @endforeach
+                  </select>
+              </div>
               <div class="col-md-6">
                 <label for="edit_status" class="form-label-modern">Status <span class="text-danger">*</span></label>
                 <select class="form-select form-control-modern" id="edit_status" name="status" required>
@@ -538,15 +540,6 @@
                     @endforeach
                 </select>
               </div>
-              <div class="col-md-6">
-                 <label for="edit_supplier_id" class="form-label-modern">Supplier</label>
-                 <select class="form-select form-control-modern" id="edit_supplier_id" name="supplier_id">
-                     <option value="">Select Supplier</option>
-                     @foreach($suppliers as $supplier)
-                         <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                     @endforeach
-                 </select>
-               </div>
           </div>
 
           <div class="mt-4" id="editCustomFieldsSection" style="display:none;">
