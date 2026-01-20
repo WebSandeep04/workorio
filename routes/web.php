@@ -1216,3 +1216,8 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::put('/assets/{id}', [\App\Http\Controllers\AssetController::class, 'update'])->name('assets.update');
     Route::delete('/assets/{id}', [\App\Http\Controllers\AssetController::class, 'destroy'])->name('assets.destroy');
 });
+
+// Email Marketing
+Route::middleware(['auth.or.session'])->group(function () {
+    Route::get('/email-marketing', [\App\Http\Controllers\EmailMarketingController::class, 'index'])->name('emailmarketing.index');
+});

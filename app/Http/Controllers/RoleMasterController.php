@@ -174,6 +174,13 @@ class RoleMasterController extends Controller
                 'permissions' => [
                     'asset_management.access' => 'Asset Management: Access',
                 ]
+            ],
+            'email_marketing' => [
+                 'enabled' => (bool) ($tenant->is_email_marketing_enable ?? false),
+                 'setup_enabled' => false,
+                 'permissions' => [
+                     'email_marketing.view' => 'Email Marketing: Access'
+                 ]
             ]
         ];
 
@@ -365,6 +372,13 @@ class RoleMasterController extends Controller
                 'permissions' => [
                     'asset_management.access' => 'Asset Management: Access',
                 ]
+            ],
+            'email_marketing' => [
+                 'enabled' => (bool) ($tenant->is_email_marketing_enable ?? false),
+                 'setup_enabled' => false,
+                 'permissions' => [
+                     'email_marketing.view' => 'Email Marketing: Access'
+                 ]
             ]
         ];
 

@@ -25,6 +25,7 @@ class Tenant extends Model
         'is_approval_enabled',
         'is_contact_management',
         'is_asset_management_enable',
+        'is_email_marketing_enable',
     ];
 
     protected static function booted()

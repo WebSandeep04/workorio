@@ -199,6 +199,16 @@ return [
             'roles' => ['admin'],
             'permission' => 'asset_management.access',
         ],
+        // Email Marketing section
+        [
+            'key' => 'email_marketing',
+            'title' => 'Email Marketing',
+            'route' => 'emailmarketing.index',
+            'icon' => 'bi bi-envelope',
+            'feature_flag' => 'is_email_marketing_enable',
+            'roles' => ['admin'],
+            'permission' => 'email_marketing.view',
+        ],
                 // Software Setup - Consolidated Setup Section
                 [
                     'key' => 'software_setup',
