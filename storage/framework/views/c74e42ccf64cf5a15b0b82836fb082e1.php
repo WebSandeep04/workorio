@@ -394,7 +394,7 @@
 
 <!-- Create Modal -->
 <div class="modal fade modal-modern" id="createAssetCategoryModal" tabindex="-1" aria-labelledby="createAssetCategoryModalLabel" aria-hidden="true" data-bs-backdrop="static">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" style ="font-size: 1.1rem; font-weight: 600;" id="createAssetCategoryModalLabel">
@@ -406,9 +406,21 @@
       <form id="createAssetCategoryForm">
         <div class="modal-body pt-4 pb-4">
           <?php echo csrf_field(); ?>
-          <div class="mb-2">
+          <div class="mb-3">
             <label for="category_name" class="form-label-modern">Category Name <span class="text-danger">*</span></label>
             <input type="text" class="form-control form-control-modern" id="category_name" name="name" required placeholder="Enter category name">
+          </div>
+          
+          <div class="mb-2">
+             <div class="d-flex justify-content-between align-items-center mb-2">
+                 <label class="form-label-modern mb-0">Custom Fields</label>
+                 <button type="button" class="btn btn-sm btn-outline-primary" id="addCreateFieldBtn">
+                     <i class="bi bi-plus"></i> Add Field
+                 </button>
+             </div>
+             <div id="create_fields_container">
+                 <!-- Fields will be added here -->
+             </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -424,7 +436,7 @@
 
 <!-- Edit Modal -->
 <div class="modal fade modal-modern" id="editAssetCategoryModal" tabindex="-1" aria-labelledby="editAssetCategoryModalLabel" aria-hidden="true" data-bs-backdrop="static">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" style="font-size: 1.1rem; font-weight: 600;" id="editAssetCategoryModalLabel">
@@ -437,9 +449,21 @@
         <div class="modal-body pt-4 pb-4">
           <?php echo csrf_field(); ?>
           <input type="hidden" id="edit_category_id">
-          <div class="mb-2">
+          <div class="mb-3">
             <label for="edit_category_name" class="form-label-modern">Category Name <span class="text-danger">*</span></label>
             <input type="text" class="form-control form-control-modern" id="edit_category_name" required>
+          </div>
+          
+          <div class="mb-2">
+             <div class="d-flex justify-content-between align-items-center mb-2">
+                 <label class="form-label-modern mb-0">Custom Fields</label>
+                 <button type="button" class="btn btn-sm btn-outline-primary" id="addEditFieldBtn">
+                     <i class="bi bi-plus"></i> Add Field
+                 </button>
+             </div>
+             <div id="edit_fields_container">
+                 <!-- Fields will be added here -->
+             </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -554,6 +578,9 @@ $(function () {
             <td><strong>${cat.name}</strong></td>
             <td>
               <div class="d-flex gap-2 justify-content-center">
+                <a href="/asset-category/${cat.id}/fields" class="btn-action btn-action-edit" title="Manage Fields" style="background:#6c757d !important;">
+                  <i class="bi bi-list-check"></i>
+                </a>
                 <button class="btn-action btn-action-edit editBtn"
                   data-id="${cat.id}" data-name="${cat.name}" title="Edit">
                   <i class="bi bi-pencil"></i>
@@ -597,33 +624,153 @@ $(function () {
       }
   });
 
+  // --- Custom Fields Logic ---
+  
+  function addFieldRow(containerId, field = null) {
+      const $container = $('#' + containerId);
+      const name = field ? field.name : '';
+      const type = field ? field.type : 'text';
+      // If options is an array, join it. Depending on how it's stored/returned.
+      // PHP json_encode returns array.
+      let options = '';
+      if(field && field.options) {
+        if(Array.isArray(field.options)) options = field.options.join(', ');
+        else if(typeof field.options === 'string') {
+            try {
+                options = JSON.parse(field.options).join(', ');
+            } catch(e) { options = field.options; }
+        }
+      }
+      
+      const id = field ? field.id : '';
+      
+      const rowHtml = `
+          <div class="field-row card p-2 mb-2 bg-light border" style="border-style: dashed !important;">
+              <input type="hidden" class="field-id" value="${id}">
+              <div class="row g-2 align-items-center">
+                  <div class="col-md-5">
+                      <input type="text" class="form-control form-control-modern field-name" placeholder="Field Name" value="${name}" required>
+                  </div>
+                  <div class="col-md-3">
+                      <select class="form-select form-control-modern field-type">
+                          <option value="text" ${type === 'text' ? 'selected' : ''}>Text</option>
+                          <option value="dropdown" ${type === 'dropdown' ? 'selected' : ''}>Dropdown</option>
+                      </select>
+                  </div>
+                  <div class="col-md-3">
+                       <input type="text" class="form-control form-control-modern field-options" placeholder="Options (a, b, c)" 
+                       value="${options}" style="display: ${type === 'dropdown' ? 'block' : 'none'};" ${type === 'dropdown' ? 'required' : ''}>
+                  </div>
+                  <div class="col-md-1 text-end">
+                      <button type="button" class="btn btn-sm btn-outline-danger remove-field-btn" style="border:none;"><i class="bi bi-trash"></i></button>
+                  </div>
+              </div>
+          </div>
+      `;
+      $container.append(rowHtml);
+  }
+
+  $(document).on('change', '.field-type', function() {
+      const type = $(this).val();
+      const $row = $(this).closest('.field-row');
+      const $options = $row.find('.field-options');
+      if (type === 'dropdown') {
+          $options.show();
+          $options.attr('required', true);
+          $options.attr('placeholder', 'Options (a, b, c)');
+      } else {
+          $options.hide();
+          $options.removeAttr('required');
+      }
+  });
+
+  $(document).on('click', '.remove-field-btn', function() {
+      $(this).closest('.field-row').remove();
+  });
+
+  $('#addCreateFieldBtn').click(function() {
+      addFieldRow('create_fields_container');
+  });
+
+  $('#addEditFieldBtn').click(function() {
+      addFieldRow('edit_fields_container');
+  });
+
+  function getFieldsData(containerId) {
+      const fields = [];
+      $('#' + containerId + ' .field-row').each(function() {
+          const id = $(this).find('.field-id').val();
+          const name = $(this).find('.field-name').val();
+          const type = $(this).find('.field-type').val();
+          const optionsStr = $(this).find('.field-options').val();
+          
+          let field = { name, type };
+          if (id) field.id = id;
+          
+          if (type === 'dropdown') {
+              field.options = optionsStr.split(',').map(s => s.trim()).filter(s => s);
+          }
+          fields.push(field);
+      });
+      return fields;
+  }
+
   $('#createAssetCategoryForm').submit(function (e) {
     e.preventDefault();
     const $btn = $(this).find('button[type="submit"]');
     $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Creating...');
     
-    $.post("<?php echo e(route('asset-category.store')); ?>", {
-      name: $('#category_name').val(),
-      _token: '<?php echo e(csrf_token()); ?>'
-    }, function () {
-      $('#createAssetCategoryModal').modal('hide');
-      $('#createAssetCategoryForm')[0].reset();
-      loadAssetCategories();
-      showAlert('success', 'Asset category created successfully.');
-    }).fail(function (xhr) {
-        let msg = 'Failed to create asset category.';
-        if(xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
-        if(xhr.responseJSON && xhr.responseJSON.errors) msg = Object.values(xhr.responseJSON.errors).join("\\n");
-        alert(msg);
-    }).always(function() {
-      $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Submit');
+    const fields = getFieldsData('create_fields_container');
+
+    $.ajax({
+        url: "<?php echo e(route('asset-category.store')); ?>",
+        type: "POST",
+        data: {
+             name: $('#category_name').val(),
+             fields: fields,
+            _token: '<?php echo e(csrf_token()); ?>'
+        },
+        success: function () {
+          $('#createAssetCategoryModal').modal('hide');
+          $('#createAssetCategoryForm')[0].reset();
+          $('#create_fields_container').empty();
+          loadAssetCategories();
+          showAlert('success', 'Asset category created successfully.');
+        },
+        error: function (xhr) {
+            let msg = 'Failed to create asset category.';
+            if(xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+            if(xhr.responseJSON && xhr.responseJSON.errors) msg = Object.values(xhr.responseJSON.errors).join("\n");
+            alert(msg);
+        },
+        complete: function() {
+          $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Submit');
+        }
     });
   });
 
   $(document).on('click', '.editBtn', function () {
-    $('#edit_category_id').val($(this).data('id'));
-    $('#edit_category_name').val($(this).data('name'));
-    $('#editAssetCategoryModal').modal('show');
+    const id = $(this).data('id');
+    // Fetch details including fields
+    // Set loading state if needed, or just wait
+    // We don't have a loading spinner on the button itself in the table, but we can just open modal and show loading? 
+    // Or better, fetch first then show modal.
+    
+    $.get(`/asset-category/${id}`, function(data) {
+        $('#edit_category_id').val(data.id);
+        $('#edit_category_name').val(data.name);
+        
+        $('#edit_fields_container').empty();
+        if(data.fields && data.fields.length > 0) {
+            data.fields.forEach(field => {
+                addFieldRow('edit_fields_container', field);
+            });
+        }
+        
+        $('#editAssetCategoryModal').modal('show');
+    }).fail(function() {
+        showAlert('danger', 'Failed to fetch category details');
+    });
   });
 
   $('#editAssetCategoryForm').submit(function (e) {
@@ -632,11 +779,14 @@ $(function () {
     $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Updating...');
     
     let id = $('#edit_category_id').val();
+    const fields = getFieldsData('edit_fields_container');
+
     $.ajax({
       url: `/asset-category/${id}`,
       type: 'PUT',
       data: {
         name: $('#edit_category_name').val(),
+        fields: fields,
         _token: '<?php echo e(csrf_token()); ?>'
       },
       success: function () {
@@ -647,7 +797,7 @@ $(function () {
       error: function(xhr) {
         let msg = 'Failed to update asset category.';
         if(xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
-        if(xhr.responseJSON && xhr.responseJSON.errors) msg = Object.values(xhr.responseJSON.errors).join("\\n");
+        if(xhr.responseJSON && xhr.responseJSON.errors) msg = Object.values(xhr.responseJSON.errors).join("\n");
         alert(msg);
       },
       complete: function() {

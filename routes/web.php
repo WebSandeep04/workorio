@@ -1179,7 +1179,9 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Asset Categories
     Route::get('/asset-category', [\App\Http\Controllers\AssetCategoryController::class, 'index'])->name('asset-category.index');
     Route::get('/asset-category/fetch', [\App\Http\Controllers\AssetCategoryController::class, 'fetch'])->name('asset-category.fetch');
+    Route::get('/asset-category/{id}/fields', [\App\Http\Controllers\AssetCategoryController::class, 'manageFields'])->name('asset-category.fields');
     Route::post('/asset-category', [\App\Http\Controllers\AssetCategoryController::class, 'store'])->name('asset-category.store');
+    Route::get('/asset-category/{id}', [\App\Http\Controllers\AssetCategoryController::class, 'show'])->name('asset-category.show');
     Route::put('/asset-category/{id}', [\App\Http\Controllers\AssetCategoryController::class, 'update'])->name('asset-category.update');
     Route::delete('/asset-category/{id}', [\App\Http\Controllers\AssetCategoryController::class, 'destroy'])->name('asset-category.destroy');
 
