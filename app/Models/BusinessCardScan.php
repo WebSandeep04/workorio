@@ -13,6 +13,7 @@ class BusinessCardScan extends TenantModel
         'name',
         'designation',
         'company_name',
+        'industry',
         'email',
         'phone_primary',
         'phone_secondary',

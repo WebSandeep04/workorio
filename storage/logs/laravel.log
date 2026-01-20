@@ -852,3 +852,11 @@
 #69 D:\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\laravel\\\\lead...')
 #70 {main}
 "} 
+[2026-01-20 10:28:36] local.INFO: getRemarks called with ID: 5363  
+[2026-01-20 10:28:36] local.INFO: Sales record found: 5363  
+[2026-01-20 10:28:36] local.INFO: Remarks count: 1  
+[2026-01-20 10:28:36] local.INFO: Returning response successfully  
+[2026-01-20 10:28:45] local.INFO: getRemarks called with ID: 5363  
+[2026-01-20 10:28:45] local.INFO: Sales record found: 5363  
+[2026-01-20 10:28:45] local.INFO: Remarks count: 1  
+[2026-01-20 10:28:45] local.INFO: Returning response successfully  

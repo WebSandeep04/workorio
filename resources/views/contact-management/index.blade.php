@@ -325,10 +325,12 @@
           <tr>
             <th>Name</th>
             <th>Company</th>
+            <th>Industry</th>
             <th>Designation</th>
             <th>Email</th>
             <th>Phone</th>
             <th>Address</th>
+            <th>Remark</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -374,9 +376,15 @@
             </div>
           </div>
 
-          <div class="mb-3">
-            <label for="company_name" class="form-label-modern">Company Name</label>
-            <input type="text" class="form-control form-control-modern" id="company_name" name="company_name">
+          <div class="row">
+               <div class="col-md-6 mb-3">
+                <label for="company_name" class="form-label-modern">Company Name</label>
+                <input type="text" class="form-control form-control-modern" id="company_name" name="company_name">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="industry" class="form-label-modern">Industry</label>
+                <input type="text" class="form-control form-control-modern" id="industry" name="industry">
+              </div>
           </div>
 
           <div class="row">
@@ -428,6 +436,11 @@
               </div>
           </div>
 
+          <div class="mb-3">
+            <label for="raw_text" class="form-label-modern">Remark</label>
+            <textarea class="form-control form-control-modern" id="raw_text" name="raw_text" rows="2"></textarea>
+          </div>
+
         </form>
       </div>
       <div class="modal-footer">
@@ -440,8 +453,104 @@
 
 @endsection
 
+<!-- View Details Modal -->
+<div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="viewDetailsModalTitle">Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: brightness(0) invert(1);"></button>
+      </div>
+      <div class="modal-body" id="viewDetailsModalBody" style="word-wrap: break-word; white-space: pre-wrap;">
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- View Card Modal -->
+<div class="modal fade" id="viewCardModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 10px; overflow: hidden;">
+      <div class="modal-header" style="background: #434AFA; color: white;">
+        <h5 class="modal-title"><i class="bi bi-card-heading me-2"></i>Contact Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: brightness(0) invert(1);"></button>
+      </div>
+      <div class="modal-body p-4">
+          <div class="text-center mb-4">
+              <h3 id="card_name" style="font-weight: 700; color: #333; margin-bottom: 0.2rem;">-</h3>
+              <div id="card_designation" style="font-size: 0.9rem; color: #666; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">-</div>
+              <div id="card_company" style="font-size: 1.1rem; color: #434AFA; font-weight: 600; margin-top: 0.5rem;">-</div>
+              <div id="card_industry" style="font-size: 0.85rem; color: #888; margin-top: 0.2rem;">-</div>
+          </div>
+          
+          <div class="row g-3">
+              <div class="col-md-6">
+                  <small class="text-muted d-block uppercase" style="font-size: 0.7rem;">EMAIL</small>
+                  <span id="card_email" style="font-weight: 500;">-</span>
+              </div>
+              <div class="col-md-6">
+                  <small class="text-muted d-block uppercase" style="font-size: 0.7rem;">PHONE (PRIMARY)</small>
+                  <span id="card_phone" style="font-weight: 500;">-</span>
+              </div>
+              
+              <div class="col-md-6">
+                  <small class="text-muted d-block uppercase" style="font-size: 0.7rem;">PHONE (SECONDARY)</small>
+                  <span id="card_phone_sec" style="font-weight: 500;">-</span>
+              </div>
+              <div class="col-md-6">
+                  <small class="text-muted d-block uppercase" style="font-size: 0.7rem;">WEBSITE</small>
+                  <span id="card_website" style="font-weight: 500;">-</span>
+              </div>
+              
+              <div class="col-12">
+                  <hr style="border-color: #eee; margin: 0.5rem 0;">
+              </div>
+
+              <div class="col-12">
+                  <small class="text-muted d-block uppercase" style="font-size: 0.7rem;">ADDRESS</small>
+                  <span id="card_address" style="font-weight: 500;">-</span>
+              </div>
+              
+              <div class="col-md-6">
+                  <small class="text-muted d-block uppercase" style="font-size: 0.7rem;">CITY</small>
+                  <span id="card_city">-</span>
+              </div>
+              <div class="col-md-6">
+                  <small class="text-muted d-block uppercase" style="font-size: 0.7rem;">STATE</small>
+                  <span id="card_state">-</span>
+              </div>
+              
+              <div class="col-md-6">
+                   <small class="text-muted d-block uppercase" style="font-size: 0.7rem;">COUNTRY</small>
+                  <span id="card_country">-</span>
+              </div>
+              <div class="col-md-6">
+                   <small class="text-muted d-block uppercase" style="font-size: 0.7rem;">PINCODE</small>
+                  <span id="card_pincode">-</span>
+              </div>
+              
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 @push('scripts')
 <script>
+function showAlert(type, message) {
+  const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+  const alertHtml = `
+    <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  `;
+  $('body').append(alertHtml);
+  setTimeout(() => $('.alert').fadeOut(), 3000);
+}
+
 $(document).ready(function() {
     let currentPage = 1;
     let search = '';
@@ -501,7 +610,7 @@ $(document).ready(function() {
             data: formData,
             success: function(response) {
                 $('#contactModal').modal('hide');
-                toastr.success(response.message);
+                showAlert('success', response.message);
                 fetchContacts();
                 fetchStats();
             },
@@ -512,9 +621,9 @@ $(document).ready(function() {
                     $.each(errors, function(key, value) {
                         msg += value[0] + '<br>';
                     });
-                    toastr.error(msg);
+                    showAlert('danger', msg);
                 } else {
-                    toastr.error('Something went wrong');
+                    showAlert('danger', 'Something went wrong');
                 }
             }
         });
@@ -528,17 +637,47 @@ $(document).ready(function() {
             $('#contactId').val(data.id);
             $('#name').val(data.name);
             $('#company_name').val(data.company_name);
+            $('#industry').val(data.industry);
             $('#designation').val(data.designation);
             $('#email').val(data.email);
             $('#phone_primary').val(data.phone_primary);
             $('#phone_secondary').val(data.phone_secondary);
             $('#website').val(data.website);
             $('#address').val(data.address);
+            $('#raw_text').val(data.raw_text);
             $('#city').val(data.city);
             $('#state').val(data.state);
             $('#country').val(data.country);
             $('#pincode').val(data.pincode);
             $('#contactModal').modal('show');
+        });
+    });
+
+    // View Card Logic
+    $(document).on('click', '.view-card-btn', function() {
+        let id = $(this).data('id');
+        $.get("{{ route('contactmanagement.edit', ':id') }}".replace(':id', id), function(data) {
+             const v = (val) => val ? val : '-';
+             
+             $('#card_name').text(v(data.name));
+             $('#card_designation').text(v(data.designation));
+             $('#card_company').text(v(data.company_name));
+             $('#card_industry').text(v(data.industry));
+             
+             $('#card_email').text(v(data.email));
+             $('#card_phone').text(v(data.phone_primary));
+             $('#card_phone_sec').text(v(data.phone_secondary));
+             $('#card_website').text(v(data.website));
+             
+             $('#card_address').text(v(data.address));
+             $('#card_city').text(v(data.city));
+             $('#card_state').text(v(data.state));
+             $('#card_country').text(v(data.country));
+             $('#card_pincode').text(v(data.pincode));
+             
+             $('#card_remark').text(v(data.raw_text));
+             
+             $('#viewCardModal').modal('show');
         });
     });
 
@@ -553,12 +692,12 @@ $(document).ready(function() {
                     _token: "{{ csrf_token() }}"
                 },
                 success: function(response) {
-                    toastr.success(response.message);
+                    showAlert('success', response.message);
                     fetchContacts();
                     fetchStats();
                 },
                 error: function() {
-                    toastr.error('Failed to delete contact');
+                    showAlert('danger', 'Failed to delete contact');
                 }
             });
         }
@@ -588,16 +727,31 @@ $(document).ready(function() {
             success: function(response) {
                 $('#loadingState').hide();
                 let rows = '';
+                
+                 const formatCell = (text, label) => {
+                    if(!text) return '-';
+                    let str = String(text);
+                    if(str.length > 10) {
+                        let safeContent = str.replace(/"/g, '&quot;');
+                        return `<span class="view-details" data-bs-toggle="modal" data-bs-target="#viewDetailsModal" data-title="${label}" data-content="${safeContent}" style="cursor:pointer;">${str.substring(0, 10)}...</span>`;
+                    }
+                    return str;
+                };
+
                 if (response.data.length > 0) {
                     $.each(response.data, function(index, contact) {
+
                         rows += `<tr>
-                            <td>${contact.name || '-'}</td>
-                            <td>${contact.company_name || '-'}</td>
-                            <td>${contact.designation || '-'}</td>
-                            <td>${contact.email || '-'}</td>
-                            <td>${contact.phone_primary || '-'}</td>
-                            <td title="${contact.address || ''}">${contact.address ? (contact.address.length > 20 ? contact.address.substring(0, 20) + '...' : contact.address) : '-'}</td>
+                            <td>${formatCell(contact.name, 'Name')}</td>
+                            <td>${formatCell(contact.company_name, 'Company Name')}</td>
+                            <td>${formatCell(contact.industry, 'Industry')}</td>
+                            <td>${formatCell(contact.designation, 'Designation')}</td>
+                            <td>${formatCell(contact.email, 'Email')}</td>
+                            <td>${formatCell(contact.phone_primary, 'Phone')}</td>
+                            <td>${formatCell(contact.address, 'Address')}</td>
+                            <td>${formatCell(contact.raw_text, 'Remark')}</td>
                             <td>
+                                <button class="btn btn-sm text-info view-card-btn" data-id="${contact.id}" title="View Card"><i class="bi bi-eye"></i></button>
                                 <button class="btn btn-sm text-primary edit-btn" data-id="${contact.id}"><i class="bi bi-pencil"></i></button>
                                 <button class="btn btn-sm text-danger delete-btn" data-id="${contact.id}"><i class="bi bi-trash"></i></button>
                             </td>
@@ -647,6 +801,15 @@ $(document).ready(function() {
         paginationHtml += '</ul></nav>';
         $('#paginationContainer').html(paginationHtml);
     }
+    // View Details Modal Handler
+    $('#viewDetailsModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var title = button.data('title');
+        var content = button.data('content');
+        var modal = $(this);
+        modal.find('.modal-title').text(title);
+        modal.find('.modal-body').text(content);
+    });
 });
 </script>
 @endpush
