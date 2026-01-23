@@ -5,433 +5,270 @@
 
 @push('styles')
 <style>
-    .container-fluid {
-        padding: 0.5rem;
-        background: #ffffff;
+    body {
+        background: #f3f4f6;
     }
 
-    .quotation-hero-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 18px;
-        color: white;
-        padding: 1rem 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: none;
+    .page-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 16px;
     }
 
-    .hero-title {
-        font-size: 1.4rem;
-        margin-bottom: 0.35rem;
+    /* Top header */
+    .page-header {
+        background: #434AFA;
+        color: #fff;
+        padding: 14px 20px;
+        border-radius: 6px 6px 0 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    /* Card */
+    .card-box {
+        background: #fff;
+        border-radius: 0 0 6px 6px;
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .section-title {
+        font-size: 24px;
         font-weight: 700;
+        margin-bottom: 12px;
     }
 
-    .eyebrow-text {
-        text-transform: uppercase;
-        letter-spacing: 0.25em;
-        font-size: 0.65rem;
-        opacity: 0.8;
-        margin-bottom: 0.2rem;
-    }
-
-    .hero-subtitle {
-        font-size: 0.85rem;
-        margin: 0;
-        opacity: 0.9;
-    }
-
-    .modern-card {
-        background: white;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: none;
-        border: 1px solid #e9ecef;
-        margin-bottom: 1rem;
-    }
-
-    .modern-card-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 0.75rem 1.25rem;
-    }
-
-    .card-title-modern {
-        font-size: 1rem;
+    label {
+        font-size: 14px;
         font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        margin-bottom: 4px;
     }
 
-    .modern-card-body {
-        padding: 1.5rem;
-    }
-
-    .form-label-modern {
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 0.5rem;
-        font-size: 0.875rem;
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
+    .form-control {
+        border-radius: 4px;
+        font-size: 14px;
+        background: #DFDFDF;
     }
 
     .form-control-modern {
-        border: 2px solid #e5e7eb;
-        border-radius: 10px;
-        padding: 0.65rem 1rem;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        background: white;
+        background: #fff;
     }
 
-    .form-control-modern:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        outline: none;
-    }
-
-    .form-text-modern {
-        font-size: 0.75rem;
-        color: #6b7280;
-        margin-top: 0.35rem;
-    }
-
-    .products-section {
-        background: #f9fafb;
-        border-radius: 12px;
-        padding: 1.25rem;
-        margin: 1.5rem 0;
-    }
-
+    /* Products */
     .products-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 12px;
     }
 
-    .products-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin: 0;
-    }
-
-    .btn-add-product {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+    .btn-add {
+        background: #434AFA;
+        color: #fff;
         border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
+        font-size: 13px;
+        padding: 6px 12px;
+        border-radius: 4px;
     }
 
-    .btn-add-product:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        color: white;
+    .product-row {
+        background: #f0f0f0;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 10px;
     }
 
-    .product-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border: 2px solid #e5e7eb;
-        transition: all 0.3s ease;
-    }
-
-    .product-card:hover {
-        border-color: #667eea;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-    }
-
-    .btn-remove-product {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-        border: none;
-        padding: 0.4rem 0.8rem;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        transition: all 0.3s ease;
-    }
-
-    .btn-remove-product:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
-        color: white;
-    }
-
-    .form-actions {
+    /* Discount */
+    .discount-wrapper {
         display: flex;
-        justify-content: space-between;
+        gap: 8px;
         align-items: center;
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 2px solid #e5e7eb;
+        max-width: 300px;
     }
 
-    .btn-back {
-        background: #6b7280;
-        color: white;
+    .discount-toggle {
+        display: flex;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .discount-toggle button {
         border: none;
-        padding: 0.65rem 1.25rem;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: all 0.3s ease;
+        background: #fff;
+        padding: 6px 10px;
+        font-size: 14px;
+        width: 50px;
     }
 
-    .btn-back:hover {
-        background: #4b5563;
-        color: white;
-        transform: translateY(-2px);
+    .discount-toggle .active {
+        background: #434afa;
+        color: #fff;
     }
 
-    .btn-reset {
-        background: #e5e7eb;
-        color: #374151;
-        border: none;
-        padding: 0.65rem 1.25rem;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        margin-right: 0.75rem;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
+    /* Footer buttons */
+    .footer-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 45px;
     }
 
-    .btn-reset:hover {
-        background: #d1d5db;
-        transform: translateY(-2px);
-    }
+
 
     .btn-save {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: #434AFA;
+        color: #fff;
         border: none;
-        padding: 0.65rem 1.5rem;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
+        padding: 6px 16px;
+        border-radius: 4px;
     }
 
-    .btn-save:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        color: white;
+    .main-row{
+        border: 1px solid #E3E3E3;
     }
 
-    .alert-modern {
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
-        margin-bottom: 1.5rem;
+    .btn-remove-product{
+        background: #434AFA;
         border: none;
-        font-size: 0.9rem;
+        border-radius: 3px;
+        color: #fff;
     }
 
-    .alert-success-modern {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-    }
-
-    .alert-error-modern {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        color: white;
-    }
-
-    @media (max-width: 767px) {
-        .container-fluid {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-        }
-
-        .quotation-hero-card {
-            padding: 1rem;
-        }
-
-        .hero-title {
-            font-size: 1.2rem;
-        }
-
-        .modern-card-header {
-            padding: 0.75rem 1rem;
-        }
-
-        .modern-card-body {
-            padding: 1rem;
-        }
-
-        .products-header {
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: flex-start;
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .page-wrapper {
+            padding: 8px;
         }
         
-        .products-title {
-             margin-bottom: 0.25rem;
+        .page-header {
+            padding: 12px 15px;
+            font-size: 16px;
         }
 
-        .form-actions {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
+        .card-box {
+            padding: 15px;
         }
 
-        .form-actions > div {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 10px;
         }
-        
-        .btn-reset, .btn-save, .btn-back {
-            width: 100%;
-            justify-content: center;
+
+        .main-row {
+            margin-left: 0;
             margin-right: 0;
+            padding: 0 5px;
+        }
+
+        .product-row {
+            position: relative;
+            padding: 12px;
+            padding-top: 45px; /* Space for the absolute delete button */
+        }
+
+        .btn-remove-product {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 35px !important;
+            height: 35px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        /* Hide the empty label on mobile for the delete button column */
+        .product-row div[class*="col-md-1"] label {
+            display: none;
+        }
+
+        .discount-wrapper {
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .footer-actions {
+            flex-direction: column; 
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .footer-actions button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
         }
     }
+
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid px-2">
-    <div class="quotation-hero-card">
-        <div>
-            <p class="eyebrow-text">Create Quotation</p>
-            <h2 class="hero-title">New Quotation Form</h2>
-            <p class="hero-subtitle">Fill in the details below to create a new quotation for your customer or prospect.</p>
-        </div>
-    </div>
+<div class="page-wrapper">
 
-    <div class="modern-card">
-        <div class="modern-card-header">
-            <h5 class="card-title-modern">
-                <i class="bi bi-file-text"></i>
-                Quotation Details
-            </h5>
-        </div>
-        <div class="modern-card-body">
-            <div id="alertContainer"></div>
-            <form id="createQuotationForm">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="customer_type" class="form-label-modern">
-                                <i class="bi bi-person-badge"></i>
-                                Customer Type
-                            </label>
-                            <select class="form-control form-control-modern" id="customer_type" name="customer_type" required>
-                                <option value="">Select Type</option>
-                                <option value="customer">Customer</option>
-                                <option value="prospect">Prospect</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="customer_id" class="form-label-modern">
-                                <i class="bi bi-person"></i>
-                                Customer/Prospect
-                            </label>
-                            <select class="form-control form-control-modern" id="customer_id" name="customer_id" required>
-                                <option value="">Select Customer/Prospect</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="project_timeline" class="form-label-modern">
-                                <i class="bi bi-calendar-event"></i>
-                                Project Timeline
-                            </label>
-                            <input type="text" class="form-control form-control-modern" id="project_timeline" name="project_timeline" placeholder="e.g., 6-8 weeks" required>
-                            <div class="form-text-modern">Enter the estimated completion timeline for the project</div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="payment_term_id" class="form-label-modern">
-                                <i class="bi bi-credit-card"></i>
-                                Payment Terms
-                            </label>
-                            <select class="form-control form-control-modern" id="payment_term_id" name="payment_term_id" required>
-                                <option value="">Select Payment Terms</option>
-                            </select>
-                            <div class="form-text-modern">Choose the payment terms for this quotation</div>
-                        </div>
-                    </div>
-                </div>
+    <div class="page-header">Create Quotation</div>
 
-                <div class="products-section">
-                    <div class="products-header">
-                        <h6 class="products-title">
-                            <i class="bi bi-box-seam"></i>
-                            Products
-                        </h6>
-                        <button type="button" class="btn-add-product" onclick="addProductRow()">
-                            <i class="bi bi-plus-circle"></i>
-                            Add Product
-                        </button>
-                    </div>
-                    <div id="productsContainer">
-                        <!-- Product rows will be added here -->
-                    </div>
+    <div class="card-box">
+        <form id="createQuotationForm">
+
+            {{-- Quotation Details --}}
+            <div class="section-title">Quotation Details</div>
+
+            <div class="row main-row mb-4 py-3">
+                <div class="col-md-6 mb-3">
+                    <label>Customer Type</label>
+                    <select class="form-control" id="customer_type" name="customer_type">
+                        <option value="">Enter...</option>
+                        <option value="customer">Customer</option>
+                        <option value="prospect">Prospect</option>
+                    </select>
                 </div>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="discount" class="form-label-modern">
-                                <i class="bi bi-percent"></i>
-                                Discount (₹)
-                            </label>
-                            <input type="number" class="form-control form-control-modern" id="discount" name="discount" step="0.01" min="0" placeholder="Enter discount amount" value="0">
-                            <div class="form-text-modern">Enter discount amount to be deducted from total</div>
-                        </div>
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <label>Prospect</label>
+                    <select class="form-control" id="customer_id" name="customer_id">
+                        <option value="">Enter...</option>
+                    </select>
                 </div>
-                
-                <div class="form-actions">
-                    <a href="{{ route('quotation') }}" class="btn-back">
-                        <i class="bi bi-arrow-left"></i>
-                        Back to Quotations
-                    </a>
-                    <div>
-                        <button type="button" class="btn-reset" onclick="resetForm()">
-                            <i class="bi bi-arrow-clockwise"></i>
-                            Reset
-                        </button>
-                        <button type="button" class="btn-save" onclick="saveQuotation()">
-                            <i class="bi bi-check-circle"></i>
-                            Save Quotation
-                        </button>
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <label>Project Timeline</label>
+                    <input type="text" placeholder="Enter Project Timeline" class="form-control" id="project_timeline">
                 </div>
-            </form>
-        </div>
+                <div class="col-md-6 mb-3">
+                    <label>Payment Terms</label>
+                    <select class="form-control" id="payment_term_id"></select>
+                </div>
+            </div>
+
+            {{-- Products --}}
+            <div class="products-header">
+                <div class="section-title">Products</div>
+                <button type="button" class="btn-add" onclick="addProductRow()">+ Add Product</button>
+            </div>
+
+            <div id="productsContainer"></div>
+
+            {{-- Discount --}}
+            <div class="section-title mt-3">% Discount</div>
+            <div class="discount-wrapper">
+                <input type="number" id="discount" class="form-control" value="0">
+                <div class="discount-toggle">
+                    <button type="button" class="active">%</button>
+                    <button type="button">₹</button>
+                </div>
+            </div>
+
+            {{-- Footer --}}
+            <div class="footer-actions">
+                <button type="button" class="btn-save" onclick="saveQuotation()">Save Quotation</button>
+            </div>
+
+        </form>
     </div>
 </div>
-
 @endsection
 
 @push('scripts')
@@ -541,7 +378,7 @@ function addProductRow() {
     const rowId = 'product_' + Date.now();
     const productRow = `
         <div class="product-card" id="${rowId}">
-            <div class="row">
+            <div class="row product-row">
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label-modern">
