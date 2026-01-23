@@ -2,6 +2,16 @@
 
 <?php $__env->startSection('title', 'Today New Leads'); ?>
 <?php $__env->startSection('page_title', 'Today New Leads'); ?>
+<?php $__env->startPush('styles'); ?>
+<style>
+
+    .data-table-card .custom-table thead th {
+    
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
+</style>
+<?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
@@ -55,6 +65,7 @@
             <tr>
               <th>Status</th>
               <th>Prospect</th>
+              <th>Remark</th>
               <th>Lead</th>
               <th>Contact Person</th>
               <th>Contact No.</th>
@@ -67,7 +78,6 @@
               <th>Source</th>
               <th>Product</th>
               <th>Ticket</th>
-              <th>Remark</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -398,7 +408,7 @@
 
   /* Pagination */
   .pagination .page-link {
-    color: #667eea;
+    color: #434afa;
     border: 2px solid #e0e0e0;
     border-radius: 6px;
     padding: 0.25rem 0.5rem;
@@ -416,10 +426,9 @@
   }
 
   .pagination .page-link:hover {
-    background: rgba(102, 126, 234, 0.15);
-    border-color: #667eea;
+    background: rgba(67, 74, 250, 0.15);
+    border-color: #434afa;
     transform: translateY(-1px);
-    color: #334155;
   }
   
   .table-range-meta {
@@ -492,6 +501,7 @@ function loadFollowups(page = 1) {
           <tr>
             <td>${item.status_name ?? '-'}</td>
             <td>${item.prospectus_name ?? '-'}</td>
+            <td>${remark}</td>
             <td>${item.leads_name ?? '-'}</td>
             <td>${item.contact_person ?? '-'}</td>
             <td>${item.contact_number ?? '-'}</td>
@@ -504,7 +514,6 @@ function loadFollowups(page = 1) {
             <td>${item.source_name ?? '-'}</td>
             <td>${item.product_name ?? '-'}</td>
             <td>${item.ticket_value ?? '-'}</td>
-            <td>${remark}</td>
           </tr>
         `);
       });
@@ -586,6 +595,7 @@ $('#followupSearch').on('keyup', function () {
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
+              <td>${displayRemark ?? '-'}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
@@ -598,7 +608,6 @@ $('#followupSearch').on('keyup', function () {
               <td>${item.source_name ?? '-'}</td>
               <td>${item.product_name ?? '-'}</td>
               <td>${item.ticket_value ?? '-'}</td>
-              <td>${displayRemark ?? '-'}</td>
             </tr>
           `);
         });
@@ -640,6 +649,7 @@ function loadFilteredFollowups(page = 1) {
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
+              <td>${remark}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
@@ -652,7 +662,6 @@ function loadFilteredFollowups(page = 1) {
               <td>${item.source_name ?? '-'}</td>
               <td>${item.product_name ?? '-'}</td>
               <td>${item.ticket_value ?? '-'}</td>
-              <td>${remark}</td>
             </tr>
           `);
         });

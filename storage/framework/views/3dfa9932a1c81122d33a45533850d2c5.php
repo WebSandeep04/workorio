@@ -2,6 +2,16 @@
 
 <?php $__env->startSection('title', 'Sales Product'); ?>
 <?php $__env->startSection('page_title', 'Sales Product'); ?>
+<?php $__env->startPush('styles'); ?>
+<style>
+
+    .data-table-card .custom-table thead th {
+    
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
+</style>
+<?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
@@ -497,7 +507,7 @@
   }
 
   .pagination .page-link {
-    color: #667eea;
+    color: #434afa;
     border: 2px solid #e0e0e0;
     border-radius: 6px;
     padding: 0.25rem 0.5rem;
@@ -515,8 +525,8 @@
   }
 
   .pagination .page-link:hover {
-    background: rgba(102, 126, 234, 0.15);
-    border-color: #667eea;
+    background: rgba(67, 74, 250, 0.15);
+    border-color: #434afa;
     transform: translateY(-1px);
   }
 </style>

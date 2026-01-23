@@ -617,7 +617,7 @@
   }
 
   .pagination .page-link {
-    color: #667eea;
+    color: #434afa;
     border: 2px solid #e0e0e0;
     border-radius: 6px;
     padding: 0.25rem 0.5rem;
@@ -635,8 +635,8 @@
   }
 
   .pagination .page-link:hover {
-    background: rgba(102, 126, 234, 0.15);
-    border-color: #667eea;
+    background: rgba(67, 74, 250, 0.15);
+    border-color: #434afa;
     transform: translateY(-1px);
   }
 

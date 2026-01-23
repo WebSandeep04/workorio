@@ -1,5 +1,14 @@
 @extends('layouts.app')
+@push('styles')
+<style>
 
+    .data-table-card .custom-table thead th {
+    
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
+</style>
+@endpush
 @section('title', 'Under Process')
 @section('page_title', 'Under Process')
 
