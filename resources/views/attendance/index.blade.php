@@ -51,13 +51,13 @@
   .metric-card::after {
     content: '';
     position: absolute;
-    right: -10px;
+    right: 0px;
     bottom: -10px;
     width: 100px;
-    height: 100px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' opacity='0.1'%3E%3Cpath d='M5 15l7-7 7 7' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat center center;
+    height: 130px;
+    background: url("/img/side-icon.png") no-repeat center center;
     background-size: contain;
-    transform: rotate(45deg);
+    /* transform: rotate(45deg); */
   }
 
   .metric-card p {
@@ -119,14 +119,14 @@
     color: white !important;
   }
 
-  .btn-punch { background-color: #28a745; }
-  .btn-punch:hover { background-color: #218838; }
+  .btn-punch { background-color: #434afa; }
+  .btn-punch:hover { background-color: #434afa; }
   
-  .btn-field { background-color: #c82333; }
-  .btn-field:hover { background-color: #bd2130; }
+  .btn-field { background-color: #434afa; }
+  .btn-field:hover { background-color: #434afa; }
   
-  .btn-break { background-color: #f39c12; }
-  .btn-break:hover { background-color: #e67e22; }
+  .btn-break { background-color: #434AFA; }
+  .btn-break:hover { background-color: #434afa; }
 
   .btn-action:disabled {
     background-color: #cbd5e0;
@@ -136,6 +136,132 @@
   .movements-table-container {
     padding: 0;
   }
+
+  .data-table-card .table-responsive {
+    border-radius: 18px;
+    border: none;
+    box-shadow: none;
+    padding: 0.5rem 0.75rem 1rem;
+    overflow-x: auto;
+    background: transparent;
+  }
+
+  .data-table-card .table-responsive::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .data-table-card .table-responsive::-webkit-scrollbar-track {
+    background: #e4e7ec;
+    border-radius: 999px;
+  }
+
+  .data-table-card .table-responsive::-webkit-scrollbar-thumb {
+    background: #434AFA;
+    border-radius: 999px;
+  }
+
+  .data-table-card .table-responsive {
+    scrollbar-color: #434AFA #e4e7ec;
+  }
+
+  .data-table-card .custom-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 0.85rem;
+    background: transparent;
+    table-layout: auto;
+    min-width: 100%;
+  }
+
+  .data-table-card .custom-table thead th {
+    
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
+
+  .data-table-card .custom-table thead th {
+    background: #fff;
+    color: #000;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #f1f3f5;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    font-family: Montserrat;
+  }
+
+  .data-table-card .custom-table thead th,
+  .data-table-card .custom-table tbody td {
+    white-space: nowrap;
+  }
+
+  .data-table-card .custom-table tbody td {
+    font-size: 0.85rem;
+    padding: 0.65rem 0.75rem;
+    color: #000;
+    border-bottom: 1px solid #f4f4f6;
+    text-align: left;
+    background: transparent;
+    font-family: Montserrat;
+  }
+
+  .data-table-card .custom-table tbody tr {
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .data-table-card .custom-table tbody tr:hover {
+    background: #f9fafb;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .data-table-card .custom-table tbody td:nth-child(1) { min-width: 100px; }
+  .data-table-card .custom-table tbody td:nth-child(2) { min-width: 120px; }
+  .data-table-card .custom-table tbody td:nth-child(3) { min-width: 120px; }
+  .data-table-card .custom-table tbody td:nth-child(4) { min-width: 140px; }
+  .data-table-card .custom-table tbody td:nth-child(5) { min-width: 110px; }
+  .data-table-card .custom-table tbody td:nth-child(6) { min-width: 120px; }
+  .data-table-card .custom-table tbody td:nth-child(7) { min-width: 120px; }
+  .data-table-card .custom-table tbody td:nth-child(8) { min-width: 120px; }
+  .data-table-card .custom-table tbody td:nth-child(9) { min-width: 150px; }
+  .data-table-card .custom-table tbody td:nth-child(10) { min-width: 130px; }
+  .data-table-card .custom-table tbody td:nth-child(11) { min-width: 130px; }
+  .data-table-card .custom-table tbody td:nth-child(12) { min-width: 130px; }
+  .data-table-card .custom-table tbody td:nth-child(13) { min-width: 110px; }
+  .data-table-card .custom-table tbody td:nth-child(14) { min-width: 140px; }
+
+  .data-table-card .custom-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .data-table-card .custom-table tbody td .text-danger,
+  .data-table-card .custom-table tbody td .priority-high,
+  .data-table-card .custom-table tbody td .highlight-high {
+    color: #ef4444;
+    font-weight: 600;
+  }
+
+  .custom-table,
+.custom-table th,
+.custom-table td {
+    border: none !important;
+}
+
+.custom-table thead th {
+    box-shadow: inset 2px 3px 0 #e5e7eb;
+}
+
+.custom-table tbody td {
+    box-shadow: inset 0 1px 0 #f1f5f9;
+}
+
+
 
   .custom-table {
     width: 100%;
@@ -163,11 +289,9 @@
   }
 
   .badge-type {
-    background: #ebf4ff;
-    color: #3182ce;
     padding: 0.25rem 0.75rem;
     border-radius: 4px;
-    font-weight: 600;
+    font-weight: 400;
     text-transform: uppercase;
     font-size: 0.75rem;
   }
@@ -178,18 +302,33 @@
     gap: 0.4rem;
     padding: 0.25rem 0.75rem;
     border-radius: 4px;
-    font-weight: 600;
+    font-weight: 400;
     font-size: 0.75rem;
   }
 
   .badge-cycle {
-    background: #f0fff4;
-    color: #38a169;
     padding: 0.25rem 0.75rem;
     border-radius: 4px;
-    font-weight: 600;
+    font-weight: 400;
     font-size: 0.75rem;
   }
+
+  /* Custom Alert Overrides for Attendance Dashboard */
+  #attendanceAlerts .custom-alert {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    position: relative;
+    top: 0;
+    right: 0;
+  }
+  
+  .custom-alert-success { background-color: #198754; }
+  .custom-alert-error   { background-color: #dc3545; }
+  .custom-alert-info    { background-color: #434afa; }
+  .custom-alert-warning { background-color: #ffc107; color: #000; }
+
 
   @media (max-width: 992px) {
     .stats-grid {
@@ -198,6 +337,19 @@
   }
 
   @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 1rem;
+      margin-left: -0.5rem;
+      margin-right: -0.5rem;
+    }
+    .page-header .d-flex {
+      width: 100%;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
     .stats-grid {
       grid-template-columns: 1fr;
     }
@@ -209,8 +361,23 @@
     .action-buttons {
       width: 100%;
       flex-direction: column;
+      gap: 0.75rem !important;
     }
-    .btn-action {
+    .control-actions {
+      width: 100%;
+    }
+    .action-buttons .btn {
+      width: 100% !important;
+      padding: 0.75rem !important;
+      font-size: 1rem !important;
+    }
+
+    #worklogValidationMessage {
+      flex-direction: column;
+      align-items: flex-start !important;
+      gap: 1rem;
+    }
+    #worklogValidationMessage .btn {
       width: 100%;
     }
   }
@@ -273,33 +440,39 @@
     <div class="timeline-header">
       <div class="d-flex align-items-center gap-3">
         <h5>Timeline</h5>
-        <span id="attendanceStatusDot" class="rounded-circle" style="width: 12px; height: 12px; background-color: #cbd5e0; display: inline-block;"></span>
+        <!-- <span id="attendanceStatusDot" class="rounded-circle" style="width: 12px; height: 12px; background-color: #cbd5e0; display: inline-block;"></span> -->
       </div>
       
-      <div class="action-buttons">
+      <div class="action-buttons justify-content-around d-flex gap-3 align-items-center">
           <!-- Office Actions -->
-          <button type="button" class="btn-action btn-punch" id="officePunchIn" onclick="punchIn('office')">
-              Punch In
-          </button>
-          <button type="button" class="btn-action btn-punch d-none" id="officePunchOut" onclick="punchOut('office')">
-              Punch Out
-          </button>
+            <div class="control-actions d-grid gap-3">
+              <button type="button" class="btn btn-success" style="background: #434AFA; border-radius:3px;" id="officePunchIn" onclick="punchIn('office')">
+                <i class="fas fa-sign-in-alt me-1"></i> Punch In
+              </button>
+              <button type="button" class="btn btn-danger d-none" id="officePunchOut" onclick="punchOut('office')">
+                <i class="fas fa-sign-out-alt me-1"></i> Punch Out
+              </button>
+            </div>
 
           <!-- Field Actions -->
-          <button type="button" class="btn-action btn-field" id="fieldPunchIn" onclick="punchIn('field')">
-              Field Cycle
-          </button>
-          <button type="button" class="btn-action btn-field d-none" id="fieldPunchOut" onclick="punchOut('field')">
-              End Field Work
-          </button>
+            <div class="control-actions d-flex">
+                <button type="button" class="btn btn-info text-white" style="background: #434AFA; border-radius:3px;" id="fieldPunchIn" onclick="punchIn('field')">
+                <i class="fas fa-map-marker-alt me-1"></i>Field In
+                </button>
+                <button type="button" class="btn btn-danger d-none" id="fieldPunchOut" onclick="punchOut('field')">
+                <i class="fas fa-home me-1"></i>Field Out
+                </button>
+            </div>
 
           <!-- Break Actions -->
-          <button type="button" class="btn-action btn-break" id="breakStart" onclick="startBreak()">
-              Break
-          </button>
-          <button type="button" class="btn-action btn-break d-none" id="breakEnd" onclick="endBreak()">
-              End Break
-          </button>
+           <div class="control-actions d-grid gap-3">
+              <button type="button" class="btn btn-warning text-white" style="background: #434AFA; border-radius:3px;" id="breakStart" onclick="startBreak()">
+                <i class="fas fa-coffee me-1"></i>Break
+              </button>
+              <button type="button" class="btn btn-secondary text-white d-none" id="breakEnd" onclick="endBreak()">
+                <i class="fas fa-play me-1"></i> End Break
+              </button>
+            </div>
       </div>
     </div>
 
@@ -788,17 +961,19 @@ function updateMovementsDisplay(movements) {
     }
 
     let html = `
-        <div class="table-responsive">
-            <table class="custom-table">
-                <thead>
-                    <tr>
-                        <th style="width: 25%">TIME</th>
-                        <th style="width: 25%">TYPE</th>
-                        <th style="width: 25%">ACTION</th>
-                        <th style="width: 25%">CYCLE</th>
-                    </tr>
-                </thead>
-                <tbody>`;
+     <div class="modern-card data-table-card">
+        <div class="modern-card-body">
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%">TIME</th>
+                            <th style="width: 25%">TYPE</th>
+                            <th style="width: 25%">ACTION</th>
+                            <th style="width: 25%">CYCLE</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
     
     let allMovements = [];
     Object.values(movements).forEach(typeMovements => {
@@ -833,7 +1008,7 @@ function updateMovementsDisplay(movements) {
                 </tr>`;
     });
     
-    html += '</tbody></table></div>';
+    html += '</tbody></table></div></div></div>';
     container.innerHTML = html;
 }
 
@@ -1024,27 +1199,30 @@ function handleTaskReminderResponse(response, punchType) {
 }
 
 function showAlert(type, message) {
-    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-    const alertHtml = `<div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>`;
+    let alertType = type;
+    if (type === 'error') alertType = 'error';
+    if (type === 'danger') alertType = 'error';
+    if (type === 'success') alertType = 'success';
     
-    // Insert at the top of dedicated alerts container
-    let alertContainer = document.getElementById('attendanceAlerts');
-    if (!alertContainer) {
-        alertContainer = document.createElement('div');
-        alertContainer.id = 'attendanceAlerts';
-        document.querySelector('.attendance-dashboard')?.prepend(alertContainer);
-    }
-    alertContainer.innerHTML = alertHtml;
+    let colorClass = 'custom-alert-' + alertType;
+    let alertHtml = `
+        <div class="custom-alert ${colorClass}">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fas ${alertType === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="custom-alert-close" onclick="$(this).closest('.custom-alert').fadeOut(300, function(){ $(this).remove(); })">×</button>
+        </div>
+    `;
     
-    // Auto remove after 5 seconds
+    $('#attendanceAlerts').html(alertHtml);
+    
+    // Auto remove after 4 seconds
     setTimeout(() => {
-        if (alertContainer) {
-            alertContainer.innerHTML = '';
-        }
-    }, 5000);
+        $('#attendanceAlerts .custom-alert').fadeOut(500, function() {
+            $(this).remove();
+        });
+    }, 4000);
 }
 
 function checkWorklogValidation() {

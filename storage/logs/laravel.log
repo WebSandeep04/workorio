@@ -934,3 +934,66 @@
 [2026-01-23 10:35:05] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-01-23 10:35:05] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
 [2026-01-23 10:35:05] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-23 11:19:42] local.INFO: Punch-in started {"user_id":13,"movement_type":"office"} 
+[2026-01-23 11:19:42] local.INFO: Late check: existing movements count {"user_id":13,"date":"2026-01-23","existing_count":3,"has_any_in":true} 
+[2026-01-23 11:19:42] local.INFO: Late check: first IN detection (pre-attendance) {"user_id":13,"movement_type":"office","has_any_in":true} 
+[2026-01-23 11:19:42] local.INFO: Late check skipped: not first punch-in of day {"user_id":13,"movement_type":"office"} 
+[2026-01-23 11:19:42] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":864,"date":"2026-01-23"} 
+[2026-01-23 11:19:42] local.INFO: Auto punch-out field executed from office punch-in {"user_id":13,"attendance_id":864} 
+[2026-01-23 11:19:42] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":864,"movement_id":2005,"movement_type":"office","description":null} 
+[2026-01-23 11:19:50] local.INFO: Punch-in started {"user_id":13,"movement_type":"field"} 
+[2026-01-23 11:19:50] local.INFO: Late check: existing movements count {"user_id":13,"date":"2026-01-23","existing_count":4,"has_any_in":true} 
+[2026-01-23 11:19:50] local.INFO: Late check: first IN detection (pre-attendance) {"user_id":13,"movement_type":"field","has_any_in":true} 
+[2026-01-23 11:19:50] local.INFO: Late check skipped: not first punch-in of day {"user_id":13,"movement_type":"field"} 
+[2026-01-23 11:19:50] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":864,"date":"2026-01-23"} 
+[2026-01-23 11:19:50] local.INFO: Auto punch-out office executed from field punch-in {"user_id":13,"attendance_id":864} 
+[2026-01-23 11:19:50] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":864,"movement_id":2007,"movement_type":"field","description":null} 
+[2026-01-23 11:20:42] local.INFO: Punch-in started {"user_id":13,"movement_type":"field"} 
+[2026-01-23 11:20:42] local.INFO: Late check: existing movements count {"user_id":13,"date":"2026-01-23","existing_count":5,"has_any_in":true} 
+[2026-01-23 11:20:42] local.INFO: Late check: first IN detection (pre-attendance) {"user_id":13,"movement_type":"field","has_any_in":true} 
+[2026-01-23 11:20:42] local.INFO: Late check skipped: not first punch-in of day {"user_id":13,"movement_type":"field"} 
+[2026-01-23 11:20:42] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":864,"date":"2026-01-23"} 
+[2026-01-23 11:20:42] local.INFO: Auto punch-out office executed from field punch-in {"user_id":13,"attendance_id":864} 
+[2026-01-23 11:20:42] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":864,"movement_id":2010,"movement_type":"field","description":null} 
+[2026-01-23 11:21:58] local.INFO: Punch-in started {"user_id":13,"movement_type":"office"} 
+[2026-01-23 11:21:58] local.INFO: Late check: existing movements count {"user_id":13,"date":"2026-01-23","existing_count":6,"has_any_in":true} 
+[2026-01-23 11:21:58] local.INFO: Late check: first IN detection (pre-attendance) {"user_id":13,"movement_type":"office","has_any_in":true} 
+[2026-01-23 11:21:58] local.INFO: Late check skipped: not first punch-in of day {"user_id":13,"movement_type":"office"} 
+[2026-01-23 11:21:58] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":864,"date":"2026-01-23"} 
+[2026-01-23 11:21:58] local.INFO: Auto punch-out field executed from office punch-in {"user_id":13,"attendance_id":864} 
+[2026-01-23 11:21:58] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":864,"movement_id":2012,"movement_type":"office","description":null} 
+[2026-01-23 11:22:04] local.INFO: Punch-in started {"user_id":13,"movement_type":"field"} 
+[2026-01-23 11:22:04] local.INFO: Late check: existing movements count {"user_id":13,"date":"2026-01-23","existing_count":7,"has_any_in":true} 
+[2026-01-23 11:22:04] local.INFO: Late check: first IN detection (pre-attendance) {"user_id":13,"movement_type":"field","has_any_in":true} 
+[2026-01-23 11:22:04] local.INFO: Late check skipped: not first punch-in of day {"user_id":13,"movement_type":"field"} 
+[2026-01-23 11:22:04] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":864,"date":"2026-01-23"} 
+[2026-01-23 11:22:04] local.INFO: Auto punch-out office executed from field punch-in {"user_id":13,"attendance_id":864} 
+[2026-01-23 11:22:04] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":864,"movement_id":2014,"movement_type":"field","description":null} 
+[2026-01-23 11:34:02] local.INFO: Punch-in started {"user_id":13,"movement_type":"office"} 
+[2026-01-23 11:34:02] local.INFO: Late check: existing movements count {"user_id":13,"date":"2026-01-23","existing_count":8,"has_any_in":true} 
+[2026-01-23 11:34:02] local.INFO: Late check: first IN detection (pre-attendance) {"user_id":13,"movement_type":"office","has_any_in":true} 
+[2026-01-23 11:34:02] local.INFO: Late check skipped: not first punch-in of day {"user_id":13,"movement_type":"office"} 
+[2026-01-23 11:34:02] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":864,"date":"2026-01-23"} 
+[2026-01-23 11:34:02] local.INFO: Auto punch-out field executed from office punch-in {"user_id":13,"attendance_id":864} 
+[2026-01-23 11:34:02] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":864,"movement_id":2018,"movement_type":"office","description":null} 
+[2026-01-23 11:34:14] local.INFO: Punch-in started {"user_id":13,"movement_type":"field"} 
+[2026-01-23 11:34:14] local.INFO: Late check: existing movements count {"user_id":13,"date":"2026-01-23","existing_count":9,"has_any_in":true} 
+[2026-01-23 11:34:14] local.INFO: Late check: first IN detection (pre-attendance) {"user_id":13,"movement_type":"field","has_any_in":true} 
+[2026-01-23 11:34:14] local.INFO: Late check skipped: not first punch-in of day {"user_id":13,"movement_type":"field"} 
+[2026-01-23 11:34:14] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":864,"date":"2026-01-23"} 
+[2026-01-23 11:34:14] local.INFO: Auto punch-out office executed from field punch-in {"user_id":13,"attendance_id":864} 
+[2026-01-23 11:34:14] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":864,"movement_id":2020,"movement_type":"field","description":null} 
+[2026-01-23 11:53:22] local.INFO: Punch-in started {"user_id":13,"movement_type":"office"} 
+[2026-01-23 11:53:22] local.INFO: Late check: existing movements count {"user_id":13,"date":"2026-01-23","existing_count":10,"has_any_in":true} 
+[2026-01-23 11:53:22] local.INFO: Late check: first IN detection (pre-attendance) {"user_id":13,"movement_type":"office","has_any_in":true} 
+[2026-01-23 11:53:22] local.INFO: Late check skipped: not first punch-in of day {"user_id":13,"movement_type":"office"} 
+[2026-01-23 11:53:22] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":864,"date":"2026-01-23"} 
+[2026-01-23 11:53:22] local.INFO: Auto punch-out field executed from office punch-in {"user_id":13,"attendance_id":864} 
+[2026-01-23 11:53:22] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":864,"movement_id":2022,"movement_type":"office","description":null} 
+[2026-01-23 11:53:28] local.INFO: Punch-in started {"user_id":13,"movement_type":"field"} 
+[2026-01-23 11:53:28] local.INFO: Late check: existing movements count {"user_id":13,"date":"2026-01-23","existing_count":11,"has_any_in":true} 
+[2026-01-23 11:53:28] local.INFO: Late check: first IN detection (pre-attendance) {"user_id":13,"movement_type":"field","has_any_in":true} 
+[2026-01-23 11:53:28] local.INFO: Late check skipped: not first punch-in of day {"user_id":13,"movement_type":"field"} 
+[2026-01-23 11:53:28] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":864,"date":"2026-01-23"} 
+[2026-01-23 11:53:28] local.INFO: Auto punch-out office executed from field punch-in {"user_id":13,"attendance_id":864} 
+[2026-01-23 11:53:28] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":864,"movement_id":2024,"movement_type":"field","description":null} 
