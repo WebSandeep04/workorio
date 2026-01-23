@@ -488,10 +488,20 @@
 
         .modern-card-header {
             padding: 0.75rem 1rem;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 10px;
         }
-        
+
+        .card-title-modern {
+            font-size: 0.95rem !important;
+        }
+
         .btn-add-modern {
-             padding: 0.4rem 1rem;
+             padding: 0.4rem 0.75rem !important;
+             font-size: 0.8rem !important;
+             white-space: nowrap;
         }
     }
 </style>

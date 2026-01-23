@@ -1,3 +1,27 @@
+<?php
+    $connectionName = \Illuminate\Support\Facades\DB::getDefaultConnection();
+    $isMasterConnection = $connectionName === 'mysql';
+    $isLoggedIn = auth()->check();
+    $user = auth()->user();
+    
+    if (!$isLoggedIn) {
+        $isLoggedIn = session()->has('user_id');
+        $user = $isLoggedIn ? (object) [
+            'role_id' => session('user_role'),
+            'role' => null
+        ] : null;
+    }
+    
+    $roleId = $isLoggedIn ? $user->role_id : null;
+    $isSuperAdmin = $isLoggedIn && 
+                   $roleId == 3 && 
+                   $isMasterConnection;
+
+    $roleName = null;
+    if ($isLoggedIn && !$isMasterConnection) {
+        $roleName = optional($user->role)->role_name;
+    }
+?>
 <!-- Mobile Header Bar -->
 <div class="mobile-header-bar d-md-none">
     <div class="mobile-menu-button">
@@ -12,22 +36,33 @@
         <img src="<?php echo e(asset('img/logoformenu.svg')); ?>" alt="Workorio Logo">
     </div>
     
-    <!-- Mobile Notification Bell in Header -->
-    <div id="mobile-notification-bell" style="position: relative;">
-        <button id="mobile-bell-btn" class="btn btn-sm text-dark p-1" title="Notifications" style="background: transparent; border: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-            <i class="bi bi-bell" style="font-size: 1.25rem;"></i>
-            <span id="mobile-notification-count" style="position: absolute; top: 5px; right: 5px; background: #ff4444; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: none; align-items: center; justify-content: center;">0</span>
-        </button>
-        <div id="mobile-notification-dropdown" style="position: absolute; top: 50px; right: 0; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 300px; max-height: 300px; display: none; z-index: 1100; overflow: hidden;">
-            <div style="padding: 10px 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: bold; font-size: 14px; color: #333;">Notifications</span>
-                <div>
-                    <button id="mobile-mark-all-read-btn" class="btn btn-sm btn-link p-0 me-2" style="font-size: 11px; text-decoration: none;" title="Mark all as read">Mark all read</button>
-                    <button id="mobile-clear-all-btn" class="btn btn-sm btn-link p-0 text-danger" style="font-size: 11px; text-decoration: none;" title="Clear all">Clear all</button>
+    <!-- Mobile Header Actions (Bell + Logout) -->
+    <div class="d-flex align-items-center gap-2">
+        <!-- Mobile Notification Bell in Header -->
+        <div id="mobile-notification-bell" style="position: relative;">
+            <button id="mobile-bell-btn" class="btn btn-sm text-dark p-1" title="Notifications" style="background: transparent; border: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-bell" style="font-size: 1.25rem;"></i>
+                <span id="mobile-notification-count" style="position: absolute; top: 5px; right: 5px; background: #ff4444; color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: none; align-items: center; justify-content: center;">0</span>
+            </button>
+            <div id="mobile-notification-dropdown" style="position: absolute; top: 50px; right: 0; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 280px; max-height: 300px; display: none; z-index: 1100; overflow: hidden;">
+                <div style="padding: 10px 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; font-size: 14px; color: #333;">Notifications</span>
+                    <div>
+                        <button id="mobile-mark-all-read-btn" class="btn btn-sm btn-link p-0 me-2" style="font-size: 11px; text-decoration: none;" title="Mark all as read">Mark all read</button>
+                        <button id="mobile-clear-all-btn" class="btn btn-sm btn-link p-0 text-danger" style="font-size: 11px; text-decoration: none;" title="Clear all">Clear all</button>
+                    </div>
                 </div>
+                <div id="mobile-notification-list" style="max-height: 240px; overflow-y: auto;"></div>
             </div>
-            <div id="mobile-notification-list" style="max-height: 240px; overflow-y: auto;"></div>
         </div>
+
+        <!-- Mobile Logout Power Button -->
+        <form method="POST" action="<?php echo e(route($isSuperAdmin ? 'superadmin.logout' : 'logout')); ?>" class="m-0">
+            <?php echo csrf_field(); ?>
+            <button type="submit" class="btn btn-sm text-dark p-1" title="Logout" style="background: transparent; border: none; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-power" style="font-size: 1.25rem;"></i>
+            </button>
+        </form>
     </div>
 </div>
 
@@ -48,31 +83,6 @@
     </div>
     
     <div class="mobile-sidebar-content">
-        <?php
-            $connectionName = \Illuminate\Support\Facades\DB::getDefaultConnection();
-            $isMasterConnection = $connectionName === 'mysql';
-            $isLoggedIn = auth()->check();
-            $user = auth()->user();
-            
-            if (!$isLoggedIn) {
-                $isLoggedIn = session()->has('user_id');
-                $user = $isLoggedIn ? (object) [
-                    'role_id' => session('user_role'),
-                    'role' => null
-                ] : null;
-            }
-            
-            $roleId = $isLoggedIn ? $user->role_id : null;
-            $roleName = null;
-            if ($isLoggedIn && !$isMasterConnection) {
-                $roleName = optional($user->role)->role_name;
-            }
-            
-            $isSuperAdmin = $isLoggedIn && 
-                           $roleId == 3 && 
-                           $isMasterConnection;
-        ?>
-
         <?php if($isLoggedIn): ?>
         <!-- Dashboard Link -->
         <a href="<?php echo e(url('/dashboard')); ?>" class="mobile-menu-item" title="Dashboard">
@@ -128,16 +138,6 @@
             <?php endif; ?>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-            <!-- Logout Button -->
-        <div class="mobile-logout-section">
-            <form method="POST" action="<?php echo e(route('logout')); ?>">
-                <?php echo csrf_field(); ?>
-                <button type="submit" class="mobile-logout-btn">
-                    <i class="bi bi-box-arrow-right me-3"></i>
-                    <span>Logout</span>
-                </button>
-            </form>
-        </div>
         <?php endif; ?>
     </div>
 </div>
@@ -324,33 +324,7 @@
     text-decoration: none;
 }
 
-.mobile-logout-section {
-    position: static;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    padding: 1rem;
-    border-top: 1px solid #dee2e6;
-    background: #f8f9fa;
-}
 
-.mobile-logout-btn {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 0.375rem;
-    text-decoration: none;
-    transition: background-color 0.2s ease;
-}
-
-.mobile-logout-btn:hover {
-    background: #c82333;
-    color: white;
-}
 
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
