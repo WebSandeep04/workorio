@@ -1,352 +1,312 @@
+<?php $__env->startSection('title', 'Attendance'); ?>
+<?php $__env->startSection('page_title', 'Attendance'); ?>
+
 <?php $__env->startPush('styles'); ?>
 <style>
   .attendance-dashboard {
-    padding: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 0.5rem;
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f4f7fa;
+    min-height: 100vh;
   }
 
-  .attendance-hero {
-    background: linear-gradient(135deg, #5b7cfd 0%, #8f6fff 60%, #c96bff 100%);
-    border-radius: 28px;
-    padding: 2rem;
-    color: #fff;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 25px 60px rgba(91, 124, 253, 0.3);
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 1rem 1.5rem;
+    margin: -1rem -1.5rem 1.5rem -1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
 
-  .attendance-hero h1 {
-    font-size: 1.95rem;
+  .page-header h4 {
+    margin: 0;
     font-weight: 700;
-    margin-bottom: 0.35rem;
+    color: #1a1a1a;
   }
 
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
   }
 
   .metric-card {
-    border-radius: 20px;
-    padding: 1.2rem;
+    background: #434afa;
+    border-radius: 12px;
+    padding: 1.5rem;
     color: #fff;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 20px 35px rgba(13, 26, 56, 0.25);
-    min-height: 130px;
+    box-shadow: 0 10px 20px rgba(67, 74, 250, 0.15);
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .metric-card::after {
     content: '';
     position: absolute;
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    top: -40px;
-    right: -30px;
-  }
-
-  .metric-card h2 {
-    font-size: 2.25rem;
-    font-weight: 700;
-    margin: 0.25rem 0;
+    right: -10px;
+    bottom: -10px;
+    width: 100px;
+    height: 100px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' opacity='0.1'%3E%3Cpath d='M5 15l7-7 7 7' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat center center;
+    background-size: contain;
+    transform: rotate(45deg);
   }
 
   .metric-card p {
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 0.7rem;
-    margin-bottom: 0.2rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+  }
+
+  .metric-card h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
   }
 
   .metric-card span {
-    font-size: 0.85rem;
-    opacity: 0.85;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
   }
 
-  .metric-card.sunrise { background: linear-gradient(135deg, #ff9a44, #ff5e62); }
-  .metric-card.ocean   { background: linear-gradient(135deg, #17ead9, #6078ea); }
-  .metric-card.moss    { background: linear-gradient(135deg, #43cea2, #185a9d); }
-  .metric-card.amber   { background: linear-gradient(135deg, #f7971e, #ffd200); }
-
-  .react-alert {
-    border-radius: 18px;
-    padding: 1rem 1.25rem;
-    background: rgba(255, 183, 77, 0.18);
-    border: 1px solid rgba(255, 183, 77, 0.5);
-    color: #7a3a00;
-    margin-bottom: 1.25rem;
-  }
-
-  .control-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .control-card {
+  .timeline-card {
     background: #fff;
-    border-radius: 22px;
-    padding: 1.25rem;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .control-card.office { border-left: 5px solid #34d399; }
-  .control-card.field  { border-left: 5px solid #38bdf8; }
-  .control-card.break  { border-left: 5px solid #f97316; }
-
-  .control-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .control-eyebrow {
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    font-size: 0.7rem;
-    color: #94a3b8;
-    margin-bottom: 0.3rem;
-  }
-
-  .status-pill {
-    padding: 0.35rem 0.9rem;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    background: rgba(15, 23, 42, 0.06);
-    color: #0f172a;
-  }
-
-  .status-pill-primary {
-    background: rgba(59, 130, 246, 0.15);
-    color: #1d4ed8;
-  }
-
-  .status-pill-success {
-    background: rgba(16, 185, 129, 0.16);
-    color: #047857;
-  }
-
-  .status-pill-warning {
-    background: rgba(251, 191, 36, 0.2);
-    color: #92400e;
-  }
-
-  .status-pill-info {
-    background: rgba(14, 165, 233, 0.18);
-    color: #075985;
-  }
-
-  .control-actions .btn {
     border-radius: 12px;
-    font-weight: 600;
-    padding: 0.55rem 0.75rem;
-    font-size: 0.9rem;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    overflow: hidden;
   }
 
-  .movements-card {
-    background: #fff;
-    border-radius: 24px;
-    padding: 1.5rem;
-    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.12);
-  }
-
-  .movements-header {
+  .timeline-header {
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #edf2f7;
   }
 
-  .cycle-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 0.85rem;
-    margin-bottom: 1.2rem;
-  }
-
-  .cycle-card {
-    border-radius: 18px;
-    padding: 1rem;
-    background: #f8fafc;
-    text-align: center;
-    box-shadow: inset 0 0 0 1px #e2e8f0;
-  }
-
-  .cycle-card h6 {
-    font-size: 0.85rem;
-    color: #475569;
-    margin-bottom: 0.25rem;
-  }
-
-  .cycle-card h4 {
-    font-size: 1.5rem;
-    color: #0f172a;
+  .timeline-header h5 {
     margin: 0;
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 1.25rem;
   }
 
-  #todayMovements {
+  .action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .btn-action {
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none;
+    transition: all 0.2s ease;
+    color: white !important;
+  }
+
+  .btn-punch { background-color: #28a745; }
+  .btn-punch:hover { background-color: #218838; }
+  
+  .btn-field { background-color: #c82333; }
+  .btn-field:hover { background-color: #bd2130; }
+  
+  .btn-break { background-color: #f39c12; }
+  .btn-break:hover { background-color: #e67e22; }
+
+  .btn-action:disabled {
+    background-color: #cbd5e0;
+    cursor: not-allowed;
+  }
+
+  .movements-table-container {
+    padding: 0;
+  }
+
+  .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .custom-table th {
     background: #f8fafc;
-    border-radius: 18px;
-    padding: 1rem;
-    min-height: 120px;
+    color: #4a5568;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 2px solid #edf2f7;
   }
 
-  @media (max-width: 576px) {
-    .attendance-hero { padding: 1.5rem; }
-    .control-grid { grid-template-columns: 1fr; }
+  .custom-table td {
+    padding: 1rem 1.5rem;
+    font-size: 0.9rem;
+    color: #2d3748;
+    border-bottom: 1px solid #edf2f7;
+    vertical-align: middle;
+  }
+
+  .badge-type {
+    background: #ebf4ff;
+    color: #3182ce;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+  }
+
+  .badge-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+  }
+
+  .badge-cycle {
+    background: #f0fff4;
+    color: #38a169;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 992px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    .timeline-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .action-buttons {
+      width: 100%;
+      flex-direction: column;
+    }
+    .btn-action {
+      width: 100%;
+    }
   }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="attendance-dashboard container-fluid px-3 px-lg-4 mt-4">
-  <div class="attendance-hero mb-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
-      <div>
-        <p class="text-uppercase mb-2" style="letter-spacing:0.2em;font-size:0.7rem;opacity:0.85;">Attendance command</p>
-        <h1 class="mb-1">Attendance Management</h1>
-        <p class="mb-0 opacity-75">Today: <?php echo e(\Carbon\Carbon::today()->format('l, F j, Y')); ?></p>
-                                </div>
-      <button type="button" class="btn btn-light text-primary rounded-pill px-3 py-2 d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#tipsModal">
-        <i class="fas fa-lightbulb"></i>
-        Smart Tips
-      </button>
-                        </div>
-                    </div>
+<div class="attendance-dashboard container-fluid py-4">
+  <div class="page-header mb-4">
+    <h4>Attendance</h4>
+    <div class="d-flex align-items-center gap-3">
+       <span class="text-muted fw-semi-bold"><?php echo e(\Carbon\Carbon::today()->format('l, F j, Y')); ?></span>
+       <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#tipsModal">
+         <i class="fas fa-lightbulb me-1"></i> Tips
+       </button>
+    </div>
+  </div>
 
   <div id="attendanceAlerts"></div>
 
   <div class="stats-grid" id="attendanceStats">
-    <div class="metric-card sunrise">
+    <div class="metric-card">
       <p>Today's Hours</p>
       <h2 id="todayHours">0</h2>
       <span>Tracked today</span>
-                                </div>
-    <div class="metric-card ocean">
+    </div>
+    <div class="metric-card">
       <p>Month Hours</p>
       <h2 id="monthHours">0</h2>
       <span>Current cycle</span>
-                            </div>
-    <div class="metric-card moss">
+    </div>
+    <div class="metric-card">
       <p>Total Days</p>
       <h2 id="totalDays">0</h2>
       <span>Attendance logged</span>
-                        </div>
-    <div class="metric-card amber">
+    </div>
+    <div class="metric-card">
       <p>Avg Hours / Day</p>
       <h2 id="avgHours">0</h2>
       <span>Consistency</span>
-                                </div>
-                            </div>
+    </div>
+  </div>
 
-  <div id="worklogValidationAlert" class="react-alert" style="display:none;">
-    <div id="worklogValidationMessage" class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
-      <div>
-        <strong class="d-block mb-1">⚠️ Worklog Required</strong>
-        <span id="worklogValidationText"></span>
-                        </div>
-      <a href="<?php echo e(route('worklog')); ?>" class="btn btn-primary btn-sm rounded-pill px-3">
+  <div id="worklogValidationAlert" class="alert alert-warning border-0 shadow-sm rounded-3 mb-4" style="display:none;">
+    <div id="worklogValidationMessage" class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <i class="fas fa-exclamation-triangle fs-4 text-warning"></i>
+        <div>
+          <strong class="d-block">Worklog Required</strong>
+          <span id="worklogValidationText" class="small text-muted"></span>
+        </div>
+      </div>
+      <a href="<?php echo e(route('worklog')); ?>" class="btn btn-warning btn-sm fw-bold">
         <i class="fas fa-clock me-1"></i> Go to Worklog
       </a>
-                        </div>
-                    </div>
-
-  <div class="control-grid mb-4">
-    <div class="control-card office">
-      <div class="control-header">
-        <div>
-          <p class="control-eyebrow">Office</p>
-          <h5 class="mb-0">Office Attendance</h5>
-                                </div>
-        <span id="officeStatus" class="status-pill">Not Started</span>
-                                    </div>
-      <div class="control-actions d-grid gap-2">
-        <button type="button" class="btn btn-success" id="officePunchIn" onclick="punchIn('office')">
-          <i class="fas fa-sign-in-alt me-1"></i> Punch In (Start Cycle)
-                                        </button>
-        <button type="button" class="btn btn-danger d-none" id="officePunchOut" onclick="punchOut('office')">
-          <i class="fas fa-sign-out-alt me-1"></i> Punch Out
-                                        </button>
-                            </div>
-                        </div>
-
-    <div class="control-card field">
-      <div class="control-header">
-        <div>
-          <p class="control-eyebrow">Field</p>
-          <h5 class="mb-0">Field <br> Work</h5>
-                                </div>
-        <span id="fieldStatus" class="status-pill">Not Started</span>
-                                    </div>
-      <div class="control-actions d-grid gap-2">
-        <button type="button" class="btn btn-info text-white" id="fieldPunchIn" onclick="punchIn('field')">
-          <i class="fas fa-map-marker-alt me-1"></i> Start Field Cycle
-                                        </button>
-        <button type="button" class="btn btn-outline-primary d-none" id="fieldPunchOut" onclick="punchOut('field')">
-          <i class="fas fa-home me-1"></i> End Field Work
-                                        </button>
-                            </div>
-                        </div>
-
-    <div class="control-card break">
-      <div class="control-header">
-        <div>
-          <p class="control-eyebrow">Break</p>
-          <h5 class="mb-0">Break Management</h5>
-                                </div>
-        <span id="breakStatus" class="status-pill">Not Started</span>
-                                    </div>
-      <div class="control-actions d-grid gap-2">
-        <button type="button" class="btn btn-warning text-dark" id="breakStart" onclick="startBreak()">
-          <i class="fas fa-coffee me-1"></i> Start Break
-                                        </button>
-        <button type="button" class="btn btn-secondary text-white d-none" id="breakEnd" onclick="endBreak()">
-          <i class="fas fa-play me-1"></i> End Break
-                                        </button>
-                            </div>
-                        </div>
-                    </div>
-
-  <div class="movements-card">
-    <div class="movements-header">
-      <div>
-        <p class="control-eyebrow mb-1">Timeline</p>
-        <h5 class="mb-0">Today's Movements</h5>
-      </div>
-                                    <small class="text-muted">
-        <i class="fas fa-sync-alt me-1"></i> Auto-updates every action
-                                    </small>
-                                </div>
-
-    <div class="cycle-grid" id="workCyclesSummary">
-      <div class="cycle-card">
-                                                    <h6>Office Cycles</h6>
-                                                    <h4 id="officeCycles">0</h4>
-                                                </div>
-      <div class="cycle-card">
-                                                    <h6>Field Cycles</h6>
-                                                    <h4 id="fieldCycles">0</h4>
-                                                </div>
-      <div class="cycle-card">
-                                                    <h6>Break Cycles</h6>
-                                                    <h4 id="breakCycles">0</h4>
-                                        </div>
-                                    </div>
-                                    
-                                    <div id="todayMovements">
-      <p class="text-muted mb-0">No movements recorded yet.</p>
-        </div>
     </div>
+  </div>
+
+  <div class="timeline-card">
+    <div class="timeline-header">
+      <div class="d-flex align-items-center gap-3">
+        <h5>Timeline</h5>
+        <span id="attendanceStatusDot" class="rounded-circle" style="width: 12px; height: 12px; background-color: #cbd5e0; display: inline-block;"></span>
+      </div>
+      
+      <div class="action-buttons">
+          <!-- Office Actions -->
+          <button type="button" class="btn-action btn-punch" id="officePunchIn" onclick="punchIn('office')">
+              Punch In
+          </button>
+          <button type="button" class="btn-action btn-punch d-none" id="officePunchOut" onclick="punchOut('office')">
+              Punch Out
+          </button>
+
+          <!-- Field Actions -->
+          <button type="button" class="btn-action btn-field" id="fieldPunchIn" onclick="punchIn('field')">
+              Field Cycle
+          </button>
+          <button type="button" class="btn-action btn-field d-none" id="fieldPunchOut" onclick="punchOut('field')">
+              End Field Work
+          </button>
+
+          <!-- Break Actions -->
+          <button type="button" class="btn-action btn-break" id="breakStart" onclick="startBreak()">
+              Break
+          </button>
+          <button type="button" class="btn-action btn-break d-none" id="breakEnd" onclick="endBreak()">
+              End Break
+          </button>
+      </div>
+    </div>
+
+    <div id="todayMovements" class="movements-table-container">
+      <p class="text-muted text-center py-5 mb-0">No movements recorded yet.</p>
+    </div>
+  </div>
+</div>
 </div>
 
 <!-- Tips Modal -->
@@ -747,72 +707,70 @@ function setButtonDisabled(button, disabled) {
 function updateStatusDisplay(status) {
     // Check if user is currently on break
     const isOnBreak = status.break && status.break.can_end;
+    const isOfficeActive = status.office && status.office.can_end;
+    const isFieldActive = status.field && status.field.can_end;
     
-    // Office status
-    const officeStatus = document.getElementById('officeStatus');
+    // Update global status dot
+    const statusDot = document.getElementById('attendanceStatusDot');
+    if (statusDot) {
+        if (isOnBreak) statusDot.style.backgroundColor = '#f39c12'; // Orange
+        else if (isOfficeActive) statusDot.style.backgroundColor = '#28a745'; // Green
+        else if (isFieldActive) statusDot.style.backgroundColor = '#c82333'; // Red
+        else statusDot.style.backgroundColor = '#434afa'; // Blue (Ready)
+    }
+
+    // Office buttons
     const officePunchIn = document.getElementById('officePunchIn');
     const officePunchOut = document.getElementById('officePunchOut');
     
     if (isOnBreak) {
-        // If on break, disable office actions and show break message
-        setStatusPill(officeStatus, 'warning', 'On Break - Actions Disabled');
         toggleButton(officePunchIn, false);
         toggleButton(officePunchOut, false);
         setButtonDisabled(officePunchIn, true);
         setButtonDisabled(officePunchOut, true);
-    } else if (status.office && status.office.can_end) {
-        setStatusPill(officeStatus, 'success', 'Punched In');
+    } else if (isOfficeActive) {
         toggleButton(officePunchIn, false);
         toggleButton(officePunchOut, true);
         setButtonDisabled(officePunchIn, false);
         setButtonDisabled(officePunchOut, false);
     } else {
-        setStatusPill(officeStatus, 'primary', 'Ready for New Cycle');
         toggleButton(officePunchIn, true);
         toggleButton(officePunchOut, false);
         setButtonDisabled(officePunchIn, false);
         setButtonDisabled(officePunchOut, false);
     }
 
-    // Field status
-    const fieldStatus = document.getElementById('fieldStatus');
+    // Field buttons
     const fieldPunchIn = document.getElementById('fieldPunchIn');
     const fieldPunchOut = document.getElementById('fieldPunchOut');
     
     if (isOnBreak) {
-        // If on break, disable field actions and show break message
-        setStatusPill(fieldStatus, 'warning', 'On Break - Actions Disabled');
         toggleButton(fieldPunchIn, false);
         toggleButton(fieldPunchOut, false);
         setButtonDisabled(fieldPunchIn, true);
         setButtonDisabled(fieldPunchOut, true);
-    } else if (status.field && status.field.can_end) {
-        setStatusPill(fieldStatus, 'info', 'In Field');
+    } else if (isFieldActive) {
         toggleButton(fieldPunchIn, false);
         toggleButton(fieldPunchOut, true);
         setButtonDisabled(fieldPunchIn, false);
         setButtonDisabled(fieldPunchOut, false);
     } else {
-        setStatusPill(fieldStatus, 'primary', 'Ready for New Cycle');
         toggleButton(fieldPunchIn, true);
         toggleButton(fieldPunchOut, false);
         setButtonDisabled(fieldPunchIn, false);
         setButtonDisabled(fieldPunchOut, false);
     }
 
-    // Break status
-    const breakStatus = document.getElementById('breakStatus');
+    // Break buttons
     const breakStart = document.getElementById('breakStart');
     const breakEnd = document.getElementById('breakEnd');
     
-    if (status.break && status.break.can_end) {
-        setStatusPill(breakStatus, 'warning', 'On Break');
+    if (isOnBreak) {
         toggleButton(breakStart, false);
         toggleButton(breakEnd, true);
         setButtonDisabled(breakStart, false);
         setButtonDisabled(breakEnd, false);
     } else {
-        setStatusPill(breakStatus, 'primary', 'Ready for New Cycle');
         toggleButton(breakStart, true);
         toggleButton(breakEnd, false);
         setButtonDisabled(breakStart, false);
@@ -824,13 +782,22 @@ function updateMovementsDisplay(movements) {
     const container = document.getElementById('todayMovements');
     
     if (!movements || Object.keys(movements).length === 0) {
-        container.innerHTML = '<p class="text-muted">No movements recorded yet.</p>';
-        updateWorkCyclesSummary({});
+        container.innerHTML = '<p class="text-muted text-center py-5 mb-0">No movements recorded yet.</p>';
         return;
     }
 
-    let html = '<div class="table-responsive"><table class="table table-striped">';
-    html += '<thead><tr><th>Time</th><th>Type</th><th>Action</th><th>Cycle</th></tr></thead><tbody>';
+    let html = `
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%">TIME</th>
+                        <th style="width: 25%">TYPE</th>
+                        <th style="width: 25%">ACTION</th>
+                        <th style="width: 25%">CYCLE</th>
+                    </tr>
+                </thead>
+                <tbody>`;
     
     let allMovements = [];
     Object.values(movements).forEach(typeMovements => {
@@ -842,30 +809,27 @@ function updateMovementsDisplay(movements) {
     // Sort by time
     allMovements.sort((a, b) => new Date(a.time) - new Date(b.time));
     
-    // Calculate cycles for each type
-    const cycles = calculateWorkCycles(movements);
-    updateWorkCyclesSummary(cycles);
-    
     allMovements.forEach(movement => {
-        const time = new Date(movement.time).toLocaleTimeString();
-        const type = movement.movement_type.charAt(0).toUpperCase() + movement.movement_type.slice(1);
+        const time = new Date(movement.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const type = movement.movement_type.toUpperCase();
         const action = movement.movement_action.charAt(0).toUpperCase() + movement.movement_action.slice(1);
         
         // Check if this is an automatic transition
         const isAutoTransition = movement.description && movement.description.includes('Auto-ended');
-        const actionBadge = isAutoTransition 
-            ? `<span class="badge bg-secondary">${action} <i class="fas fa-magic ms-1"></i></span>`
-            : `<span class="badge bg-${getActionColor(movement.movement_action)}">${action}</span>`;
+        const actionText = isAutoTransition 
+            ? `${action} (Auto)`
+            : action;
         
         // Calculate cycle number for this movement
         const cycleNumber = getCycleNumber(movements, movement);
         
-        html += `<tr>
-            <td>${time}</td>
-            <td><span class="badge bg-primary">${type}</span></td>
-            <td>${actionBadge}</td>
-            <td><span class="badge bg-info">Cycle ${cycleNumber}</span></td>
-        </tr>`;
+        html += `
+                <tr>
+                    <td>${time}</td>
+                    <td><span class="badge-type">${type}</span></td>
+                    <td><span class="badge-action text-${getActionColor(movement.movement_action)}">${actionText}</span></td>
+                    <td><span class="badge-cycle">${cycleNumber}</span></td>
+                </tr>`;
     });
     
     html += '</tbody></table></div>';
@@ -1123,25 +1087,6 @@ function disableAttendanceButtons(disable) {
         const button = document.getElementById(buttonId);
         if (button) {
             button.disabled = disable;
-            if (disable) {
-                button.classList.add('btn-secondary');
-                button.classList.remove('btn-success', 'btn-danger', 'btn-warning', 'btn-info');
-            } else {
-                // Restore original button classes based on their purpose
-                if (buttonId.includes('PunchIn')) {
-                    button.classList.remove('btn-secondary');
-                    button.classList.add('btn-success');
-                } else if (buttonId.includes('PunchOut')) {
-                    button.classList.remove('btn-secondary');
-                    button.classList.add('btn-info');
-                } else if (buttonId === 'breakStart') {
-                    button.classList.remove('btn-secondary');
-                    button.classList.add('btn-warning');
-                } else if (buttonId === 'breakEnd') {
-                    button.classList.remove('btn-secondary');
-                    button.classList.add('btn-info');
-                }
-            }
         }
     });
 }
