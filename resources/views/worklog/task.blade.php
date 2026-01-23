@@ -491,6 +491,16 @@
       margin-left: 0;
     }
 
+    .form-compact .form-label { font-size: 12px; margin-bottom: 0.2rem; }
+    .form-compact .form-select { padding: 0.35rem 0.5rem; font-size: 0.875rem; width: 90px; }
+    .modal-header{
+      flex-direction: column;
+    }
+
+    .subheader{
+      margin-top: 0.5rem;
+    }
+
     .summary-cards {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -589,6 +599,9 @@
     gap: 10px !important;
 }
 
+.file-upload-box{
+    padding: 3px !important;
+}
 .btn-close{
     margin-top: 2px !important;
 }
@@ -757,7 +770,7 @@
         <div class="modal-content">
             <div class="modal-header"> 
                  <h5 class="modal-title" id="createTaskModalLabel">Create New Task</h5>
-                <div>
+                <div class="modal-subheader">
                     <div class="subHeader">
                         <div class="mb-2">
                             <label class="form-label" id="label_task_type">
@@ -890,13 +903,13 @@
 
                     <div class = "row">
                         <!-- Task Description -->
-                        <div class="mb-3 col-8">
+                        <div class="mb-3 col-8 col-sm-6">
                             <label for="task" class="form-label" id="label_task_desc">Description</label>
                             <textarea name="task" id="task" class="form-control form-control-sm" rows="4" required placeholder="Enter..."></textarea>
                             
                             <div class="row mt-3">
                                 <!-- Task Status Select -->
-                                <div class="mb-3 col-4">
+                                <div class="mb-3 me-3 col-4">
                                     <label for="task_status_id" class="form-label" id="label_task_status">Status</label>
                                     <select name="task_status_id" id="task_status_id" class="form-select form-select-sm" required>
                                         <option value="">Select Status</option>
@@ -913,7 +926,7 @@
                             </div>
                         </div>
                             <!-- Image Upload with Add More -->
-                        <div class="mb-3 col-4">
+                        <div class="mb-3 col-4 col-sm-6">
                             <div class="file-upload-box text-center p-4">
 
                                 <!-- Upload Icon -->

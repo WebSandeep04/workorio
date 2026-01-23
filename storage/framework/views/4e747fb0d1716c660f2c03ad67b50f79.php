@@ -3,29 +3,150 @@
 <?php $__env->startSection('title', 'Worklog Approvals'); ?>
 <?php $__env->startSection('page_title', 'Worklog Approvals'); ?>
 
+<?php $__env->startPush('styles'); ?>
+<style>
+  .container-fluid {
+    padding: 0.5rem;
+  }
+
+  .data-table-card {
+    border-radius: 5px;
+    border: 1px solid #f2f4f7;
+    background: #fff;
+    box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .data-table-card .custom-table thead th {
+    background: #fff;
+    color: #000;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #f1f3f5;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    white-space: nowrap;
+    font-family: Montserrat;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+  }
+
+  .data-table-card .custom-table tbody td {
+    font-size: 0.85rem;
+    padding: 0.65rem 0.75rem;
+    color: #000;
+    border-bottom: 1px solid #f4f4f6;
+    text-align: left;
+    background: transparent;
+    white-space: nowrap;
+    font-family: Montserrat;
+  }
+
+  .card-header-modern {
+    background-color: #434afa !important;
+    color: white;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .group-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .badge-stat {
+    background: white;
+    color: #434afa;
+    padding: 0.4rem 0.7rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  @media (max-width: 768px) {
+    .card-header-modern {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .table-responsive {
+      border: 0;
+    }
+
+    .group-actions {
+      flex-direction: column;
+      width: 100%;
+      gap: 0.5rem;
+    }
+
+    .group-actions button {
+      width: 100%;
+      margin: 0 !important;
+    }
+  }
+
+  .modal-backdrop.show {
+    background-color: rgba(15, 23, 42, 0.55);
+  }
+
+  .modal-content {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  }
+
+  .modal-header {
+    border-bottom: 1px solid #f1f3f5;
+  }
+
+  .modal-footer {
+    border-top: 1px solid #f1f3f5;
+  }
+
+  /* Custom Alert Styles */
+  .custom-alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .custom-alert-success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+  .custom-alert-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+  .custom-alert-close { background: transparent; border: none; font-size: 1.25rem; font-weight: bold; cursor: pointer; color: inherit; }
+</style>
+<?php $__env->stopPush(); ?>
+
 <?php $__env->startSection('content'); ?>
-<div class="container mt-4">
+<div class="container-fluid px-2">
     <div id="alertBox"></div>
     
     <div class="row">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-header text-white" style="background-color: #434afa; padding: 0.75rem 1rem;">
-                    <h5 class="mb-0">Pending Worklog Approvals</h5>
+            <div id="groupedApprovals">
+                <!-- Grouped approvals will be loaded via jQuery -->
+            </div>
+            
+            <!-- No Data Message -->
+            <div id="noDataMessage" class="text-center py-5" style="display: none;">
+                <div class="mb-3">
+                    <i class="bi bi-check-circle text-muted" style="font-size: 3rem;"></i>
                 </div>
-                <div class="card-body">
-                    <div id="groupedApprovals">
-                        <!-- Grouped approvals will be loaded via jQuery -->
-                    </div>
-                </div>
-                    
-                    <!-- No Data Message -->
-                    <div id="noDataMessage" class="text-center py-4" style="display: none;">
-                        <i class="bi bi-check-circle fs-1 text-muted"></i>
-                        <h5 class="text-muted mt-3">No pending approvals</h5>
-                        <p class="text-muted">All worklog entries have been reviewed.</p>
-                    </div>
-                </div>
+                <h5 class="text-muted">No pending approvals</h5>
+                <p class="text-muted small">All worklog entries have been reviewed.</p>
             </div>
         </div>
     </div>
@@ -68,72 +189,74 @@ function loadPendingApprovals() {
                 const timeDisplay = `${totalHours}h ${totalMinutes}m`;
                 
                 html += `
-                <div class="card mb-3" style="border: 1px solid #e0e0e0; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-                    <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: #434afa; padding: 0.75rem 1rem;">
-                        <h6 class="mb-0">
+                <div class="data-table-card mb-4 shadow-sm">
+                    <div class="card-header-modern">
+                        <h6 class="group-title">
                             <i class="bi bi-person-circle me-2"></i>
-                            ${group.user_name} - ${group.work_date.split('T')[0]}
+                            <span class="fw-bold">${group.user_name}</span> 
+                            <span class="mx-1 text-white-50">|</span> 
+                            <span class="small">${group.work_date.split('T')[0]}</span>
                         </h6>
-                        <div>
-                            <span class="badge bg-white text-dark me-2 shadow-sm" style="padding: 0.5rem 0.8rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem;">${group.entries.length} entries</span>
-                            <span class="badge bg-white text-dark shadow-sm" style="padding: 0.5rem 0.8rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem;">Total: ${timeDisplay}</span>
+                        <div class="d-flex gap-2">
+                            <span class="badge-stat">${group.entries.length} Entries</span>
+                            <span class="badge-stat">Total: ${timeDisplay}</span>
                         </div>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th scope="col">Entry Type</th>
-                                        <th scope="col">Customer</th>
-                                        <th scope="col">Project</th>
-                                        <th scope="col">Module</th>
-                                        <th scope="col">Time</th>
-                                        <th scope="col">Description</th>
-                                        <th scope="col">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>`;
+                    <div class="table-responsive">
+                        <table class="table custom-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Entry Type</th>
+                                    <th>Customer</th>
+                                    <th>Project</th>
+                                    <th>Module</th>
+                                    <th>Time</th>
+                                    <th>Description</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
                 
                 $.each(group.entries, function (j, worklog) {
-                    const timeDisplay = `${worklog.hours}h ${worklog.minutes}m`;
+                    const entryTime = `${worklog.hours}h ${worklog.minutes}m`;
                     
                     html += `<tr>
-                        <td>${worklog.entry_type ? worklog.entry_type.name : 'N/A'}</td>
+                        <td><strong>${worklog.entry_type ? worklog.entry_type.name : 'N/A'}</strong></td>
                         <td>${worklog.customer ? worklog.customer.name : 'N/A'}</td>
                         <td>${worklog.project ? worklog.project.name : 'N/A'}</td>
                         <td>${worklog.module ? worklog.module.name : 'N/A'}</td>
-                        <td>${timeDisplay}</td>
+                        <td><span class="badge bg-light text-dark">${entryTime}</span></td>
                         <td>
-                            <div class="text-start">
-                                <small>${worklog.description}</small>
+                            <div class="text-wrap" style="max-width: 250px; font-size: 0.8rem; line-height: 1.4; white-space: normal;">
+                                ${worklog.description}
                             </div>
                         </td>
-                        <td>
-                            <button class="btn btn-sm text-white approveBtn" data-id="${worklog.id}" title="Approve" style="background-color: #434afa; border:none; border-radius: 4px; padding: 0.25rem 0.5rem;">
-                                <i class="bi bi-check-circle"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger rejectBtn" data-id="${worklog.id}" title="Reject" style="border:none; border-radius: 4px; padding: 0.25rem 0.5rem;">
-                                <i class="bi bi-x-circle"></i>
-                            </button>
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center">
+                                <button class="btn btn-sm text-white approveBtn" data-id="${worklog.id}" title="Approve" style="background-color: #434afa; border:none; border-radius: 4px; padding: 0.35rem 0.6rem;">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger rejectBtn" data-id="${worklog.id}" title="Reject" style="border:none; border-radius: 4px; padding: 0.35rem 0.6rem;">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>`;
                 });
                 
                 html += `
-                                </tbody>
-                            </table>
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="card-footer bg-light">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">Group Actions:</small>
-                            <div>
-                                <button class="btn btn-sm text-white approveGroupBtn" data-user="${group.user_name}" data-date="${group.work_date}" title="Approve All" style="background-color: #434afa; border:none; border-radius: 4px; padding: 0.4rem 1rem; margin-right: 0.5rem;">
-                                    <i class="bi bi-check-circle"></i> Approve All
+                    <div class="bg-light p-3 border-top">
+                        <div class="d-flex justify-content-between align-items-center group-actions">
+                            <span class="text-muted small fw-bold text-uppercase" style="letter-spacing: 0.5px;">Bulk Actions for this Date:</span>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm text-white approveGroupBtn" data-user="${group.user_name}" data-date="${group.work_date}" title="Approve All" style="background-color: #434afa; border:none; border-radius: 4px; padding: 0.5rem 1.25rem;">
+                                    <i class="bi bi-check-all me-1"></i> Approve All
                                 </button>
-                                <button class="btn btn-sm btn-danger rejectGroupBtn" data-user="${group.user_name}" data-date="${group.work_date}" title="Reject All" style="border:none; border-radius: 4px; padding: 0.4rem 1rem;">
-                                    <i class="bi bi-x-circle"></i> Reject All
+                                <button class="btn btn-sm btn-danger rejectGroupBtn" data-user="${group.user_name}" data-date="${group.work_date}" title="Reject All" style="border:none; border-radius: 4px; padding: 0.5rem 1.25rem;">
+                                    <i class="bi bi-x-circle me-1"></i> Reject All
                                 </button>
                             </div>
                         </div>
@@ -231,7 +354,7 @@ $(document).on('submit', '#rejectionForm', function(e) {
 <div class="modal fade" id="approvalModal" tabindex="-1">
   <div class="modal-dialog">
     <form id="approvalForm" class="modal-content">
-      <div class="modal-header text-white" style="background-color: #434afa;">
+      <div class="modal-header text-white" style="background-color: #434afa; border-radius: 8px 8px 0 0;">
         <h5 class="modal-title">Approve Worklog</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -256,7 +379,7 @@ $(document).on('submit', '#rejectionForm', function(e) {
         </div>
       </div>
       <div class="modal-footer border-0">
-        <button type="submit" class="btn text-white" style="background-color: #434afa; border:none; border-radius: 0; padding: 0.5rem 1.5rem;">Approve</button>
+        <button type="submit" class="btn text-white" style="background-color: #434afa; border:none; border-radius: 4px; padding: 0.5rem 1.5rem; box-shadow: 0 4px 12px rgba(67, 74, 250, 0.2);">Approve</button>
       </div>
     </form>
   </div>
@@ -266,7 +389,7 @@ $(document).on('submit', '#rejectionForm', function(e) {
 <div class="modal fade" id="rejectionModal" tabindex="-1">
   <div class="modal-dialog">
     <form id="rejectionForm" class="modal-content">
-      <div class="modal-header text-white" style="background-color: #434afa;">
+      <div class="modal-header text-white" style="background-color: #434afa; border-radius: 8px 8px 0 0;">
         <h5 class="modal-title">Reject Worklog</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -277,12 +400,12 @@ $(document).on('submit', '#rejectionForm', function(e) {
         <input type="hidden" name="work_date">
         <input type="hidden" name="is_group" value="0">
         <div class="mb-3">
-          <label class="form-label">Reason *</label>
-          <textarea class="form-control" name="remark" rows="3" required></textarea>
+          <label class="form-label fw-bold small text-uppercase">Reason for Rejection *</label>
+          <textarea class="form-control" name="remark" rows="3" required placeholder="Describe why this worklog is being rejected..."></textarea>
         </div>
       </div>
       <div class="modal-footer border-0">
-        <button type="submit" class="btn text-white" style="background-color: #434afa; border:none; border-radius: 0; padding: 0.5rem 1.5rem;">Reject</button>
+        <button type="submit" class="btn btn-danger" style="border:none; border-radius: 4px; padding: 0.5rem 1.5rem; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);">Reject</button>
       </div>
     </form>
   </div>
