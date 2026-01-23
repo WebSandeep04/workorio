@@ -416,18 +416,27 @@
     }
 
     .pagination .page-link {
-        color: #667eea;
-        border: 2px solid #e4e8ff;
-        border-radius: 10px;
-        font-size: 0.8rem;
-        padding: 0.3rem 0.6rem;
-        margin: 0 0.2rem;
+        color: #434afa;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        margin: 0 2px;
+        font-size: 10px;
+        transition: all 0.3s ease;
+        font-weight: 500;
     }
 
     .pagination .page-item.active .page-link {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #434afa;
+        border-color: #434afa;
         color: white;
-        border-color: transparent;
+        box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+    }
+
+    .pagination .page-link:hover {
+        background: rgba(67, 74, 250, 0.15);
+        border-color: #434afa;
+        transform: translateY(-1px);
     }
     .data-table-card {
         border-radius: 5px;

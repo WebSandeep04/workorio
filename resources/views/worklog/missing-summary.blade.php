@@ -132,11 +132,17 @@
   
   /* Pagination */
   .pagination .page-link {
-    color: #667eea; border: 2px solid #e0e0e0; border-radius: 6px;
+    color: #434afa; border: 2px solid #e0e0e0; border-radius: 6px;
     padding: 0.25rem 0.5rem; margin: 0 2px; font-size: 10px; font-weight: 500; cursor: pointer;
+    transition: all 0.3s ease;
   }
   .pagination .page-item.active .page-link {
     background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+  }
+  .pagination .page-link:hover {
+    background: rgba(67, 74, 250, 0.15);
+    border-color: #434afa;
+    transform: translateY(-1px);
   }
   
   .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; }

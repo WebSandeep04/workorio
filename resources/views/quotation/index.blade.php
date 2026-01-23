@@ -288,30 +288,33 @@
     }
 
     .page-btn {
-        width: 36px;
+        min-width: 36px;
         height: 36px;
-        border: 1px solid #e0e0e0;
+        border: 2px solid #e0e0e0;
         background: white;
         border-radius: 6px;
         cursor: pointer;
-        transition: all 0.2s ease;
-        font-size: 0.9rem;
-        color: #666;
+        transition: all 0.3s ease;
+        font-size: 10px;
+        color: #434afa;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-weight: 500;
+        padding: 0 0.5rem;
     }
 
     .page-btn:hover {
-        background: #f5f5f5;
-        border-color: #ccc;
+        background: rgba(67, 74, 250, 0.15);
+        border-color: #434afa;
+        transform: translateY(-1px);
     }
 
     .page-btn.active {
-        background: #3b82f6;
+        background: #434afa;
         color: white;
-        border-color: #3b82f6;
-        font-weight: 600;
+        border-color: #434afa;
+        box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
     }
 
     /* Modal Styling */

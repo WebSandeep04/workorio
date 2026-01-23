@@ -195,16 +195,24 @@
   }
 
   .pagination .page-link {
-    color: #667eea;
+    color: #434afa;
     border: 1px solid #e0e0e0;
     margin: 0 2px;
     font-size: 12px;
+    transition: all 0.3s ease;
   }
   
   .pagination .page-item.active .page-link {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-color: #667eea;
+      background: #434afa;
+      border-color: #434afa;
       color: white;
+      box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+  }
+
+  .pagination .page-link:hover {
+    background: rgba(67, 74, 250, 0.15);
+    border-color: #434afa;
+    transform: translateY(-1px);
   }
 
   /* Modal Styles */
