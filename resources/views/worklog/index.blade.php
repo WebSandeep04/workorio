@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Worklog')
-@section('page_title', 'Worklog')
+@section('title', 'Timesheet')
+@section('page_title', 'Timesheet')
 
 @section('content')
 @push('styles')
@@ -88,7 +88,7 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0" style="margin-top: 9px;">Worklog</h5>
+                    <h5 class="mb-0" style="margin-top: 9px;">Timesheet</h5>
                 </div>
                 <div class="card-body">
                     <form id="worklogForm">

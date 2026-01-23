@@ -2,6 +2,14 @@
 
 @section('title', 'All Data - Today\'s Follow Ups')
 @section('page_title', 'All Data - Today\'s Follow Ups')
+@push('styles')
+<style>
+.data-table-card .custom-table thead th {  
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
+</style>
+@endpush
 
 @section('content')
 <div class="container-fluid px-2">

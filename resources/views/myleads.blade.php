@@ -697,6 +697,21 @@
       box-shadow: 0 4px 12px rgba(67, 74, 250, 0.2);
       color: white;
   }
+
+  .blur-active {
+    filter: blur(2px);
+    transition: filter 0.3s ease;
+    pointer-events: none;
+  }
+
+  #addProspectusModal .modal-content {
+    filter: none !important;
+    pointer-events: auto;
+  }
+
+  .modal-backdrop.show {
+    background-color: rgba(15, 23, 42, 0.55);
+  }
 </style>
 @endpush
 
@@ -905,7 +920,7 @@
 <!-- Add Lead Modal -->
 <div class="modal fade" id="addLeadModal" tabindex="-1" aria-labelledby="addLeadModalLabel" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-content blur-target">
       <div class="modal-header">
         <h5 class="modal-title" id="addLeadModalLabel" style="font-size: 1rem;">
             <i class="bi bi-person-plus-fill text-white me-2"></i>Add New Lead
@@ -1983,8 +1998,18 @@ function submitProspect(e) {
     });
 }
 function openProspectusModal() {
+   $('#addLeadModal .blur-target').addClass('blur-active');
     $('#addProspectusModal').modal('show');
+
 }
+
+$(document).ready(function () {
+
+    $('#addProspectusModal').on('hidden.bs.modal', function () {
+        $('#addLeadModal .blur-target').removeClass('blur-active');
+    });
+
+});
 
 function showAlert(type, message) {
     const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';

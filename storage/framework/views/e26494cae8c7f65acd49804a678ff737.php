@@ -2,6 +2,14 @@
 
 <?php $__env->startSection('title', 'Assigned Leads'); ?>
 <?php $__env->startSection('page_title', 'Assigned Leads'); ?>
+<?php $__env->startPush('styles'); ?>
+<style>
+.data-table-card .custom-table thead th {  
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
+</style>
+<?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
@@ -128,9 +136,9 @@
             <i class="bi bi-search"></i>
             <input type="text" id="search" placeholder="Search leads, contacts, emails..." />
         </div>
-        <a href="<?php echo e(route('lead')); ?>" class="table-search-btn" id="addBtn">
+        <!-- <a href="<?php echo e(route('lead')); ?>" class="table-search-btn" id="addBtn">
             <i class="bi bi-plus me-1"></i>Add
-        </a>
+        </a> -->
     </div>
 
     <div class="modern-card data-table-card">

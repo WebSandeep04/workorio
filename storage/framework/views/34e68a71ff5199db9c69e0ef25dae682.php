@@ -526,7 +526,7 @@
   }
 
   .pagination .page-link {
-    color: #667eea;
+    color: #434afa;
     border: 2px solid #e0e0e0;
     border-radius: 6px;
     padding: 0.25rem 0.5rem;
@@ -537,15 +537,15 @@
   }
 
   .pagination .page-item.active .page-link {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: #667eea;
+    background: #434afa;
+    border-color: #434afa;
     color: white;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
   }
 
   .pagination .page-link:hover {
-    background: rgba(102, 126, 234, 0.15);
-    border-color: #667eea;
+    background: rgba(67, 74, 250, 0.15);
+    border-color: #434afa;
     transform: translateY(-1px);
   }
 
@@ -696,6 +696,21 @@
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(67, 74, 250, 0.2);
       color: white;
+  }
+
+  .blur-active {
+    filter: blur(2px);
+    transition: filter 0.3s ease;
+    pointer-events: none;
+  }
+
+  #addProspectusModal .modal-content {
+    filter: none !important;
+    pointer-events: auto;
+  }
+
+  .modal-backdrop.show {
+    background-color: rgba(15, 23, 42, 0.55);
   }
 </style>
 <?php $__env->stopPush(); ?>
@@ -905,7 +920,7 @@
 <!-- Add Lead Modal -->
 <div class="modal fade" id="addLeadModal" tabindex="-1" aria-labelledby="addLeadModalLabel" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
+    <div class="modal-content blur-target">
       <div class="modal-header">
         <h5 class="modal-title" id="addLeadModalLabel" style="font-size: 1rem;">
             <i class="bi bi-person-plus-fill text-white me-2"></i>Add New Lead
@@ -1983,8 +1998,18 @@ function submitProspect(e) {
     });
 }
 function openProspectusModal() {
+   $('#addLeadModal .blur-target').addClass('blur-active');
     $('#addProspectusModal').modal('show');
+
 }
+
+$(document).ready(function () {
+
+    $('#addProspectusModal').on('hidden.bs.modal', function () {
+        $('#addLeadModal .blur-target').removeClass('blur-active');
+    });
+
+});
 
 function showAlert(type, message) {
     const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';

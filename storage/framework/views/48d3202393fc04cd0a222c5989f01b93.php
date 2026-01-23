@@ -502,9 +502,9 @@
         <i class="bi bi-search"></i>
         <input type="text" id="search" placeholder="Search tasks..." />
       </div>
-      <button type="button" class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+      <!-- <button type="button" class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createTaskModal">
         <i class="bi bi-plus me-1"></i>Add
-      </button>
+      </button> -->
     </div>
 
     <!-- Main Content -->

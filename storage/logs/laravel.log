@@ -895,3 +895,11 @@
 [2026-01-23 05:08:19] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-01-23 05:08:19] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
 [2026-01-23 05:08:19] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-23 05:23:51] local.INFO: getRemarks called with ID: 5363  
+[2026-01-23 05:23:51] local.INFO: Sales record found: 5363  
+[2026-01-23 05:23:51] local.INFO: Remarks count: 1  
+[2026-01-23 05:23:51] local.INFO: Returning response successfully  
+[2026-01-23 05:59:40] local.INFO: getRemarks called with ID: 5363  
+[2026-01-23 05:59:40] local.INFO: Sales record found: 5363  
+[2026-01-23 05:59:40] local.INFO: Remarks count: 1  
+[2026-01-23 05:59:40] local.INFO: Returning response successfully  

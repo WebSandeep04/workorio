@@ -2,6 +2,14 @@
 
 @section('title', 'Assigned Leads')
 @section('page_title', 'Assigned Leads')
+@push('styles')
+<style>
+.data-table-card .custom-table thead th {  
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
+</style>
+@endpush
 
 @section('content')
 <div class="container-fluid px-2">
@@ -128,9 +136,9 @@
             <i class="bi bi-search"></i>
             <input type="text" id="search" placeholder="Search leads, contacts, emails..." />
         </div>
-        <a href="{{ route('lead') }}" class="table-search-btn" id="addBtn">
+        <!-- <a href="{{ route('lead') }}" class="table-search-btn" id="addBtn">
             <i class="bi bi-plus me-1"></i>Add
-        </a>
+        </a> -->
     </div>
 
     <div class="modern-card data-table-card">

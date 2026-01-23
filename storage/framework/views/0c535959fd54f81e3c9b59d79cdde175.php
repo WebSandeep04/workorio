@@ -3,6 +3,11 @@
 
 <?php $__env->startPush('styles'); ?>
 <style>
+
+  .data-table-card .custom-table thead th {  
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
   .container-fluid {
     padding: 0.5rem;
     padding-right: 0.5rem;
@@ -169,7 +174,7 @@
 
   /* Pagination */
   .pagination .page-link {
-    color: #667eea;
+    color: #434afa;
     border: 2px solid #e0e0e0;
     border-radius: 6px;
     padding: 0.25rem 0.5rem;
@@ -179,14 +184,14 @@
     font-weight: 500;
   }
   .pagination .page-item.active .page-link {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: #667eea;
+    background: #434afa;
+    border-color: #434afa;
     color: white;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
   }
   .pagination .page-link:hover {
-    background: rgba(102, 126, 234, 0.15);
-    border-color: #667eea;
+    background: rgba(67, 74, 250, 0.15);
+    border-color: #434afa;
     transform: translateY(-1px);
   }
   .table-range-meta {
@@ -774,7 +779,7 @@
 <div class="modal fade" id="viewSubscriptionModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header" style="border-radius:0;background-color:#434afa; color:white;">
         <h5 class="modal-title">Subscription Details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -810,9 +815,6 @@
                 <div id="view_recurrence"></div>
            </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>

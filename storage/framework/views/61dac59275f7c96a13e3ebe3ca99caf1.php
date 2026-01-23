@@ -338,14 +338,14 @@
   }
 
   .pagination .page-item.active .page-link {
-    background: linear-gradient(135deg, #434afa 0%, #764ba2 100%);
+    background: #434afa;
     border-color: #434afa;
     color: white;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
   }
 
   .pagination .page-link:hover {
-    background: rgba(102, 126, 234, 0.15);
+    background: rgba(67, 74, 250, 0.15);
     border-color: #434afa;
     transform: translateY(-1px);
   }

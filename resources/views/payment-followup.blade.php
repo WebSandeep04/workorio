@@ -480,7 +480,8 @@
       grid-template-columns: repeat(2, 1fr);
     }
     .table-search {
-      flex-direction: column;
+      flex-direction: row;
+
     }
   }
 </style>

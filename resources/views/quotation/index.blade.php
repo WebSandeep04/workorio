@@ -127,7 +127,7 @@
     }
 
     .btn-add-modern {
-        background: #3b82f6;
+        background: #434afa;
         border: none;
         color: white;
         padding: 0.5rem 1.25rem;
@@ -141,7 +141,7 @@
     }
 
     .btn-add-modern:hover {
-        background: #2563eb;
+        background: #434afa;
         color: white;
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);

@@ -5,6 +5,10 @@
 
 <?php $__env->startPush('styles'); ?>
 <style>
+  .data-table-card .custom-table thead th {  
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
   .container-fluid {
     padding: 0.5rem;
   }
@@ -345,12 +349,13 @@
   .status-junk { background: #000; }
 
   .pagination .page-link {
-    color: #667eea;
+    color: #434afa;
     border: 2px solid #e0e0e0;
     border-radius: 6px;
     padding: 0.25rem 0.5rem;
     margin: 0 2px;
     font-size: 10px;
+    transition: all 0.3s ease;
     font-weight: 500;
   }
 
@@ -359,6 +364,12 @@
     border-color: #434afa;
     color: white;
     box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+  }
+
+  .pagination .page-link:hover {
+    background: rgba(67, 74, 250, 0.15);
+    border-color: #434afa;
+    transform: translateY(-1px);
   }
 
   #bulk_actions {

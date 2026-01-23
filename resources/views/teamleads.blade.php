@@ -3,6 +3,15 @@
 @section('title', 'Team Leads')
 @section('page_title', 'Team Leads')
 
+@push('styles')
+<style>
+.data-table-card .custom-table thead th {  
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
+</style>
+@endpush
+
 @section('content')
 <div class="container-fluid px-2">
   <div class="summary-cards">
@@ -552,7 +561,7 @@
 
      @media (max-width: 767px){
     .container-fluid{
-      margin-left: 20px;
+      /* margin-left: 20px; */
     }
 }
 </style>

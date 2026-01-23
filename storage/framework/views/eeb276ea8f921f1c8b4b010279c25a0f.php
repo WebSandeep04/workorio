@@ -1,7 +1,7 @@
 
 
-<?php $__env->startSection('title', 'Worklog'); ?>
-<?php $__env->startSection('page_title', 'Worklog'); ?>
+<?php $__env->startSection('title', 'Timesheet'); ?>
+<?php $__env->startSection('page_title', 'Timesheet'); ?>
 
 <?php $__env->startSection('content'); ?>
 <?php $__env->startPush('styles'); ?>
@@ -88,7 +88,7 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0" style="margin-top: 9px;">Worklog</h5>
+                    <h5 class="mb-0" style="margin-top: 9px;">Timesheet</h5>
                 </div>
                 <div class="card-body">
                     <form id="worklogForm">

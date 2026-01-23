@@ -5,6 +5,11 @@
 
 @push('styles')
 <style>
+
+  .data-table-card .custom-table thead th {  
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
   .container-fluid {
     padding: 0.5rem;
     padding-right: 0.5rem;
@@ -776,7 +781,7 @@
 <div class="modal fade" id="viewSubscriptionModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header" style="border-radius:0;background-color:#434afa; color:white;">
         <h5 class="modal-title">Subscription Details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -812,9 +817,6 @@
                 <div id="view_recurrence"></div>
            </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
