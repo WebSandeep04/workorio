@@ -183,6 +183,7 @@
     transition: all 0.3s ease;
     font-size: 10px;
     font-family: Montserrat, sans-serif;
+    width: 100%;
   }
 
   .filterBox .form-control-modern option {
@@ -464,11 +465,36 @@
     background:#e7f1ff; color:#0d6efd; border:1px solid #cfe2ff;
   }
 
+  .edit-modal-header {
+    background-color: #434afa !important;
+    color: white !important;
+  }
+
+  .edit-modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+  }
+
+  .btn-update-task {
+    background-color: #434afa !important;
+    border-color: #434afa !important;
+    color: white !important;
+  }
+
   @media (max-width: 767px){
     .container-fluid{
       padding-left: 0.5rem;
       padding-right: 0.5rem;
       margin-left: 0;
+    }
+
+    .filterBox {
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .filterBox .mb-2 {
+      margin-bottom: 0 !important;
     }
 
     .summary-cards {
@@ -492,6 +518,15 @@
     
     .table-search-btn {
       width: auto;
+    }
+
+    .modal-footer {
+      justify-content: center !important;
+      padding: 1rem;
+    }
+    .modal-footer .btn {
+      width: 100% !important;
+      margin: 0 !important;
     }
   }
 </style>
@@ -726,7 +761,7 @@
 <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header edit-modal-header">
         <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -802,8 +837,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-sm btn-primary">Update Task</button>
+          <button type="submit" class="btn btn-sm btn-update-task">Update Task</button>
         </div>
       </form>
     </div>

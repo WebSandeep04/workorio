@@ -161,6 +161,7 @@
     transition: all 0.3s ease;
     font-size: 10px;
     font-family: Montserrat, sans-serif;
+    width: 100%;
   }
 
   .filterBox .form-control-modern option {
@@ -485,6 +486,20 @@
         font-weight: 700;
     }
   @media (max-width: 767px){
+    .form-select-customer {
+      width: 100% !important;
+    }
+
+    .filterBox {
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .filterBox .mb-2 {
+      margin-bottom: 0 !important;
+    }
+
     .container-fluid{
       padding-left: 0.5rem;
       padding-right: 0.5rem;
@@ -492,13 +507,48 @@
     }
 
     .form-compact .form-label { font-size: 12px; margin-bottom: 0.2rem; }
-    .form-compact .form-select { padding: 0.35rem 0.5rem; font-size: 0.875rem; width: 90px; }
+    .form-compact .form-select { padding: 0.35rem 0.5rem; font-size: 0.875rem; width: 100%; }
+    
     .modal-header{
-      flex-direction: column;
+      flex-direction: row !important;
+      flex-wrap: wrap;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 10px;
+      padding: 1rem;
     }
 
-    .subheader{
-      margin-top: 0.5rem;
+    .modal-subheader, .subHeader {
+      width: auto !important;
+      margin-top: 0;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px;
+    }
+
+    .modal-footer-custom {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .modal-footer-custom .btn {
+      width: 100% !important;
+      margin: 0 !important;
+    }
+
+    .task-type-wrapper {
+      width: 100%;
+      display: flex;
+    }
+
+    .task-type-option {
+      flex: 1;
+      justify-content: center;
+      padding: 6px 4px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
     }
 
     .summary-cards {
@@ -555,7 +605,7 @@
 
 .task-type-wrapper {
   display: inline-flex;
-  align-items: right;
+  align-items: center;
   border: 1px solid #434AFA;
   border-radius: 3px;
   overflow: hidden;
@@ -572,7 +622,7 @@
 
 .task-type-option {
   display: flex;
-  align-items: right;
+  align-items: center;
   gap: 6px;
   padding: 6px 14px;
   cursor: pointer;
@@ -596,14 +646,27 @@
 
 .subHeader{
     display: flex !important;
+    align-items: center !important;
     gap: 10px !important;
+    width: auto !important;
+}
+
+.modal-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.modal-title {
+    margin: 0 !important;
 }
 
 .file-upload-box{
     padding: 3px !important;
 }
 .btn-close{
-    margin-top: 2px !important;
+    /* margin-top: 2px !important; */
 }
 
 .select{
@@ -769,34 +832,27 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header"> 
-                 <h5 class="modal-title" id="createTaskModalLabel">Create New Task</h5>
-                <div class="modal-subheader">
-                    <div class="subHeader">
-                        <div class="mb-2">
-                            <label class="form-label" id="label_task_type">
-                            </label>
+                <h5 class="modal-title" id="createTaskModalLabel">Create New Task</h5>
+                <div class="subHeader">
+                    <div class="task-type-wrapper">
+                        <span class="task-type-title">Select opt...</span>
 
-                            <div class="task-type-wrapper">
-                                <span class="task-type-title">Select opt...</span>
+                        <label class="task-type-option">
+                        <input type="radio" name="task_type" value="task" checked>
+                        Task
+                        </label>
 
-                                <label class="task-type-option">
-                                <input type="radio" name="task_type" value="task" checked>
-                                Task
-                                </label>
+                        <label class="task-type-option">
+                        <input type="radio" name="task_type" value="qc">
+                        Qc
+                        </label>
 
-                                <label class="task-type-option">
-                                <input type="radio" name="task_type" value="qc">
-                                Qc
-                                </label>
-
-                                <label class="task-type-option">
-                                <input type="radio" name="task_type" value="cp">
-                                CP
-                                </label>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <label class="task-type-option">
+                        <input type="radio" name="task_type" value="cp">
+                        CP
+                        </label>
                     </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
             <form id="taskForm">
@@ -872,7 +928,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="customer_id" class="form-label" id="label_customer">Clients</label>
-                                <select name="customer_id" id="customer_id" class="form-select form-select-sm" required>
+                                <select name="customer_id" id="customer_id" class="form-select form-select-sm form-select-customer" required>
                                     <option value="" class="select">Select Customer</option>
                                 </select>
                             </div>
@@ -903,13 +959,13 @@
 
                     <div class = "row">
                         <!-- Task Description -->
-                        <div class="mb-3 col-8 col-sm-6">
+                        <div class="mb-3 col-12 col-md-8">
                             <label for="task" class="form-label" id="label_task_desc">Description</label>
                             <textarea name="task" id="task" class="form-control form-control-sm" rows="4" required placeholder="Enter..."></textarea>
                             
                             <div class="row mt-3">
                                 <!-- Task Status Select -->
-                                <div class="mb-3 me-3 col-4">
+                                <div class="mb-3 col-6">
                                     <label for="task_status_id" class="form-label" id="label_task_status">Status</label>
                                     <select name="task_status_id" id="task_status_id" class="form-select form-select-sm" required>
                                         <option value="">Select Status</option>
@@ -917,7 +973,7 @@
                                 </div>
 
                                 <!-- Task Priority Select -->
-                                <div class="mb-3 col-4">
+                                <div class="mb-3 col-6">
                                     <label for="task_priority_id" class="form-label" id="label_task_priority">Priority</label>
                                     <select name="task_priority_id" id="task_priority_id" class="form-select form-select-sm">
                                         <option value="">Select Priority</option>
@@ -926,7 +982,7 @@
                             </div>
                         </div>
                             <!-- Image Upload with Add More -->
-                        <div class="mb-3 col-4 col-sm-6">
+                        <div class="mb-3 col-12 col-md-4">
                             <div class="file-upload-box text-center p-4">
 
                                 <!-- Upload Icon -->
@@ -959,7 +1015,7 @@
                         </div>
                     </div>
                 </div>
-                <div class = "p-4">
+                <div class="p-4 modal-footer-custom">
                     <button type="submit" class="btn btn-primary" style = "background: #434AFa;" id="createTaskSubmitBtn">
                         Submit
                     </button>
@@ -1050,30 +1106,26 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
-                <div>
-                    <div class="subHeader">
-                        <div class="mb-2">
-                            <div class="task-type-wrapper">
-                                <span class="task-type-title">Select opt...</span>
+                <div class="subHeader">
+                    <div class="task-type-wrapper">
+                        <span class="task-type-title">Select opt...</span>
 
-                                <label class="task-type-option" for="edit_task_type_task">
-                                <input type="radio" name="edit_task_type" id="edit_task_type_task" value="task" checked>
-                                Task
-                                </label>
+                        <label class="task-type-option" for="edit_task_type_task">
+                        <input type="radio" name="edit_task_type" id="edit_task_type_task" value="task" checked>
+                        Task
+                        </label>
 
-                                <label class="task-type-option" for="edit_task_type_qc">
-                                <input type="radio" name="edit_task_type" id="edit_task_type_qc" value="qc">
-                                Qc
-                                </label>
+                        <label class="task-type-option" for="edit_task_type_qc">
+                        <input type="radio" name="edit_task_type" id="edit_task_type_qc" value="qc">
+                        Qc
+                        </label>
 
-                                <label class="task-type-option" for="edit_task_type_cp">
-                                <input type="radio" name="edit_task_type" id="edit_task_type_cp" value="cp">
-                                CP
-                                </label>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <label class="task-type-option" for="edit_task_type_cp">
+                        <input type="radio" name="edit_task_type" id="edit_task_type_cp" value="cp">
+                        CP
+                        </label>
                     </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
             <form id="editTaskForm">
@@ -1148,7 +1200,7 @@
                     <div class="row">
                         <div class="mb-3 col-md-6">
                             <label for="edit_customer_id" class="form-label">Customer <span class="text-danger">*</span></label>
-                            <select name="customer_id" id="edit_customer_id" class="form-select form-select-sm" required>
+                            <select name="customer_id" id="edit_customer_id" class="form-select form-select-sm form-select-customer" required>
                                 <option value="">Select Customer</option>
                             </select>
                         </div>
@@ -1173,19 +1225,19 @@
                     </div>
                     
                     <div class="row">
-                        <div class="mt-3 col-md-8">
+                        <div class="mt-3 col-12 col-md-8">
                             <label for="edit_task" class="form-label">Task Description</label>
                             <textarea name="task" id="edit_task" class="form-control form-control-sm" rows="3" required placeholder="Enter task details..."></textarea>
 
                             <div class="row">
-                                <div class="mt-3 col-md-4">
+                                <div class="mt-3 col-6">
                                     <label for="edit_task_status_id" class="form-label">Task Status <span class="text-danger">*</span></label>
                                     <select name="task_status_id" id="edit_task_status_id" class="form-select form-select-sm" required>
                                         <option value="">Select Status</option>
                                     </select>
                                 </div>
 
-                                <div class="mt-3 col-md-4">
+                                <div class="mt-3 col-6">
                                     <label for="edit_task_priority_id" class="form-label">Task Priority</label>
                                     <select name="task_priority_id" id="edit_task_priority_id" class="form-select form-select-sm">
                                         <option value="">Select Priority</option>
@@ -1195,7 +1247,7 @@
                         </div>
                         <!-- Image Upload for Edit -->
 
-                        <div class="mt-3 col-4">
+                        <div class="mt-3 col-12 col-md-4">
                             <div class="file-upload-box text-center p-4">
 
                                 <!-- Upload Icon -->
@@ -1228,7 +1280,7 @@
                         </div>
                     </div>
                 </div>
-                <div class = "p-4">
+                <div class="p-4 modal-footer-custom">
                     <button type="submit" class="btn btn-sm btn-primary" style = "background: #434AFa;">
                         Submit
                     </button>
