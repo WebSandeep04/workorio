@@ -1,4 +1,4 @@
-﻿<!-- from the new laptop -->
+﻿<!-- from the new laptop2 -->
 @extends('layouts.app')
 
 @section('title', 'Sales Product')
@@ -1212,11 +1212,11 @@
           let html = '';
           data.forEach(function (status) {
             html += `
-              <div class="status-card">
-                <div class="status-card-label">${status.status_name || 'N/A'}</div>
-                <div class="status-card-value">${status.count || 0}</div>
-              </div>
-            `;
+                <div class="status-card">
+                  <div class="status-card-label">${status.status_name || 'N/A'}</div>
+                  <div class="status-card-value">${status.count || 0}</div>
+                </div>
+              `;
           });
           $('#statusCardsContainer').html(html);
         })
@@ -1228,13 +1228,13 @@
 
     function loadSalesRecords(page = 1) {
       $('#alldatatable tbody').html(`
-        <tr>
-          <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
-            <i class="bi bi-arrow-repeat"></i>
-            <p class="mt-2 mb-0">Loading sales records...</p>
-          </td>
-        </tr>
-      `);
+          <tr>
+            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
+              <i class="bi bi-arrow-repeat"></i>
+              <p class="mt-2 mb-0">Loading sales records...</p>
+            </td>
+          </tr>
+        `);
 
       $.ajax({
         url: '{{ route("fetchalldata") }}?page=' + page,
@@ -1244,12 +1244,12 @@
 
           if (data.data.length === 0) {
             html = `<tr>
-                    <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
-                      <i class="bi bi-inbox"></i>
-                      <h5>No Records Found</h5>
-                      <p>No sales records available at the moment.</p>
-                    </td>
-                  </tr>`;
+                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <h5>No Records Found</h5>
+                        <p>No sales records available at the moment.</p>
+                      </td>
+                    </tr>`;
           } else {
             data.data.forEach(function (record, index) {
               let remark = '-';
@@ -1268,33 +1268,33 @@
                   });
                 }
                 assignToColumn = `
-                            <td>
-                                <select class="assign-select" data-lead-id="${record.id}" onchange="reassignLead(${record.id}, this.value)">
-                                    ${dropdownOptions}
-                                </select>
-                            </td>
-                        `;
+                                <td>
+                                    <select class="assign-select" data-lead-id="${record.id}" onchange="reassignLead(${record.id}, this.value)">
+                                        ${dropdownOptions}
+                                    </select>
+                                </td>
+                            `;
               @endif
 
               html += `
-                          <tr>
-                              <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
-                              <td>${record.prospectus_name ?? 'N/A'}</td>
-                              <td>${remark}</td>
-                              <td>${record.leads_name ?? ''}</td>
-                              <td>${record.contact_person ?? ''}</td>
-                              <td>${record.contact_number ?? ''}</td>
-                              <td>${record.next_follow_up_date ?? 'N/A'}</td>
-                              <td>${record.state_name ?? 'N/A'}</td>
-                              <td>${record.city_name ?? 'N/A'}</td>
-                              <td>${record.email ?? ''}</td>
-                              <td>${record.business_name ?? 'N/A'}</td>
-                              <td>${record.source_name ?? 'N/A'}</td>
-                              <td>${record.product_name ?? 'N/A'}</td>
-                              <td>${record.ticket_value ?? '0'}</td>
-                              ${assignToColumn}
-                          </tr>
-                      `;
+                            <tr>
+                                <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
+                                <td>${record.prospectus_name ?? 'N/A'}</td>
+                                <td>${remark}</td>
+                                <td>${record.leads_name ?? ''}</td>
+                                <td>${record.contact_person ?? ''}</td>
+                                <td>${record.contact_number ?? ''}</td>
+                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
+                                <td>${record.state_name ?? 'N/A'}</td>
+                                <td>${record.city_name ?? 'N/A'}</td>
+                                <td>${record.email ?? ''}</td>
+                                <td>${record.business_name ?? 'N/A'}</td>
+                                <td>${record.source_name ?? 'N/A'}</td>
+                                <td>${record.product_name ?? 'N/A'}</td>
+                                <td>${record.ticket_value ?? '0'}</td>
+                                ${assignToColumn}
+                            </tr>
+                        `;
             });
           }
 
@@ -1305,13 +1305,13 @@
         error: function (xhr) {
           console.error("Error:", xhr.responseText);
           $('#alldatatable tbody').html(`
-                <tr>
-                  <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="text-danger text-center py-4">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <p class="mt-2">Failed to load records. Please try again.</p>
-                  </td>
-                </tr>
-              `);
+                  <tr>
+                    <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="text-danger text-center py-4">
+                      <i class="bi bi-exclamation-triangle"></i>
+                      <p class="mt-2">Failed to load records. Please try again.</p>
+                    </td>
+                  </tr>
+                `);
         }
       });
     }
@@ -1324,26 +1324,26 @@
       const last = data.last_page;
 
       pagination.append(`
-          <li class="page-item ${current === 1 ? 'disabled' : ''}">
-              <a class="page-link" href="#" data-page="${current - 1}">
-                <i class="bi bi-chevron-left"></i> Previous
-              </a>
-          </li>
-      `);
+            <li class="page-item ${current === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${current - 1}">
+                  <i class="bi bi-chevron-left"></i> Previous
+                </a>
+            </li>
+        `);
 
       pagination.append(`
-          <li class="page-item active">
-              <span class="page-link">${current} / ${last}</span>
-          </li>
-      `);
+            <li class="page-item active">
+                <span class="page-link">${current} / ${last}</span>
+            </li>
+        `);
 
       pagination.append(`
-          <li class="page-item ${current === last ? 'disabled' : ''}">
-              <a class="page-link" href="#" data-page="${current + 1}">
-                Next <i class="bi bi-chevron-right"></i>
-              </a>
-          </li>
-      `);
+            <li class="page-item ${current === last ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${current + 1}">
+                  Next <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        `);
     }
 
     function updateRangeInfo(from, to, total) {
@@ -1389,13 +1389,13 @@
       let search = $("#search").val();
 
       $('#alldatatable tbody').html(`
-        <tr>
-          <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
-            <i class="bi bi-arrow-repeat"></i>
-            <p class="mt-2 mb-0">Searching...</p>
-          </td>
-        </tr>
-      `);
+          <tr>
+            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
+              <i class="bi bi-arrow-repeat"></i>
+              <p class="mt-2 mb-0">Searching...</p>
+            </td>
+          </tr>
+        `);
 
       $.ajax({
         url: '{{ route("alldatasearch") }}?page=' + page,
@@ -1407,12 +1407,12 @@
 
           if (data.length === 0) {
             html = `<tr>
-                    <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
-                      <i class="bi bi-search"></i>
-                      <h5>No Results Found</h5>
-                      <p>Try adjusting your search criteria.</p>
-                    </td>
-                  </tr>`;
+                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
+                        <i class="bi bi-search"></i>
+                        <h5>No Results Found</h5>
+                        <p>Try adjusting your search criteria.</p>
+                      </td>
+                    </tr>`;
           } else {
             data.forEach(function (record, index) {
               const fullRemark = record.last_remark || '';
@@ -1427,33 +1427,33 @@
                   });
                 }
                 assignToColumn = `
-                            <td>
-                                <select class="assign-select" data-lead-id="${record.id}" onchange="reassignLead(${record.id}, this.value)">
-                                    ${dropdownOptions}
-                                </select>
-                            </td>
-                        `;
+                                <td>
+                                    <select class="assign-select" data-lead-id="${record.id}" onchange="reassignLead(${record.id}, this.value)">
+                                        ${dropdownOptions}
+                                    </select>
+                                </td>
+                            `;
               @endif
 
               html += `
-                          <tr>
-                              <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
-                              <td>${record.prospectus_name ?? 'N/A'}</td>
-                              <td>${fullRemark ? `<a href="#" class="remark-link" onclick="showRemarksModal(${record.id})" title="${fullRemark.replace(/"/g, '&quot;')}">${shortRemark}</a>` : '-'}</td>
-                              <td>${record.leads_name ?? 'N/A'}</td>
-                              <td>${record.contact_person ?? 'N/A'}</td>
-                              <td>${record.contact_number ?? 'N/A'}</td>
-                              <td>${record.next_follow_up_date ?? 'N/A'}</td>
-                              <td>${record.state_name ?? 'N/A'}</td>
-                              <td>${record.city_name ?? 'N/A'}</td>
-                              <td>${record.email ?? 'N/A'}</td>
-                              <td>${record.business_name ?? 'N/A'}</td>
-                              <td>${record.source_name ?? 'N/A'}</td>
-                              <td>${record.product_name ?? 'N/A'}</td>
-                              <td>${record.ticket_value ?? '0'}</td>
-                              ${assignToColumn}
-                          </tr>
-                      `;
+                            <tr>
+                                <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
+                                <td>${record.prospectus_name ?? 'N/A'}</td>
+                                <td>${fullRemark ? `<a href="#" class="remark-link" onclick="showRemarksModal(${record.id})" title="${fullRemark.replace(/"/g, '&quot;')}">${shortRemark}</a>` : '-'}</td>
+                                <td>${record.leads_name ?? 'N/A'}</td>
+                                <td>${record.contact_person ?? 'N/A'}</td>
+                                <td>${record.contact_number ?? 'N/A'}</td>
+                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
+                                <td>${record.state_name ?? 'N/A'}</td>
+                                <td>${record.city_name ?? 'N/A'}</td>
+                                <td>${record.email ?? 'N/A'}</td>
+                                <td>${record.business_name ?? 'N/A'}</td>
+                                <td>${record.source_name ?? 'N/A'}</td>
+                                <td>${record.product_name ?? 'N/A'}</td>
+                                <td>${record.ticket_value ?? '0'}</td>
+                                ${assignToColumn}
+                            </tr>
+                        `;
             });
           }
 
@@ -1463,8 +1463,8 @@
           response.links.forEach(link => {
             if (link.url !== null) {
               links += `<li class="page-item ${link.active ? 'active' : ''}">
-                          <a class="page-link" href="#" data-page="${link.url.split('page=')[1]}">${link.label}</a>
-                      </li>`;
+                            <a class="page-link" href="#" data-page="${link.url.split('page=')[1]}">${link.label}</a>
+                        </li>`;
             } else {
               links += `<li class="page-item disabled"><span class="page-link">${link.label}</span></li>`;
             }
@@ -1638,13 +1638,13 @@
 
     function loadFilteredTable(page = 1) {
       $('#alldatatable tbody').html(`
-        <tr>
-          <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
-            <i class="bi bi-arrow-repeat"></i>
-            <p class="mt-2 mb-0">Filtering records...</p>
-          </td>
-        </tr>
-      `);
+          <tr>
+            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
+              <i class="bi bi-arrow-repeat"></i>
+              <p class="mt-2 mb-0">Filtering records...</p>
+            </td>
+          </tr>
+        `);
 
       $.ajax({
         url: '{{ route("alldatafilter") }}?page=' + page,
@@ -1664,12 +1664,12 @@
 
           if (data.length === 0) {
             html = `<tr>
-                    <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
-                      <i class="bi bi-funnel"></i>
-                      <h5>No Records Found</h5>
-                      <p>Try adjusting your filter criteria.</p>
-                    </td>
-                  </tr>`;
+                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
+                        <i class="bi bi-funnel"></i>
+                        <h5>No Records Found</h5>
+                        <p>Try adjusting your filter criteria.</p>
+                      </td>
+                    </tr>`;
           } else {
             data.forEach(function (record, index) {
               let remark = '-';
@@ -1688,33 +1688,33 @@
                   });
                 }
                 assignToColumn = `
-                            <td>
-                                <select class="assign-select" data-lead-id="${record.id}" onchange="reassignLead(${record.id}, this.value)">
-                                    ${dropdownOptions}
-                                </select>
-                            </td>
-                        `;
+                                <td>
+                                    <select class="assign-select" data-lead-id="${record.id}" onchange="reassignLead(${record.id}, this.value)">
+                                        ${dropdownOptions}
+                                    </select>
+                                </td>
+                            `;
               @endif
 
               html += `
-                          <tr>
-                              <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
-                              <td>${record.prospectus_name ?? 'N/A'}</td>
-                              <td>${remark}</td>
-                              <td>${record.leads_name ?? ''}</td>
-                              <td>${record.contact_person ?? ''}</td>
-                              <td>${record.contact_number ?? ''}</td>
-                              <td>${record.next_follow_up_date ?? 'N/A'}</td>
-                              <td>${record.state_name ?? 'N/A'}</td>
-                              <td>${record.city_name ?? 'N/A'}</td>
-                              <td>${record.email ?? ''}</td>
-                              <td>${record.business_name ?? 'N/A'}</td>
-                              <td>${record.source_name ?? 'N/A'}</td>
-                              <td>${record.product_name ?? 'N/A'}</td>
-                              <td>${record.ticket_value ?? '0'}</td>
-                              ${assignToColumn}
-                          </tr>
-                      `;
+                            <tr>
+                                <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
+                                <td>${record.prospectus_name ?? 'N/A'}</td>
+                                <td>${remark}</td>
+                                <td>${record.leads_name ?? ''}</td>
+                                <td>${record.contact_person ?? ''}</td>
+                                <td>${record.contact_number ?? ''}</td>
+                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
+                                <td>${record.state_name ?? 'N/A'}</td>
+                                <td>${record.city_name ?? 'N/A'}</td>
+                                <td>${record.email ?? ''}</td>
+                                <td>${record.business_name ?? 'N/A'}</td>
+                                <td>${record.source_name ?? 'N/A'}</td>
+                                <td>${record.product_name ?? 'N/A'}</td>
+                                <td>${record.ticket_value ?? '0'}</td>
+                                ${assignToColumn}
+                            </tr>
+                        `;
             });
           }
 
@@ -1724,8 +1724,8 @@
           response.links.forEach(link => {
             if (link.url !== null) {
               links += `<li class="page-item ${link.active ? 'active' : ''}">
-                          <a href="#" class="page-link" data-page="${link.url.split('page=')[1]}">${link.label}</a>
-                      </li>`;
+                            <a href="#" class="page-link" data-page="${link.url.split('page=')[1]}">${link.label}</a>
+                        </li>`;
             } else {
               links += `<li class="page-item disabled"><span class="page-link">${link.label}</span></li>`;
             }
@@ -1757,13 +1757,13 @@
     // date filter
     function loadDateFilteredTable(from_date = '', to_date = '', page = 1) {
       $('#alldatatable tbody').html(`
-        <tr>
-          <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
-            <i class="bi bi-arrow-repeat"></i>
-            <p class="mt-2 mb-0">Filtering by date...</p>
-          </td>
-        </tr>
-      `);
+          <tr>
+            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
+              <i class="bi bi-arrow-repeat"></i>
+              <p class="mt-2 mb-0">Filtering by date...</p>
+            </td>
+          </tr>
+        `);
 
       $.ajax({
         url: '{{ route("alldatafilterdate") }}?page=' + page,
@@ -1779,12 +1779,12 @@
 
           if (data.length === 0) {
             html = `<tr>
-                    <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
-                      <i class="bi bi-calendar-x"></i>
-                      <h5>No Records Found</h5>
-                      <p>No records found for the selected date range.</p>
-                    </td>
-                  </tr>`;
+                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
+                        <i class="bi bi-calendar-x"></i>
+                        <h5>No Records Found</h5>
+                        <p>No records found for the selected date range.</p>
+                      </td>
+                    </tr>`;
           } else {
             data.forEach(function (record, index) {
               let remark = '-';
@@ -1803,33 +1803,33 @@
                   });
                 }
                 assignToColumn = `
-                            <td>
-                                <select class="assign-select" data-lead-id="${record.id}" onchange="reassignLead(${record.id}, this.value)">
-                                    ${dropdownOptions}
-                                </select>
-                            </td>
-                        `;
+                                <td>
+                                    <select class="assign-select" data-lead-id="${record.id}" onchange="reassignLead(${record.id}, this.value)">
+                                        ${dropdownOptions}
+                                    </select>
+                                </td>
+                            `;
               @endif
 
               html += `
-                          <tr>
-                              <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
-                              <td>${record.prospectus_name ?? 'N/A'}</td>
-                              <td>${remark}</td>
-                              <td>${record.leads_name ?? ''}</td>
-                              <td>${record.contact_person ?? ''}</td>
-                              <td>${record.contact_number ?? ''}</td>
-                              <td>${record.next_follow_up_date ?? 'N/A'}</td>
-                              <td>${record.state_name ?? 'N/A'}</td>
-                              <td>${record.city_name ?? 'N/A'}</td>
-                              <td>${record.email ?? ''}</td>
-                              <td>${record.business_name ?? 'N/A'}</td>
-                              <td>${record.source_name ?? 'N/A'}</td>
-                              <td>${record.product_name ?? 'N/A'}</td>
-                              <td>${record.ticket_value ?? '0'}</td>
-                              ${assignToColumn}
-                          </tr>
-                      `;
+                            <tr>
+                                <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
+                                <td>${record.prospectus_name ?? 'N/A'}</td>
+                                <td>${remark}</td>
+                                <td>${record.leads_name ?? ''}</td>
+                                <td>${record.contact_person ?? ''}</td>
+                                <td>${record.contact_number ?? ''}</td>
+                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
+                                <td>${record.state_name ?? 'N/A'}</td>
+                                <td>${record.city_name ?? 'N/A'}</td>
+                                <td>${record.email ?? ''}</td>
+                                <td>${record.business_name ?? 'N/A'}</td>
+                                <td>${record.source_name ?? 'N/A'}</td>
+                                <td>${record.product_name ?? 'N/A'}</td>
+                                <td>${record.ticket_value ?? '0'}</td>
+                                ${assignToColumn}
+                            </tr>
+                        `;
             });
           }
 
@@ -1839,8 +1839,8 @@
           response.links.forEach(link => {
             if (link.url !== null) {
               links += `<li class="page-item ${link.active ? 'active' : ''}">
-                          <a href="#" class="page-link" data-page="${link.url.split('page=')[1]}">${link.label}</a>
-                      </li>`;
+                            <a href="#" class="page-link" data-page="${link.url.split('page=')[1]}">${link.label}</a>
+                        </li>`;
             } else {
               links += `<li class="page-item disabled"><span class="page-link">${link.label}</span></li>`;
             }
@@ -1931,7 +1931,7 @@
       @else
         loadSalesRecords();
       @endif
-    });
+      });
 
     function setupBulkAssignment() {
       if (window.teamMembers && window.teamMembers.length > 0) {
@@ -2067,12 +2067,12 @@
       const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
       const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
       const alertHtml = `
-        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-          <i class="bi ${icon} me-2"></i>
-          ${message}
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-      `;
+          <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+            <i class="bi ${icon} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        `;
       $('body').append(alertHtml);
       setTimeout(() => $('.alert').fadeOut(), 3000);
     }
