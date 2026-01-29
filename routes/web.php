@@ -96,6 +96,7 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('
 // Main login route (for tenants)
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
 // Show dashboard page (protected)
 Route::get('/dashboard', function () {

@@ -1831,3 +1831,8 @@
 [2026-01-29 12:24:40] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-01-29 12:24:40] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
 [2026-01-29 12:24:40] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-29 12:39:42] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-01-29 12:39:42] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-29 12:39:43] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-29 12:39:43] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-29 12:39:43] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
