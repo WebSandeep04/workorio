@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Client-Event Links')
-@section('page_title', 'Client-Event Links')
 
-@push('styles')
+<?php $__env->startSection('title', 'Client-Event Links'); ?>
+<?php $__env->startSection('page_title', 'Client-Event Links'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
@@ -164,9 +164,9 @@
   }
   .btn-sm-manage:hover { background-color: #3538d4; color: white; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 mt-2">
     
     <!-- Summary Cards -->
@@ -220,9 +220,9 @@
         <ul class="pagination" id="pagination"></ul>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 (function(){
     let allClients = [];
@@ -233,7 +233,7 @@
     window.loadClients = function(){
         $('#clientsTbody').html('<tr><td colspan="3" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</td></tr>');
         
-        $.get("{{ route('calendar-client-event.clients') }}").done(function(rows){
+        $.get("<?php echo e(route('calendar-client-event.clients')); ?>").done(function(rows){
             allClients = rows || [];
             filteredClients = [...allClients];
             $('#totalClientsCard').text(allClients.length);
@@ -311,4 +311,6 @@
     $(document).ready(loadClients);
 })();
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/calendar/client-event-links/clients.blade.php ENDPATH**/ ?>

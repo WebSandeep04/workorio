@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid py-3 calling-remarks-page">
   <div class="row g-3">
 
@@ -11,14 +9,14 @@
           Calling Details
         </div>
         <div class="card-body ui-body small">
-          <p><strong>Name :</strong> {{ $calling->name ?? '--' }}</p>
-          <p><strong>Email :</strong> {{ $calling->email ?? '--' }}</p>
-          <p><strong>Phone :</strong> {{ $calling->phone ?? '--' }}</p>
-          <p><strong>State :</strong> {{ optional($calling->state)->state_name ?? '--' }}</p>
-          <p><strong>City :</strong> {{ optional($calling->city)->city_name ?? '--' }}</p>
-          <p><strong>Address :</strong> {{ $calling->address ?? '--' }}</p>
-          <p><strong>Calling Type :</strong> {{ optional($calling->callingType)->name ?? 'No Type' }}</p>
-          <p><strong>Next Follow-up :</strong> {{ $calling->next_follow_up_date ?? '--' }}</p>
+          <p><strong>Name :</strong> <?php echo e($calling->name ?? '--'); ?></p>
+          <p><strong>Email :</strong> <?php echo e($calling->email ?? '--'); ?></p>
+          <p><strong>Phone :</strong> <?php echo e($calling->phone ?? '--'); ?></p>
+          <p><strong>State :</strong> <?php echo e(optional($calling->state)->state_name ?? '--'); ?></p>
+          <p><strong>City :</strong> <?php echo e(optional($calling->city)->city_name ?? '--'); ?></p>
+          <p><strong>Address :</strong> <?php echo e($calling->address ?? '--'); ?></p>
+          <p><strong>Calling Type :</strong> <?php echo e(optional($calling->callingType)->name ?? 'No Type'); ?></p>
+          <p><strong>Next Follow-up :</strong> <?php echo e($calling->next_follow_up_date ?? '--'); ?></p>
         </div>
       </div>
     </div>
@@ -30,8 +28,8 @@
           Add Follow-up
         </div>
         <div class="card-body ui-body">
-          <form method="POST" action="{{ route('calling.remarks.store', ['calling' => $calling->id]) }}">
-            @csrf
+          <form method="POST" action="<?php echo e(route('calling.remarks.store', ['calling' => $calling->id])); ?>">
+            <?php echo csrf_field(); ?>
 
             <input type="hidden" name="remark_id" id="remark_id">
 
@@ -39,7 +37,7 @@
               <label class="form-label">Date</label>
               <input type="date" name="remark_date" id="remark_date"
                 class="form-control form-control-sm"
-                value="{{ now()->toDateString() }}">
+                value="<?php echo e(now()->toDateString()); ?>">
             </div>
 
             <div class="mb-2">
@@ -62,7 +60,7 @@
               <input type="date" name="next_follow_up_date"
                 id="next_follow_up_date"
                 class="form-control form-control-sm"
-                value="{{ $defaultNextFollowUp }}">
+                value="<?php echo e($defaultNextFollowUp); ?>">
             </div>
 
             <button class="btn btn-primary btn-sm w-100" style="background: #434AFA !important;">
@@ -80,27 +78,29 @@
           Previous Remark
         </div>
         <div class="card-body ui-body remark-scroll" id="callingRemarkList">
-          @forelse ($calling->remarks as $r)
+          <?php $__empty_1 = true; $__currentLoopData = $calling->remarks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $r): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
             <div class="remark-item">
               <div class="remark-date">
-                {{ optional($r->created_at)->format('d/m/Y') }}
+                <?php echo e(optional($r->created_at)->format('d/m/Y')); ?>
+
               </div>
               <div class="remark-text">
-                {{ $r->remark }}
+                <?php echo e($r->remark); ?>
+
               </div>
             </div>
-          @empty
+          <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <p class="text-muted small">No remarks found.</p>
-          @endforelse
+          <?php endif; ?>
         </div>
       </div>
     </div>
 
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 /* Page background */
 .calling-remarks-page {
@@ -170,15 +170,15 @@
   background: #DFDFDF;
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function () {
   loadCallingTypeOptions();
 
   function loadCallingTypeOptions() {
-    $.get('{{ route("getcallingtypes") }}', function (callingTypes) {
+    $.get('<?php echo e(route("getcallingtypes")); ?>', function (callingTypes) {
       let $select = $('#calling_type_id');
       $select.empty().append('<option value="">Choose opt...</option>');
 
@@ -186,7 +186,7 @@ $(document).ready(function () {
         $select.append(`<option value="${type.id}">${type.name}</option>`);
       });
 
-      let defaultType = {{ $defaultCallingType ?? 'null' }};
+      let defaultType = <?php echo e($defaultCallingType ?? 'null'); ?>;
       if (defaultType) $select.val(defaultType);
     });
   }
@@ -200,4 +200,6 @@ function fillRemark(id, date, nextDate, text) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/calling/remarks.blade.php ENDPATH**/ ?>

@@ -1,20 +1,13 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Calling'); ?>
+<?php $__env->startSection('page_title', 'Calling'); ?>
 
-@section('title', 'Calling')
-@section('page_title', 'Calling')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     .calling-page {
         padding: 0.5rem;
         background: #f7f8fc;
     }
 
-    .data-table-card .custom-table thead th {
-    
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
-   
-  }
     .calling-hero-card {
         background: transparent;
         border-radius: 0;
@@ -500,9 +493,9 @@
     }
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 calling-page">
     <div class="calling-hero-card">
         <div>
@@ -513,7 +506,7 @@
         <div class="hero-metrics">
             <div class="hero-metric-card">
                 <div class="hero-metric-icon icon-sky">
-                    <img src="{{ asset('img/icons/call.png') }}" alt="Total Records">
+                    <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Total Records">
                 </div>
                 <div class="hero-metric-content">
                     <span class="metric-label">Total Records</span>
@@ -522,7 +515,7 @@
             </div>
             <div class="hero-metric-card">
                 <div class="hero-metric-icon icon-emerald">
-                    <img src="{{ asset('img/icons/tick.png') }}" alt="Selected">
+                    <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Selected">
                 </div>
                 <div class="hero-metric-content">
                     <span class="metric-label">Selected</span>
@@ -531,7 +524,7 @@
             </div>
             <div class="hero-metric-card">
                 <div class="hero-metric-icon icon-amber">
-                    <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
+                    <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
                 </div>
                 <div class="hero-metric-content">
                     <span class="metric-label">Active Filters</span>
@@ -629,9 +622,9 @@
                 <ul class="pagination" id="paginationFilterLinks"></ul>
     </div>
 </div>
-@endsection     
+<?php $__env->stopSection(); ?>     
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     $(document).ready(function() {
         var $tbody = $('#callingTable tbody');
@@ -665,7 +658,7 @@
         }
 
         function loadStates() {
-            $.get('{{ route("calling.filter-options") }}', function(resp) {
+            $.get('<?php echo e(route("calling.filter-options")); ?>', function(resp) {
                 var $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
                 (resp.states || []).forEach(function(s){
@@ -687,7 +680,7 @@
 
         function loadCitiesByState(stateId) {
             if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
-            var url = '{{ route("calling.cities", ["stateId" => 0]) }}'.replace(/0$/, String(stateId));
+            var url = '<?php echo e(route("calling.cities", ["stateId" => 0])); ?>'.replace(/0$/, String(stateId));
             $.get(url, function(cities){
                 var $city = $('#filter_city');
                 $city.empty().append('<option value="">All Cities</option>');
@@ -773,7 +766,7 @@
 
         function loadCallings(page = 1) {
             currentPage = page;
-            $.get('{{ route("calling.data") }}?page=' + page, function(data){
+            $.get('<?php echo e(route("calling.data")); ?>?page=' + page, function(data){
                 var rows = Array.isArray(data) ? data : (data.data || []);
                 renderRows(rows);
                 renderPagination(data);
@@ -807,7 +800,7 @@
                 return;
             }
             setActiveFiltersCount(appliedCount);
-            $.post('{{ route("calling.filter") }}?page=' + page, {
+            $.post('<?php echo e(route("calling.filter")); ?>?page=' + page, {
                 name: name,
                 state_id: stateId,
                 city_id: cityId,
@@ -900,7 +893,7 @@
             $select.prop('disabled', true);
             
             $.ajax({
-                url: '{{ route("calling.update-type") }}',
+                url: '<?php echo e(route("calling.update-type")); ?>',
                 type: 'POST',
                 data: {
                     calling_id: callingId,
@@ -1026,7 +1019,7 @@
             $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Locking...');
             
             $.ajax({
-                url: '{{ route("calling.lock-selected") }}',
+                url: '<?php echo e(route("calling.lock-selected")); ?>',
                 type: 'POST',
                 data: {
                     calling_ids: selectedIds,
@@ -1063,4 +1056,6 @@
         });
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/calling/index.blade.php ENDPATH**/ ?>

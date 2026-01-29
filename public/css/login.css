@@ -1,165 +1,134 @@
-body {
-    font-family: 'Poppins', sans-serif;
-    background-repeat: no-repeat;
-    background-position: center 180px;
-    background-size: cover;
-    height: 100vh;
-    background-color: #fff;
-    margin: 0;
-}
 
-.gradient-text {
-    background: linear-gradient(90deg, #1D74F9 0%, #C008F9 100%);
-    ;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
-}
+        /* ===== BASE ===== */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            margin: 0;
+            position: relative;
+            overflow-x: hidden;
+        }
 
+        /* ===== HEADER ===== */
+        header {
+            background: #fff;
+            z-index: 10;
+            position: relative;
+        }
 
-.loginBox {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: calc(100vh - 100px);
-}
+        /* ===== GRADIENT TEXT ===== */
+        .gradient-text {
+            background: linear-gradient(90deg, #1D74F9 0%, #C008F9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-.login-card {
-    background-color: #fff;
-    color: #000;
-    padding: 2rem 2.5rem;
-    border-radius: 3px;
-    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
-    border: 2px solid #434AFA;
-    max-width: 500px;
-    width: 100%;
-}
+        /* ===== CENTER WRAPPER ===== */
+        .loginBox {
+            min-height: calc(100vh - 90px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            position: relative;
+            z-index: 1;
+        }
 
-.login-card h3 {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    font-weight: 600;
-}
+        /* ===== LOGIN CARD ===== */
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            padding: 2.5rem 2.5rem 3.5rem;
+            border-radius: 8px;
+            text-align: left;
+            position: relative;
+        }
 
-.form-label {
-    font-weight: 500;
-}
+        /* ===== BIG OUTLINE TEXT ===== */
+        .login-card::after {
+            content: "Workorio";
+            position: absolute;
+            bottom: -55px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 120px;
+            font-weight: 700;
+            color: transparent;
+            -webkit-text-stroke: 1px rgba(67, 74, 250, 0.25);
+            white-space: nowrap;
+            pointer-events: none;
+        }
 
-.form-control {
-    background: #fff;
-    color: #000;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    padding: 0.5rem 0.75rem;
-}
+        /* ===== TITLES ===== */
+        .login-card h3 {
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
 
-.form-control:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-}
+        .login-card p {
+            font-size: 14px;
+            margin-bottom: 28px;
+            color: #000;
+        }
 
-.btn-primary {
-    background-color: #434AFA;
-    border-color: #434AFA;
-    width: 100%;
-    padding: 0.5rem;
-    font-weight: 500;
-    border-radius: 6px;
-}
+        /* ===== INPUTS ===== */
+        .form-label {
+            font-size: 13px;
+            font-weight: 500;
+            text-align: left;
+            display: block;
+        }
 
-.btn-primary:hover {
-    background-color: #434AFA;
-    border-color: #434AFA;
-}
+        .form-control {
+            height: 44px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            background: #f2f2f2;
+            font-size: 14px;
+        }
 
-.social-icons {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 10 px;
-}
+        .form-control:focus {
+            border-color: #434AFA;
+            box-shadow: 0 0 0 0.15rem rgba(67, 74, 250, 0.25);
+            background: #fff;
+        }
 
-.social-btn {
-    width: 85%;
-    height: 40px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #000;
-    transition: 0.3s ease;
-    border: 1px solid gray;
+        /* ===== FORGOT ===== */
+        .forgot-link {
+            font-size: 13px;
+            color: #434AFA;
+            text-decoration: none;
+            font-weight: 500;
+        }
 
-}
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
 
-.google {
-    background-color: #fff;
-}
+        /* ===== BUTTON ===== */
+        .loginbtn {
+            height: 46px;
+            background: #434AFA;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 6px;
+            border: none;
+            margin-top: 10px;
+        }
 
-.google:hover {
-    background-color: rgb(207, 237, 249);
-}
+        .loginbtn:hover {
+            background: #3a40e0;
+        }
 
-/* .facebook { background-color: #3b5998; }
-        .facebook:hover { backgro$434AFAnd-color: #2d4373; }
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 576px) {
+            .login-card {
+                padding: 2rem 1.5rem 3rem;
+            }
 
-        .github { background-color: #333; }
-        .github:hover { background-color: #000; } */
-
-.error-message {
-    font-size: 0.9rem;
-}
-
-.loginbtn {
-    background-color: #434AFA;
-    width: 300px !important;
-    color: white;
-    font-weight: 600;
-}
-
-.singupbtn {
-    background-color: #6049e7;
-    width: 100px !important;
-    color: white;
-    font-weight: 600;
-    box-shadow: 0 4px 10px #434AFA;
-    border: none;
-}
-
-.singupbtn:hover {
-    color: white;
-    background-color: #6a53ef;
-}
-
-/* Responsiveness */
-@media (max-width: 768px) {
-    .login-card {
-        padding: 2rem;
-    }
-    
-    .loginbtn {
-        width: 100% !important;
-        max-width: 100%;
-    }
-}
-
-@media (max-width: 576px) {
-    .loginBox {
-        min-height: calc(100vh - 80px); /* Adjust for smaller header/screens */
-        padding: 0 1rem;
-    }
-
-    .login-card {
-        padding: 1.5rem;
-    }
-
-    .login-card h3 {
-        font-size: 1.5rem;
-    }
-
-    .header {
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }
-}
+            .login-card::after {
+                font-size: 90px;
+                bottom: -40px;
+            }
+        }

@@ -10,6 +10,12 @@
         background: #f7f8fc;
     }
 
+    .data-table-card .custom-table thead th {
+    
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
+
     .calling-hero-card {
         background: transparent;
         border-radius: 0;

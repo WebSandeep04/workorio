@@ -11,6 +11,12 @@
     margin-right: 0;
   }
 
+  .data-table-card .custom-table thead th {
+    
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
+
   /* Table Search & Buttons */
   .table-search {
     width: 100%;

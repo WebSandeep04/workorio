@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Leave Management')
-@section('page_title', 'Leave Management')
 
-@push('styles')
+<?php $__env->startSection('title', 'Leave Management'); ?>
+<?php $__env->startSection('page_title', 'Leave Management'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
@@ -203,9 +203,9 @@
       .table-search-field { width: 100%; }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 mt-2">
     <div id="alertBox"></div>
     
@@ -307,9 +307,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 let allLeaves = [];
 let filteredLeaves = [];
@@ -354,7 +354,7 @@ function showAlert(type, message) {
 }
 
 function loadLeaves() {
-    $.get('{{ route("leave.fetch") }}', function(response) {
+    $.get('<?php echo e(route("leave.fetch")); ?>', function(response) {
         if (response.data) {
             allLeaves = response.data;
             filteredLeaves = [...allLeaves];
@@ -365,7 +365,7 @@ function loadLeaves() {
 }
 
 function loadLeaveTypes() {
-    $.get('{{ route("leave.types") }}', function(response) {
+    $.get('<?php echo e(route("leave.types")); ?>', function(response) {
         if (response.data) {
             let opts = '<option value="">Select Leave Type</option>';
             response.data.forEach(t => opts += `<option value="${t.id}">${t.name}</option>`);
@@ -461,14 +461,14 @@ function openDeleteModal(id) {
 
 function submitForm() {
     const data = {
-        _token: '{{ csrf_token() }}',
+        _token: '<?php echo e(csrf_token()); ?>',
         date: $('#date').val(),
         leave_type_id: $('#leave_type_id').val(),
         reason: $('#reason').val()
     };
     if (currentLeaveId) data._method = 'PUT';
     
-    const url = currentLeaveId ? `/leave/${currentLeaveId}` : '{{ route("leave.store") }}';
+    const url = currentLeaveId ? `/leave/${currentLeaveId}` : '<?php echo e(route("leave.store")); ?>';
     const method = currentLeaveId ? 'POST' : 'POST'; 
     
     $.ajax({
@@ -492,7 +492,7 @@ function deleteLeave() {
     $.ajax({
         url: `/leave/${deleteLeaveId}`,
         type: 'DELETE',
-        data: { _token: '{{ csrf_token() }}' },
+        data: { _token: '<?php echo e(csrf_token()); ?>' },
         success: function(res) {
              if (res.success) {
                  $('#deleteModal').modal('hide');
@@ -504,4 +504,6 @@ function deleteLeave() {
     });
 }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/leave/index.blade.php ENDPATH**/ ?>

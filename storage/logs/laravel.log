@@ -1809,3 +1809,15 @@
 [2026-01-28 14:00:59] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-01-28 14:00:59] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":11,"name":"Fauzia Praveen","email":"fauzia@triserv360.com","role_id":6,"tenant_id":1}} 
 [2026-01-28 14:00:59] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-29 09:18:22] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-01-29 09:18:26] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-29 09:18:27] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-29 09:18:27] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-29 09:18:27] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-29 09:42:19] local.INFO: Punch-in started {"user_id":13,"movement_type":"office"} 
+[2026-01-29 09:42:19] local.INFO: Late check: existing movements count {"user_id":13,"date":"2026-01-29","existing_count":0,"has_any_in":false} 
+[2026-01-29 09:42:19] local.INFO: Late check: first IN detection (pre-attendance) {"user_id":13,"movement_type":"office","has_any_in":false} 
+[2026-01-29 09:42:19] local.INFO: Late check: employee + shift lookup {"user_id":13,"employee_id":11,"has_shift":false} 
+[2026-01-29 09:42:19] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":905,"date":"2026-01-29"} 
+[2026-01-29 09:42:19] local.INFO: Auto punch-out field executed from office punch-in {"user_id":13,"attendance_id":905} 
+[2026-01-29 09:42:19] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":905,"movement_id":2069,"movement_type":"office","description":null} 

@@ -1,7 +1,7 @@
-@extends('layouts.app')
 
-@section('content')
-@push('styles')
+
+<?php $__env->startSection('content'); ?>
+<?php $__env->startPush('styles'); ?>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
@@ -141,7 +141,7 @@
   .modal-content { border-radius: 0; border: none; }
   .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
 <div class="container-fluid px-2 mt-2">
     
@@ -463,4 +463,6 @@ function viewMovements(id) {
     new bootstrap.Modal(document.getElementById('movementModal')).show();
 }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/attendance/history.blade.php ENDPATH**/ ?>

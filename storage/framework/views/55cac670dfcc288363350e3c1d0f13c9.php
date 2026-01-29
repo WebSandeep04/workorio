@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Client Social Handles')
-@section('page_title', 'Client Social Handles')
 
-@push('styles')
+<?php $__env->startSection('title', 'Client Social Handles'); ?>
+<?php $__env->startSection('page_title', 'Client Social Handles'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -301,9 +301,9 @@
     color: #6c757d;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
@@ -378,9 +378,9 @@
   </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -454,7 +454,7 @@ function updateRangeInfo(from, to, total) {
       </tr>
     `);
     
-    $.get(`{{ route('calendar-client-social.fetch') }}?page=${page}&search=${search}`).then(function(data){
+    $.get(`<?php echo e(route('calendar-client-social.fetch')); ?>?page=${page}&search=${search}`).then(function(data){
       // Store globals
       socialHandles = data.social_handles || [];
       relationships = data.relationships || {};
@@ -577,7 +577,7 @@ function updateRangeInfo(from, to, total) {
     }).get();
 
     $.ajax({
-      url: "{{ route('calendar-client-social.update') }}",
+      url: "<?php echo e(route('calendar-client-social.update')); ?>",
       method: 'POST',
       data: {
         _token: $('meta[name="csrf-token"]').attr('content'),
@@ -614,4 +614,6 @@ function escapeHtml(text = '') {
     .replace(/'/g, '&#39;');
 }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/calendar/client-social.blade.php ENDPATH**/ ?>

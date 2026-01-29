@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Petty Cash Approvals')
-@section('page_title', 'Petty Cash Approvals')
 
-@push('styles')
+<?php $__env->startSection('title', 'Petty Cash Approvals'); ?>
+<?php $__env->startSection('page_title', 'Petty Cash Approvals'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -379,9 +379,9 @@
     background-color: #e9ecef;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
 
   <!-- Summary Cards -->
@@ -498,7 +498,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form id="editEntryForm">
-        @csrf
+        <?php echo csrf_field(); ?>
         <input type="hidden" id="edit_entry_id">
         <div class="modal-body">
           <div class="mb-3">
@@ -543,9 +543,9 @@
   </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
 
@@ -558,7 +558,7 @@ $(document).ready(function() {
   }
 
   window.loadExpenses = function() {
-    $.get("{{ route('petty-cash.fetch-expenses') }}", function(data) {
+    $.get("<?php echo e(route('petty-cash.fetch-expenses')); ?>", function(data) {
       let options = '<option value="">Select Expense</option>';
       let filterOptions = '<option value="">All Expenses</option>';
       
@@ -573,7 +573,7 @@ $(document).ready(function() {
   }
 
   window.loadStats = function() {
-      $.get("{{ route('petty-cash.stats') }}", function(data) {
+      $.get("<?php echo e(route('petty-cash.stats')); ?>", function(data) {
           $('#stat_pending_count').text(data.total_pending_count);
           $('#stat_pending_amount').text(parseFloat(data.total_pending_amount).toFixed(2));
       });
@@ -588,7 +588,7 @@ $(document).ready(function() {
     let status = 0; // Always fetch pending
 
     $.ajax({
-      url: "{{ route('petty-cash.fetch') }}",
+      url: "<?php echo e(route('petty-cash.fetch')); ?>",
       data: { page, search, expense_id, from_date, to_date, month, status },
       success: function(response) {
         let rows = '';
@@ -678,7 +678,7 @@ $(document).ready(function() {
       $(btn).html('<i class="bi bi-arrow-repeat spin"></i>').prop('disabled', true);
 
       $.post(`/petty-cash/${id}/toggle-approval`, {
-          _token: '{{ csrf_token() }}'
+          _token: '<?php echo e(csrf_token()); ?>'
       }, function(response) {
           loadData();
           loadStats();
@@ -694,7 +694,7 @@ $(document).ready(function() {
       $.ajax({
         url: `/petty-cash/${id}`,
         type: 'DELETE',
-        data: { _token: '{{ csrf_token() }}' },
+        data: { _token: '<?php echo e(csrf_token()); ?>' },
         success: function(res) {
           loadData();
           loadStats();
@@ -720,8 +720,8 @@ $(document).ready(function() {
 
       $('#confirmationMessage').text(`Approve ${ids.length} entries?`);
       pendingAction = function() {
-          $.post("{{ route('petty-cash.approve-bulk') }}", {
-              _token: '{{ csrf_token() }}',
+          $.post("<?php echo e(route('petty-cash.approve-bulk')); ?>", {
+              _token: '<?php echo e(csrf_token()); ?>',
               ids: ids
           }, function(res) {
               loadData();
@@ -765,4 +765,6 @@ $(document).ready(function() {
 
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/pettycash/approvals.blade.php ENDPATH**/ ?>

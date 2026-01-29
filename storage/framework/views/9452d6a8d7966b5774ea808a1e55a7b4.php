@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Calling')
-@section('page_title', 'Calling')
 
-@push('styles')
+<?php $__env->startSection('title', 'My Calling'); ?>
+<?php $__env->startSection('page_title', 'My Calling'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
     .calling-page {
         padding: 0.5rem;
@@ -15,6 +15,7 @@
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
    
   }
+
     .calling-hero-card {
         background: transparent;
         border-radius: 0;
@@ -222,7 +223,6 @@
         margin: 0.35rem 0 0.75rem;
     }
 
-
     .filter-reset-btn {
         border: 2px solid rgba(255, 255, 255, 0.4);
         border-radius: 6px;
@@ -244,7 +244,7 @@
     }
 
     .modern-card-header {
-        padding: 0.35rem 0.75rem;
+        padding: 0px;
         border-bottom: 1px solid #eef0f6;
         display: flex;
         align-items: center;
@@ -270,62 +270,14 @@
         line-height: 1.2;
     }
 
-    .header-actions {
-        display: flex;
-        gap: 0.35rem;
-        flex-wrap: wrap;
-    }
-
-    .chip-btn {
-        border-radius: 4px;
-        border: none;
-        padding: 0.2rem 0.4rem;
-        font-size: 0.6rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.2rem;
-        transition: all 0.3s ease;
-        line-height: 1.2;
-    }
-
-    .chip-btn.primary {
-        background: linear-gradient(135deg, #ff7eb3 0%, #ff758c 100%);
-        color: #fff;
-        box-shadow: 0 2px 4px rgba(255, 118, 144, 0.25);
-    }
-
-    .chip-btn.primary:disabled {
-        opacity: 0.5;
-        box-shadow: none;
-    }
-
-    .chip-btn.ghost {
-        background: #f3f5ff;
-        color: #4a4de6;
-    }
-
     .modern-card {
         padding: 0;
         margin-bottom: 0.5rem;
     }
 
     .modern-card-body {
-        padding: 0.5rem;
+        padding: 0px;
     }
-
-    .form-check-input,
-    .row-checkbox {
-        border: 1px solid #000 !important;
-        border-radius: 3px;
-    }
-
-    .form-check-input:checked,
-    .row-checkbox:checked {
-        background-color: #667eea;
-        border-color: #000 !important;
-    }
-
 
     .data-table-card {
         border-radius: 5px;
@@ -369,7 +321,7 @@
         border-collapse: separate;
         border-spacing: 0;
         width: 100%;
-        min-width: 950px;
+        min-width: 850px;
         background: transparent;
         font-size: 0.85rem;
         table-layout: auto;
@@ -389,7 +341,7 @@
         top: 0;
         z-index: 5;
         white-space: nowrap;
-        font-family: Montserrat;
+        font-family: Monserrat;
     }
 
     .data-table-card .custom-table tbody td {
@@ -400,7 +352,7 @@
         text-align: left;
         background: transparent;
         white-space: nowrap;
-        font-family: Montserrat;
+        font-family: Monserrat;
     }
 
     .data-table-card .custom-table tbody td:first-child,
@@ -423,15 +375,14 @@
         border-bottom: none;
     }
 
-    .data-table-card .custom-table tbody td:nth-child(1) { min-width: 60px; }
-    .data-table-card .custom-table tbody td:nth-child(2) { min-width: 140px; }
-    .data-table-card .custom-table tbody td:nth-child(3) { min-width: 150px; }
-    .data-table-card .custom-table tbody td:nth-child(4) { min-width: 150px; }
-    .data-table-card .custom-table tbody td:nth-child(5) { min-width: 130px; }
-    .data-table-card .custom-table tbody td:nth-child(6) { min-width: 130px; }
-    .data-table-card .custom-table tbody td:nth-child(7) { min-width: 180px; }
-    .data-table-card .custom-table tbody td:nth-child(8) { min-width: 130px; }
-
+    .data-table-card .custom-table tbody td:nth-child(1) { min-width: 140px; }
+    .data-table-card .custom-table tbody td:nth-child(2) { min-width: 160px; }
+    .data-table-card .custom-table tbody td:nth-child(3) { min-width: 140px; }
+    .data-table-card .custom-table tbody td:nth-child(4) { min-width: 120px; }
+    .data-table-card .custom-table tbody td:nth-child(5) { min-width: 120px; }
+    .data-table-card .custom-table tbody td:nth-child(6) { min-width: 180px; }
+    .data-table-card .custom-table tbody td:nth-child(7) { min-width: 140px; }
+    .data-table-card .custom-table tbody td:nth-child(8) { min-width: 220px; }
 
     .remark-link {
         color: #667eea;
@@ -475,12 +426,14 @@
         transform: translateY(-1px);
     }
 
-    #alertContainer .alert {
+    #alertContainer .alert,
+    .alert-holder .alert {
         border-radius: 12px;
         border: none;
         padding: 0.85rem 1rem;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
+
 
      @media (max-width: 767px){
     .container-fluid{
@@ -500,246 +453,212 @@
     }
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 calling-page">
     <div class="calling-hero-card">
         <div>
-            <p class="eyebrow-text">Calling Queue</p>
-            <h2 class="hero-title">React-inspired Calling Board</h2>
-            <p class="mb-0">Assign prospects in seconds, change calling types inline, and keep the team moving without page reloads.</p>
+            <p class="eyebrow-text">My queue</p>
+            <h2 class="hero-title">Assigned callings</h2>
+            <p class="mb-0">Review your locked prospects, update calling types inline, and keep remarks at your fingertips.</p>
         </div>
         <div class="hero-metrics">
             <div class="hero-metric-card">
                 <div class="hero-metric-icon icon-sky">
-                    <img src="{{ asset('img/icons/call.png') }}" alt="Total Records">
+                    <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Total Assigned">
                 </div>
                 <div class="hero-metric-content">
-                    <span class="metric-label">Total Records</span>
-                    <span class="metric-value" id="totalCallings">0</span>
-                </div>
-            </div>
-            <div class="hero-metric-card">
-                <div class="hero-metric-icon icon-emerald">
-                    <img src="{{ asset('img/icons/tick.png') }}" alt="Selected">
-                </div>
-                <div class="hero-metric-content">
-                    <span class="metric-label">Selected</span>
-                    <span class="metric-value" id="heroSelected">0</span>
+                    <span class="metric-label">Total assigned</span>
+                    <span class="metric-value" id="totalAssigned">0</span>
                 </div>
             </div>
             <div class="hero-metric-card">
                 <div class="hero-metric-icon icon-amber">
-                    <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
+                    <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
                 </div>
                 <div class="hero-metric-content">
-                    <span class="metric-label">Active Filters</span>
+                    <span class="metric-label">Active filters</span>
                     <span class="metric-value" id="activeFilters">0</span>
                 </div>
             </div>
-        </div>
+            <div class="hero-metric-card">
+                <div class="hero-metric-icon icon-emerald">
+                    <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Latest Update">
                 </div>
+                <div class="hero-metric-content">
+                    <span class="metric-label">Latest update</span>
+                    <span class="metric-value" id="lastUpdated">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div id="alertContainer"></div>
+    <div id="alertContainer" class="alert-holder"></div>
 
     <div class="filterBox">
         <div>
             <label for="filter_state" class="form-label-modern"><i class="bi bi-geo-alt"></i> State</label>
             <select id="filter_state" class="form-control-modern">
-                                <option value="">All States</option>
-                            </select>
-                        </div>
+                <option value="">All States</option>
+            </select>
+        </div>
         <div>
             <label for="filter_city" class="form-label-modern"><i class="bi bi-buildings"></i> City</label>
             <select id="filter_city" class="form-control-modern">
-                                <option value="">All Cities</option>
-                            </select>
-                        </div>
+                <option value="">All Cities</option>
+            </select>
+        </div>
         <div>
             <label for="filter_calling_type" class="form-label-modern"><i class="bi bi-telephone"></i> Calling Type</label>
             <select id="filter_calling_type" class="form-control-modern">
-                                <option value="">All Types</option>
-                            </select>
-                        </div>
+                <option value="">All Types</option>
+            </select>
+        </div>
         <div>
             <label class="form-label-modern" style="visibility: hidden;">Reset</label>
             <button id="resetFilters" class="filter-reset-btn w-100">
                 <i class="bi bi-arrow-counterclockwise"></i> Reset
             </button>
-                        </div>
-                    </div>
-
-        <div class="table-search mb-2">
-            <div class="table-search-field">
-                <i class="bi bi-search"></i>
-                <input type="text" id="filter_name" placeholder="Search by name" />
-            </div>
         </div>
+    </div>
 
-        <div class="modern-card data-table-card">
+    <div class="table-search mb-2">
+        <div class="table-search-field">
+            <i class="bi bi-search"></i>
+            <input type="text" id="filter_name" placeholder="Search by name" />
+        </div>
+    </div>
+
+    <div class="modern-card data-table-card">
         <div class="modern-card-header">
-            <div>
-                <p class="section-eyebrow mb-1">Live queue</p>
-                <h4 class="card-title-modern mb-0">Unassigned callings</h4>
-            </div>
-            <div class="header-actions">
-                <button id="lockSelectedBtn" class="chip-btn primary" disabled>
-                            <i class="bi bi-lock"></i> Lock Selected (<span id="selectedCount">0</span>)
-                        </button>
-                <button id="selectAllBtn" class="chip-btn ghost">
-                            <i class="bi bi-check2-square"></i> Select All
-                        </button>
-                    </div>
-                </div>
+        </div>
         <div class="modern-card-body">
-                    <div class="table-scroll">
+            <div class="table-scroll">
                 <table class="table custom-table" id="callingTable">
                     <thead>
-                                <tr>
-                                    <th style="width: 40px;">
-                                        <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
-                                    </th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Calling Type</th>
-                                    <th>State</th>
-                                    <th>City</th>
-                                    <th>Address</th>
-                                    <th>Phone</th>
-                                    <th style="width: 180px;">Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                        <!-- Data loaded via ajax -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Calling Type</th>
+                            <th>State</th>
+                            <th>City</th>
+                            <th>Address</th>
+                            <th>Phone</th>
+                            <th style="width: 180px;">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
+        </div>
+    </div>
 
-    <div class="table-range-meta" id="callingRangeInfo">
+    <div class="table-range-meta" id="myCallingRangeInfo">
         Showing 0-0 from 0 data
     </div>
 
     <div class="pagination-wrapper">
-                <ul class="pagination" id="paginationLinks"></ul>
-            </div>
+        <ul class="pagination" id="paginationLinks"></ul>
+    </div>
     <div class="pagination-wrapper">
-                <ul class="pagination" id="paginationFilterLinks"></ul>
+        <ul class="pagination" id="paginationFilterLinks"></ul>
     </div>
 </div>
-@endsection     
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
-    $(document).ready(function() {
-        var $tbody = $('#callingTable tbody');
-        let totalRecords = 0;
-        let activeFilterCount = 0;
+    $(document).ready(function () {
+        const $tbody = $('#callingTable tbody');
+        let currentPage = 1;
+        let currentFilterPage = 1;
+        let totalAssigned = 0;
 
-        $.ajaxSetup({
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-        });
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-        function formatNumber(num) {
-            return Number(num || 0).toLocaleString('en-IN');
-        }
+        const formatNumber = (value) => Number(value || 0).toLocaleString('en-IN');
 
         function updateTotals(meta) {
             if (meta && typeof meta.total !== 'undefined') {
-                totalRecords = meta.total;
+                totalAssigned = meta.total;
             } else if (Array.isArray(meta)) {
-                totalRecords = meta.length;
+                totalAssigned = meta.length;
             } else if (meta && meta.data) {
-                totalRecords = meta.data.length;
+                totalAssigned = meta.data.length;
             } else {
-                totalRecords = 0;
+                totalAssigned = 0;
             }
-            $('#totalCallings').text(formatNumber(totalRecords));
+            $('#totalAssigned').text(formatNumber(totalAssigned));
+            $('#lastUpdated').text(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         }
 
         function setActiveFiltersCount(count) {
-            activeFilterCount = count;
             $('#activeFilters').text(formatNumber(count));
         }
 
         function loadStates() {
-            $.get('{{ route("calling.filter-options") }}', function(resp) {
-                var $state = $('#filter_state');
+            $.get('<?php echo e(route("calling.my.filter-options")); ?>', function (resp) {
+                const $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
-                (resp.states || []).forEach(function(s){
-                    $state.append('<option value="'+s.id+'">'+s.name+'</option>');
-                });
-                
-                // Store calling types globally for use in dropdowns
+                (resp.states || []).forEach(function (s) { $state.append('<option value="' + s.id + '">' + s.name + '</option>'); });
+
                 window.callingTypes = resp.calling_types || [];
-                
-                // Load calling types for filter
-                var $callingType = $('#filter_calling_type');
+                const $callingType = $('#filter_calling_type');
                 $callingType.empty().append('<option value="">All Types</option>');
-                window.callingTypes.forEach(function(ct){
-                    $callingType.append('<option value="'+ct.id+'">'+ct.name+'</option>');
+                window.callingTypes.forEach(function (ct) {
+                    $callingType.append('<option value="' + ct.id + '">' + ct.name + '</option>');
                 });
-                
             });
         }
 
         function loadCitiesByState(stateId) {
             if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
-            var url = '{{ route("calling.cities", ["stateId" => 0]) }}'.replace(/0$/, String(stateId));
-            $.get(url, function(cities){
-                var $city = $('#filter_city');
+            const url = '<?php echo e(route("calling.my.cities", ["stateId" => 0])); ?>'.replace(/0$/, String(stateId));
+            $.get(url, function (cities) {
+                const $city = $('#filter_city');
                 $city.empty().append('<option value="">All Cities</option>');
-                (cities || []).forEach(function(c){
-                    $city.append('<option value="'+c.id+'">'+c.name+'</option>');
-                });
-            }).fail(function(xhr){
-                console.error('Failed to load cities', xhr.status, xhr.responseText);
+                (cities || []).forEach(function (c) { $city.append('<option value="' + c.id + '">' + c.name + '</option>'); });
             });
         }
 
         function renderRows(rows) {
-            var html = '';
+            let html = '';
             if (rows && rows.length) {
-                rows.forEach(function(r){
-                    var stateName = (r.state && (r.state.state_name || r.state.name)) || '-';
-                    var cityName = (r.city && (r.city.city_name || r.city.name)) || '-';
-                    var phone = r.phone || r.mobile || '';
-                    var full = (r.latest_remark && r.latest_remark.remark) ? r.latest_remark.remark : '';
-                    var short = full ? (full.length > 10 ? full.substring(0,10) + '...' : full) : '-';
-                    var remarkLink = '<a href="/calling/'+ r.id +'/remarks" title="'+ (full || '') +'">' + short + '</a>';
+                rows.forEach(function (r) {
+                    const stateName = (r.state && (r.state.state_name || r.state.name)) || '-';
+                    const cityName = (r.city && (r.city.city_name || r.city.name)) || '-';
+                    const phone = r.phone || r.mobile || '';
+                    const full = (r.latest_remark && r.latest_remark.remark) ? r.latest_remark.remark : '';
+                    const short = full ? (full.length > 12 ? full.substring(0, 12) + '...' : full) : '-';
+                    const remarkLink = '<a href="/calling/' + r.id + '/remarks" class="remark-link" title="' + (full || '') + '">' + short + '</a>';
 
-                    // Create calling type dropdown
-                    var callingTypeOptions = '';
+                    let callingTypeOptions = '';
                     if (window.callingTypes && window.callingTypes.length > 0) {
-                        window.callingTypes.forEach(function(ct) {
-                            var selected = ct.id === r.calling_type_id ? 'selected' : '';
+                        window.callingTypes.forEach(function (ct) {
+                            const selected = ct.id === r.calling_type_id ? 'selected' : '';
                             callingTypeOptions += '<option value="' + ct.id + '" ' + selected + '>' + ct.name + '</option>';
                         });
                     }
-                    var callingTypeDropdown = '<select class="form-select form-select-sm calling-type-select" data-calling-id="' + r.id + '" style="min-width: 100px;">' + callingTypeOptions + '</select>';
+                    const callingTypeDropdown = '<select class="form-select form-select-sm calling-type-select" data-calling-id="' + r.id + '" style="min-width: 120px;">' + callingTypeOptions + '</select>';
 
-                    html += '\n<tr>' +
-                        '<td><input type="checkbox" class="form-check-input row-checkbox" value="' + r.id + '" data-calling-id="' + r.id + '"></td>' +
-                        '<td>' + (r.name || '-') + '</td>' +
-                        '<td>' + (r.email || '-') + '</td>' +
-                        '<td>' + callingTypeDropdown + '</td>' +
-                        '<td>' + stateName + '</td>' +
-                        '<td>' + cityName + '</td>' +
-                        '<td>' + (r.address || '-') + '</td>' +
-                        '<td>' + phone + '</td>' +
-                        '<td>' + remarkLink + '</td>' +
-                    '</tr>';
+                    html += `
+                        <tr>
+                            <td>${r.name || '-'}</td>
+                            <td>${r.email || '-'}</td>
+                            <td>${callingTypeDropdown}</td>
+                            <td>${stateName}</td>
+                            <td>${cityName}</td>
+                            <td>${r.address || '-'}</td>
+                            <td>${phone}</td>
+                            <td>${remarkLink}</td>
+                        </tr>`;
                 });
             } else {
-                html = '<tr><td colspan="10" class="text-center">No records found.</td></tr>';
+                html = '<tr><td colspan="8" class="text-center">No records found.</td></tr>';
             }
             $tbody.html(html);
         }
-
-        let currentPage = 1;
-        let currentFilterPage = 1;
 
         // Build simple pagination: "Previous [current / last] Next"
         function buildDetailedPagination($container, current, last) {
@@ -771,24 +690,20 @@
             `);
         }
 
-        function loadCallings(page = 1) {
+        function loadMyCallings(page = 1) {
             currentPage = page;
-            $.get('{{ route("calling.data") }}?page=' + page, function(data){
-                var rows = Array.isArray(data) ? data : (data.data || []);
+            $.get('<?php echo e(route("calling.my.data")); ?>?page=' + page, function (data) {
+                const rows = Array.isArray(data) ? data : (data.data || []);
                 renderRows(rows);
                 renderPagination(data);
                 updateTotals(data);
                 setActiveFiltersCount(0);
-            }).fail(function(xhr){
-                console.error('Failed to load callings', xhr.status, xhr.responseText);
             });
         }
 
         function renderPagination(data) {
             const $pagination = $('#paginationLinks');
-            const current = data.current_page;
-            const last = data.last_page;
-            buildDetailedPagination($pagination, current, last);
+            buildDetailedPagination($pagination, data.current_page, data.last_page);
             $('#paginationLinks').show();
             $('#paginationFilterLinks').hide();
             updateRangeInfo(data.from, data.to, data.total);
@@ -796,45 +711,38 @@
 
         function applyFilters(page = 1) {
             currentFilterPage = page;
-            var name = ($('#filter_name').val() || '').trim();
-            var stateId = $('#filter_state').val();
-            var cityId = $('#filter_city').val();
-            var callingTypeId = $('#filter_calling_type').val();
+            const name = ($('#filter_name').val() || '').trim();
+            const stateId = $('#filter_state').val();
+            const cityId = $('#filter_city').val();
+            const callingTypeId = $('#filter_calling_type').val();
             const appliedCount = [name, stateId, cityId, callingTypeId].filter(Boolean).length;
+
             if (!appliedCount) {
                 setActiveFiltersCount(0);
-                loadCallings(1);
+                loadMyCallings(1);
                 return;
             }
+
             setActiveFiltersCount(appliedCount);
-            $.post('{{ route("calling.filter") }}?page=' + page, {
-                name: name,
-                state_id: stateId,
-                city_id: cityId,
-                calling_type_id: callingTypeId
-            }).done(function(data){
-                var rows = Array.isArray(data) ? data : (data.data || []);
-                renderRows(rows);
-                renderFilterPagination(data);
-                updateTotals(data);
-            }).fail(function(xhr){
-                console.error('Filter failed', { name, stateId, cityId, callingTypeId }, xhr.status, xhr.responseText);
-                alert('Failed to fetch filtered results');
-            });
+            $.post('<?php echo e(route("calling.my.filter")); ?>?page=' + page, { name, state_id: stateId, city_id: cityId, calling_type_id: callingTypeId })
+                .done(function (data) {
+                    const rows = Array.isArray(data) ? data : (data.data || []);
+                    renderRows(rows);
+                    renderFilterPagination(data);
+                    updateTotals(data);
+                });
         }
 
         function renderFilterPagination(data) {
             const $pagination = $('#paginationFilterLinks');
-            const current = data.current_page;
-            const last = data.last_page;
-            buildDetailedPagination($pagination, current, last);
+            buildDetailedPagination($pagination, data.current_page, data.last_page);
             $('#paginationFilterLinks').show();
             $('#paginationLinks').hide();
             updateRangeInfo(data.from, data.to, data.total);
         }
 
         function updateRangeInfo(from, to, total) {
-            const $info = $('#callingRangeInfo');
+            const $info = $('#myCallingRangeInfo');
             if (!$info.length) return;
 
             const totalValue = Number(total);
@@ -853,32 +761,37 @@
             $info.text(`Showing ${formattedStart}-${formattedEnd} from ${formattedTotal} data`);
         }
 
-        // Init
-        loadStates();
-        loadCallings();
-
-        // Events
-        function debounce(fn, delay){
-            let t; return function(){
-                clearTimeout(t); const args = arguments; const ctx = this;
-                t = setTimeout(function(){ fn.apply(ctx, args); }, delay);
+        function debounce(fn, delay) {
+            let t;
+            return function () {
+                clearTimeout(t);
+                const args = arguments;
+                const ctx = this;
+                t = setTimeout(function () { fn.apply(ctx, args); }, delay);
             };
         }
 
         const triggerFilter = debounce(applyFilters, 300);
 
-        $('#filter_state').on('change', function(){ loadCitiesByState($(this).val()); triggerFilter(); });
+        $('#filter_state').on('change', function () { loadCitiesByState($(this).val()); triggerFilter(); });
         $('#filter_city').on('change', triggerFilter);
         $('#filter_calling_type').on('change', triggerFilter);
         $('#filter_name').on('input', triggerFilter);
-        $('#resetFilters').on('click', function(e){ e.preventDefault(); $('#filter_name').val(''); $('#filter_state').val(''); $('#filter_city').html('<option value="">All Cities</option>'); $('#filter_calling_type').val(''); setActiveFiltersCount(0); loadCallings(1); });
+        $('#resetFilters').on('click', function (e) {
+            e.preventDefault();
+            $('#filter_name').val('');
+            $('#filter_state').val('');
+            $('#filter_city').html('<option value="">All Cities</option>');
+            $('#filter_calling_type').val('');
+            setActiveFiltersCount(0);
+            loadMyCallings(1);
+        });
 
-        // Pagination click handlers
         $(document).on('click', '#paginationLinks .page-link', function (e) {
             e.preventDefault();
             const page = $(this).data('page');
             if (page && page !== currentPage) {
-                loadCallings(page);
+                loadMyCallings(page);
             }
         });
 
@@ -890,55 +803,44 @@
             }
         });
 
-        // Handle calling type dropdown changes
-        $(document).on('change', '.calling-type-select', function() {
-            var callingId = $(this).data('calling-id');
-            var newCallingType = $(this).val();
-            var $select = $(this);
-            
-            // Show loading state
+        $(document).on('change', '.calling-type-select', function () {
+            const callingId = $(this).data('calling-id');
+            const newCallingType = $(this).val();
+            const $select = $(this);
             $select.prop('disabled', true);
-            
+
             $.ajax({
-                url: '{{ route("calling.update-type") }}',
+                url: '<?php echo e(route("calling.my.update-type")); ?>',
                 type: 'POST',
                 data: {
                     calling_id: callingId,
-                    calling_type_id: newCallingType,
-                    _token: $('meta[name="csrf-token"]').attr('content')
+                    calling_type_id: newCallingType
                 },
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
-                        // Show success message
                         showAlert('success', 'Calling type updated successfully!');
-                        
-                        // If changed to Junk, remove from current view
-                        var junkTypeId = window.callingTypes.find(ct => ct.name === 'Junk')?.id;
-                        if (newCallingType == junkTypeId) {
-                            $select.closest('tr').fadeOut(function() {
+                        const junkTypeId = window.callingTypes.find(ct => ct.name === 'Junk')?.id;
+                        if (Number(newCallingType) === junkTypeId) {
+                            $select.closest('tr').fadeOut(function () {
                                 $(this).remove();
+                                updateTotals({ total: totalAssigned - 1 });
                             });
                         }
                     } else {
-                        showAlert('error', 'Failed to update calling type.');
-                        // Revert the dropdown
-                        reloadAll();
+                        showAlert('error', response.message || 'Failed to update calling type.');
+                        loadMyCallings(currentPage);
                     }
                 },
-                error: function(xhr) {
-                    console.error('Update failed:', xhr.responseText);
+                error: function () {
                     showAlert('error', 'Failed to update calling type.');
-                    // Revert the dropdown
-                    reloadAll();
+                    loadMyCallings(currentPage);
                 },
-                complete: function() {
+                complete: function () {
                     $select.prop('disabled', false);
                 }
             });
         });
 
-
-        // Show alert function
         function showAlert(type, message) {
             const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
             const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
@@ -949,118 +851,16 @@
                 </div>
             `;
             $('#alertContainer').html(alertHtml);
-            
-            setTimeout(function() {
-                $('#alertContainer .alert').fadeOut(function(){ $(this).remove(); });
+            setTimeout(function () {
+                $('#alertContainer .alert').fadeOut(function () { $(this).remove(); });
             }, 4000);
         }
 
-        // Checkbox and Lock functionality
-        function updateSelectedCount() {
-            var selectedCount = $('.row-checkbox:checked').length;
-            $('#selectedCount').text(selectedCount);
-            $('#heroSelected').text(formatNumber(selectedCount));
-            $('#lockSelectedBtn').prop('disabled', selectedCount === 0);
-        }
-
-        // Select All functionality
-        $('#selectAllCheckbox').on('change', function() {
-            var isChecked = $(this).is(':checked');
-            $('.row-checkbox').prop('checked', isChecked);
-            updateSelectedCount();
-        });
-
-        // Individual checkbox change
-        $(document).on('change', '.row-checkbox', function() {
-            updateSelectedCount();
-            
-            // Update select all checkbox state
-            var totalCheckboxes = $('.row-checkbox').length;
-            var checkedCheckboxes = $('.row-checkbox:checked').length;
-            
-            if (checkedCheckboxes === 0) {
-                $('#selectAllCheckbox').prop('indeterminate', false).prop('checked', false);
-            } else if (checkedCheckboxes === totalCheckboxes) {
-                $('#selectAllCheckbox').prop('indeterminate', false).prop('checked', true);
-            } else {
-                $('#selectAllCheckbox').prop('indeterminate', true);
-            }
-        });
-
-        // Select All button functionality
-        $('#selectAllBtn').on('click', function() {
-            var $btn = $(this);
-            var allChecked = $('.row-checkbox:checked').length === $('.row-checkbox').length;
-            
-            if (allChecked) {
-                $('.row-checkbox').prop('checked', false);
-                $('#selectAllCheckbox').prop('checked', false).prop('indeterminate', false);
-                $btn.html('<i class="bi bi-check2-square"></i> Select All');
-            } else {
-                $('.row-checkbox').prop('checked', true);
-                $('#selectAllCheckbox').prop('checked', true).prop('indeterminate', false);
-                $btn.html('<i class="bi bi-square"></i> Deselect All');
-            }
-            updateSelectedCount();
-        });
-
-        // Lock Selected functionality
-        $('#lockSelectedBtn').on('click', function() {
-            var selectedIds = [];
-            $('.row-checkbox:checked').each(function() {
-                selectedIds.push($(this).val());
-            });
-            
-            if (selectedIds.length === 0) {
-                showAlert('error', 'Please select at least one calling to lock.');
-                return;
-            }
-            
-            // Confirmation dialog
-            if (!confirm(`Are you sure you want to lock ${selectedIds.length} selected calling(s)? This will assign them to you.`)) {
-                return;
-            }
-            
-            var $btn = $(this);
-            const defaultLabel = $btn.html();
-            $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Locking...');
-            
-            $.ajax({
-                url: '{{ route("calling.lock-selected") }}',
-                type: 'POST',
-                data: {
-                    calling_ids: selectedIds,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    if (response.success) {
-                        showAlert('success', `Successfully locked ${response.locked_count} calling(s)!`);
-                        
-                        // Remove locked rows from current view or reload
-                        selectedIds.forEach(function(id) {
-                            $('input[value="' + id + '"]').closest('tr').fadeOut(function() {
-                                $(this).remove();
-                                updateSelectedCount();
-                            });
-                        });
-                        
-                        // Reset checkboxes
-                        $('#selectAllCheckbox').prop('checked', false).prop('indeterminate', false);
-                        $('#selectAllBtn').html('<i class="bi bi-check2-square"></i> Select All');
-                    } else {
-                        showAlert('error', response.message || 'Failed to lock selected callings.');
-                    }
-                },
-                error: function(xhr) {
-                    console.error('Lock failed:', xhr.responseText);
-                    showAlert('error', 'Failed to lock selected callings. Please try again.');
-                },
-                complete: function() {
-                    $btn.prop('disabled', false).html(defaultLabel);
-                    updateSelectedCount();
-                }
-            });
-        });
+        // initial load
+        loadStates();
+        loadMyCallings();
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/calling/mycalling.blade.php ENDPATH**/ ?>
