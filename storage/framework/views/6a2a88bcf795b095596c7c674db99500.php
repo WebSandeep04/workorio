@@ -325,8 +325,6 @@
     }
 
     .modal-header-modern {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
         padding: 1rem 1.5rem;
         border: none;
     }
@@ -357,7 +355,7 @@
     }
 
     .btn-close-modern {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #434AFA;
         color: white;
         border: none;
         padding: 0.5rem 1.5rem;
@@ -369,7 +367,7 @@
     .btn-close-modern:hover {
         opacity: 0.9;
         transform: translateY(-1px);
-        color: white;
+        color: #434AFA;
     }
 
     .badge-modern {
@@ -380,12 +378,12 @@
     }
 
     .badge-info-modern {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        background: #434AFA;
         color: white;
     }
 
     .btn-pdf-modern {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #434AFA;
         color: white;
         border: none;
         padding: 0.35rem 0.75rem;
@@ -437,15 +435,15 @@
     }
 
     .btn-download {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #434AFA;
     }
 
     .btn-revise {
-        background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%);
+        background: #434AFA;
     }
 
     .btn-history {
-        background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+        background: #434AFA;
     }
 
     .btn-action i {
@@ -455,6 +453,128 @@
     .btn-action span {
         display: none;
     }
+
+    .modal-header-modern{
+        background: #434AFA;
+        color: white;
+    }
+
+     /* Table CSS */
+  .modern-card {
+    padding: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .data-table-card {
+    border-radius: 5px;
+    border: 1px solid #f2f4f7;
+    background: #fff;
+    box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+    font-family: Montserrat;
+  }
+
+  .data-table-card .modern-card-body {
+    padding: 0;
+  }
+
+  .data-table-card .table-responsive {
+    border-radius: 5px;
+    border: none;
+    box-shadow: none;
+    padding: 0.5rem 0.75rem 1rem;
+    overflow-x: auto;
+    background: transparent;
+  }
+
+  .data-table-card .table-responsive::-webkit-scrollbar {
+    height: 8px;
+  }
+  .data-table-card .table-responsive::-webkit-scrollbar-track {
+    background: #e4e7ec;
+    border-radius: 999px;
+  }
+  .data-table-card .table-responsive::-webkit-scrollbar-thumb {
+    background: #434AFA;
+    border-radius: 999px;
+  }
+
+  .data-table-card .custom-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 0.85rem;
+    background: transparent;
+    table-layout: auto;
+    min-width: 100%;
+    font-family: Montserrat !important;
+  }
+
+  /* IMPORTANT: White header style with vertical borders */
+  .data-table-card .custom-table thead th {
+    background: #fff;
+    color: #000;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #f1f3f5;
+    border-right: 1px solid #f1f3f5;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    white-space: nowrap;
+    font-family: Montserrat;
+  }
+  
+  .data-table-card .custom-table thead th:last-child {
+    border-right: none;
+  }
+
+  .data-table-card .custom-table tbody td {
+    font-size: 0.85rem;
+    padding: 0.65rem 0.75rem;
+    color: #000;
+    border-bottom: 1px solid #f4f4f6;
+    text-align: left;
+    background: transparent;
+    white-space: nowrap;
+    font-family: Montserrat;
+  }
+  
+  .data-table-card .custom-table tbody tr {
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .data-table-card .custom-table tbody tr:hover {
+    background: #f8f9ff;
+    box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .data-table-card .custom-table tbody td:nth-child(1) { min-width: 100px; }
+  .data-table-card .custom-table tbody td:nth-child(2) { min-width: 120px; }
+  .data-table-card .custom-table tbody td:nth-child(3) { min-width: 120px; }
+  .data-table-card .custom-table tbody td:nth-child(4) { min-width: 140px; }
+  .data-table-card .custom-table tbody td:nth-child(5) { min-width: 110px; }
+  .data-table-card .custom-table tbody td:nth-child(6) { min-width: 120px; }
+  .data-table-card .custom-table tbody td:nth-child(7) { min-width: 140px; }
+  .data-table-card .custom-table tbody td:nth-child(8) { min-width: 120px; }
+  .data-table-card .custom-table tbody td:nth-child(9) { min-width: 150px; }
+  .data-table-card .custom-table tbody td:nth-child(10) { min-width: 130px; }
+  .data-table-card .custom-table tbody td:nth-child(11) { min-width: 130px; }
+  .data-table-card .custom-table tbody td:nth-child(12) { min-width: 130px; }
+  .data-table-card .custom-table tbody td:nth-child(13) { min-width: 110px; }
+  .data-table-card .custom-table tbody td:nth-child(14) { min-width: 140px; }
+  .data-table-card .custom-table tbody td:nth-child(15) { min-width: 140px; }
+  .data-table-card .custom-table tbody td:nth-child(16) { min-width: 180px; }
+
+  .data-table-card .custom-table thead th {  
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+   
+  }
 
     @media (max-width: 767px) {
         .container-fluid {
@@ -554,29 +674,34 @@
                 Add +
             </a>
         </div>
-        <div class="modern-card-body">
-            <div class="table-responsive">
-                <table class="table custom-table" id="quotationsTable">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>QUOTATION NO</th>
-                            <th>CUSTOMER/PROSPECT</th>
-                            <th>TOTAL AMOUNT</th>
-                            <th>CREATED AT</th>
-                            <th>ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="quotationsBody">
-                        <tr>
-                            <td colspan="6" class="loading-state">
-                                <div class="loading-spinner"></div>
-                                <p class="mt-2 mb-0">Loading quotations…</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        
+            <div class="modern-card data-table-card">
+                <div class="modern-card-body">
+                    <div class="table-responsive">
+                        <table class="table custom-table" id="quotationsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>QUOTATION NO</th>
+                                    <th>CUSTOMER/PROSPECT</th>
+                                    <th>TOTAL AMOUNT</th>
+                                    <th>CREATED AT</th>
+                                    <th>ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quotationsBody">
+                                <tr>
+                                    <td colspan="6" class="loading-state">
+                                        <div class="loading-spinner"></div>
+                                        <p class="mt-2 mb-0">Loading quotations…</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+        
             
             <!-- Pagination -->
             <div class="table-footer">
@@ -603,7 +728,6 @@
         <div class="modal-content">
             <div class="modal-header-modern">
                 <h6 class="modal-title-modern">Revision History: <span id="revQuoteNo"></span></h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="table-responsive">

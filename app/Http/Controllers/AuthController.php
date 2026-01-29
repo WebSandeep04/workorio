@@ -63,7 +63,7 @@ public function logout(Request $request)
     $request->session()->invalidate();
     $request->session()->regenerateToken();
     $request->session()->forget(['user_id', 'user_name', 'tenant_id', 'user_role']);
-    return redirect('/login');
+    return redirect('/');
 }
 
 

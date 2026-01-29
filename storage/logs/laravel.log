@@ -1821,3 +1821,13 @@
 [2026-01-29 09:42:19] local.INFO: Punch-in attendance resolved {"user_id":13,"attendance_id":905,"date":"2026-01-29"} 
 [2026-01-29 09:42:19] local.INFO: Auto punch-out field executed from office punch-in {"user_id":13,"attendance_id":905} 
 [2026-01-29 09:42:19] local.INFO: Punch-in movement created {"user_id":13,"attendance_id":905,"movement_id":2069,"movement_type":"office","description":null} 
+[2026-01-29 10:24:07] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-01-29 10:24:07] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-29 10:24:08] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-29 10:24:08] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-29 10:24:08] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-01-29 12:24:29] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-01-29 12:24:38] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-01-29 12:24:40] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-01-29 12:24:40] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-01-29 12:24:40] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

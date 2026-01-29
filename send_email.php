@@ -7,9 +7,9 @@ require 'vendor/autoload.php';
 
 // ================== CONFIG ==================
 $servername = "localhost";
-$username   = "u976774818_TENHJSVNC";
-$password   = "I]8g&:YVp";
-$dbname     = "u976774818_TENHJSVNC";
+$username   = "u976774818_triserv360";
+$password   = "g/OdVW0e8R";
+$dbname     = "u976774818_triserv360";
 
 // Optional filter (?date=YYYY-MM-DD). Default: today
 $targetDate = isset($_GET['date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['date'])
@@ -168,8 +168,18 @@ if ($resTomorrow && $resTomorrow->num_rows > 0) {
 
         if (is_null($r['status_id']) || empty($r['status_name'])) {
             // Pending status
-            $statusColor = getStatusColor('pending');
-            $statusText = "Pending";
+            $evtDate = $r['event_date'];
+            if ($evtDate == $targetDate) {
+                $statusText = "Due Today";
+                $statusColor = getStatusColor('pending');
+            } elseif ($evtDate > $targetDate) {
+                $statusText = "Upcoming";
+                $statusColor = '#cff4fc'; // Light blue
+            } else {
+                $statusText = "Pending";
+                $statusColor = getStatusColor('pending');
+            }
+            
             $statusBadge = "<span style='background:{$statusColor};color:#212529;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:500;'>$statusText</span>";
         } else {
             // Has status - check if missed and show reason
@@ -342,7 +352,18 @@ if (!empty($monthlyByClient)) {
                     if ($isPending) {
                         $badgeColor = getStatusColor('pending');
                         $textColor = '#212529';
-                        $statusText = 'Pending';
+                        
+                        $evtDate = $event['event_date'];
+                        if ($evtDate == $targetDate) {
+                            $statusText = "Due Today";
+                            $badgeColor = getStatusColor('pending');
+                        } elseif ($evtDate > $targetDate) {
+                            $statusText = "Upcoming";
+                            $badgeColor = '#0dcaf0'; // Cyan for light blue tint
+                        } else {
+                            $statusText = "Pending";
+                            $badgeColor = getStatusColor('pending');
+                        }
                     } else {
                         $statusName = $event['status_name'];
                         $badgeColor = getStatusColor($statusName);
@@ -434,7 +455,14 @@ if ($resTomorrow && $resTomorrow->num_rows > 0) {
     $res2 = $stTomorrow->get_result();
     $i = 1;
     while ($r = $res2->fetch_assoc()) {
-        $statusText = is_null($r['status_id']) || empty($r['status_name']) ? 'Pending' : $r['status_name'];
+        if (is_null($r['status_id']) || empty($r['status_name'])) {
+            $evtDate = $r['event_date'];
+            if ($evtDate == $targetDate) $statusText = "Due Today";
+            elseif ($evtDate > $targetDate) $statusText = "Upcoming";
+            else $statusText = "Pending";
+        } else {
+            $statusText = $r['status_name'];
+        }
         
         // Add missed reason if applicable
         $isMissed = !empty($r['status_name']) && strtolower(trim($r['status_name'])) === 'missed';
@@ -460,7 +488,14 @@ if (!empty($monthlyByClient)) {
     foreach ($monthlyByClient as $clientName => $events) {
         $plain .= "CLIENT: $clientName (" . count($events) . " events)\n";
         foreach ($events as $event) {
-            $statusText = is_null($event['status_id']) || empty($event['status_name']) ? 'Pending' : $event['status_name'];
+            if (is_null($event['status_id']) || empty($event['status_name'])) {
+                $evtDate = $event['event_date'];
+                if ($evtDate == $targetDate) $statusText = "Due Today";
+                elseif ($evtDate > $targetDate) $statusText = "Upcoming";
+                else $statusText = "Pending";
+            } else {
+                $statusText = $event['status_name'];
+            }
             
             // Add missed reason if applicable
             $isMissed = !empty($event['status_name']) && strtolower(trim($event['status_name'])) === 'missed';

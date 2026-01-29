@@ -1,134 +1,140 @@
+/* ===== BASE ===== */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #ffffff;
+    min-height: 100vh;
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+}
 
-        /* ===== BASE ===== */
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #ffffff;
-            min-height: 100vh;
-            margin: 0;
-            position: relative;
-            overflow-x: hidden;
-        }
+/* ===== BACKGROUND OUTLINE TEXT ===== */
+body::before {
+    content: "Work";
+    position: absolute;
+    top: -140px;
+    right: -50px;
+    font-size: 200px;
+    font-weight: 700;
+    color: transparent;
+    -webkit-text-stroke: 1.2px #434AFA;
+    white-space: nowrap;
+    pointer-events: none;
+}
 
-        /* ===== HEADER ===== */
-        header {
-            background: #fff;
-            z-index: 10;
-            position: relative;
-        }
+body::after {
+    content: "workorio";
+    position: absolute;
+    bottom: -90px;
+    left: -350px !important;
+    font-size: 200px;
+    font-weight: 700;
+    color: transparent;
+    -webkit-text-stroke: 1.2px #434AFA;
+    white-space: nowrap;
+    pointer-events: none;
+}
 
-        /* ===== GRADIENT TEXT ===== */
-        .gradient-text {
-            background: linear-gradient(90deg, #1D74F9 0%, #C008F9 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+/* ===== HEADER ===== */
+header {
+    background: #fff;
+}
 
-        /* ===== CENTER WRAPPER ===== */
-        .loginBox {
-            min-height: calc(100vh - 90px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-            position: relative;
-            z-index: 1;
-        }
+/* ===== GRADIENT TEXT ===== */
+.gradient-text {
+    background: linear-gradient(90deg, #1D74F9 0%, #C008F9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-        /* ===== LOGIN CARD ===== */
-        .login-card {
-            width: 100%;
-            max-width: 420px;
-            background: #fff;
-            padding: 2.5rem 2.5rem 3.5rem;
-            border-radius: 8px;
-            text-align: left;
-            position: relative;
-        }
+/* ===== CENTER WRAPPER ===== */
+.loginBox {
+    min-height: calc(100vh - 120px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
 
-        /* ===== BIG OUTLINE TEXT ===== */
-        .login-card::after {
-            content: "Workorio";
-            position: absolute;
-            bottom: -55px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 120px;
-            font-weight: 700;
-            color: transparent;
-            -webkit-text-stroke: 1px rgba(67, 74, 250, 0.25);
-            white-space: nowrap;
-            pointer-events: none;
-        }
+/* ===== LOGIN CARD ===== */
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    padding: 2.5rem 2.5rem 3rem;
+    border-radius: 8px;
+}
 
-        /* ===== TITLES ===== */
-        .login-card h3 {
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
+/* ===== TITLES ===== */
+.login-card h3 {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
 
-        .login-card p {
-            font-size: 14px;
-            margin-bottom: 28px;
-            color: #000;
-        }
+.login-card p {
+    font-size: 14px;
+    margin-bottom: 28px;
+    color: #000;
+}
 
-        /* ===== INPUTS ===== */
-        .form-label {
-            font-size: 13px;
-            font-weight: 500;
-            text-align: left;
-            display: block;
-        }
+/* ===== INPUTS ===== */
+.form-label {
+    font-size: 13px;
+    font-weight: 500;
+}
 
-        .form-control {
-            height: 44px;
-            border-radius: 6px;
-            border: 1px solid #e5e7eb;
-            background: #f2f2f2;
-            font-size: 14px;
-        }
+.form-control {
+    height: 44px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    background: #f2f2f2;
+    font-size: 14px;
+}
 
-        .form-control:focus {
-            border-color: #434AFA;
-            box-shadow: 0 0 0 0.15rem rgba(67, 74, 250, 0.25);
-            background: #fff;
-        }
+.form-control:focus {
+    border-color: #434AFA;
+    box-shadow: 0 0 0 0.15rem rgba(67, 74, 250, 0.25);
+    background: #fff;
+}
 
-        /* ===== FORGOT ===== */
-        .forgot-link {
-            font-size: 13px;
-            color: #434AFA;
-            text-decoration: none;
-            font-weight: 500;
-        }
+/* ===== FORGOT LINK ===== */
+.forgot-link {
+    font-size: 13px;
+    color: #434AFA;
+    text-decoration: none;
+    font-weight: 500;
+}
 
-        .forgot-link:hover {
-            text-decoration: underline;
-        }
+.forgot-link:hover {
+    text-decoration: underline;
+}
 
-        /* ===== BUTTON ===== */
-        .loginbtn {
-            height: 46px;
-            background: #434AFA;
-            color: #fff;
-            font-weight: 600;
-            border-radius: 6px;
-            border: none;
-            margin-top: 10px;
-        }
+/* ===== BUTTON ===== */
+.loginbtn {
+    height: 46px;
+    background: #434AFA;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+}
 
-        .loginbtn:hover {
-            background: #3a40e0;
-        }
+.loginbtn:hover {
+    background: #3a40e0;
+}
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 576px) {
-            .login-card {
-                padding: 2rem 1.5rem 3rem;
-            }
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    body::before {
+        display: none;
+    }
 
-            .login-card::after {
-                font-size: 90px;
-                bottom: -40px;
-            }
-        }
+    body::after {
+        display: none;
+    }
+
+    .header-mobile {
+        margin: 0 !important;
+    }
+}

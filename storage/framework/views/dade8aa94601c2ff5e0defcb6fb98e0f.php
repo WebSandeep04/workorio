@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Contact Management')
-@section('page_title', 'Contact Management')
 
-@push('styles')
+<?php $__env->startSection('title', 'Contact Management'); ?>
+<?php $__env->startSection('page_title', 'Contact Management'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -272,9 +272,9 @@
       color: #6c757d;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <!-- Summary Cards -->
   <div class="summary-cards">
@@ -327,14 +327,14 @@
     </button>
   </div>
   
-  @if(session('user_role') == 1)
+  <?php if(session('user_role') == 1): ?>
   <div class="d-flex align-items-center mb-3 ms-1">
       <div class="form-check form-switch m-0">
           <input class="form-check-input" type="checkbox" id="adminViewAllToggle">
           <label class="form-check-label ms-1" for="adminViewAllToggle" style="font-size: 0.8rem; font-weight: 600;">View All</label>
       </div>
   </div>
-  @endif
+  <?php endif; ?>
 
   <div class="data-table-card">
     <div class="table-responsive">
@@ -381,7 +381,7 @@
       </div>
       <div class="modal-body">
         <form id="contactForm">
-          @csrf
+          <?php echo csrf_field(); ?>
           <input type="hidden" id="contactId" name="id">
           
           <div class="row">
@@ -475,7 +475,7 @@
   </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
 <!-- View Details Modal -->
 <div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-hidden="true">
@@ -561,7 +561,7 @@
   </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -623,7 +623,7 @@ $(document).ready(function() {
     // Save Contact
     $('#saveBtn').click(function() {
         let id = $('#contactId').val();
-        let url = id ? "{{ route('contactmanagement.update', ':id') }}".replace(':id', id) : "{{ route('contactmanagement.store') }}";
+        let url = id ? "<?php echo e(route('contactmanagement.update', ':id')); ?>".replace(':id', id) : "<?php echo e(route('contactmanagement.store')); ?>";
         let method = id ? 'PUT' : 'POST';
         
         let formData = $('#contactForm').serialize();
@@ -656,7 +656,7 @@ $(document).ready(function() {
     // Edit Contact
     $(document).on('click', '.edit-btn', function() {
         let id = $(this).data('id');
-        $.get("{{ route('contactmanagement.edit', ':id') }}".replace(':id', id), function(data) {
+        $.get("<?php echo e(route('contactmanagement.edit', ':id')); ?>".replace(':id', id), function(data) {
             $('#modalTitle').text('Edit Contact');
             $('#contactId').val(data.id);
             $('#name').val(data.name);
@@ -681,7 +681,7 @@ $(document).ready(function() {
     // View Card Logic
     $(document).on('click', '.view-card-btn', function() {
         let id = $(this).data('id');
-        $.get("{{ route('contactmanagement.edit', ':id') }}".replace(':id', id), function(data) {
+        $.get("<?php echo e(route('contactmanagement.edit', ':id')); ?>".replace(':id', id), function(data) {
              const v = (val) => val ? val : '-';
              
              $('#card_name').text(v(data.name));
@@ -712,10 +712,10 @@ $(document).ready(function() {
         if(confirm('Are you sure you want to delete this contact?')) {
             let id = $(this).data('id');
             $.ajax({
-                url: "{{ route('contactmanagement.destroy', ':id') }}".replace(':id', id),
+                url: "<?php echo e(route('contactmanagement.destroy', ':id')); ?>".replace(':id', id),
                 method: 'DELETE',
                 data: {
-                    _token: "{{ csrf_token() }}"
+                    _token: "<?php echo e(csrf_token()); ?>"
                 },
                 success: function(response) {
                     showAlert('success', response.message);
@@ -730,7 +730,7 @@ $(document).ready(function() {
     });
 
     function fetchStats() {
-        $.get("{{ route('contactmanagement.stats') }}", { view_all: viewAll }, function(data) {
+        $.get("<?php echo e(route('contactmanagement.stats')); ?>", { view_all: viewAll }, function(data) {
             $('#totalContacts').text(data.total_contacts);
             $('#newToday').text(data.new_today);
             $('#withEmail').text(data.with_email);
@@ -744,7 +744,7 @@ $(document).ready(function() {
         $('#emptyState').hide();
 
         $.ajax({
-            url: "{{ route('contactmanagement.fetch') }}",
+            url: "<?php echo e(route('contactmanagement.fetch')); ?>",
             data: {
                 page: currentPage,
                 search: search,
@@ -837,4 +837,6 @@ $(document).ready(function() {
     });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/contact-management/index.blade.php ENDPATH**/ ?>
