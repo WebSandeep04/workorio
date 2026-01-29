@@ -231,6 +231,8 @@
     left: -300px;
     width: 300px;
     height: 100vh;
+    display: flex;
+    flex-direction: column;
     background: white;
     z-index: 1050;
     transition: left 0.3s ease-in-out;
@@ -263,6 +265,7 @@
     padding: 1rem;
     border-bottom: 1px solid #dee2e6;
     background: #f8f9fa;
+    flex-shrink: 0;
 }
 
 .btn-close-mobile {
@@ -276,8 +279,9 @@
 
 .mobile-sidebar-content {
     padding: 1rem 0;
-    height: calc(100vh - 80px);
+    flex: 1;
     overflow-y: auto;
+    padding-bottom: 100px;
 }
 
 .mobile-menu-item,
