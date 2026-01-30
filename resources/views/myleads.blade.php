@@ -871,8 +871,8 @@
               <th>Lead</th>
               <th>Contact Person</th>
               <th>Contact No.</th>
-              <th>Next Follow</th>
               <th>Remark</th>
+              <th>Next Follow</th>
               <th>Address</th>
               <th>State</th>
               <th>City</th>
@@ -1262,8 +1262,8 @@ function loadMyLeads(page = 1) {
                             <td>${record.leads_name ?? ''}</td>
                             <td>${record.contact_person ?? ''}</td>
                             <td>${record.contact_number ?? ''}</td>
-                            <td>${formatDateOnly(record.next_follow_up_date)}</td>
                             <td>${remark}</td>
+                            <td>${formatDateOnly(record.next_follow_up_date)}</td>
                             <td>${record.address ?? 'N/A'}</td>
                             <td>${record.state?.state_name ?? 'N/A'}</td>
                             <td>${record.city?.city_name ?? 'N/A'}</td>
@@ -1396,8 +1396,8 @@ function searchMyLeads(page = 1) {
                             <td>${record.leads_name ?? 'N/A'}</td>
                             <td>${record.contact_person ?? 'N/A'}</td>
                             <td>${record.contact_number ?? 'N/A'}</td>
-                            <td>${formatDateOnly(record.next_follow_up_date)}</td>
                             <td>${remark}</td>
+                            <td>${formatDateOnly(record.next_follow_up_date)}</td>
                             <td>${record.address ?? 'N/A'}</td>
                             <td>${record.state?.state_name ?? 'N/A'}</td>
                             <td>${record.city?.city_name ?? 'N/A'}</td>
@@ -1622,8 +1622,8 @@ function loadFilteredMyLeads(page = 1) {
                             <td>${record.leads_name ?? ''}</td>
                             <td>${record.contact_person ?? ''}</td>
                             <td>${record.contact_number ?? ''}</td>
-                            <td>${formatDateOnly(record.next_follow_up_date)}</td>
                             <td>${remark}</td>
+                            <td>${formatDateOnly(record.next_follow_up_date)}</td>
                             <td>${record.address ?? 'N/A'}</td>
                             <td>${record.state?.state_name ?? 'N/A'}</td>
                             <td>${record.city?.city_name ?? 'N/A'}</td>
@@ -1718,6 +1718,7 @@ function loadDateFilteredMyLeads(from_date = '', to_date = '', page = 1) {
                             <td>${record.leads_name ?? ''}</td>
                             <td>${record.contact_person ?? ''}</td>
                             <td>${record.contact_number ?? ''}</td>
+                            <td>${remark}</td>
                             <td>${formatDateOnly(record.next_follow_up_date)}</td>
                             <td>${record.address ?? 'N/A'}</td>
                             <td>${record.state?.state_name ?? 'N/A'}</td>
@@ -1728,7 +1729,6 @@ function loadDateFilteredMyLeads(from_date = '', to_date = '', page = 1) {
                             <td>${record.product?.product_name ?? 'N/A'}</td>
                             <td>${record.ticket_value ?? '0'}</td>
                             ${assignToColumn}
-                            <td>${remark}</td>
                         </tr>
                     `;
                 });

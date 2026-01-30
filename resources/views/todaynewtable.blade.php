@@ -47,10 +47,10 @@
               <th>Status</th>
               <th>Prospect</th>
               <th>Remark</th>
+              <th>Next Follow</th>
               <th>Lead</th>
               <th>Contact Person</th>
               <th>Contact No.</th>
-              <th>Next Follow</th>
               <th>Address</th>
               <th>State</th>
               <th>City</th>
@@ -483,10 +483,10 @@ function loadFollowups(page = 1) {
             <td>${item.status_name ?? '-'}</td>
             <td>${item.prospectus_name ?? '-'}</td>
             <td>${remark}</td>
+            <td>${item.next_follow_up_date ?? '-'}</td>
             <td>${item.leads_name ?? '-'}</td>
             <td>${item.contact_person ?? '-'}</td>
             <td>${item.contact_number ?? '-'}</td>
-            <td>${item.next_follow_up_date ?? '-'}</td>
             <td>${item.address ?? '-'}</td>
             <td>${item.state_name ?? '-'}</td>
             <td>${item.city_name ?? '-'}</td>
@@ -577,10 +577,10 @@ $('#followupSearch').on('keyup', function () {
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
               <td>${displayRemark ?? '-'}</td>
+              <td>${item.next_follow_up_date ?? '-'}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
-              <td>${item.next_follow_up_date ?? '-'}</td>
               <td>${item.address ?? '-'}</td>
               <td>${item.state_name ?? '-'}</td>
               <td>${item.city_name ?? '-'}</td>
@@ -631,10 +631,10 @@ function loadFilteredFollowups(page = 1) {
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
               <td>${remark}</td>
+              <td>${item.next_follow_up_date ?? '-'}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
-              <td>${item.next_follow_up_date ?? '-'}</td>
               <td>${item.address ?? '-'}</td>
               <td>${item.state_name ?? '-'}</td>
               <td>${item.city_name ?? '-'}</td>

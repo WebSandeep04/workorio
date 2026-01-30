@@ -1,45 +1,66 @@
-@extends('layouts.app')
 
-@section('title', 'All Data - Under Process')
-@section('page_title', 'All Data - Under Process')
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
-.data-table-card .custom-table thead th {  
+
+    .data-table-card .custom-table thead th {
+    
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
    
   }
 </style>
-@endpush
-@section('content')
+<?php $__env->stopPush(); ?>
+
+<?php $__env->startSection('title', 'Sales Product'); ?>
+<?php $__env->startSection('page_title', 'Sales Product'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="sales_table"></div>
 
-  <!-- Summary Cards -->
   <div class="summary-cards mb-3">
     <div class="summary-card card-1" style="max-width: 250px;">
-      <div class="summary-card-icon icon-amber">
-        <img src="{{ asset('img/icons/underprocess.png') }}" alt="Under Process" onerror="this.onerror=null;this.src='{{ asset('img/icons/underprocess.png') }}';">
+      <div class="summary-card-icon icon-sunrise">
+        <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Calls">
       </div>
       <div class="summary-card-content">
-        <div class="summary-card-label">Under Process</div>
-        <div class="summary-card-value" id="totalUnderProcessCard">0</div>
+        <div class="summary-card-label">Today's Follow Ups</div>
+        <div class="summary-card-value" id="totalFollowupsCard">0</div>
       </div>
     </div>
   </div>
 
-  <x-filter-panel :showSearch="false" />
+  <?php if (isset($component)) { $__componentOriginalf3f7946f558699cf27352737986448eb = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalf3f7946f558699cf27352737986448eb = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.filter-panel','data' => ['showSearch' => false]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('filter-panel'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['showSearch' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false)]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalf3f7946f558699cf27352737986448eb)): ?>
+<?php $attributes = $__attributesOriginalf3f7946f558699cf27352737986448eb; ?>
+<?php unset($__attributesOriginalf3f7946f558699cf27352737986448eb); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalf3f7946f558699cf27352737986448eb)): ?>
+<?php $component = $__componentOriginalf3f7946f558699cf27352737986448eb; ?>
+<?php unset($__componentOriginalf3f7946f558699cf27352737986448eb); ?>
+<?php endif; ?>
 
   <div class="table-search mb-2">
     <div class="table-search-field">
       <i class="bi bi-search"></i>
-      <input type="text" id="recordSearch" placeholder="Search leads, contacts, emails..." />
+      <input type="text" id="followupSearch" placeholder="Search leads, contacts, emails..." />
     </div>
   </div>
 
   <div class="modern-card data-table-card">
     <div class="modern-card-body">
       <div class="table-responsive">
-        <table class="table custom-table" id="dataTable">
+        <table class="table custom-table" id="followupsTable">
           <thead>
             <tr>
               <th>Status</th>
@@ -64,7 +85,6 @@
       </div>
     </div>
   </div>
-  
   <div class="table-range-meta mt-2" id="pageSummaryBottom">
      Page 1 of 1 • Showing 0-0 of 0
   </div>
@@ -79,30 +99,21 @@
 <div class="mt-2 d-flex justify-content-center">
   <ul class="pagination" id="paginationsearchLinks"></ul>
 </div>
+<div class="mt-2 d-flex justify-content-center">
+  <ul class="pagination" id="paginationdateLinks"></ul>
+</div>
 
-@include('partials.remarks-modal')
-
-@endsection
-
-@push('styles')
+<?php $__env->stopSection(); ?>
+<?php $__env->startPush('styles'); ?>
 <style>
-  /* Import fonts */
-  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
-
-  /* Global font family */
-  body {
-    font-family: 'Montserrat', sans-serif !important;
-    background-color: #f4f5f7;
-  }
-
   .container-fluid {
     padding: 0.5rem;
     padding-right: 0.5rem;
     margin-right: 0;
   }
 
-  /* Summary Card CSS */
-  .summary-cards {
+  .summary-cards,
+  .status-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 0.5rem;
@@ -125,9 +136,25 @@
     gap: 0.5rem;
   }
 
-  .summary-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0px 8px 8px 0px #0000000A;
+  .metric-arrow {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    color: #000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    font-size: 0.9rem;
+  }
+
+  .metric-arrow:hover {
+    background: #5b59f7;
+    color: #fff;
   }
 
   .summary-card-icon {
@@ -146,8 +173,12 @@
     object-fit: contain;
   }
 
-  /* Amber gradient for Under Process */
-  .icon-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .icon-sunrise { background: linear-gradient(135deg, #f97316, #fb923c); }
+  .icon-amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+  .icon-emerald { background: linear-gradient(135deg, #34d399, #10b981); }
+  .icon-rose { background: linear-gradient(135deg, #fb7185, #f43f5e); }
+  .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+  .icon-violet { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
 
   .summary-card-content {
     display: flex;
@@ -155,6 +186,63 @@
     justify-content: space-between;
     flex-grow: 1;
     min-width: 0;
+  }
+
+  .summary-card::before {
+    display: none;
+  }
+
+  .summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 8px 8px 0px #0000000A;
+  }
+
+  .summary-card.card-1,
+  .summary-card.card-2,
+  .summary-card.card-3,
+  .summary-card.card-4,
+  .summary-card.card-5 {
+    background: #fff;
+  }
+
+  /* Dark gradients for status cards - cycling through dark colors */
+  .status-card:nth-child(6n+1) {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  }
+  .status-card:nth-child(6n+2) {
+    background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+  }
+  .status-card:nth-child(6n+3) {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  }
+  .status-card:nth-child(6n+4) {
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+  }
+  .status-card:nth-child(6n+5) {
+    background: linear-gradient(135deg, #16a085 0%, #27ae60 100%);
+  }
+  .status-card:nth-child(6n+6) {
+    background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+  }
+  
+  /* Additional dark gradients for more status cards */
+  .status-card:nth-child(6n+7) {
+    background: linear-gradient(135deg, #2c2c54 0%, #40407a 100%);
+  }
+  .status-card:nth-child(6n+8) {
+    background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+  }
+  .status-card:nth-child(6n+9) {
+    background: linear-gradient(135deg, #6a1b9a 0%, #8e24aa 100%);
+  }
+  .status-card:nth-child(6n+10) {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+  }
+  .status-card:nth-child(6n+11) {
+    background: linear-gradient(135deg, #b71c1c 0%, #c62828 100%);
+  }
+  .status-card:nth-child(6n+12) {
+    background: linear-gradient(135deg, #004d40 0%, #00695c 100%);
   }
 
   .summary-card-label {
@@ -180,7 +268,57 @@
     font-family: Montserrat;
   }
 
-  /* Filter Panel CSS */
+  .status-card {
+    border-radius: 8px;
+    padding: 0.5rem;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .status-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.1;
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.2), transparent);
+  }
+
+  .status-card:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .status-card-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+    opacity: 0.95;
+    flex-shrink: 0;
+    line-height: 1.2;
+  }
+
+  .status-card-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+
   .filterBox {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -216,8 +354,6 @@
     transition: all 0.3s ease;
     font-size: 10px;
     font-family: Montserrat, sans-serif;
-    width: 100%;
-    margin-top: 0;
   }
 
   .filterBox .form-control-modern option {
@@ -236,11 +372,16 @@
   }
 
   .filterBox .form-control-modern:hover {
-    border-color: rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.6);
     background: #fff;
   }
 
-  /* Table Search */
+  .table-range-meta {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0.35rem 0 0.75rem;
+  }
+
   .table-search {
     width: 100%;
     margin-bottom: 0.5rem;
@@ -261,6 +402,36 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 
+  .table-search-btn {
+    padding: 0.35rem 1rem;
+    background: #434AFA;
+    color: white;
+    border: none;
+    border-radius: 2px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .table-search-btn:hover {
+    background: #3538d4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(67, 74, 250, 0.4);
+    color: white;
+    text-decoration: none;
+  }
+
+  .table-search-btn:active {
+    transform: translateY(0);
+    background: #2d30b8;
+  }
+
   .table-search-field i {
     color: #9ca3af;
     font-size: 0.85rem;
@@ -275,10 +446,13 @@
     color: #111827;
   }
 
-  /* Table CSS */
   .modern-card {
     padding: 0;
     margin-bottom: 0.5rem;
+  }
+
+  .modern-card-body {
+    padding: 0.5rem;
   }
 
   .data-table-card {
@@ -287,7 +461,6 @@
     background: #fff;
     box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08);
     overflow: hidden;
-    font-family: Montserrat;
   }
 
   .data-table-card .modern-card-body {
@@ -306,13 +479,19 @@
   .data-table-card .table-responsive::-webkit-scrollbar {
     height: 8px;
   }
+
   .data-table-card .table-responsive::-webkit-scrollbar-track {
     background: #e4e7ec;
     border-radius: 999px;
   }
+
   .data-table-card .table-responsive::-webkit-scrollbar-thumb {
     background: #434AFA;
     border-radius: 999px;
+  }
+
+  .data-table-card .table-responsive {
+    scrollbar-color: #434AFA #e4e7ec;
   }
 
   .data-table-card .custom-table {
@@ -323,10 +502,8 @@
     background: transparent;
     table-layout: auto;
     min-width: 100%;
-    font-family: Montserrat !important;
   }
 
-  /* IMPORTANT: White header style with vertical borders */
   .data-table-card .custom-table thead th {
     background: #fff;
     color: #000;
@@ -337,16 +514,11 @@
     padding: 0.6rem 0.75rem;
     text-align: left;
     border-bottom: 1px solid #f1f3f5;
-    border-right: 1px solid #f1f3f5;
     position: sticky;
     top: 0;
     z-index: 5;
     white-space: nowrap;
     font-family: Montserrat;
-  }
-  
-  .data-table-card .custom-table thead th:last-child {
-    border-right: none;
   }
 
   .data-table-card .custom-table tbody td {
@@ -359,7 +531,7 @@
     white-space: nowrap;
     font-family: Montserrat;
   }
-  
+
   .data-table-card .custom-table tbody tr {
     transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
@@ -368,6 +540,10 @@
     background: #f8f9ff;
     box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08);
     transform: translateY(-1px);
+  }
+
+  .data-table-card .custom-table tbody tr:last-child td {
+    border-bottom: none;
   }
 
   .data-table-card .custom-table tbody td:nth-child(1) { min-width: 100px; }
@@ -387,7 +563,69 @@
   .data-table-card .custom-table tbody td:nth-child(15) { min-width: 140px; }
   .data-table-card .custom-table tbody td:nth-child(16) { min-width: 180px; }
 
-  /* Pagination */
+  .custom-table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 10px;
+    padding: 0.25rem 0.35rem;
+    text-align: center;
+    border: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  .custom-table td {
+    font-size: 10px;
+    padding: 0.25rem 0.35rem;
+    vertical-align: middle;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+  }
+
+  .custom-table tbody tr {
+    transition: all 0.3s ease;
+  }
+
+  .custom-table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.08);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+  }
+
+  .custom-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+
+  .assign-select {
+    font-size: 9px;
+    padding: 2px 4px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: white;
+    width: 100%;
+    max-width: 120px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .assign-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);
+  }
+
+  .status-badge {
+    display: inline-block;
+    color: #000;
+    font-size: 0.85rem;
+    font-weight: normal;
+    font-family: Montserrat, sans-serif;
+  }
+
   .pagination .page-link {
     color: #434afa;
     border: 2px solid #e0e0e0;
@@ -410,94 +648,120 @@
     background: rgba(67, 74, 250, 0.15);
     border-color: #434afa;
     transform: translateY(-1px);
-    color: #334155;
   }
-  
-  .table-range-meta {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin: 0.35rem 0 0.75rem;
+
+  .table-responsive {
+    border-radius: 5px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  }
+
+  .remark-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .remark-link:hover {
+    color: #764ba2;
+    text-decoration: underline;
+  }
+
+  .loading-state {
+    text-align: center;
+    padding: 1rem;
+    color: #667eea;
+    font-size: 10px;
+  }
+
+  .loading-state i {
+    font-size: 1rem;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 1rem;
+    color: #6c757d;
+    font-size: 10px;
+  }
+
+  .empty-state i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+  }
+
+   @media (max-width: 767px){
+    .container-fluid{
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+      margin-right: 0;
+    }
+    
+    .summary-cards,
+    .status-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .table-search {
+      flex-direction: row;
+      gap: 0.5rem;
+    }
+    
+    .table-search-btn {
+      width: auto;
+      padding: 0.35rem 0.75rem;
+    }
+
+    .table-search-field {
+        width: 100%;
+    }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+
+
+
+<?php $__env->startPush('scripts'); ?>
 <script>
 let currentPage = 1;
 
-// Filter Toggle
-$(document).ready(function () {
-  $('#toggleFiltersBtn').on('click', function () {
-    let $filterBox = $('.filterScroll');
-    if ($filterBox.is(':visible')) {
-      $filterBox.slideUp('fast');
-      $(this).text('Show Filters ▼');
-    } else {
-      $filterBox.slideDown('fast');
-      $(this).text('Hide Filters ▲');
-    }
-  });
-});
-
-function updateSummary(meta) {
-  const current = meta.current_page || 1;
-  const last = meta.last_page || 1;
-  const total = meta.total || 0;
-  const perPage = Number(meta.per_page || 20); 
-  const from = (current - 1) * perPage + 1;
-  let to = current * perPage;
-  if (to > total) to = total;
-  
-  if (total === 0) {
-    $('#pageSummaryBottom').text('Page 1 of 1 • Showing 0-0 of 0');
-  } else {
-    $('#pageSummaryBottom').text(`Page ${current} of ${last} • Showing ${from}-${to} of ${total}`);
-  }
-}
-
-$(document).ready(function () {
-  loadData();
-  loadSummaryStats();
-});
-
-function loadSummaryStats() {
+function loadFollowups(page = 1) {
   $.ajax({
-    url: '{{ route("alldata.summary-stats") }}',
-    method: 'GET',
-    success: function(response) {
-      $('#totalUnderProcessCard').text(response.under_process || 0);
-    },
-    error: function() { console.error('Failed to load summary stats'); }
-  });
-}
-
-function loadData(page = 1) {
-  $.ajax({
-    url: `{{ route('alldata.under-process.data') }}?page=${page}`,
+    url: `/todayfollowupstabledata?page=${page}`,
     method: 'GET',
     success: function (response) {
-      const tbody = $('#dataTable tbody');
+      const tbody = $('#followupsTable tbody');
       tbody.empty();
-      let data = response.data || [];
-      
-      if (data.length === 0) {
-        tbody.append(`<tr><td colspan="15" class="text-center">No records found</td></tr>`);
+
+      if (response.data.length === 0) {
+        tbody.append(`<tr><td colspan="14" class="text-center">No records found</td></tr>`);
         $('#paginationLinks').empty();
-        updateSummary({ current_page: 1, last_page: 1, total: 0 });
+        updateSummary({ current_page: 1, last_page: 1, total: 0, per_page: 0, data_length: 0 });
         return;
       }
 
-      data.forEach(item => {
+      response.data.forEach(item => {
         const rawRemark = item.latest_remark || '';
-        const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
-        const fullRemark = rawRemark.replace(/"/g, '&quot;');
-
+        const displayRemark = rawRemark.length > 12 ? rawRemark.substring(0, 12) + '...' : rawRemark;
+        const remark = rawRemark
+          ? `<a href="/remark?sales_record_id=${item.id}" class="text-decoration-underline text-primary" title="${rawRemark}">${displayRemark}</a>`
+          : '-';
 
         tbody.append(`
           <tr>
             <td>${item.status_name ?? '-'}</td>
             <td>${item.prospectus_name ?? '-'}</td>
-            <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
+            <td>${remark}</td>
             <td>${item.next_follow_up_date ?? '-'}</td>
             <td>${item.leads_name ?? '-'}</td>
             <td>${item.contact_person ?? '-'}</td>
@@ -515,22 +779,29 @@ function loadData(page = 1) {
       });
 
       renderPagination(response);
-      updateSummary(response);
+      updateSummary({
+        current_page: response.current_page || 1,
+        last_page: response.last_page || 1,
+        total: response.total ?? (response.data ? response.data.length : 0),
+        per_page: response.per_page || (response.data ? response.data.length : 0),
+        data_length: response.data ? response.data.length : 0
+      });
     }
   });
 }
 
+
 function renderPagination(data) {
   const current = Number(data.current_page) || 1;
   const last = Number(data.last_page) || 1;
-  const $container = $('#paginationLinks');
-  $container.show();
-  buildSimplePagination($container, current, last);
+  buildSimplePagination($('#paginationLinks'), current, last);
 }
 
+// Generic, compact pagination builder matching All Data style
 function buildSimplePagination($container, current, last) {
   $container.empty();
-  if (last <= 1) return;
+  current = Number(current) || 1;
+  last = Number(last) || 1;
 
   $container.append(`
     <li class="page-item ${current === 1 ? 'disabled' : ''}">
@@ -539,7 +810,7 @@ function buildSimplePagination($container, current, last) {
       </a>
     </li>
   `);
-  
+
   $container.append(`
     <li class="page-item active">
       <span class="page-link">${current} / ${last}</span>
@@ -555,60 +826,60 @@ function buildSimplePagination($container, current, last) {
   `);
 }
 
+// Update total and page summary
+function updateSummary(meta) {
+  const total = Number(meta.total || 0);
+  const current = Number(meta.current_page || 1);
+  const last = Number(meta.last_page || 1);
+  const perPage = Number(meta.per_page || 0);
+  const dataLen = Number(meta.data_length || 0);
+  const start = total > 0 && perPage > 0 ? ((current - 1) * perPage) + 1 : (total === 0 ? 0 : 1);
+  const end = total > 0 && perPage > 0 ? Math.min(start + dataLen - 1, total) : dataLen;
+  
+  $('#totalFollowupsCard').text(total);
+  $('#pageSummaryBottom').text(`Page ${current} of ${last} • Showing ${start}-${end} of ${total}`);
+}
+
 // Handle pagination clicks
 $(document).on('click', '.pagination .page-link', function (e) {
   e.preventDefault();
   const page = $(this).data('page');
-  const parentId = $(this).closest('ul').attr('id');
   if (page) {
-    if (parentId === 'paginationfilterLinks') {
-       loadFilteredFollowups(page);
-    } else if (parentId === 'paginationsearchLinks') {
-       loadSearchData(page);
-    } else {
-       loadData(page);
-    }
+    currentPage = page;
+    loadFollowups(page);
   }
 });
 
-let currentSearch = '';
-$('#recordSearch').on('keyup', function () {
-  currentSearch = $(this).val();
-  loadSearchData(1);
+// Initial load
+$(document).ready(function () {
+  loadFollowups();
 });
 
-function loadSearchData(page = 1) {
-  $.ajax({
-    url: '{{ route("alldatasearch") }}?page=' + page,
-    method: 'GET',
-    data: { search: currentSearch },
-    success: function (response) {
-      let tbody = $('#dataTable tbody');
-      tbody.empty();
-      $('#paginationLinks').hide(); 
 
-      let data = response.data || [];
+$('#followupSearch').on('keyup', function () {
+  let search = $(this).val();
+
+  $.ajax({
+    url: '/searchfollowups',
+    method: 'GET',
+    data: { search: search },
+    success: function (data) {
+      let tbody = $('#followupsTable tbody');
+      tbody.empty();
 
       if (data.length === 0) {
-        tbody.append('<tr><td colspan="15" class="text-center">No records found</td></tr>');
-        updateSummary({ total: 0 });
-        $('#paginationsearchLinks').empty();
+        tbody.append('<tr><td colspan="14" class="text-center">No records found</td></tr>');
       } else {
         data.forEach((item) => {
-          const rawRemark = item.last_remark || ''; 
-          const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
-          const fullRemark = rawRemark.replace(/"/g, '&quot;');
-          
           tbody.append(`
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
-              <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
+              <td>${(item.latest_remark && item.latest_remark.length > 12) ? item.latest_remark.substring(0, 12) + '...' : (item.latest_remark ?? '-')}</td>
               <td>${item.next_follow_up_date ?? '-'}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
-              <td>${item.address ?? '-'}</td>
               <td>${item.state_name ?? '-'}</td>
               <td>${item.city_name ?? '-'}</td>
               <td>${item.email ?? '-'}</td>
@@ -619,22 +890,23 @@ function loadSearchData(page = 1) {
             </tr>
           `);
         });
-        
-        const $pContainer = $('#paginationsearchLinks');
-        $pContainer.show();
-        buildSimplePagination($pContainer, response.current_page || 1, response.last_page || 1);
-        updateSummary(response);
       }
     },
-    error: function () { console.error('Search failed.'); }
+    error: function () {
+      alert('Search failed.');
+    }
   });
-}
+});
 
-$.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+// CSRF for POST filters
+$.ajaxSetup({
+  headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+});
 
+// Filtered table (server-side, same contract as main followup filters)
 function loadFilteredFollowups(page = 1) {
   $.ajax({
-    url: '{{ route("alldatafilter") }}?page=' + page,
+    url: '<?php echo e(route("filter")); ?>?page=' + page,
     type: 'POST',
     data: {
       status: $('#sales_status').val(),
@@ -646,21 +918,19 @@ function loadFilteredFollowups(page = 1) {
     },
     success: function (response) {
       let data = response.data || [];
-      let tbody = $('#dataTable tbody');
+      let tbody = $('#followupsTable tbody');
       tbody.empty();
-      
       if (data.length === 0) {
-        tbody.append('<tr><td colspan="15" class="text-center">No records found.</td></tr>');
+        tbody.append('<tr><td colspan="14" class="text-center">No records found.</td></tr>');
       } else {
         data.forEach(function (item) {
-          const rawRemark = item.last_remark || item.latest_remark || '';
-          const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
-          const fullRemark = rawRemark.replace(/"/g, '&quot;');
+          let rawRemark = item.last_remark || item.latest_remark || '';
+          let remark = (rawRemark.length > 12) ? rawRemark.substring(0, 12) + '...' : (rawRemark || '-');
           tbody.append(`
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
-              <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
+              <td>${remark}</td>
               <td>${item.next_follow_up_date ?? '-'}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
@@ -677,25 +947,57 @@ function loadFilteredFollowups(page = 1) {
           `);
         });
       }
-      
-      const $pContainer = $('#paginationfilterLinks');
-      $pContainer.show();
-      buildSimplePagination($pContainer, response.current_page || 1, response.last_page || 1);
-      updateSummary(response);
+
+      // Compact pagination like myleads
+      buildSimplePagination($('#paginationfilterLinks'), response.current_page || 1, response.last_page || 1);
+      updateSummary({
+        current_page: response.current_page || 1,
+        last_page: response.last_page || 1,
+        total: response.total ?? data.length,
+        per_page: response.per_page || data.length,
+        data_length: data.length
+      });
+    },
+    error: function (xhr) {
+      console.error('Filter error:', xhr.responseText);
     }
   });
 }
 
+// Trigger filters
 $(document).on('change', '#sales_status, #city, #state, #business_type, #lead_source, #product_type', function () {
   $('#paginationLinks').hide();
-  $('#paginationsearchLinks').hide();
   loadFilteredFollowups(1);
 });
 
-// Load filter options (standard boilerplate)
+// Paginate filtered
+$(document).on('click', '#paginationfilterLinks .page-link', function (e) {
+  e.preventDefault();
+  const page = $(this).data('page');
+  if (page) {
+    $('#paginationLinks').hide();
+    loadFilteredFollowups(page);
+  }
+});
+
+// hide filters (match myleads behavior)
+$(document).ready(function () {
+  $('#toggleFiltersBtn').on('click', function () {
+    let $filterBox = $('.filterScroll');
+    if ($filterBox.is(':visible')) {
+      $filterBox.slideUp('fast');
+      $(this).text('Show Filters ▼');
+    } else {
+      $filterBox.slideDown('fast');
+      $(this).text('Hide Filters ▲');
+    }
+  });
+});
+
+// Load filter options (same as myleads)
 $(document).ready(function() {
   $.ajax({
-    url: "{{ route('getbusiness') }}",
+    url: "<?php echo e(route('getbusiness')); ?>",
     type: "GET",
     success: function (data) {
       $('#business_type').empty().append('<option value="">Select</option>');
@@ -707,7 +1009,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('getStatuses') }}",
+    url: "<?php echo e(route('getStatuses')); ?>",
     type: 'GET',
     success: function (data) {
       $('#sales_status').empty().append('<option value="">Select</option>');
@@ -715,11 +1017,11 @@ $(document).ready(function() {
         $('#sales_status').append(`<option value="${status.id}">${status.status_name}</option>`);
       });
     },
-    error: function () { console.error('Failed to load sales statuses.'); }
+    error: function () { alert('Failed to load sales statuses.'); }
   });
 
   $.ajax({
-    url: "{{ route('state') }}",
+    url: "<?php echo e(route('state')); ?>",
     type: "GET",
     dataType: "json",
     success: function (states) {
@@ -730,11 +1032,11 @@ $(document).ready(function() {
         $stateDropdown.append(`<option value="${id}">${name}</option>`);
       });
     },
-    error: function () { console.error("Failed to load states."); }
+    error: function () { alert("Failed to load states."); }
   });
 
   $.ajax({
-    url: "{{ route('getsource') }}",
+    url: "<?php echo e(route('getsource')); ?>",
     type: "GET",
     success: function (data) {
       $('#lead_source').empty().append('<option value="">Select</option>');
@@ -742,11 +1044,11 @@ $(document).ready(function() {
         $('#lead_source').append(`<option value="${type.id}">${type.source_name}</option>`);
       });
     },
-    error: function () { $('#lead_source').html('<option value="">Unable to load types</option>'); }
+    error: function () { $('#lead_source').html('<option value=\"\">Unable to load types</option>'); }
   });
 
   $.ajax({
-    url: "{{ route('getproduct') }}",
+    url: "<?php echo e(route('getproduct')); ?>",
     type: "GET",
     success: function (data) {
       $('#product_type').empty().append('<option value="">Select</option>');
@@ -758,7 +1060,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('allcity') }}",
+    url: "<?php echo e(route('allcity')); ?>",
     type: "GET",
     success: function (data) {
       $('#city').empty().append('<option value="">Select</option>');
@@ -789,5 +1091,9 @@ $(document).ready(function() {
     }
   });
 });
+
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/todayfollowupstable.blade.php ENDPATH**/ ?>

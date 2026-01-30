@@ -1,54 +1,75 @@
-@extends('layouts.app')
 
-@section('title', 'All Data - Under Process')
-@section('page_title', 'All Data - Under Process')
-@push('styles')
+
+<?php $__env->startSection('title', 'Today New Leads'); ?>
+<?php $__env->startSection('page_title', 'Today New Leads'); ?>
+<?php $__env->startPush('styles'); ?>
 <style>
-.data-table-card .custom-table thead th {  
+
+    .data-table-card .custom-table thead th {
+    
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
    
   }
 </style>
-@endpush
-@section('content')
+<?php $__env->stopPush(); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="sales_table"></div>
 
-  <!-- Summary Cards -->
   <div class="summary-cards mb-3">
     <div class="summary-card card-1" style="max-width: 250px;">
-      <div class="summary-card-icon icon-amber">
-        <img src="{{ asset('img/icons/underprocess.png') }}" alt="Under Process" onerror="this.onerror=null;this.src='{{ asset('img/icons/underprocess.png') }}';">
+      <div class="summary-card-icon icon-sky">
+        <img src="<?php echo e(asset('img/icons/new.png')); ?>" alt="New" onerror="this.onerror=null;this.src='<?php echo e(asset('img/icons/call.png')); ?>';">
       </div>
       <div class="summary-card-content">
-        <div class="summary-card-label">Under Process</div>
-        <div class="summary-card-value" id="totalUnderProcessCard">0</div>
+        <div class="summary-card-label">Today New Leads</div>
+        <div class="summary-card-value" id="totalNewCard">0</div>
       </div>
     </div>
   </div>
 
-  <x-filter-panel :showSearch="false" />
+  <?php if (isset($component)) { $__componentOriginalf3f7946f558699cf27352737986448eb = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalf3f7946f558699cf27352737986448eb = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.filter-panel','data' => ['showSearch' => false]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('filter-panel'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['showSearch' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false)]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalf3f7946f558699cf27352737986448eb)): ?>
+<?php $attributes = $__attributesOriginalf3f7946f558699cf27352737986448eb; ?>
+<?php unset($__attributesOriginalf3f7946f558699cf27352737986448eb); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalf3f7946f558699cf27352737986448eb)): ?>
+<?php $component = $__componentOriginalf3f7946f558699cf27352737986448eb; ?>
+<?php unset($__componentOriginalf3f7946f558699cf27352737986448eb); ?>
+<?php endif; ?>
 
   <div class="table-search mb-2">
     <div class="table-search-field">
       <i class="bi bi-search"></i>
-      <input type="text" id="recordSearch" placeholder="Search leads, contacts, emails..." />
+      <input type="text" id="followupSearch" placeholder="Search leads, contacts, emails..." />
     </div>
   </div>
 
   <div class="modern-card data-table-card">
     <div class="modern-card-body">
       <div class="table-responsive">
-        <table class="table custom-table" id="dataTable">
+        <table class="table custom-table" id="followupsTable">
           <thead>
             <tr>
               <th>Status</th>
               <th>Prospect</th>
               <th>Remark</th>
-              <th>Next Follow</th>
               <th>Lead</th>
               <th>Contact Person</th>
               <th>Contact No.</th>
+              <th>Next Follow</th>
               <th>Address</th>
               <th>State</th>
               <th>City</th>
@@ -80,11 +101,9 @@
   <ul class="pagination" id="paginationsearchLinks"></ul>
 </div>
 
-@include('partials.remarks-modal')
+<?php $__env->stopSection(); ?>
 
-@endsection
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   /* Import fonts */
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
@@ -101,7 +120,7 @@
     margin-right: 0;
   }
 
-  /* Summary Card CSS */
+  /* Summary Card CSS matching todayfollowups */
   .summary-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -146,8 +165,8 @@
     object-fit: contain;
   }
 
-  /* Amber gradient for Under Process */
-  .icon-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  /* Sky blue gradient for "New" */
+  .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
 
   .summary-card-content {
     display: flex;
@@ -326,7 +345,7 @@
     font-family: Montserrat !important;
   }
 
-  /* IMPORTANT: White header style with vertical borders */
+  /* IMPORTANT: White header style matching todayfollowups */
   .data-table-card .custom-table thead th {
     background: #fff;
     color: #000;
@@ -410,7 +429,6 @@
     background: rgba(67, 74, 250, 0.15);
     border-color: #434afa;
     transform: translateY(-1px);
-    color: #334155;
   }
   
   .table-range-meta {
@@ -419,35 +437,20 @@
     margin: 0.35rem 0 0.75rem;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 let currentPage = 1;
-
-// Filter Toggle
-$(document).ready(function () {
-  $('#toggleFiltersBtn').on('click', function () {
-    let $filterBox = $('.filterScroll');
-    if ($filterBox.is(':visible')) {
-      $filterBox.slideUp('fast');
-      $(this).text('Show Filters ▼');
-    } else {
-      $filterBox.slideDown('fast');
-      $(this).text('Hide Filters ▲');
-    }
-  });
-});
 
 function updateSummary(meta) {
   const current = meta.current_page || 1;
   const last = meta.last_page || 1;
   const total = meta.total || 0;
-  const perPage = Number(meta.per_page || 20); 
+  const perPage = Number(meta.per_page || 20);
   const from = (current - 1) * perPage + 1;
   let to = current * perPage;
   if (to > total) to = total;
-  
   if (total === 0) {
     $('#pageSummaryBottom').text('Page 1 of 1 • Showing 0-0 of 0');
   } else {
@@ -456,27 +459,27 @@ function updateSummary(meta) {
 }
 
 $(document).ready(function () {
-  loadData();
-  loadSummaryStats();
+  loadFollowups();
+  loadTotalNew();
 });
 
-function loadSummaryStats() {
+function loadTotalNew() {
   $.ajax({
-    url: '{{ route("alldata.summary-stats") }}',
+    url: '/todaynew',
     method: 'GET',
     success: function(response) {
-      $('#totalUnderProcessCard').text(response.under_process || 0);
+      $('#totalNewCard').text(response.todaynew || 0);
     },
-    error: function() { console.error('Failed to load summary stats'); }
+    error: function() { console.error('Failed to load summary'); }
   });
 }
 
-function loadData(page = 1) {
+function loadFollowups(page = 1) {
   $.ajax({
-    url: `{{ route('alldata.under-process.data') }}?page=${page}`,
+    url: `/todaynewfollowupstabledata?page=${page}`,
     method: 'GET',
     success: function (response) {
-      const tbody = $('#dataTable tbody');
+      const tbody = $('#followupsTable tbody');
       tbody.empty();
       let data = response.data || [];
       
@@ -489,19 +492,20 @@ function loadData(page = 1) {
 
       data.forEach(item => {
         const rawRemark = item.latest_remark || '';
-        const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
-        const fullRemark = rawRemark.replace(/"/g, '&quot;');
-
+        const displayRemark = rawRemark.length > 12 ? rawRemark.substring(0, 12) + '...' : rawRemark;
+        const remark = rawRemark
+          ? `<a href="/remark?sales_record_id=${item.id}" class="text-decoration-underline text-primary" title="${rawRemark}">${displayRemark}</a>`
+          : '-';
 
         tbody.append(`
           <tr>
             <td>${item.status_name ?? '-'}</td>
             <td>${item.prospectus_name ?? '-'}</td>
-            <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
-            <td>${item.next_follow_up_date ?? '-'}</td>
+            <td>${remark}</td>
             <td>${item.leads_name ?? '-'}</td>
             <td>${item.contact_person ?? '-'}</td>
             <td>${item.contact_number ?? '-'}</td>
+            <td>${item.next_follow_up_date ?? '-'}</td>
             <td>${item.address ?? '-'}</td>
             <td>${item.state_name ?? '-'}</td>
             <td>${item.city_name ?? '-'}</td>
@@ -534,23 +538,19 @@ function buildSimplePagination($container, current, last) {
 
   $container.append(`
     <li class="page-item ${current === 1 ? 'disabled' : ''}">
-      <a class="page-link" href="#" data-page="${current - 1}">
-        <i class="bi bi-chevron-left"></i> Previous
-      </a>
+      <a class="page-link" href="#" data-page="${current - 1}">Previous</a>
     </li>
   `);
   
   $container.append(`
     <li class="page-item active">
-      <span class="page-link">${current} / ${last}</span>
+      <span class="page-link">${current}</span>
     </li>
   `);
 
   $container.append(`
     <li class="page-item ${current === last ? 'disabled' : ''}">
-      <a class="page-link" href="#" data-page="${current + 1}">
-        Next <i class="bi bi-chevron-right"></i>
-      </a>
+      <a class="page-link" href="#" data-page="${current + 1}">Next</a>
     </li>
   `);
 }
@@ -564,50 +564,42 @@ $(document).on('click', '.pagination .page-link', function (e) {
     if (parentId === 'paginationfilterLinks') {
        loadFilteredFollowups(page);
     } else if (parentId === 'paginationsearchLinks') {
-       loadSearchData(page);
+       // logic for search pagination if needed
     } else {
-       loadData(page);
+       loadFollowups(page);
     }
   }
 });
 
-let currentSearch = '';
-$('#recordSearch').on('keyup', function () {
-  currentSearch = $(this).val();
-  loadSearchData(1);
-});
 
-function loadSearchData(page = 1) {
+$('#followupSearch').on('keyup', function () {
+  let search = $(this).val();
+
   $.ajax({
-    url: '{{ route("alldatasearch") }}?page=' + page,
+    url: '/searchnewFollowups',
     method: 'GET',
-    data: { search: currentSearch },
-    success: function (response) {
-      let tbody = $('#dataTable tbody');
+    data: { search: search },
+    success: function (data) {
+      let tbody = $('#followupsTable tbody');
       tbody.empty();
       $('#paginationLinks').hide(); 
-
-      let data = response.data || [];
 
       if (data.length === 0) {
         tbody.append('<tr><td colspan="15" class="text-center">No records found</td></tr>');
         updateSummary({ total: 0 });
-        $('#paginationsearchLinks').empty();
       } else {
         data.forEach((item) => {
-          const rawRemark = item.last_remark || ''; 
-          const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
-          const fullRemark = rawRemark.replace(/"/g, '&quot;');
-          
+          const rawRemark = item.latest_remark || '';
+          const displayRemark = rawRemark.length > 12 ? rawRemark.substring(0, 12) + '...' : rawRemark;
           tbody.append(`
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
-              <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
-              <td>${item.next_follow_up_date ?? '-'}</td>
+              <td>${displayRemark ?? '-'}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
+              <td>${item.next_follow_up_date ?? '-'}</td>
               <td>${item.address ?? '-'}</td>
               <td>${item.state_name ?? '-'}</td>
               <td>${item.city_name ?? '-'}</td>
@@ -619,22 +611,19 @@ function loadSearchData(page = 1) {
             </tr>
           `);
         });
-        
-        const $pContainer = $('#paginationsearchLinks');
-        $pContainer.show();
-        buildSimplePagination($pContainer, response.current_page || 1, response.last_page || 1);
-        updateSummary(response);
+        updateSummary({ current_page: 1, last_page: 1, total: data.length, per_page: data.length });
+        $('#paginationsearchLinks').empty();
       }
     },
     error: function () { console.error('Search failed.'); }
   });
-}
+});
 
 $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
 function loadFilteredFollowups(page = 1) {
   $.ajax({
-    url: '{{ route("alldatafilter") }}?page=' + page,
+    url: '<?php echo e(route("filter")); ?>?page=' + page,
     type: 'POST',
     data: {
       status: $('#sales_status').val(),
@@ -646,7 +635,7 @@ function loadFilteredFollowups(page = 1) {
     },
     success: function (response) {
       let data = response.data || [];
-      let tbody = $('#dataTable tbody');
+      let tbody = $('#followupsTable tbody');
       tbody.empty();
       
       if (data.length === 0) {
@@ -654,17 +643,17 @@ function loadFilteredFollowups(page = 1) {
       } else {
         data.forEach(function (item) {
           const rawRemark = item.last_remark || item.latest_remark || '';
-          const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
-          const fullRemark = rawRemark.replace(/"/g, '&quot;');
+          const displayRemark = rawRemark.length > 12 ? rawRemark.substring(0, 12) + '...' : rawRemark;
+          const remark = (rawRemark && rawRemark.length > 12) ? rawRemark.substring(0, 12) + '...' : (rawRemark || '-');
           tbody.append(`
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
-              <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
-              <td>${item.next_follow_up_date ?? '-'}</td>
+              <td>${remark}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
+              <td>${item.next_follow_up_date ?? '-'}</td>
               <td>${item.address ?? '-'}</td>
               <td>${item.state_name ?? '-'}</td>
               <td>${item.city_name ?? '-'}</td>
@@ -681,21 +670,28 @@ function loadFilteredFollowups(page = 1) {
       const $pContainer = $('#paginationfilterLinks');
       $pContainer.show();
       buildSimplePagination($pContainer, response.current_page || 1, response.last_page || 1);
-      updateSummary(response);
+      
+      updateSummary({
+        current_page: response.current_page || 1,
+        last_page: response.last_page || 1,
+        total: response.total ?? data.length,
+        per_page: response.per_page || data.length,
+        data_length: data.length
+      });
     }
   });
 }
 
 $(document).on('change', '#sales_status, #city, #state, #business_type, #lead_source, #product_type', function () {
   $('#paginationLinks').hide();
-  $('#paginationsearchLinks').hide();
+  $('#paginationfilterLinks').show();
   loadFilteredFollowups(1);
 });
 
 // Load filter options (standard boilerplate)
 $(document).ready(function() {
   $.ajax({
-    url: "{{ route('getbusiness') }}",
+    url: "<?php echo e(route('getbusiness')); ?>",
     type: "GET",
     success: function (data) {
       $('#business_type').empty().append('<option value="">Select</option>');
@@ -707,7 +703,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('getStatuses') }}",
+    url: "<?php echo e(route('getStatuses')); ?>",
     type: 'GET',
     success: function (data) {
       $('#sales_status').empty().append('<option value="">Select</option>');
@@ -719,7 +715,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('state') }}",
+    url: "<?php echo e(route('state')); ?>",
     type: "GET",
     dataType: "json",
     success: function (states) {
@@ -734,7 +730,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('getsource') }}",
+    url: "<?php echo e(route('getsource')); ?>",
     type: "GET",
     success: function (data) {
       $('#lead_source').empty().append('<option value="">Select</option>');
@@ -746,7 +742,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('getproduct') }}",
+    url: "<?php echo e(route('getproduct')); ?>",
     type: "GET",
     success: function (data) {
       $('#product_type').empty().append('<option value="">Select</option>');
@@ -758,7 +754,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('allcity') }}",
+    url: "<?php echo e(route('allcity')); ?>",
     type: "GET",
     success: function (data) {
       $('#city').empty().append('<option value="">Select</option>');
@@ -790,4 +786,6 @@ $(document).ready(function() {
   });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/todaynewtable.blade.php ENDPATH**/ ?>

@@ -882,10 +882,10 @@
                 <th>Status</th>
                 <th>Prospect</th>
                 <th>Remark</th>
+                <th>Next Follow</th>
                 <th>Lead</th>
                 <th>Contact Person</th>
                 <th>Contact No.</th>
-                <th>Next Follow</th>
                 <th>State</th>
                 <th>City</th>
                 <th>Email</th>
@@ -1281,10 +1281,10 @@
                                 <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
                                 <td>${record.prospectus_name ?? 'N/A'}</td>
                                 <td>${remark}</td>
+                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
                                 <td>${record.leads_name ?? ''}</td>
                                 <td>${record.contact_person ?? ''}</td>
                                 <td>${record.contact_number ?? ''}</td>
-                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
                                 <td>${record.state_name ?? 'N/A'}</td>
                                 <td>${record.city_name ?? 'N/A'}</td>
                                 <td>${record.email ?? ''}</td>
@@ -1440,10 +1440,10 @@
                                 <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
                                 <td>${record.prospectus_name ?? 'N/A'}</td>
                                 <td>${fullRemark ? `<a href="#" class="remark-link" onclick="showRemarksModal(${record.id})" title="${fullRemark.replace(/"/g, '&quot;')}">${shortRemark}</a>` : '-'}</td>
+                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
                                 <td>${record.leads_name ?? 'N/A'}</td>
                                 <td>${record.contact_person ?? 'N/A'}</td>
                                 <td>${record.contact_number ?? 'N/A'}</td>
-                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
                                 <td>${record.state_name ?? 'N/A'}</td>
                                 <td>${record.city_name ?? 'N/A'}</td>
                                 <td>${record.email ?? 'N/A'}</td>
@@ -1701,10 +1701,10 @@
                                 <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
                                 <td>${record.prospectus_name ?? 'N/A'}</td>
                                 <td>${remark}</td>
+                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
                                 <td>${record.leads_name ?? ''}</td>
                                 <td>${record.contact_person ?? ''}</td>
                                 <td>${record.contact_number ?? ''}</td>
-                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
                                 <td>${record.state_name ?? 'N/A'}</td>
                                 <td>${record.city_name ?? 'N/A'}</td>
                                 <td>${record.email ?? ''}</td>
@@ -1816,10 +1816,10 @@
                                 <td><span class="status-badge">${record.status_name ?? 'N/A'}</span></td>
                                 <td>${record.prospectus_name ?? 'N/A'}</td>
                                 <td>${remark}</td>
+                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
                                 <td>${record.leads_name ?? ''}</td>
                                 <td>${record.contact_person ?? ''}</td>
                                 <td>${record.contact_number ?? ''}</td>
-                                <td>${record.next_follow_up_date ?? 'N/A'}</td>
                                 <td>${record.state_name ?? 'N/A'}</td>
                                 <td>${record.city_name ?? 'N/A'}</td>
                                 <td>${record.email ?? ''}</td>

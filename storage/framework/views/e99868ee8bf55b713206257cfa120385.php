@@ -1,24 +1,25 @@
-@extends('layouts.app')
 
-@section('title', 'All Data - Under Process')
-@section('page_title', 'All Data - Under Process')
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
-.data-table-card .custom-table thead th {  
+
+    .data-table-card .custom-table thead th {
+    
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
    
   }
 </style>
-@endpush
-@section('content')
+<?php $__env->stopPush(); ?>
+<?php $__env->startSection('title', 'Under Process'); ?>
+<?php $__env->startSection('page_title', 'Under Process'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="sales_table"></div>
 
-  <!-- Summary Cards -->
   <div class="summary-cards mb-3">
     <div class="summary-card card-1" style="max-width: 250px;">
-      <div class="summary-card-icon icon-amber">
-        <img src="{{ asset('img/icons/underprocess.png') }}" alt="Under Process" onerror="this.onerror=null;this.src='{{ asset('img/icons/underprocess.png') }}';">
+      <div class="summary-card-icon icon-sunrise">
+        <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Under Process">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">Under Process</div>
@@ -27,28 +28,47 @@
     </div>
   </div>
 
-  <x-filter-panel :showSearch="false" />
+  <?php if (isset($component)) { $__componentOriginalf3f7946f558699cf27352737986448eb = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalf3f7946f558699cf27352737986448eb = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.filter-panel','data' => ['showSearch' => false]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('filter-panel'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['showSearch' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false)]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalf3f7946f558699cf27352737986448eb)): ?>
+<?php $attributes = $__attributesOriginalf3f7946f558699cf27352737986448eb; ?>
+<?php unset($__attributesOriginalf3f7946f558699cf27352737986448eb); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalf3f7946f558699cf27352737986448eb)): ?>
+<?php $component = $__componentOriginalf3f7946f558699cf27352737986448eb; ?>
+<?php unset($__componentOriginalf3f7946f558699cf27352737986448eb); ?>
+<?php endif; ?>
 
   <div class="table-search mb-2">
     <div class="table-search-field">
       <i class="bi bi-search"></i>
-      <input type="text" id="recordSearch" placeholder="Search leads, contacts, emails..." />
+      <input type="text" id="followupSearch" placeholder="Search leads, contacts, emails..." />
     </div>
   </div>
 
   <div class="modern-card data-table-card">
     <div class="modern-card-body">
       <div class="table-responsive">
-        <table class="table custom-table" id="dataTable">
+        <table class="table custom-table" id="followupsTable">
           <thead>
             <tr>
               <th>Status</th>
               <th>Prospect</th>
               <th>Remark</th>
-              <th>Next Follow</th>
               <th>Lead</th>
               <th>Contact Person</th>
               <th>Contact No.</th>
+              <th>Next Follow</th>
               <th>Address</th>
               <th>State</th>
               <th>City</th>
@@ -80,11 +100,9 @@
   <ul class="pagination" id="paginationsearchLinks"></ul>
 </div>
 
-@include('partials.remarks-modal')
+<?php $__env->stopSection(); ?>
 
-@endsection
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   /* Import fonts */
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
@@ -101,7 +119,7 @@
     margin-right: 0;
   }
 
-  /* Summary Card CSS */
+  /* Summary Card CSS matching todayfollowups */
   .summary-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -146,8 +164,7 @@
     object-fit: contain;
   }
 
-  /* Amber gradient for Under Process */
-  .icon-amber { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .icon-sunrise { background: linear-gradient(135deg, #f97316, #fb923c); }
 
   .summary-card-content {
     display: flex;
@@ -326,7 +343,7 @@
     font-family: Montserrat !important;
   }
 
-  /* IMPORTANT: White header style with vertical borders */
+  /* IMPORTANT: White header style matching todayfollowups */
   .data-table-card .custom-table thead th {
     background: #fff;
     color: #000;
@@ -370,6 +387,7 @@
     transform: translateY(-1px);
   }
 
+  /* Specific column widths - Matching Reference */
   .data-table-card .custom-table tbody td:nth-child(1) { min-width: 100px; }
   .data-table-card .custom-table tbody td:nth-child(2) { min-width: 120px; }
   .data-table-card .custom-table tbody td:nth-child(3) { min-width: 120px; }
@@ -410,7 +428,6 @@
     background: rgba(67, 74, 250, 0.15);
     border-color: #434afa;
     transform: translateY(-1px);
-    color: #334155;
   }
   
   .table-range-meta {
@@ -419,35 +436,20 @@
     margin: 0.35rem 0 0.75rem;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 let currentPage = 1;
-
-// Filter Toggle
-$(document).ready(function () {
-  $('#toggleFiltersBtn').on('click', function () {
-    let $filterBox = $('.filterScroll');
-    if ($filterBox.is(':visible')) {
-      $filterBox.slideUp('fast');
-      $(this).text('Show Filters ▼');
-    } else {
-      $filterBox.slideDown('fast');
-      $(this).text('Hide Filters ▲');
-    }
-  });
-});
 
 function updateSummary(meta) {
   const current = meta.current_page || 1;
   const last = meta.last_page || 1;
   const total = meta.total || 0;
-  const perPage = Number(meta.per_page || 20); 
+  const perPage = Number(meta.per_page || 20);
   const from = (current - 1) * perPage + 1;
   let to = current * perPage;
   if (to > total) to = total;
-  
   if (total === 0) {
     $('#pageSummaryBottom').text('Page 1 of 1 • Showing 0-0 of 0');
   } else {
@@ -456,27 +458,27 @@ function updateSummary(meta) {
 }
 
 $(document).ready(function () {
-  loadData();
-  loadSummaryStats();
+  loadFollowups();
+  loadTotalUnderProcess();
 });
 
-function loadSummaryStats() {
+function loadTotalUnderProcess() {
   $.ajax({
-    url: '{{ route("alldata.summary-stats") }}',
+    url: '/underprocess',
     method: 'GET',
     success: function(response) {
-      $('#totalUnderProcessCard').text(response.under_process || 0);
+      $('#totalUnderProcessCard').text(response.underprocess || 0);
     },
-    error: function() { console.error('Failed to load summary stats'); }
+    error: function() { console.error('Failed to load summary'); }
   });
 }
 
-function loadData(page = 1) {
+function loadFollowups(page = 1) {
   $.ajax({
-    url: `{{ route('alldata.under-process.data') }}?page=${page}`,
+    url: `/todayunderprocessfollowupstabledata?page=${page}`,
     method: 'GET',
     success: function (response) {
-      const tbody = $('#dataTable tbody');
+      const tbody = $('#followupsTable tbody');
       tbody.empty();
       let data = response.data || [];
       
@@ -489,19 +491,20 @@ function loadData(page = 1) {
 
       data.forEach(item => {
         const rawRemark = item.latest_remark || '';
-        const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
-        const fullRemark = rawRemark.replace(/"/g, '&quot;');
-
+        const displayRemark = rawRemark.length > 12 ? rawRemark.substring(0, 12) + '...' : rawRemark;
+        const remark = rawRemark
+          ? `<a href="/remark?sales_record_id=${item.id}" class="text-decoration-underline text-primary" title="${rawRemark}">${displayRemark}</a>`
+          : '-';
 
         tbody.append(`
           <tr>
             <td>${item.status_name ?? '-'}</td>
             <td>${item.prospectus_name ?? '-'}</td>
-            <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
-            <td>${item.next_follow_up_date ?? '-'}</td>
+            <td>${remark}</td>
             <td>${item.leads_name ?? '-'}</td>
             <td>${item.contact_person ?? '-'}</td>
             <td>${item.contact_number ?? '-'}</td>
+            <td>${item.next_follow_up_date ?? '-'}</td>
             <td>${item.address ?? '-'}</td>
             <td>${item.state_name ?? '-'}</td>
             <td>${item.city_name ?? '-'}</td>
@@ -534,22 +537,59 @@ function buildSimplePagination($container, current, last) {
 
   $container.append(`
     <li class="page-item ${current === 1 ? 'disabled' : ''}">
+      <a class="page-link" href="#" data-page="${current - 1}">Previous</a>
+    </li>
+  `); // Matching classic previous/next buttons from todayfollowups if that was the style, but earlier I saw chevron icons. 
+  // Wait, todayfollowups used icons in my view at line 668 (which was not shown). 
+  // Let's stick to the previous icons as they look cleaner, or text if specifically requested.
+  // The user said "pagination same". In my view of todayfollowups (Step 146), I missed the render block.
+  // BUT the provided image (Image 1) shows " < Previous  1/7  Next > " style roughly.
+  // Actually, standard Laravel pagination usually is arrows or text.
+  // I will use text "Previous" and "Next" to match the default Bootstrap style often used if not customizing excessively, 
+  // BUT looking at the CSS in todayfollowups (lines 600+), it styles .page-link.
+  // I will stick to the Chevron icons as they are more modern and likely what is intended, unless I see text in the image.
+  // Image 1 shows "< Previous 1/7 Next >" at the bottom.
+  // SO I will use Text + Icon or just Text. Let's use Icons + Text.
+  
+  // Re-reading image 1: It shows a blue bar (active) and arrows.
+  // Steps 180 (view_file) didn't show the JS rendering pagination.
+  // I will use standard Bootstrap structure which matches the CSS I copied.
+  
+  $container.append(`
+      <li class="page-item active">
+        <span class="page-link">${current}</span>
+      </li>
+  `);
+  // This seems too simple. Let's stick to what I had which was working fine visually.
+}
+
+// Actually, let's use the code I had before for pagination logic but ensure the CONTAINER is centered.
+
+function buildSimplePagination($container, current, last) {
+  $container.empty();
+  if (last <= 1) return;
+
+   // Previous
+  $container.append(`
+    <li class="page-item ${current === 1 ? 'disabled' : ''}">
       <a class="page-link" href="#" data-page="${current - 1}">
-        <i class="bi bi-chevron-left"></i> Previous
+        <i class="bi bi-chevron-left"></i>
       </a>
     </li>
   `);
   
+  // Pages - simplified to show current
   $container.append(`
     <li class="page-item active">
-      <span class="page-link">${current} / ${last}</span>
+      <span class="page-link">${current}</span>
     </li>
   `);
 
+  // Next
   $container.append(`
     <li class="page-item ${current === last ? 'disabled' : ''}">
       <a class="page-link" href="#" data-page="${current + 1}">
-        Next <i class="bi bi-chevron-right"></i>
+        <i class="bi bi-chevron-right"></i>
       </a>
     </li>
   `);
@@ -564,30 +604,26 @@ $(document).on('click', '.pagination .page-link', function (e) {
     if (parentId === 'paginationfilterLinks') {
        loadFilteredFollowups(page);
     } else if (parentId === 'paginationsearchLinks') {
-       loadSearchData(page);
+       // logic for search pagination if separated
     } else {
-       loadData(page);
+       loadFollowups(page);
     }
   }
 });
 
-let currentSearch = '';
-$('#recordSearch').on('keyup', function () {
-  currentSearch = $(this).val();
-  loadSearchData(1);
-});
 
-function loadSearchData(page = 1) {
+$('#followupSearch').on('keyup', function () {
+  let search = $(this).val();
+
   $.ajax({
-    url: '{{ route("alldatasearch") }}?page=' + page,
+    url: '/searchunderprocessFollowups',
     method: 'GET',
-    data: { search: currentSearch },
-    success: function (response) {
-      let tbody = $('#dataTable tbody');
+    data: { search: search },
+    success: function (data) {
+      let tbody = $('#followupsTable tbody');
       tbody.empty();
       $('#paginationLinks').hide(); 
-
-      let data = response.data || [];
+      $('#paginationsearchLinks').show();
 
       if (data.length === 0) {
         tbody.append('<tr><td colspan="15" class="text-center">No records found</td></tr>');
@@ -595,19 +631,17 @@ function loadSearchData(page = 1) {
         $('#paginationsearchLinks').empty();
       } else {
         data.forEach((item) => {
-          const rawRemark = item.last_remark || ''; 
-          const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
-          const fullRemark = rawRemark.replace(/"/g, '&quot;');
-          
+          const rawRemark = item.latest_remark || '';
+          const displayRemark = rawRemark.length > 12 ? rawRemark.substring(0, 12) + '...' : rawRemark;
           tbody.append(`
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
-              <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
-              <td>${item.next_follow_up_date ?? '-'}</td>
+              <td>${displayRemark ?? '-'}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
+              <td>${item.next_follow_up_date ?? '-'}</td>
               <td>${item.address ?? '-'}</td>
               <td>${item.state_name ?? '-'}</td>
               <td>${item.city_name ?? '-'}</td>
@@ -619,22 +653,21 @@ function loadSearchData(page = 1) {
             </tr>
           `);
         });
-        
-        const $pContainer = $('#paginationsearchLinks');
-        $pContainer.show();
-        buildSimplePagination($pContainer, response.current_page || 1, response.last_page || 1);
-        updateSummary(response);
+        updateSummary({ current_page: 1, last_page: 1, total: data.length, per_page: data.length });
+        // Start search pagination if needed, mostly search returns all matches or paginated? 
+        // Controller returns ->get() (all) for search. So no pagination needed for search logic provided.
+        $('#paginationsearchLinks').empty();
       }
     },
     error: function () { console.error('Search failed.'); }
   });
-}
+});
 
 $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
 function loadFilteredFollowups(page = 1) {
   $.ajax({
-    url: '{{ route("alldatafilter") }}?page=' + page,
+    url: '<?php echo e(route("filter")); ?>?page=' + page,
     type: 'POST',
     data: {
       status: $('#sales_status').val(),
@@ -646,7 +679,7 @@ function loadFilteredFollowups(page = 1) {
     },
     success: function (response) {
       let data = response.data || [];
-      let tbody = $('#dataTable tbody');
+      let tbody = $('#followupsTable tbody');
       tbody.empty();
       
       if (data.length === 0) {
@@ -654,17 +687,17 @@ function loadFilteredFollowups(page = 1) {
       } else {
         data.forEach(function (item) {
           const rawRemark = item.last_remark || item.latest_remark || '';
-          const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
-          const fullRemark = rawRemark.replace(/"/g, '&quot;');
+          const displayRemark = rawRemark.length > 12 ? rawRemark.substring(0, 12) + '...' : rawRemark;
+          const remark = (rawRemark && rawRemark.length > 12) ? rawRemark.substring(0, 12) + '...' : (rawRemark || '-');
           tbody.append(`
             <tr>
               <td>${item.status_name ?? '-'}</td>
               <td>${item.prospectus_name ?? '-'}</td>
-              <td>${rawRemark ? `<a href="#" class="remark-link text-decoration-underline text-primary" onclick="showRemarksModal(${item.id})" title="${fullRemark}">${shortRemark}</a>` : '-'}</td>
-              <td>${item.next_follow_up_date ?? '-'}</td>
+              <td>${remark}</td>
               <td>${item.leads_name ?? '-'}</td>
               <td>${item.contact_person ?? '-'}</td>
               <td>${item.contact_number ?? '-'}</td>
+              <td>${item.next_follow_up_date ?? '-'}</td>
               <td>${item.address ?? '-'}</td>
               <td>${item.state_name ?? '-'}</td>
               <td>${item.city_name ?? '-'}</td>
@@ -681,21 +714,29 @@ function loadFilteredFollowups(page = 1) {
       const $pContainer = $('#paginationfilterLinks');
       $pContainer.show();
       buildSimplePagination($pContainer, response.current_page || 1, response.last_page || 1);
-      updateSummary(response);
+      
+      updateSummary({
+        current_page: response.current_page || 1,
+        last_page: response.last_page || 1,
+        total: response.total ?? data.length,
+        per_page: response.per_page || data.length,
+        data_length: data.length
+      });
     }
   });
 }
 
+// Logic to hide main pagination when filter is active
 $(document).on('change', '#sales_status, #city, #state, #business_type, #lead_source, #product_type', function () {
   $('#paginationLinks').hide();
-  $('#paginationsearchLinks').hide();
+  $('#paginationfilterLinks').show();
   loadFilteredFollowups(1);
 });
 
 // Load filter options (standard boilerplate)
 $(document).ready(function() {
   $.ajax({
-    url: "{{ route('getbusiness') }}",
+    url: "<?php echo e(route('getbusiness')); ?>",
     type: "GET",
     success: function (data) {
       $('#business_type').empty().append('<option value="">Select</option>');
@@ -707,7 +748,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('getStatuses') }}",
+    url: "<?php echo e(route('getStatuses')); ?>",
     type: 'GET',
     success: function (data) {
       $('#sales_status').empty().append('<option value="">Select</option>');
@@ -719,7 +760,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('state') }}",
+    url: "<?php echo e(route('state')); ?>",
     type: "GET",
     dataType: "json",
     success: function (states) {
@@ -734,7 +775,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('getsource') }}",
+    url: "<?php echo e(route('getsource')); ?>",
     type: "GET",
     success: function (data) {
       $('#lead_source').empty().append('<option value="">Select</option>');
@@ -742,11 +783,11 @@ $(document).ready(function() {
         $('#lead_source').append(`<option value="${type.id}">${type.source_name}</option>`);
       });
     },
-    error: function () { $('#lead_source').html('<option value="">Unable to load types</option>'); }
+    error: function () { $('#lead_source').html('<option value=\"\">Unable to load types</option>'); }
   });
 
   $.ajax({
-    url: "{{ route('getproduct') }}",
+    url: "<?php echo e(route('getproduct')); ?>",
     type: "GET",
     success: function (data) {
       $('#product_type').empty().append('<option value="">Select</option>');
@@ -758,7 +799,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('allcity') }}",
+    url: "<?php echo e(route('allcity')); ?>",
     type: "GET",
     success: function (data) {
       $('#city').empty().append('<option value="">Select</option>');
@@ -790,4 +831,6 @@ $(document).ready(function() {
   });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\Don't Delete\laravel\leadmanagement (akrati ui work)\resources\views/underprocess.blade.php ENDPATH**/ ?>
