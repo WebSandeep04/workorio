@@ -214,7 +214,6 @@ return [
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 
-    'lifetime' => 10, // Session lifetime in minutes (without remember)
-'expire_on_close' => false,
+
 
 ];
