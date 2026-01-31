@@ -70,6 +70,21 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/business-cards/{id}', [\App\Http\Controllers\Api\BusinessCardController::class, 'show']);
     Route::put('/business-cards/{id}', [\App\Http\Controllers\Api\BusinessCardController::class, 'update']);
     Route::delete('/business-cards/{id}', [\App\Http\Controllers\Api\BusinessCardController::class, 'destroy']);
+    // Leads Management Routes
+    Route::get('/leads/my-leads', [\App\Http\Controllers\Api\LeadApiController::class, 'index']);
+    Route::post('/leads/add', [\App\Http\Controllers\Api\LeadApiController::class, 'store']);
+    Route::post('/leads/assign', [\App\Http\Controllers\Api\LeadApiController::class, 'assign']);
+    Route::get('/leads/filter-options', [\App\Http\Controllers\Api\LeadApiController::class, 'getFilterOptions']);
+    Route::get('/leads/cities/{stateId}', [\App\Http\Controllers\Api\LeadApiController::class, 'getCitiesByState']);
+    Route::get('/leads/team-members', [\App\Http\Controllers\Api\LeadApiController::class, 'getTeamMembers']);
+
+    // Prospect Management Routes
+    Route::get('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'index']);
+    Route::post('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'store']);
+    Route::get('/prospects/{id}', [\App\Http\Controllers\Api\ProspectusApiController::class, 'show']);
+
+    // User Management Routes
+    Route::get('/users', [\App\Http\Controllers\Api\UserApiController::class, 'index']);
 });
 
 
