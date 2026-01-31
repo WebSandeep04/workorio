@@ -16,6 +16,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
+use Illuminate\Support\Facades\DB;
+
 class LeadApiController extends Controller
 {
     /**
@@ -25,6 +27,7 @@ class LeadApiController extends Controller
     {
         $userId = Auth::id();
         $perPage = $request->get('per_page', 10);
+        $today = Carbon::today()->toDateString(); // For filters
 
         $query = SalesRecord::with([
             'status',
@@ -41,6 +44,48 @@ class LeadApiController extends Controller
         // Apply filters
         if ($request->filled('status_id')) {
             $query->where('status_id', $request->status_id);
+        }
+
+        if ($request->filled('filter_type')) {
+            $filter = $request->filter_type;
+            // Exclude closed statuses logic (common to these filters in MyLeadsController)
+            $excludedStatuses = [1, 2, 15, 20]; // Adjust as per your business logic
+
+            switch ($filter) {
+                case 'today_followups':
+                    $query->where(function ($q) use ($today) {
+                        $q->whereDate('next_follow_up_date', '<=', $today)
+                          ->orWhere(function ($sub) use ($today) {
+                              $sub->whereDate('next_follow_up_date', '>', $today)
+                                  ->whereDate('updatedat', $today);
+                          });
+                    })->whereNotIn('status_id', $excludedStatuses);
+                    break;
+                
+                case 'under_process':
+                    $query->whereDate('updatedat', $today)
+                          ->whereDate('next_follow_up_date', $today)
+                          ->whereNotIn('status_id', $excludedStatuses);
+                    break;
+
+                case 'today_completed':
+                    $query->whereDate('updatedat', $today)
+                          ->whereDate('next_follow_up_date', '>', $today)
+                          ->whereNotIn('status_id', $excludedStatuses);
+                    break;
+
+                case 'today_pending':
+                    $query->where(function ($q) use ($today) {
+                        $q->whereDate('next_follow_up_date', '<=', $today)
+                          ->orWhereNull('next_follow_up_date');
+                    })->whereNotIn('status_id', $excludedStatuses);
+                    break;
+
+                case 'today_new':
+                    $query->whereDate('createdat', $today)
+                          ->whereNotIn('status_id', $excludedStatuses);
+                    break;
+            }
         }
 
         if ($request->filled('state_id')) {
@@ -94,6 +139,73 @@ class LeadApiController extends Controller
         $records = $query->orderBy('createdat', 'desc')->paginate($perPage);
 
         return response()->json($records);
+    }
+
+    /**
+     * Get summary statistics for dashboard cards
+     */
+    public function getSummaryStats()
+    {
+        $userId = Auth::id();
+        $today = Carbon::today()->toDateString();
+        $excludedStatuses = [1, 2, 15, 20];
+
+        $stats = [
+            'today_followups' => SalesRecord::where('user_id', $userId)
+                ->where(function ($q) use ($today) {
+                    $q->whereDate('next_follow_up_date', '<=', $today)
+                      ->orWhere(function ($sub) use ($today) {
+                          $sub->whereDate('next_follow_up_date', '>', $today)
+                              ->whereDate('updatedat', $today);
+                      });
+                })->whereNotIn('status_id', $excludedStatuses)->count(),
+
+            'under_process' => SalesRecord::where('user_id', $userId)
+                ->whereDate('updatedat', $today)
+                ->whereDate('next_follow_up_date', $today)
+                ->whereNotIn('status_id', $excludedStatuses)->count(),
+
+            'today_completed' => SalesRecord::where('user_id', $userId)
+                ->whereDate('updatedat', $today)
+                ->whereDate('next_follow_up_date', '>', $today)
+                ->whereNotIn('status_id', $excludedStatuses)->count(),
+
+            'today_pending' => SalesRecord::where('user_id', $userId)
+                ->where(function ($q) use ($today) {
+                    $q->whereDate('next_follow_up_date', '<=', $today)
+                      ->orWhereNull('next_follow_up_date');
+                })->whereNotIn('status_id', $excludedStatuses)->count(),
+
+            'today_new' => SalesRecord::where('user_id', $userId)
+                ->whereDate('createdat', $today)
+                ->whereNotIn('status_id', $excludedStatuses)->count()
+        ];
+
+        return response()->json(['success' => true, 'data' => $stats]);
+    }
+
+    /**
+     * Get status counts for dashboard
+     */
+    public function getStatusCounts()
+    {
+        $userId = Auth::id();
+
+        $statusCounts = DB::table('sales_status')
+            ->leftJoin('sales_records', function($join) use ($userId) {
+                $join->on('sales_status.id', '=', 'sales_records.status_id')
+                     ->where('sales_records.user_id', '=', $userId);
+            })
+            ->select(
+                'sales_status.id',
+                'sales_status.status_name',
+                DB::raw('COUNT(sales_records.id) as count')
+            )
+            ->groupBy('sales_status.id', 'sales_status.status_name')
+            ->orderBy('sales_status.status_name')
+            ->get();
+
+        return response()->json(['success' => true, 'data' => $statusCounts]);
     }
 
     /**

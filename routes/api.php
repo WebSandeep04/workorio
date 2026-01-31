@@ -71,6 +71,8 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::put('/business-cards/{id}', [\App\Http\Controllers\Api\BusinessCardController::class, 'update']);
     Route::delete('/business-cards/{id}', [\App\Http\Controllers\Api\BusinessCardController::class, 'destroy']);
     // Leads Management Routes
+    Route::get('/leads/stats', [\App\Http\Controllers\Api\LeadApiController::class, 'getSummaryStats']);
+    Route::get('/leads/status-counts', [\App\Http\Controllers\Api\LeadApiController::class, 'getStatusCounts']);
     Route::get('/leads/my-leads', [\App\Http\Controllers\Api\LeadApiController::class, 'index']);
     Route::post('/leads/add', [\App\Http\Controllers\Api\LeadApiController::class, 'store']);
     Route::post('/leads/assign', [\App\Http\Controllers\Api\LeadApiController::class, 'assign']);

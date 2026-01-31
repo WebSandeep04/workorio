@@ -278,3 +278,55 @@ Update the master prospect record.
       "address": "123 Business Rd"
   }
   ```
+
+---
+
+## 8. Dashboard & Filtering API
+Endpoints to power the interactive dashboard (Summary Cards, Status Filters).
+
+### 1. Get Summary Stats (Top Row)
+Fetches the counts for "Today's Follow Ups", "Under Process", etc.
+- **Endpoint:** `/leads/stats`
+- **Method:** `GET`
+- **Response:**
+  ```json
+  {
+      "success": true,
+      "data": {
+          "today_followups": 5,
+          "under_process": 12,
+          "today_completed": 3,
+          "today_pending": 1,
+          "today_new": 2
+      }
+  }
+  ```
+- **UX Action:** Clicking one of these cards (e.g., "Today's Follow Ups") should trigger the list API (below) with the corresponding `filter_type`.
+
+### 2. Get Status Counts
+Fetches the breakdown of leads by specific status (Cold, Warm, Hot, etc.).
+- **Endpoint:** `/leads/status-counts`
+- **Method:** `GET`
+- **Response:**
+  ```json
+  {
+      "success": true,
+      "data": [
+          { "id": 1, "status_name": "Cold", "count": 10 },
+          { "id": 2, "status_name": "Warm", "count": 5 }
+      ]
+  }
+  ```
+- **UX Action:** Clicking a status card (e.g., "ID 1 Cold") should trigger the list API with `status_id=1`.
+
+### 3. Filtered Lead List (New Parameter)
+The main list endpoint has been enhanced to support "Preset Filters" for the dashboard.
+- **Endpoint:** `/leads/my-leads`
+- **New Parameter:** `filter_type` (string, optional)
+- **Allowed Values:**
+    -   `today_followups`: Leads due today or past due.
+    -   `under_process`: Updated today + Follow up today.
+    -   `today_completed`: Updated today + Follow up future.
+    -   `today_pending`: Due today or null.
+    -   `today_new`: Created today.
+- **Example:** `GET /leads/my-leads?filter_type=today_followups`
