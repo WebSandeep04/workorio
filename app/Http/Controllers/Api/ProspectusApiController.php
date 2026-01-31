@@ -67,6 +67,46 @@ class ProspectusApiController extends Controller
     }
 
     /**
+     * Update an existing prospect
+     */
+    public function update(Request $request, $id)
+    {
+        $prospect = Prospectus::find($id);
+
+        if (!$prospect) {
+            return response()->json(['success' => false, 'message' => 'Prospect not found'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'prospectus_name' => 'sometimes|string|max:255',
+            'contact_person' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string',
+            'address' => 'nullable|string',
+            'state_id' => 'nullable|integer',
+            'city_id' => 'nullable|integer',
+            'email' => 'nullable|email',
+            'business_type_id' => 'nullable|integer',
+            'website_link' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $prospect->update($validator->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Prospect updated successfully',
+            'data' => $prospect
+        ]);
+    }
+
+    /**
      * Get a single prospect by ID
      */
     public function show($id)

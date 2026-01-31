@@ -187,3 +187,94 @@ Retrieve a list of users, useful for population of dropdowns (e.g., "Assign To")
 1.  **Prospect Deduplication:** Implement fuzzy matching on `prospectus_name` during creation to warn users if a similar company exists.
 2.  **Contact Management:** Abstract `ContactPerson` into its own table (Many-to-Many with Prospect) to handle large clients with multiple stakeholders.
 3.  **Automated Enrichment:** Use an API to auto-fill address/industry data based on the Company Name.
+
+---
+
+## 6. Frontend Workflow Analysis (My Leads -> Remarks)
+
+### A. Navigation Flow
+1.  **Dashboard**: User views `/myleads`.
+2.  **Action**: Clicking a lead/remark navigates to `/remark?sales_record_id={id}`.
+    -   **Code Reference**: `myleads.blade.php` generates `<a href="/remark?sales_record_id=${record.id}">`.
+
+### B. Remark Page (`/remark`) Analysis
+This page (`resources/views/remark.blade.php`) handles the complete interaction lifecycle.
+
+#### 1. Page Architecture
+-   **Left Pane (Context)**:
+    -   Displays Lead & Prospect details.
+    -   **Edit Prospect**: Updates master data via `POST /updateprospectus`. **Note:** This is a global update affecting all leads for this prospect.
+    -   **Latest Quote**: Integration to view/revise usage. Includes WhatsApp sharing logic via `sendQuoteToWhatsApp()`.
+-   **Center Pane (Action Form)**:
+    -   **Submission**: `POST /saveremark` (RemarkController@store).
+    -   **Logic**: Uses `updateOrCreate` based on **[sales_record_id, remark_date]**.
+    -   **Constraint**: Only **one remark per date** is allowed.
+    -   **Side Effects**: Submitting a remark *always* updates the Lead's current Status, Ticket Value, and Follow-up Date to the values in the form.
+-   **Right Pane (History)**:
+    -   Lists historical remarks (Newest First).
+    -   **Edit Feature**: Clicking "Edit" fills the form with the old remark's text and date.
+    -   **Caveat**: Submitting an edited remark performs an Upsert on that date. It does not "move" the remark.
+
+### C. Backend Logic (`RemarkController`)
+-   **Store Method**:
+    -   Validates `sales_record_id`.
+    -   Updates parent `SalesRecord` (`ticket_value`, `status_id`, `next_follow_up_date`).
+    -   Upserts `Remark` entry.
+
+---
+
+## 7. Lead Details & Remarks API
+New endpoints to retrieve full lead details and manage remarks via REST API.
+
+### 1. Get Single Lead
+Retrieves full details including Prospect, Current Status, and Remarks.
+- **Endpoint:** `/leads/{id}`
+- **Method:** `GET`
+- **Response:**
+  ```json
+  {
+      "success": true,
+      "data": {
+          "id": 5377,
+          "leads_name": "Acme Corp",
+          "ticket_value": "50000",
+          "next_follow_up_date": "2024-02-15",
+          "prospectus": { "prospectus_name": "Acme Inc", "email": "..." },
+          "status": { "id": 1, "status_name": "Hot" },
+          "remarks": [ 
+              { "id": 101, "remark": "Meeting notes...", "remark_date": "2024-02-01" } 
+          ]
+      }
+  }
+  ```
+
+### 2. Manage Remarks (Upsert)
+Add or Update a remark. Uses **Upsert Logic** based on Date.
+- **Endpoint:** `/remarks`
+- **Method:** `POST`
+- **Body:**
+  ```json
+  {
+      "sales_record_id": 5377,
+      "remark_date": "2024-02-01",
+      "remark": "Meeting went well.",
+      "ticket_value": 55000,
+      "status_id": 2, // ID from filter-options
+      "next_follow_up_date": "2024-02-20"
+  }
+  ```
+- **Note:** Updates parent Lead's Status, Ticket Value, and Follow-Up Date automatically.
+
+### 3. Update Prospect Details
+Update the master prospect record.
+- **Endpoint:** `/prospects/{id}`
+- **Method:** `PUT`
+- **Body:** 
+  ```json
+  { 
+      "prospectus_name": "Acme Inc. Updated", 
+      "email": "contact@acme.com",
+      "contact_person": "John Doe",
+      "address": "123 Business Rd"
+  }
+  ```

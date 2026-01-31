@@ -82,6 +82,14 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'index']);
     Route::post('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'store']);
     Route::get('/prospects/{id}', [\App\Http\Controllers\Api\ProspectusApiController::class, 'show']);
+    Route::put('/prospects/{id}', [\App\Http\Controllers\Api\ProspectusApiController::class, 'update']);
+
+    // Remarks Management
+    Route::get('/remarks', [\App\Http\Controllers\Api\RemarkApiController::class, 'index']);
+    Route::post('/remarks', [\App\Http\Controllers\Api\RemarkApiController::class, 'store']);
+
+    // Lead Details
+    Route::get('/leads/{id}', [\App\Http\Controllers\Api\LeadApiController::class, 'show']);
 
     // User Management Routes
     Route::get('/users', [\App\Http\Controllers\Api\UserApiController::class, 'index']);

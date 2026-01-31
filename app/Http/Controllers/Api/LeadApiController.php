@@ -97,6 +97,39 @@ class LeadApiController extends Controller
     }
 
     /**
+     * Get single lead details
+     */
+    public function show($id)
+    {
+        $userId = Auth::id();
+        
+        $lead = SalesRecord::with([
+            'status',
+            'prospectus',
+            'prospectus.state',
+            'prospectus.city', 
+            'prospectus.businessType',
+            'city',
+            'state',
+            'businessType',
+            'leadSource',
+            'product',
+            'latestRemark',
+            'remarks' => function($query) {
+                $query->orderBy('remark_date', 'desc');
+            }
+        ])
+        ->where('user_id', $userId)
+        ->find($id);
+
+        if (!$lead) {
+            return response()->json(['success' => false, 'message' => 'Lead not found or access denied'], 404);
+        }
+
+        return response()->json(['success' => true, 'data' => $lead]);
+    }
+
+    /**
      * Store a new lead
      */
     public function store(Request $request)
