@@ -42,6 +42,7 @@ class EmployeeController extends Controller
                 'stateRelation',
                 'cityRelation',
                 'countryRelation',
+                'places',
                 'documents' => function($query) {
                     $query->whereIn('document_type', ['Aadhaar', 'PAN', 'Education'])
                           ->orderBy('created_at', 'desc');
@@ -62,13 +63,19 @@ class EmployeeController extends Controller
         }
 
         $employee = Employee::create($data);
-        $employee->update(['employee_code' => $this->formatEmployeeCode($employee->id)]);
+        if (isset($data['is_place_allowed']) && $data['is_place_allowed']) {
+            if (isset($data['places'])) {
+                $employee->places()->sync($data['places']);
+            }
+        } else {
+            $employee->places()->detach();
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Employee created successfully.',
             'employee' => $employee->fresh()
-                ->load(['branch', 'departmentRelation', 'designationRelation', 'employmentTypeRelation', 'stateRelation', 'cityRelation', 'countryRelation', 'documents' => function($query) {
+                ->load(['branch', 'departmentRelation', 'designationRelation', 'employmentTypeRelation', 'stateRelation', 'cityRelation', 'countryRelation', 'places', 'documents' => function($query) {
                     $query->whereIn('document_type', ['Aadhaar', 'PAN', 'Education'])
                           ->orderBy('created_at', 'desc');
                 }])
@@ -83,11 +90,20 @@ class EmployeeController extends Controller
         $data = $this->validateEmployee($request, $employee->id);
         $employee->update($data);
 
+        if (isset($data['is_place_allowed']) && $data['is_place_allowed']) {
+            if (isset($data['places'])) {
+                $employee->places()->sync($data['places']);
+            }
+        } else {
+             // If not restricted, remove all associated places
+             $employee->places()->detach();
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Employee updated successfully.',
             'employee' => $employee->fresh()
-                ->load(['branch', 'departmentRelation', 'designationRelation', 'employmentTypeRelation', 'stateRelation', 'cityRelation', 'countryRelation', 'documents' => function($query) {
+                ->load(['branch', 'departmentRelation', 'designationRelation', 'employmentTypeRelation', 'stateRelation', 'cityRelation', 'countryRelation', 'places', 'documents' => function($query) {
                     $query->whereIn('document_type', ['Aadhaar', 'PAN', 'Education'])
                           ->orderBy('created_at', 'desc');
                 }])
@@ -105,6 +121,7 @@ class EmployeeController extends Controller
                 'stateRelation',
                 'cityRelation',
                 'countryRelation',
+                'places',
                 'documents' => function($query) {
                     $query->whereIn('document_type', ['Aadhaar', 'PAN', 'Education'])
                           ->orderBy('created_at', 'desc');
@@ -257,6 +274,9 @@ class EmployeeController extends Controller
             'medical_conditions' => 'nullable|string',
             'allergies' => 'nullable|string',
             'notes' => 'nullable|string|max:1000',
+            'is_place_allowed' => 'boolean',
+            'places' => 'array',
+            'places.*' => 'exists:places,id',
         ]);
 
         if (!empty($data['department_id'])) {

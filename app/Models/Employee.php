@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Country;
+use App\Models\Place;
 
 class Employee extends Model
 {
@@ -68,6 +69,7 @@ class Employee extends Model
         'emergency_contact_name',
         'emergency_contact_phone',
         'notes',
+        'is_place_allowed',
     ];
 
     protected $casts = [
@@ -76,6 +78,7 @@ class Employee extends Model
         'passport_expiry' => 'date',
         'insurance_valid_till' => 'date',
         'experience_years' => 'decimal:2',
+        'is_place_allowed' => 'boolean',
     ];
 
     public function documents()
@@ -121,6 +124,11 @@ class Employee extends Model
     public function countryRelation()
     {
         return $this->belongsTo(Country::class, 'country_id');
+    }
+
+    public function places()
+    {
+        return $this->belongsToMany(Place::class, 'employee_attendance_places')->withTimestamps();
     }
 }
 

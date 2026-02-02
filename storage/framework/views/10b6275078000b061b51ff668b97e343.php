@@ -223,6 +223,8 @@
             emergency_contact_relation: $('#employee_emergency_relation').val().trim(),
             emergency_contact_phone: $('#employee_emergency_phone').val().trim(),
             notes: $('#employee_notes').val().trim(),
+            is_place_allowed: $('#employee_place_allowed').is(':checked') ? 1 : 0,
+            places: selectedPlaceIds
         };
     }
 
@@ -387,6 +389,22 @@
             
             // Load and display existing documents
             loadEmployeeDocumentsForModal(data.id, data.documents || []);
+
+            // Places
+            $('#employee_place_allowed').prop('checked', !!data.is_place_allowed);
+            selectedPlaceIds = [];
+            if (data.is_place_allowed) {
+                $('#btnSelectPlaces').removeClass('d-none');
+                $('#selected_places_count').removeClass('d-none');
+                if (data.places && Array.isArray(data.places)) {
+                    selectedPlaceIds = data.places.map(p => Number(p.id));
+                }
+            } else {
+                $('#btnSelectPlaces').addClass('d-none');
+                $('#selected_places_count').addClass('d-none');
+            }
+            updateSelectedCount();
+
         } else {
             $('#employee_status').val('active');
             // Clear document lists for new employee and show upload links
@@ -396,6 +414,13 @@
             $('#aadhaar_upload_container').show();
             $('#pan_upload_container').show();
             $('#education_upload_container').show();
+
+            // Clear Places
+            $('#employee_place_allowed').prop('checked', false);
+            $('#btnSelectPlaces').addClass('d-none');
+            $('#selected_places_count').addClass('d-none');
+            selectedPlaceIds = [];
+            updateSelectedCount();
         }
         new bootstrap.Modal('#employeeModal').show();
     }
@@ -768,6 +793,10 @@
         deleteDocument($(this).data('employee'), $(this).data('id'));
     });
 
+    let selectedPlaceIds = [];
+    let placesData = [];
+    const placesListUrl = "<?php echo e(route('places.list')); ?>";
+
     $(document).on('click', '.delete-document-inline', function () {
         const employeeId = $(this).data('employee-id');
         const documentId = $(this).data('document-id');
@@ -800,6 +829,107 @@
             alert('Failed to delete document.');
         });
     });
+
+    // --- Places Logic Start ---
+    function fetchPlaces(callback) {
+        if (placesData.length > 0) {
+            if (callback) callback();
+            return;
+        }
+        $.get(placesListUrl).done(function(data) {
+            placesData = data;
+            renderPlacesList();
+            if (callback) callback();
+        });
+    }
+
+    function renderPlacesList() {
+        const list = $('#placesList');
+        list.empty();
+        if (placesData.length === 0) {
+            list.html('<div class="text-center text-muted py-3">No places found. Please add places first.</div>');
+            return;
+        }
+
+        placesData.forEach(function(place) {
+            const placeId = Number(place.id);
+            const isSelected = selectedPlaceIds.includes(placeId);
+            list.append(`
+                <label class="list-group-item list-group-item-action">
+                    <input class="form-check-input me-2 place-checkbox" type="checkbox" value="${placeId}" ${isSelected ? 'checked' : ''}>
+                    ${escapeHtml(place.placename)}
+                    <small class="text-muted ms-1">(${place.radius}m)</small>
+                </label>
+            `);
+        });
+        updateSelectAllState();
+    }
+
+    function updateSelectAllState() {
+        const allChecked = $('.place-checkbox:not(:checked)').length === 0 && $('.place-checkbox').length > 0;
+        $('#selectAllPlaces').prop('checked', allChecked);
+    }
+    
+    function updateSelectedCount() {
+        const count = selectedPlaceIds.length;
+        $('#selected_places_count').text(`${count} places selected`).removeClass('d-none');
+    }
+
+    $('#employee_place_allowed').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        if (isChecked) {
+            $('#btnSelectPlaces').removeClass('d-none');
+            $('#selected_places_count').removeClass('d-none');
+            // Open modal immediately if checking for the first time or consistent with user request
+            // User requested: "when check all the places are shown in a new modal"
+             fetchPlaces(function() {
+                openPlacesModal();
+            });
+        } else {
+            $('#btnSelectPlaces').addClass('d-none');
+            $('#selected_places_count').addClass('d-none');
+            // Optional: clear selection? 
+            // selectedPlaceIds = []; 
+            // Just keep them in case they re-check
+        }
+    });
+
+    $('#btnSelectPlaces').on('click', function() {
+        fetchPlaces(function() {
+            openPlacesModal();
+        });
+    });
+
+    function openPlacesModal() {
+        // Refresh checkboxes based on current selection
+        renderPlacesList();
+        new bootstrap.Modal('#placesModal').show();
+    }
+    
+    // Filter places
+    $('#placeSearch').on('keyup', function() {
+        const val = $(this).val().toLowerCase();
+        $('#placesList label').filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(val) > -1)
+        });
+    });
+
+    // Select All
+    $('#selectAllPlaces').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        $('.place-checkbox').prop('checked', isChecked);
+    });
+    
+    // Confirm Selection
+    $('#btnConfirmPlaces').on('click', function() {
+        selectedPlaceIds = [];
+        $('.place-checkbox:checked').each(function() {
+            selectedPlaceIds.push(Number($(this).val()));
+        });
+        updateSelectedCount();
+        bootstrap.Modal.getInstance(document.getElementById('placesModal')).hide();
+    });
+    // --- Places Logic End ---
 
     $(document).ready(loadEmployees);
 })();
@@ -1129,6 +1259,17 @@
                             <input type="text" id="employee_work_location" class="form-control form-control-sm">
                         </div>
                         <div class="col-md-4">
+                            <label class="form-label">Place Allowed</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" id="employee_place_allowed">
+                                <label class="form-check-label" for="employee_place_allowed">Allow Specific Places</label>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-1 d-none" id="btnSelectPlaces">
+                                <i class="bi bi-geo-alt"></i> Select Places
+                            </button>
+                            <div id="selected_places_count" class="small text-muted mt-1 d-none">0 places selected</div>
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label">Blood Group</label>
                             <input type="text" id="employee_blood_group" class="form-control form-control-sm" placeholder="e.g. O+">
                         </div>
@@ -1401,6 +1542,37 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+ </div>
+
+ 
+ <div class="modal fade" id="placesModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Select Allowed Places</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" id="placeSearch" class="form-control form-control-sm" placeholder="Search places...">
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAllPlaces">
+                        <label class="form-check-label" for="selectAllPlaces">Select All</label>
+                    </div>
+                </div>
+                <div id="placesList" class="list-group">
+                    
+                    <div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-sm btn-primary" id="btnConfirmPlaces">Done</button>
             </div>
         </div>
     </div>
