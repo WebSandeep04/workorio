@@ -97,12 +97,7 @@ return [
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'employees.index', 'title' => 'Employees', 'icon' => 'bi bi-people', 'permission' => 'master.employees'],
-                ['route' => 'branches.index', 'title' => 'Branches', 'icon' => 'bi bi-diagram-3', 'permission' => 'master.branches'],
-                ['route' => 'shifts.index', 'title' => 'Shift', 'icon' => 'bi bi-clock-history', 'permission' => 'master.shifts'],
-                ['route' => 'departments.index', 'title' => 'Departments', 'icon' => 'bi bi-diagram-2', 'permission' => 'master.departments'],
-                ['route' => 'designations.index', 'title' => 'Designations', 'icon' => 'bi bi-badge-ad', 'permission' => 'master.designations'],
-                ['route' => 'employment-types.index', 'title' => 'Employment Types', 'icon' => 'bi bi-briefcase', 'permission' => 'master.employment_types'],
-                ['route' => 'late-reasons.index', 'title' => 'Late Reasons', 'icon' => 'bi bi-clock-history', 'permission' => 'master.late_reasons'],
+
             ],
         ],
         // Tasks - separate section placed below Worklog
@@ -220,11 +215,20 @@ return [
                         // Core Setup (always show if setup is enabled)
                         ['route' => 'state', 'title' => 'State', 'icon' => 'bi bi-globe'],
                         ['route' => 'city', 'title' => 'City', 'icon' => 'bi bi-geo-alt'],
-                ['route' => 'countries.index', 'title' => 'Countries', 'icon' => 'bi bi-flag', 'permission' => 'master.countries'],
+                        ['route' => 'countries.index', 'title' => 'Countries', 'icon' => 'bi bi-flag', 'permission' => 'master.countries'],
                         
                         // User Management (show if user setup is enabled)
                         ['route' => 'user', 'title' => 'User Management', 'icon' => 'bi bi-people', 'feature_flag' => 'is_user_setup_enabled'],
                         ['route' => 'role-master', 'title' => 'Role Master', 'icon' => 'bi bi-shield-lock', 'feature_flag' => 'is_user_setup_enabled'],
+                        
+                        // Master Setup (Moved from Master Section)
+                        ['route' => 'branches.index', 'title' => 'Branches', 'icon' => 'bi bi-diagram-3', 'feature_flag' => 'is_user_setup_enabled'],
+                        ['route' => 'shifts.index', 'title' => 'Shift', 'icon' => 'bi bi-clock-history', 'feature_flag' => 'is_user_setup_enabled'],
+                        ['route' => 'departments.index', 'title' => 'Departments', 'icon' => 'bi bi-diagram-2', 'feature_flag' => 'is_user_setup_enabled'],
+                        ['route' => 'designations.index', 'title' => 'Designations', 'icon' => 'bi bi-badge-ad', 'feature_flag' => 'is_user_setup_enabled'],
+                        ['route' => 'employment-types.index', 'title' => 'Employment Types', 'icon' => 'bi bi-briefcase', 'feature_flag' => 'is_user_setup_enabled'],
+                        ['route' => 'late-reasons.index', 'title' => 'Late Reasons', 'icon' => 'bi bi-clock-history', 'feature_flag' => 'is_user_setup_enabled'],
+                        ['route' => 'places.index', 'title' => 'Places', 'icon' => 'bi bi-map', 'feature_flag' => 'is_user_setup_enabled'],
                         
                         // Sales Setup (show if sales setup is enabled)
                         ['route' => 'status', 'title' => 'Sales Status', 'icon' => 'bi bi-check2-circle', 'feature_flag' => 'is_sales_setup_enabled'],

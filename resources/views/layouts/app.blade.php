@@ -76,7 +76,7 @@
 
 <script>
     (function() {
-        const IDLE_TIME = 30 * 1000; // 30 seconds of inactivity before warning
+        const IDLE_TIME = 10 * 60 * 1000; // 10 minutes of inactivity before warning
         const WARNING_DURATION = 15;      // 15 seconds countdown
         
         let idleTimer;

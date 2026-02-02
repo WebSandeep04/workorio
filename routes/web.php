@@ -196,6 +196,12 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::put('/departments/{department}', [DepartmentController::class, 'update'])->name('departments.update');
     Route::delete('/departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
     Route::get('/departments/options/all', [DepartmentController::class, 'options'])->name('departments.options');
+
+    Route::get('/places', [\App\Http\Controllers\PlaceController::class, 'index'])->name('places.index');
+    Route::get('/places/list', [\App\Http\Controllers\PlaceController::class, 'list'])->name('places.list');
+    Route::post('/places', [\App\Http\Controllers\PlaceController::class, 'store'])->name('places.store');
+    Route::put('/places/{place}', [\App\Http\Controllers\PlaceController::class, 'update'])->name('places.update');
+    Route::delete('/places/{place}', [\App\Http\Controllers\PlaceController::class, 'destroy'])->name('places.destroy');
 });
 
 Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
