@@ -504,3 +504,266 @@
 #55 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\Dont Delete\\\\...')
 #56 {main}
 "} 
+[2026-02-02 06:14:20] local.ERROR: AuthController@login start {"email":"fauzia@triserv360.com"} 
+[2026-02-02 06:14:20] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-02 06:14:21] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-02 06:14:21] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":11,"name":"Fauzia Praveen","email":"fauzia@triserv360.com","role_id":6,"tenant_id":1}} 
+[2026-02-02 06:14:21] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-02 06:15:13] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-02-02 06:15:13] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-02 06:15:13] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-02 06:15:13] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-02-02 06:15:13] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-02 06:23:16] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-02-02 06:23:16] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-02 06:23:16] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-02 06:23:16] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-02-02 06:23:16] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-02 06:23:57] local.ERROR: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'test.places' doesn't exist (Connection: tenant_1, SQL: select `places`.*, `employee_attendance_places`.`employee_id` as `pivot_employee_id`, `employee_attendance_places`.`place_id` as `pivot_place_id`, `employee_attendance_places`.`created_at` as `pivot_created_at`, `employee_attendance_places`.`updated_at` as `pivot_updated_at` from `places` inner join `employee_attendance_places` on `places`.`id` = `employee_attendance_places`.`place_id` where `employee_attendance_places`.`employee_id` in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'test.places' doesn't exist (Connection: tenant_1, SQL: select `places`.*, `employee_attendance_places`.`employee_id` as `pivot_employee_id`, `employee_attendance_places`.`place_id` as `pivot_place_id`, `employee_attendance_places`.`created_at` as `pivot_created_at`, `employee_attendance_places`.`updated_at` as `pivot_updated_at` from `places` inner join `employee_attendance_places` on `places`.`id` = `employee_attendance_places`.`place_id` where `employee_attendance_places`.`employee_id` in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)) at D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:824)
+[stacktrace]
+#0 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(778): Illuminate\\Database\\Connection->runQueryCallback('select `places`...', Array, Object(Closure))
+#1 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(397): Illuminate\\Database\\Connection->run('select `places`...', Array, Object(Closure))
+#2 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3188): Illuminate\\Database\\Connection->select('select `places`...', Array, true)
+#3 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3173): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3763): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3172): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(887): Illuminate\\Database\\Query\\Builder->get(Array)
+#7 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany.php(910): Illuminate\\Database\\Eloquent\\Builder->getModels()
+#8 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Relations\\Relation.php(175): Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany->get()
+#9 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(935): Illuminate\\Database\\Eloquent\\Relations\\Relation->getEager()
+#10 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(904): Illuminate\\Database\\Eloquent\\Builder->eagerLoadRelation(Array, 'places', Object(Closure))
+#11 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(870): Illuminate\\Database\\Eloquent\\Builder->eagerLoadRelations(Array)
+#12 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\app\\Http\\Controllers\\EmployeeController.php(53): Illuminate\\Database\\Eloquent\\Builder->get()
+#13 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\EmployeeController->list()
+#14 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\EmployeeController), 'list')
+#15 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#16 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(822): Illuminate\\Routing\\Route->run()
+#17 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(180): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#18 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\app\\Http\\Middleware\\AuthOrSession.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#19 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): App\\Http\\Middleware\\AuthOrSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#20 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\app\\Http\\Middleware\\SetTenantDatabase.php(55): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#21 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): App\\Http\\Middleware\\SetTenantDatabase->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#23 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken.php(87): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Middleware\\ShareErrorsFromSession.php(48): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(120): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#29 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(63): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#30 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#31 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(36): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#32 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(74): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(137): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(821): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#37 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(800): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#38 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(764): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#39 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(753): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#40 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#41 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(180): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#42 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#43 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#44 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#45 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#46 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#47 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#48 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#49 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#50 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#51 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#52 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(48): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#53 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#54 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#55 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#56 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#57 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#58 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#59 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#60 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(137): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#61 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#62 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#63 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#64 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#65 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\Dont Delete\\\\...')
+#66 {main}
+
+[previous exception] [object] (PDOException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'test.places' doesn't exist at D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:406)
+[stacktrace]
+#0 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(406): PDO->prepare('select `places`...')
+#1 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(811): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select `places`...', Array)
+#2 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(778): Illuminate\\Database\\Connection->runQueryCallback('select `places`...', Array, Object(Closure))
+#3 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(397): Illuminate\\Database\\Connection->run('select `places`...', Array, Object(Closure))
+#4 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3188): Illuminate\\Database\\Connection->select('select `places`...', Array, true)
+#5 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3173): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3763): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#7 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3172): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#8 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(887): Illuminate\\Database\\Query\\Builder->get(Array)
+#9 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany.php(910): Illuminate\\Database\\Eloquent\\Builder->getModels()
+#10 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Relations\\Relation.php(175): Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany->get()
+#11 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(935): Illuminate\\Database\\Eloquent\\Relations\\Relation->getEager()
+#12 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(904): Illuminate\\Database\\Eloquent\\Builder->eagerLoadRelation(Array, 'places', Object(Closure))
+#13 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(870): Illuminate\\Database\\Eloquent\\Builder->eagerLoadRelations(Array)
+#14 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\app\\Http\\Controllers\\EmployeeController.php(53): Illuminate\\Database\\Eloquent\\Builder->get()
+#15 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\ControllerDispatcher.php(46): App\\Http\\Controllers\\EmployeeController->list()
+#16 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(265): Illuminate\\Routing\\ControllerDispatcher->dispatch(Object(Illuminate\\Routing\\Route), Object(App\\Http\\Controllers\\EmployeeController), 'list')
+#17 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Route.php(211): Illuminate\\Routing\\Route->runController()
+#18 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(822): Illuminate\\Routing\\Route->run()
+#19 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(180): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}(Object(Illuminate\\Http\\Request))
+#20 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\app\\Http\\Middleware\\AuthOrSession.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#21 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): App\\Http\\Middleware\\AuthOrSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\app\\Http\\Middleware\\SetTenantDatabase.php(55): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#23 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): App\\Http\\Middleware\\SetTenantDatabase->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Middleware\\SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken.php(87): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Middleware\\ShareErrorsFromSession.php(48): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#29 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#30 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(120): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#31 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(63): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#32 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(36): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(74): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#36 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#37 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(137): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#38 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(821): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#39 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(800): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#40 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(764): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#41 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(753): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#42 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#43 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(180): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#44 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#45 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#46 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#47 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#48 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#49 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#50 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#51 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#52 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#53 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#54 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(48): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#55 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#56 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#57 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#58 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks.php(22): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#59 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\InvokeDeferredCallbacks->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#60 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\ValidatePathEncoding.php(26): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#61 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(219): Illuminate\\Http\\Middleware\\ValidatePathEncoding->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#62 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(137): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#63 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#64 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#65 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#66 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#67 D:\\Dont Delete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\Dont Delete\\\\...')
+#68 {main}
+"} 
+[2026-02-02 06:25:48] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-02-02 06:25:48] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-02 06:25:49] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-02 06:25:49] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-02-02 06:25:49] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-02 06:26:07] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":null,"long":null} 
+[2026-02-02 06:26:08] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:26:08] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-02-02 06:26:08] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-02-02 04:30:00","late_min":10,"cutoff_time":"2026-02-02 04:40:00","now":"2026-02-02 06:26:08","is_late":true} 
+[2026-02-02 06:26:08] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-02-02 06:26:16] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":null,"long":null} 
+[2026-02-02 06:26:16] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:26:16] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-02-02 06:26:16] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-02-02 04:30:00","late_min":10,"cutoff_time":"2026-02-02 04:40:00","now":"2026-02-02 06:26:16","is_late":true} 
+[2026-02-02 06:26:16] local.INFO: Late punch-in accepted with reason {"user_id":4,"movement_type":"office","description":"Late punch-in: Family emergency (unplanned)"} 
+[2026-02-02 06:26:16] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":971,"date":"2026-02-02"} 
+[2026-02-02 06:26:16] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":971} 
+[2026-02-02 06:26:16] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":971,"movement_id":2248,"movement_type":"office","description":"Late punch-in: Family emergency (unplanned)"} 
+[2026-02-02 06:31:30] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":null,"long":null} 
+[2026-02-02 06:31:31] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:31:31] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-02-02 06:31:31] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-02-02 04:30:00","late_min":10,"cutoff_time":"2026-02-02 04:40:00","now":"2026-02-02 06:31:31","is_late":true} 
+[2026-02-02 06:31:31] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-02-02 06:31:47] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":null,"long":null} 
+[2026-02-02 06:31:48] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:31:48] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-02-02 06:31:48] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-02-02 04:30:00","late_min":10,"cutoff_time":"2026-02-02 04:40:00","now":"2026-02-02 06:31:48","is_late":true} 
+[2026-02-02 06:31:48] local.INFO: Late punch-in accepted with reason {"user_id":4,"movement_type":"office","description":"Late punch-in: Family emergency (unplanned)"} 
+[2026-02-02 06:31:48] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":972,"date":"2026-02-02"} 
+[2026-02-02 06:31:48] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":972} 
+[2026-02-02 06:31:48] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":972,"movement_id":2249,"movement_type":"office","description":"Late punch-in: Family emergency (unplanned)"} 
+[2026-02-02 06:35:25] local.INFO: Punch-in started {"user_id":4,"movement_type":"field","lat":null,"long":null} 
+[2026-02-02 06:35:26] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"field","has_any_in":true} 
+[2026-02-02 06:35:26] local.INFO: Late check skipped: not first punch-in of day {"user_id":4,"movement_type":"field"} 
+[2026-02-02 06:35:26] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":972,"date":"2026-02-02"} 
+[2026-02-02 06:35:26] local.INFO: Auto punch-out office executed from field punch-in {"user_id":4,"attendance_id":972} 
+[2026-02-02 06:35:26] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":972,"movement_id":2251,"movement_type":"field","description":null} 
+[2026-02-02 06:35:34] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":null,"long":null} 
+[2026-02-02 06:35:34] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":true} 
+[2026-02-02 06:35:34] local.INFO: Late check skipped: not first punch-in of day {"user_id":4,"movement_type":"office"} 
+[2026-02-02 06:35:34] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":972,"date":"2026-02-02"} 
+[2026-02-02 06:35:34] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":972} 
+[2026-02-02 06:35:34] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":972,"movement_id":2253,"movement_type":"office","description":null} 
+[2026-02-02 06:35:42] local.INFO: Punch-in started {"user_id":4,"movement_type":"field","lat":null,"long":null} 
+[2026-02-02 06:35:43] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"field","has_any_in":true} 
+[2026-02-02 06:35:43] local.INFO: Late check skipped: not first punch-in of day {"user_id":4,"movement_type":"field"} 
+[2026-02-02 06:35:43] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":972,"date":"2026-02-02"} 
+[2026-02-02 06:35:43] local.INFO: Auto punch-out office executed from field punch-in {"user_id":4,"attendance_id":972} 
+[2026-02-02 06:35:43] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":972,"movement_id":2255,"movement_type":"field","description":null} 
+[2026-02-02 06:36:54] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-02-02 06:36:54] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-02 06:36:55] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-02 06:36:55] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-02-02 06:36:55] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-02 06:46:39] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-02-02 06:46:39] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-02 06:46:40] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-02 06:46:40] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-02-02 06:46:40] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-02 06:47:06] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":null,"long":null} 
+[2026-02-02 06:47:06] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:47:26] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":null,"long":null} 
+[2026-02-02 06:47:27] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:49:18] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":null,"long":null} 
+[2026-02-02 06:49:18] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:49:25] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.48165767560047","long":"80.34594753295255"} 
+[2026-02-02 06:49:25] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:50:13] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.48165767560047","long":"80.34594753295255"} 
+[2026-02-02 06:50:14] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:50:20] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.48165767560047","long":"80.34594753295255"} 
+[2026-02-02 06:50:21] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:52:23] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.48165767560047","long":"80.34594753295255"} 
+[2026-02-02 06:52:23] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:52:31] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.48165767560047","long":"80.34594753295255"} 
+[2026-02-02 06:52:32] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:52:49] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.48165767560047","long":"80.34594753295255"} 
+[2026-02-02 06:52:50] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:54:30] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481657402698502","long":"80.34594125857382"} 
+[2026-02-02 06:54:30] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:59:07] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481658104186494","long":"80.34596400618459"} 
+[2026-02-02 06:59:07] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:59:53] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481658104186494","long":"80.34596400618459"} 
+[2026-02-02 06:59:54] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 06:59:54] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-02-02 06:59:54] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-02-02 04:30:00","late_min":10,"cutoff_time":"2026-02-02 04:40:00","now":"2026-02-02 06:59:54","is_late":true} 
+[2026-02-02 06:59:54] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-02-02 07:00:03] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481658104186494","long":"80.34596400618459"} 
+[2026-02-02 07:00:04] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-02 07:00:04] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-02-02 07:00:04] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-02-02 04:30:00","late_min":10,"cutoff_time":"2026-02-02 04:40:00","now":"2026-02-02 07:00:04","is_late":true} 
+[2026-02-02 07:00:04] local.INFO: Late punch-in accepted with reason {"user_id":4,"movement_type":"office","description":"Late punch-in: Family emergency (unplanned)"} 
+[2026-02-02 07:00:04] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":973,"date":"2026-02-02"} 
+[2026-02-02 07:00:04] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":973} 
+[2026-02-02 07:00:04] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":973,"movement_id":2256,"movement_type":"office","description":"Late punch-in: Family emergency (unplanned)"} 
+[2026-02-02 07:00:18] local.INFO: Punch-in started {"user_id":4,"movement_type":"field","lat":"26.481658104186494","long":"80.34596400618459"} 
+[2026-02-02 07:00:19] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"field","has_any_in":true} 
+[2026-02-02 07:00:19] local.INFO: Late check skipped: not first punch-in of day {"user_id":4,"movement_type":"field"} 
+[2026-02-02 07:00:19] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":973,"date":"2026-02-02"} 
+[2026-02-02 07:00:19] local.INFO: Auto punch-out office executed from field punch-in {"user_id":4,"attendance_id":973} 
+[2026-02-02 07:00:19] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":973,"movement_id":2258,"movement_type":"field","description":null} 
+[2026-02-02 07:00:31] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481658104186494","long":"80.34596400618459"} 
+[2026-02-02 07:00:31] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":true} 
+[2026-02-02 07:00:31] local.INFO: Late check skipped: not first punch-in of day {"user_id":4,"movement_type":"office"} 
+[2026-02-02 07:00:31] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":973,"date":"2026-02-02"} 
+[2026-02-02 07:00:32] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":973} 
+[2026-02-02 07:00:32] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":973,"movement_id":2260,"movement_type":"office","description":null} 

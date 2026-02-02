@@ -29,6 +29,24 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Calculate greatest circle distance between two coordinates
+     */
+    private function haversineGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000)
+    {
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+        return $angle * $earthRadius;
+    }
+
+    /**
      * Check if user can perform attendance actions based on worklog completion
      * Users with isWorklog = 1 must complete previous day's worklog before attendance
      */
@@ -86,6 +104,8 @@ class AttendanceController extends Controller
         $request->validate([
             'movement_type' => 'required|in:office,field,break',
             'late_reason' => 'nullable|string|max:500',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         $user = $this->getCurrentUser();
@@ -153,6 +173,65 @@ class AttendanceController extends Controller
                     $hasAnyIn = false;
                 }
             }
+
+            // --- Location Validation Start (API) ---
+            if (!$hasAnyIn) {
+                $employee = null;
+                if ($user instanceof \App\Models\User) {
+                    $employee = $user->employee;
+                } elseif (isset($user->id)) {
+                     $realUser = \App\Models\User::find($user->id);
+                     if ($realUser) $employee = $realUser->employee;
+                }
+
+                if ($employee && $employee->is_place_allowed) {
+                    if (empty($request->latitude) || empty($request->longitude)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Location access is required for attendance. Please enable location services.',
+                        ], 422);
+                    }
+
+                    $allowedPlaces = $employee->places;
+                    
+                    if ($allowedPlaces->count() > 0) {
+                        $isWithinRange = false;
+                        $userLat = (float) $request->latitude;
+                        $userLong = (float) $request->longitude;
+                        
+                        $minDistance = null;
+                        $closestPlaceRadius = 0;
+                        $closestPlaceName = '';
+
+                        foreach ($allowedPlaces as $place) {
+                            $distance = $this->haversineGreatCircleDistance(
+                                $userLat, $userLong, 
+                                $place->latitude, $place->longitude
+                            );
+                            
+                            if (is_null($minDistance) || $distance < $minDistance) {
+                                $minDistance = $distance;
+                                $closestPlaceRadius = $place->radius;
+                                $closestPlaceName = $place->placename;
+                            }
+
+                            if ($distance <= $place->radius) {
+                                $isWithinRange = true;
+                                break;
+                            }
+                        }
+
+                        if (!$isWithinRange) {
+                            $distStr = number_format($minDistance, 1);
+                            return response()->json([
+                                'success' => false,
+                                'message' => "You are not within the allowed radius. Closest: {$closestPlaceName} ({$distStr}m away, allowed {$closestPlaceRadius}m).",
+                            ], 403);
+                        }
+                    }
+                }
+            }
+            // --- Location Validation End (API) ---
 
             // ONLY check for late reason if this is the FIRST office/field IN of the day
             if (!$hasAnyIn) {

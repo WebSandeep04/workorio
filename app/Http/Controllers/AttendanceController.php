@@ -84,12 +84,16 @@ class AttendanceController extends Controller
         $request->validate([
             'movement_type' => 'required|in:office,field,break',
             'late_reason' => 'nullable|string|max:500',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         $user = $this->getCurrentUser();
         Log::info('Punch-in started', [
             'user_id' => $user ? $user->id : null,
             'movement_type' => $request->movement_type,
+            'lat' => $request->latitude,
+            'long' => $request->longitude,
         ]);
         
         // Check if user can perform attendance actions
@@ -108,7 +112,6 @@ class AttendanceController extends Controller
         $today = Carbon::today();
         
         // Check if user is currently on break - if so, prevent punch in/out actions.
-        // IMPORTANT: do not create a new attendance row here; only read existing.
         $existingAttendance = null;
         if ($request->movement_type !== 'break') {
             $existingAttendance = Attendance::where('user_id', $user->id)
@@ -135,19 +138,13 @@ class AttendanceController extends Controller
             }
         }
         
-        // Determine if this is a late punch-in for first office/field movement of the day
-        // We purposefully do this BEFORE creating any attendance row so that
-        // cancelling the late reason prompt does not create phantom rows.
         $description = null;
         if (in_array($request->movement_type, ['office', 'field'], true)) {
             // Check if there is already any office/field IN movement for today
-            // This should ONLY be checked for the FIRST punch-in of the day
-            // Guard for fresh tenant DBs where tables might not exist yet
+            // This determines if this is the FIRST punch-in of the day
             $hasAnyIn = false;
             if (Schema::hasTable('attendance') && Schema::hasTable('movements')) {
                 try {
-                    // Use Eloquent models for more reliable querying
-                    // Check for ANY office or field IN movement for this user today
                     $hasAnyIn = Movement::whereHas('attendance', function ($q) use ($user, $today) {
                             $q->where('user_id', $user->id)
                               ->whereDate('date', $today);
@@ -155,38 +152,79 @@ class AttendanceController extends Controller
                         ->whereIn('movement_type', ['office', 'field'])
                         ->where('movement_action', 'in')
                         ->exists();
-                    
-                    // Additional debug: count existing movements
-                    $existingCount = Movement::whereHas('attendance', function ($q) use ($user, $today) {
-                            $q->where('user_id', $user->id)
-                              ->whereDate('date', $today);
-                        })
-                        ->whereIn('movement_type', ['office', 'field'])
-                        ->where('movement_action', 'in')
-                        ->count();
-                    
-                    Log::info('Late check: existing movements count', [
-                        'user_id' => $user->id,
-                        'date' => $today->toDateString(),
-                        'existing_count' => $existingCount,
-                        'has_any_in' => $hasAnyIn,
-                    ]);
                 } catch (\Exception $e) {
-                    // If query fails (table structure issue), assume no previous IN
-                    Log::warning('Late check query failed, assuming first IN', [
-                        'error' => $e->getMessage(),
-                        'user_id' => $user->id,
-                        'trace' => $e->getTraceAsString(),
-                    ]);
                     $hasAnyIn = false;
                 }
             }
 
-            Log::info('Late check: first IN detection (pre-attendance)', [
+            Log::info('Punch-in check: first IN detection', [
                 'user_id' => $user->id,
                 'movement_type' => $request->movement_type,
                 'has_any_in' => $hasAnyIn,
             ]);
+
+            // --- Location Validation Start ---
+            // Validate ONLY on first punch-in of the day
+            if (!$hasAnyIn) {
+                // Ensure user->employee relation is loaded/accessible
+                $employee = null;
+                if ($user instanceof \App\Models\User) {
+                    $employee = $user->employee;
+                } elseif (isset($user->id)) {
+                     $realUser = \App\Models\User::find($user->id);
+                     if ($realUser) $employee = $realUser->employee;
+                }
+
+                if ($employee && $employee->is_place_allowed) {
+                    if (empty($request->latitude) || empty($request->longitude)) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Location access is required for attendance. Please enable location services.',
+                        ], 422);
+                    }
+
+                    $allowedPlaces = $employee->places;
+                    
+                    if ($allowedPlaces->count() > 0) {
+                        $isWithinRange = false;
+                        $userLat = (float) $request->latitude;
+                        $userLong = (float) $request->longitude;
+                        
+                        $minDistance = null;
+                        $closestPlaceRadius = 0;
+                        $closestPlaceName = '';
+
+                        foreach ($allowedPlaces as $place) {
+                            // Calculate distance in meters
+                            $distance = $this->haversineGreatCircleDistance(
+                                $userLat, $userLong, 
+                                $place->latitude, $place->longitude
+                            );
+                            
+                            if (is_null($minDistance) || $distance < $minDistance) {
+                                $minDistance = $distance;
+                                $closestPlaceRadius = $place->radius;
+                                $closestPlaceName = $place->placename;
+                            }
+                            
+                            // Check if within radius
+                            if ($distance <= $place->radius) {
+                                $isWithinRange = true;
+                                break;
+                            }
+                        }
+
+                        if (!$isWithinRange) {
+                            $distStr = number_format($minDistance, 1);
+                            return response()->json([
+                                'success' => false,
+                                'message' => "You are not within the allowed radius. Closest: {$closestPlaceName} ({$distStr}m away, allowed {$closestPlaceRadius}m).",
+                            ], 403);
+                        }
+                    }
+                }
+            }
+            // --- Location Validation End ---
 
             // ONLY check for late reason if this is the FIRST office/field IN of the day
             if (!$hasAnyIn) {
@@ -1868,6 +1906,31 @@ class AttendanceController extends Controller
         }
     }
     
+    /**
+     * Calculate greatest circle distance between two coordinates
+     * @param float $latitudeFrom
+     * @param float $longitudeFrom
+     * @param float $latitudeTo
+     * @param float $longitudeTo
+     * @param float $earthRadius
+     * @return float Distance in meters
+     */
+    private function haversineGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000)
+    {
+        // convert from degrees to radians
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+        return $angle * $earthRadius;
+    }
+
     /**
      * Get current user from Auth or session
      */
