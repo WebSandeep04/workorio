@@ -935,3 +935,6 @@
 #34 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\DontDelete\\\\l...')
 #35 {main}
 "} 
+[2026-02-03 08:15:40] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-03 08:15:44] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-03 08:15:44] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":977,"movement_id":2274} 

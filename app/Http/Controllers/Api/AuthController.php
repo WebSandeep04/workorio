@@ -115,6 +115,7 @@ class AuthController extends Controller
                         'role_id' => $user->role_id,
                         'tenant_id' => $tenant->id,
                         'token' => $token,
+                        'employee_id' => $user->employee_id,
                         'employee_details' => $employee ? [
                             'date_of_birth' => $employee->date_of_birth,
                             'shift' => $shiftDetails
