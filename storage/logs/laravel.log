@@ -938,3 +938,8 @@
 [2026-02-03 08:15:40] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
 [2026-02-03 08:15:44] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
 [2026-02-03 08:15:44] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":977,"movement_id":2274} 
+[2026-02-03 10:41:11] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-02-03 10:41:11] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-03 10:41:12] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-03 10:41:12] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-02-03 10:41:12] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

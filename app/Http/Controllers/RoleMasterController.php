@@ -92,6 +92,13 @@ class RoleMasterController extends Controller
                     'attendance.entry' => 'Attendance: Entry',
                     'attendance.history' => 'Attendance: History']
             ],
+            'tracking' => [
+                'enabled' => (bool) ($tenant->is_attendance_enabled ?? true),
+                'setup_enabled' => false,
+                'permissions' => [
+                    'tracking.view' => 'Tracking: View Tracking'
+                ]
+            ],
             'subscription' => [
                 'enabled' => (bool) ($tenant->is_subscription_enabled ?? true),
                 'setup_enabled' => false,
@@ -291,6 +298,13 @@ class RoleMasterController extends Controller
                 'permissions' => [
                     'attendance.entry' => 'Attendance: Entry',
                     'attendance.history' => 'Attendance: History']
+            ],
+            'tracking' => [
+                'enabled' => (bool) ($tenant->is_attendance_enabled ?? true), // Assuming tracking is part of attendance
+                'setup_enabled' => false,
+                'permissions' => [
+                    'tracking.view' => 'Tracking: View Tracking'
+                ]
             ],
             'subscription' => [
                 'enabled' => (bool) ($tenant->is_subscription_enabled ?? true),

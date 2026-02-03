@@ -50,6 +50,15 @@ return [
             'roles' => ['admin'],
             'permission' => 'subscription.view',
         ],
+        [
+            'key' => 'admin_tracking',
+            'title' => 'Tracking',
+            'route' => 'tracking.index',
+            'icon' => 'bi bi-geo-alt',
+            'feature_flag' => 'is_attendance_enabled', // Assuming tracking relates to attendance
+            'roles' => ['admin'],
+            'permission' => 'tracking.view',
+        ],
         // Admin gets full worklog access when worklog is enabled
         [
             'key' => 'admin_worklog_operational',

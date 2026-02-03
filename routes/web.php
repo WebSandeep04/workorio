@@ -629,6 +629,9 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::put('/subscriptions/{id}', [SubscriptionController::class, 'update'])->name('subscriptions.update');
     Route::delete('/subscriptions/{id}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
 
+    // Tracking
+    Route::get('/tracking', [\App\Http\Controllers\TrackingController::class, 'index'])->name('tracking.index');
+
 });
 
 // team leads - only for managers
