@@ -631,6 +631,7 @@ Route::middleware(['auth.or.session'])->group(function () {
 
     // Tracking
     Route::get('/tracking', [\App\Http\Controllers\TrackingController::class, 'index'])->name('tracking.index');
+    Route::get('/tracking/fetch-locations', [\App\Http\Controllers\TrackingController::class, 'fetchLocations'])->name('tracking.fetch-locations');
 
 });
 
