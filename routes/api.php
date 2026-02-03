@@ -95,6 +95,9 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
 
     // User Management Routes
     Route::get('/users', [\App\Http\Controllers\Api\UserApiController::class, 'index']);
+
+    // Employee Location Tracking
+    Route::post('/employee/location', [\App\Http\Controllers\Api\EmployeeLocationController::class, 'store']);
 });
 
 
