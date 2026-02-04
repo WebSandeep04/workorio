@@ -16,12 +16,29 @@ class EmployeeController extends Controller
         // Fetch active employees
         // We select minimal fields as requested
         $employees = Employee::where('status', 'active')
-            ->select('id', 'name', 'date_of_birth', 'employee_code') // Included ID and code for unique identification if needed
-            ->orderBy('name', 'asc')
+            ->whereNotNull('date_of_birth')
+            ->select('id', 'name', 'date_of_birth', 'employee_code')
             ->get();
 
-        // Map to format if strict "Name and DOB only" is needed, but returning structured JSON is safer
-        $data = $employees->map(function ($employee) {
+        $today = now()->startOfDay();
+
+        // Sort by upcoming birthday
+        $sortedEmployees = $employees->sortBy(function ($employee) use ($today) {
+            $dob = \Carbon\Carbon::parse($employee->date_of_birth);
+            
+            // Set birthday to current year
+            $birthdayThisYear = $dob->copy()->year($today->year);
+            
+            // If birthday has already passed this year, next one is next year
+            if ($birthdayThisYear->lt($today)) {
+                return $birthdayThisYear->addYear()->timestamp;
+            }
+            
+            return $birthdayThisYear->timestamp;
+        });
+
+        // Map to format
+        $data = $sortedEmployees->values()->map(function ($employee) {
             return [
                 'name' => $employee->name,
                 'dob' => $employee->date_of_birth,
