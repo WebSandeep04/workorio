@@ -593,8 +593,22 @@ class AttendanceController extends Controller
         $user = $this->getCurrentUser();
         $today = Carbon::today();
         
-        // Check if user can perform attendance actions
+        // Check if user has worklog access
         $attendanceCheck = $this->canPerformAttendanceAction();
+
+        // Get tracking status
+        $isTracking = 0;
+        $employee = null;
+        if ($user instanceof \App\Models\User) {
+             $employee = $user->employee;
+        } elseif (isset($user->id)) {
+             $realUser = \App\Models\User::find($user->id);
+             if ($realUser) $employee = $realUser->employee;
+        }
+
+        if ($employee) {
+            $isTracking = $employee->is_tracking ? 1 : 0;
+        }
         
         $attendance = Attendance::with(['movements' => function($q){
                 $q->orderBy('time');
@@ -641,7 +655,8 @@ class AttendanceController extends Controller
                 'worklog_validation' => [
                     'can_perform_attendance' => $attendanceCheck['can_perform'],
                     'message' => $attendanceCheck['message']
-                ]
+                ],
+                'is_tracking' => $isTracking
             ]);
         }
 
@@ -718,7 +733,8 @@ class AttendanceController extends Controller
             'worklog_validation' => [
                 'can_perform_attendance' => $attendanceCheck['can_perform'],
                 'message' => $attendanceCheck['message']
-            ]
+            ],
+            'is_tracking' => $isTracking
         ]);
     }
 
