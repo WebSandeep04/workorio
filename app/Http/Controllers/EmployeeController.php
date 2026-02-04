@@ -275,6 +275,7 @@ class EmployeeController extends Controller
             'allergies' => 'nullable|string',
             'notes' => 'nullable|string|max:1000',
             'is_place_allowed' => 'boolean',
+            'is_tracking' => 'boolean',
             'places' => 'array',
             'places.*' => 'exists:places,id',
         ]);

@@ -70,6 +70,7 @@ class Employee extends Model
         'emergency_contact_phone',
         'notes',
         'is_place_allowed',
+        'is_tracking',
     ];
 
     protected $casts = [
@@ -79,6 +80,7 @@ class Employee extends Model
         'insurance_valid_till' => 'date',
         'experience_years' => 'decimal:2',
         'is_place_allowed' => 'boolean',
+        'is_tracking' => 'boolean',
     ];
 
     public function documents()

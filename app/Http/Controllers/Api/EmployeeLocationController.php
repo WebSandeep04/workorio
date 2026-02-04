@@ -22,6 +22,15 @@ class EmployeeLocationController extends Controller
             'tracked_at' => 'nullable|date',
         ]);
 
+        $employee = \App\Models\Employee::find($request->employee_id);
+
+        if (!$employee || !$employee->is_tracking) {
+             return response()->json([
+                'success' => false,
+                'message' => 'Tracking is disabled for this employee.',
+            ], 403);
+        }
+
         // Check if the last recorded location is the same
         $lastLocation = EmployeeLocation::where('employee_id', $request->employee_id)
             ->latest('id') // more reliable than tracked_at for "last inserted"

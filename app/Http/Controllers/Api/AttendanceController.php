@@ -321,6 +321,19 @@ class AttendanceController extends Controller
 
         // Check if user has pending tasks
         $hasPendingTasks = $this->hasPendingTasks($user->id);
+
+        $isTracking = 0;
+        $employee = null;
+        if ($user instanceof \App\Models\User) {
+             $employee = $user->employee;
+        } elseif (isset($user->id)) {
+             $realUser = \App\Models\User::find($user->id);
+             if ($realUser) $employee = $realUser->employee;
+        }
+
+        if ($employee) {
+            $isTracking = $employee->is_tracking ? 1 : 0;
+        }
         
         return response()->json([
             'success' => true,
@@ -328,7 +341,8 @@ class AttendanceController extends Controller
             'movement' => $movement,
             'cycle' => $currentCycle,
             'show_task_reminder' => $hasPendingTasks,
-            'punch_type' => 'in'
+            'punch_type' => 'in',
+            'is_tracking' => $isTracking
         ]);
     }
 

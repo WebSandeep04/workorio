@@ -224,6 +224,7 @@
             emergency_contact_phone: $('#employee_emergency_phone').val().trim(),
             notes: $('#employee_notes').val().trim(),
             is_place_allowed: $('#employee_place_allowed').is(':checked') ? 1 : 0,
+            is_tracking: $('#employee_is_tracking').is(':checked') ? 1 : 0,
             places: selectedPlaceIds
         };
     }
@@ -392,6 +393,7 @@
 
             // Places
             $('#employee_place_allowed').prop('checked', !!data.is_place_allowed);
+            $('#employee_is_tracking').prop('checked', !!data.is_tracking);
             selectedPlaceIds = [];
             if (data.is_place_allowed) {
                 $('#btnSelectPlaces').removeClass('d-none');
@@ -417,6 +419,7 @@
 
             // Clear Places
             $('#employee_place_allowed').prop('checked', false);
+            $('#employee_is_tracking').prop('checked', false);
             $('#btnSelectPlaces').addClass('d-none');
             $('#selected_places_count').addClass('d-none');
             selectedPlaceIds = [];
@@ -1268,6 +1271,13 @@
                                 <i class="bi bi-geo-alt"></i> Select Places
                             </button>
                             <div id="selected_places_count" class="small text-muted mt-1 d-none">0 places selected</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tracking</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" id="employee_is_tracking">
+                                <label class="form-check-label" for="employee_is_tracking">Enable Tracking</label>
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Blood Group</label>
