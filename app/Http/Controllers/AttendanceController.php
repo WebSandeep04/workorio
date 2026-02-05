@@ -1353,6 +1353,163 @@ class AttendanceController extends Controller
         return response()->json($data);
     }
 
+    public function getDateReportData(Request $request): JsonResponse
+    {
+        $request->validate([
+            'date' => 'required|date'
+        ]);
+
+        $date = $request->date;
+        $carbonDate = Carbon::parse($date);
+        
+        if ($carbonDate->isFuture()) {
+            return response()->json([
+                'message' => 'Cannot generate report for future dates.'
+            ], 422);
+        }
+
+        // Get all users who are active employees AND not admin (role_id != 1)
+        $users = User::where('role_id', '!=', 1)
+            ->whereHas('employee', function($query) {
+                $query->where('status', 'active');
+            })
+            ->orderBy('name')
+            ->get();
+
+        // Get all attendance for the selected date
+        $attendances = Attendance::with(['movements' => function($query) {
+                $query->orderBy('time');
+            }])
+            ->where('date', $date)
+            ->get()
+            ->keyBy('user_id');
+
+        // Check if it's a holiday
+        $holiday = Holiday::where('holiday_date', $date)->first();
+        $isSunday = $carbonDate->dayOfWeek === Carbon::SUNDAY;
+
+        // Get leaves for the selected date
+        $leaves = Leave::where('date', $date)->get()->groupBy('user_id');
+
+        $reportData = [];
+
+        foreach ($users as $user) {
+            $attendance = $attendances->get($user->id);
+            $userLeaves = $leaves->get($user->id);
+            
+            $dayData = [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name
+                ],
+                'status' => 'absent',
+                'holiday_name' => $holiday ? $holiday->name : null,
+                'is_sunday' => $isSunday,
+                'is_holiday' => !!$holiday,
+                'is_leave' => !!$userLeaves,
+                'hours' => 0,
+                'office_hours' => 0,
+                'field_hours' => 0,
+                'break_time' => 0,
+                'first_in' => '-',
+                'last_out' => '-',
+                'description' => null,
+                'movements' => []
+            ];
+
+            if ($attendance) {
+                $dayData['hours'] = $this->calculateHours($attendance->movements);
+                $dayData['office_hours'] = $this->calculateTypeHours($attendance->movements, 'office');
+                $dayData['field_hours'] = $this->calculateTypeHours($attendance->movements, 'field');
+                $dayData['break_time'] = $this->calculateTypeHours($attendance->movements, 'break');
+                
+                $firstInMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'in')->first();
+                if ($firstInMov) {
+                    $dayData['first_in'] = Carbon::parse($firstInMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
+                }
+                
+                $lastOutMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->last();
+                if ($lastOutMov) {
+                    $dayData['last_out'] = Carbon::parse($lastOutMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
+                }
+
+                if ($isSunday || $holiday) {
+                    $dayData['status'] = 'holiday';
+                } else {
+                    if ($dayData['hours'] >= 7) {
+                        $dayData['status'] = 'present';
+                    } elseif ($dayData['hours'] >= 4) {
+                        $dayData['status'] = 'halfday';
+                    } else {
+                        $dayData['status'] = 'absent';
+                    }
+                }
+
+                $descriptions = $attendance->movements
+                    ->map(fn($m) => $m->description ? trim($m->description) : null)
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->toArray();
+                $dayData['description'] = !empty($descriptions) ? implode(', ', $descriptions) : null;
+                
+                $dayData['movements'] = $attendance->movements->map(function($m) {
+                    return [
+                        'time' => Carbon::parse($m->time)->setTimezone('Asia/Kolkata')->format('H:i'),
+                        'type' => ucfirst($m->movement_type),
+                        'action' => ucfirst($m->movement_action),
+                        'description' => $m->description
+                    ];
+                })->toArray();
+            } elseif ($isSunday) {
+                $dayData['status'] = 'sunday';
+            } elseif ($holiday) {
+                $dayData['status'] = 'holiday';
+            } elseif ($userLeaves) {
+                $dayData['status'] = 'leave';
+            }
+
+            $reportData[] = $dayData;
+        }
+
+        $summary = [
+            'total_users' => count($users),
+            'present' => 0,
+            'halfday' => 0,
+            'absent' => 0,
+            'leave' => 0,
+            'holiday_working' => 0
+        ];
+
+        foreach ($reportData as $row) {
+            if ($row['hours'] > 0) {
+                if ($row['is_sunday'] || $row['is_holiday']) {
+                    $summary['holiday_working']++;
+                } else {
+                    if ($row['hours'] >= 7) {
+                        $summary['present']++;
+                    } elseif ($row['hours'] >= 4) {
+                        $summary['halfday']++;
+                    } else {
+                        $summary['absent']++;
+                    }
+                }
+            } else {
+                if ($row['is_leave']) {
+                    $summary['leave']++;
+                } elseif (!$row['is_sunday'] && !$row['is_holiday']) {
+                    $summary['absent']++;
+                }
+            }
+        }
+
+        return response()->json([
+            'date' => $carbonDate->format('M j, Y'),
+            'summary' => $summary,
+            'data' => $reportData
+        ]);
+    }
+
     public function exportMonthlyReport(Request $request)
     {
         $request->validate([

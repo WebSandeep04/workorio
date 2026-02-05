@@ -252,6 +252,11 @@
                 <i class="bi bi-calendar3 me-1"></i> Monthly Summary
             </button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="date-tab" data-bs-toggle="tab" data-bs-target="#date-tab-pane" type="button" role="tab" aria-controls="date-tab-pane" aria-selected="false">
+                <i class="bi bi-calendar-event me-1"></i> Date Wise Summary
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content" id="reportTabsContent">
@@ -418,7 +423,102 @@
             </div>
         </div>
 
-    </div>
+        <!-- Date Wise Tab -->
+        <div class="tab-pane fade" id="date-tab-pane" role="tabpanel" aria-labelledby="date-tab" tabindex="0">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label" style="width: 100px;">Select Date</label>
+                    <input type="date" id="report_date" class="form-control-custom" value="{{ now()->format('Y-m-d') }}">
+                </div>
+                <button type="button" id="loadDateReport" class="btn-load">
+                    <i class="bi bi-play-circle me-1"></i> Load Report
+                </button>
+            </div>
+
+            <!-- Date Wise Summary Cards -->
+            <div id="dateReportSummary" class="summary-cards" style="display:none;">
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-blue">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Employees</div>
+                        <div class="summary-card-value" id="dateSumUsers">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-green">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Present</div>
+                        <div class="summary-card-value" id="dateSumPresent">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-orange">
+                        <i class="bi bi-person-x"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Absent</div>
+                        <div class="summary-card-value" id="dateSumAbsent">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-purple">
+                        <i class="bi bi-person-workspace"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Half Day</div>
+                        <div class="summary-card-value" id="dateSumHalfday">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-red">
+                        <i class="bi bi-calendar-minus"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">On Leave</div>
+                        <div class="summary-card-value" id="dateSumLeave">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-teal">
+                        <i class="bi bi-sun"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Holiday Working</div>
+                        <div class="summary-card-value" id="dateSumHolidayWorking">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modern-card data-table-card" id="dateTableCard" style="display:none;">
+                <div class="modern-card-body">
+                    <div class="table-scroll">
+                        <table class="table custom-table" id="dateTable">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Status</th>
+                                    <th>First In</th>
+                                    <th>Last Out</th>
+                                    <th>Total Hours</th>
+                                    <th>Office</th>
+                                    <th>Field</th>
+                                    <th>Break</th>
+                                    <th>Description</th>
+                                    <th class="text-center">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -429,6 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loadReport').addEventListener('click', loadReport);
     document.getElementById('loadMonthlyReport').addEventListener('click', loadMonthlySummary);
     document.getElementById('exportMonthlyReport').addEventListener('click', exportMonthlyReport);
+    document.getElementById('loadDateReport').addEventListener('click', loadDateReport);
 });
 
 function exportMonthlyReport() {
@@ -751,6 +852,94 @@ function showToast(message, type = 'success') {
         $toast.removeClass('show');
         setTimeout(() => $toast.remove(), 400);
     }, 4000);
+}
+function loadDateReport() {
+    const date = document.getElementById('report_date').value;
+    const tbody = document.querySelector('#dateTable tbody');
+    const tableCard = document.getElementById('dateTableCard');
+    const summaryDiv = document.getElementById('dateReportSummary');
+    
+    if(!date) return;
+
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    if (selectedDate > today) {
+        showToast('Cannot generate report for future dates.', 'error');
+        return;
+    }
+
+    summaryDiv.style.display = 'none';
+    tableCard.style.display = 'block';
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading day summary matrix...</td></tr>';
+    
+    $.ajax({
+        url: '/attendance/date-report-data',
+        method: 'POST',
+        data: { date: date, _token: '{{ csrf_token() }}' },
+        success: function(res){
+            const s = res.summary;
+            document.getElementById('dateSumUsers').textContent = s.total_users;
+            document.getElementById('dateSumPresent').textContent = s.present;
+            document.getElementById('dateSumAbsent').textContent = s.absent;
+            document.getElementById('dateSumHalfday').textContent = s.halfday;
+            document.getElementById('dateSumLeave').textContent = s.leave;
+            document.getElementById('dateSumHolidayWorking').textContent = s.holiday_working;
+            summaryDiv.style.display = 'grid';
+            
+            tbody.innerHTML = '';
+            
+            if(res.data && res.data.length > 0) {
+                res.data.forEach(function(d, idx){
+                    const tr = document.createElement('tr');
+                    
+                    // Highlights for Sunday/Holiday work
+                    if(d.status === 'holiday' || d.status === 'sunday') {
+                         if(d.hours > 0) tr.style.backgroundColor = '#f0fff4'; // Light green for working on holiday
+                         else tr.style.backgroundColor = '#f8f9fa';
+                    } else if(d.status === 'absent') {
+                         tr.style.backgroundColor = '#fff5f5';
+                    }
+
+                    tr.innerHTML = `
+                        <td class="fw-bold text-dark">${d.user.name}</td>
+                        <td>${statusBadge(d.status, d.holiday_name)}</td>
+                        <td class="font-monospace">${d.first_in}</td>
+                        <td class="font-monospace">${d.last_out}</td>
+                        <td class="fw-bold">${hoursClock(d.hours)}</td>
+                        <td>${hoursClock(d.office_hours)}</td>
+                        <td>${hoursClock(d.field_hours)}</td>
+                        <td>${hoursClock(d.break_time)}</td>
+                        <td class="text-break" style="font-size: 0.85rem;">${d.description||'-'}</td>
+                        <td class="text-center">
+                            <button class="btn-view-details shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#date-mov-${idx}" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </td>`;
+                    tbody.appendChild(tr);
+                    
+                    const trDet = document.createElement('tr');
+                    trDet.innerHTML = `<td colspan="10" class="p-0 border-0">
+                        <div id="date-mov-${idx}" class="collapse bg-light border-bottom">
+                            ${renderMovements(d.movements)}
+                        </div>
+                    </td>`;
+                    tbody.appendChild(trDet);
+                });
+            } else {
+                 tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">No data found for this date.</td></tr>';
+            }
+        },
+        error: function(xhr){
+            let msg = 'Failed to load report. Please try again.';
+            if(xhr.responseJSON && xhr.responseJSON.message) {
+                msg = xhr.responseJSON.message;
+            }
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-danger">${msg}</td></tr>`;
+            console.error(xhr.responseText);
+        }
+    });
 }
 </script>
 @endsection
