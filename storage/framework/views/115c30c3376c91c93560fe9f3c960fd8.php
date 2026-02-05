@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@push('styles')
+
+<?php $__env->startPush('styles'); ?>
 <style>
   /* Base Styles */
   body {
@@ -461,9 +461,9 @@
     color: white;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <!-- Summary Cards -->
   <div class="summary-cards">
@@ -511,18 +511,18 @@
            <label class="form-label-modern">Employee</label>
            <select class="form-control-modern w-100 arrow-white" id="filter_employee_id">
                 <option value="">All Employees</option>
-                @foreach($employees as $employee)
-                     <option value="{{ $employee->id }}">{{ $employee->name }}</option>
-                 @endforeach
+                <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                     <option value="<?php echo e($employee->id); ?>"><?php echo e($employee->name); ?></option>
+                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
            </select>
        </div>
        <div class="d-flex flex-column flex-grow-1">
            <label class="form-label-modern">Category</label>
            <select class="form-control-modern w-100 arrow-white" id="filter_category_id">
                <option value="">All Categories</option>
-               @foreach($categories as $category)
-                   <option value="{{ $category->id }}">{{ $category->name }}</option>
-               @endforeach
+               <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                   <option value="<?php echo e($category->id); ?>"><?php echo e($category->name); ?></option>
+               <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
            </select>
        </div>
        <div class="d-flex flex-column flex-grow-1">
@@ -555,7 +555,7 @@
       <input type="text" id="search" placeholder="Search assignments..." />
     </div>
     <div class="ms-auto d-flex gap-2">
-         <!-- <a href="{{ route('assets.index') }}" class="table-search-btn text-decoration-none" target="_blank">
+         <!-- <a href="<?php echo e(route('assets.index')); ?>" class="table-search-btn text-decoration-none" target="_blank">
              <i class="bi bi-folder2-open me-1"></i> Open Assets
          </a> -->
          <button type="button" class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createAssetModal">
@@ -652,15 +652,15 @@
       </div>
       <form id="createAssignmentForm">
         <div class="modal-body pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <div class="row g-3">
               <div class="col-md-6">
                 <label for="category_id" class="form-label-modern">Asset Category <span class="text-danger">*</span></label>
                 <select class="form-select form-control-modern" id="category_id" required>
                     <option value="">Select Category</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($category->id); ?>"><?php echo e($category->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
               </div>
               
@@ -675,15 +675,15 @@
                 <label for="employee_id" class="form-label-modern">Employee <span class="text-danger">*</span></label>
                 <select class="form-select form-control-modern" id="employee_id" name="employee_id" required>
                     <option value="">Select Employee</option>
-                     @foreach($employees as $employee)
-                          <option value="{{ $employee->id }}">{{ $employee->name }} ({{ $employee->employee_code }})</option>
-                      @endforeach
+                     <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                          <option value="<?php echo e($employee->id); ?>"><?php echo e($employee->name); ?> (<?php echo e($employee->employee_code); ?>)</option>
+                      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
               </div>
               
               <div class="col-md-6">
                   <label for="assigned_date" class="form-label-modern">Assigned Date <span class="text-danger">*</span></label>
-                  <input type="date" class="form-control form-control-modern" id="assigned_date" name="assigned_date" required value="{{ date('Y-m-d') }}">
+                  <input type="date" class="form-control form-control-modern" id="assigned_date" name="assigned_date" required value="<?php echo e(date('Y-m-d')); ?>">
               </div>
 
               <div class="col-md-6">
@@ -721,24 +721,24 @@
       </div>
       <form id="createAssetForm">
         <div class="modal-body pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <div class="row g-3">
               <div class="col-md-6">
                 <label for="create_asset_type_id" class="form-label-modern">Asset Type</label>
                 <select class="form-select form-control-modern" id="create_asset_type_id" name="asset_type_id">
                     <option value="">Select Type</option>
-                    @foreach($assetTypes as $type)
-                        <option value="{{ $type->id }}">{{ $type->name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $assetTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($type->id); ?>"><?php echo e($type->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
               </div>
               <div class="col-md-6">
                 <label for="create_asset_category_id" class="form-label-modern">Category <span class="text-danger">*</span></label>
                 <select class="form-select form-control-modern" id="create_asset_category_id" name="asset_category_id" required>
                     <option value="">Select Category</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($category->id); ?>"><?php echo e($category->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
               </div>
               <div class="col-md-6">
@@ -753,18 +753,18 @@
                    <label for="create_asset_supplier_id" class="form-label-modern">Supplier</label>
                    <select class="form-select form-control-modern" id="create_asset_supplier_id" name="supplier_id">
                        <option value="">Select Supplier</option>
-                       @foreach($suppliers as $supplier)
-                           <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                       @endforeach
+                       <?php $__currentLoopData = $suppliers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $supplier): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                           <option value="<?php echo e($supplier->id); ?>"><?php echo e($supplier->name); ?></option>
+                       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                    </select>
                </div>
               <div class="col-md-6">
                 <label for="create_asset_status" class="form-label-modern">Status <span class="text-danger">*</span></label>
                 <select class="form-select form-control-modern" id="create_asset_status" name="status" required>
                     <option value="">Select Status</option>
-                    @foreach($statuses as $status)
-                        <option value="{{ $status->name }}">{{ $status->name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($status->name); ?>"><?php echo e($status->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
               </div>
           </div>
@@ -800,7 +800,7 @@
       </div>
       <form id="editAssetForm">
         <div class="modal-body pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <input type="hidden" id="edit_asset_pk">
           
           <div class="row g-3">
@@ -808,18 +808,18 @@
                 <label for="edit_asset_type_id" class="form-label-modern">Asset Type</label>
                 <select class="form-select form-control-modern" id="edit_asset_type_id" name="asset_type_id">
                     <option value="">Select Type</option>
-                    @foreach($assetTypes as $type)
-                        <option value="{{ $type->id }}">{{ $type->name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $assetTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($type->id); ?>"><?php echo e($type->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
               </div>
               <div class="col-md-6">
                 <label for="edit_asset_cat_id" class="form-label-modern">Category <span class="text-danger">*</span></label>
                 <select class="form-select form-control-modern" id="edit_asset_cat_id" name="asset_category_id" required>
                     <option value="">Select Category</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($category->id); ?>"><?php echo e($category->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
               </div>
               <div class="col-md-6">
@@ -834,18 +834,18 @@
                    <label for="edit_asset_supplier_id" class="form-label-modern">Supplier</label>
                    <select class="form-select form-control-modern" id="edit_asset_supplier_id" name="supplier_id">
                        <option value="">Select Supplier</option>
-                       @foreach($suppliers as $supplier)
-                           <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                       @endforeach
+                       <?php $__currentLoopData = $suppliers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $supplier): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                           <option value="<?php echo e($supplier->id); ?>"><?php echo e($supplier->name); ?></option>
+                       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                    </select>
                </div>
               <div class="col-md-6">
                 <label for="edit_asset_status_field" class="form-label-modern">Status <span class="text-danger">*</span></label>
                 <select class="form-select form-control-modern" id="edit_asset_status_field" name="status" required>
                     <option value="">Select Status</option>
-                    @foreach($statuses as $status)
-                        <option value="{{ $status->name }}">{{ $status->name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($status->name); ?>"><?php echo e($status->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
               </div>
           </div>
@@ -881,7 +881,7 @@
       </div>
       <form id="editAssignmentForm">
         <div class="modal-body pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <input type="hidden" id="edit_id">
           
           <div class="row g-3">
@@ -894,9 +894,9 @@
                   <label for="edit_employee_id" class="form-label-modern">Employee</label>
                   <select class="form-select form-control-modern" id="edit_employee_id" name="employee_id">
                       <option value="">Select Employee</option>
-                       @foreach($employees as $employee)
-                            <option value="{{ $employee->id }}">{{ $employee->name }} ({{ $employee->employee_code }})</option>
-                        @endforeach
+                       <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($employee->id); ?>"><?php echo e($employee->name); ?> (<?php echo e($employee->employee_code); ?>)</option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                   </select>
               </div>
               
@@ -992,9 +992,9 @@
      </div>
    </div>
  </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -1043,7 +1043,7 @@ $(function () {
 
 
 
-  const allCategories = @json($categories);
+  const allCategories = <?php echo json_encode($categories, 15, 512) ?>;
 
   function loadStats() {
       // Build query params for stats too if we want stats to filter? 
@@ -1058,7 +1058,7 @@ $(function () {
       queryParams += `&category_id=${$('#filter_category_id').val()}`;
       queryParams += `&employee_id=${$('#filter_employee_id').val()}`;
 
-      $.get(`{{ route('asset-management.stats') }}${queryParams}`, function(data) {
+      $.get(`<?php echo e(route('asset-management.stats')); ?>${queryParams}`, function(data) {
           $('#totalAssets').text(data.total_assets);
           $('#availableAssets').text(data.available_assets);
           $('#assignedAssets').text(data.assigned_assets);
@@ -1080,7 +1080,7 @@ $(function () {
     queryParams += `&category_id=${$('#filter_category_id').val()}`;
     queryParams += `&employee_id=${$('#filter_employee_id').val()}`;
 
-    $.get(`{{ route('asset-management.fetch') }}?${queryParams}`, function (data) {
+    $.get(`<?php echo e(route('asset-management.fetch')); ?>?${queryParams}`, function (data) {
       if (!data.data || data.data.length === 0) {
         $('#assignmentsTable tbody').html(`
           <tr>
@@ -1144,7 +1144,7 @@ $(function () {
       $assetSelect.html('<option value="">Loading...</option>').prop('disabled', true);
       
       if(categoryId) {
-          $.get("{{ route('asset-management.get-assets') }}", { category_id: categoryId }, function(data) {
+          $.get("<?php echo e(route('asset-management.get-assets')); ?>", { category_id: categoryId }, function(data) {
              let options = '<option value="">Select Asset</option>';
              if(data.length > 0) {
                  data.forEach(asset => {
@@ -1167,7 +1167,7 @@ $(function () {
       $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Assigning...');
       
       $.ajax({
-          url: "{{ route('asset-management.store') }}",
+          url: "<?php echo e(route('asset-management.store')); ?>",
           type: "POST",
           data: $(this).serialize(),
           success: function() {
@@ -1342,7 +1342,7 @@ $(function () {
               url: `/asset-management/${id}`,
               type: "DELETE",
               data: {
-                  _token: '{{ csrf_token() }}'
+                  _token: '<?php echo e(csrf_token()); ?>'
               },
               success: function() {
                   loadAssignments();
@@ -1416,7 +1416,7 @@ $(function () {
       $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Saving...');
       
       $.ajax({
-          url: "{{ route('assets.store') }}",
+          url: "<?php echo e(route('assets.store')); ?>",
           type: "POST",
           data: $(this).serialize(),
           success: function() {
@@ -1509,7 +1509,7 @@ $(function () {
       if(fromDate) q += `&from_date=${fromDate}`;
       if(toDate) q += `&to_date=${toDate}`; 
 
-      $.get(`{{ route('assets.fetch') }}?${q}`, function(data) {
+      $.get(`<?php echo e(route('assets.fetch')); ?>?${q}`, function(data) {
            if (!data.data || data.data.length === 0) {
                $accordion.html('<div class="empty-state text-center py-4"><i class="bi bi-inbox"></i><h5 class="mt-2">No Assets Found</h5></div>');
                if(page === 1) $('#paginationLinks').empty();
@@ -1695,7 +1695,7 @@ $(function () {
           $.ajax({
               url: `/assets/${id}`,
               type: 'DELETE',
-              data: { _token: '{{ csrf_token() }}' },
+              data: { _token: '<?php echo e(csrf_token()); ?>' },
               success: function() {
                   loadAssetsList();
                   showAlert('success', 'Asset deleted.');
@@ -1716,7 +1716,7 @@ $(function () {
        $('#createAssignmentModal').modal('show');
        $assetSelect.html('<option value="">Loading...</option>').prop('disabled', true);
        
-       $.get("{{ route('asset-management.get-assets') }}", { category_id: catId }, function(data) {
+       $.get("<?php echo e(route('asset-management.get-assets')); ?>", { category_id: catId }, function(data) {
              let options = '<option value="">Select Asset</option>';
              if(data.length > 0) {
                  data.forEach(asset => {
@@ -1795,4 +1795,6 @@ $(function () {
    $('input[name="viewMode"]:checked').trigger('change');
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/admin/asset-management/index.blade.php ENDPATH**/ ?>

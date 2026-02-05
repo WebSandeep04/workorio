@@ -16,7 +16,7 @@ class AssetManagementController extends Controller
 {
     public function index()
     {
-        $categories = AssetCategory::all();
+        $categories = AssetCategory::with('fields')->get();
         $employees = Employee::where('status', 'Active')->get();
         $statuses = AssetStatus::all();
         $suppliers = Supplier::all();
