@@ -175,6 +175,7 @@ class AttendanceController extends Controller
             }
 
             // --- Location Validation Start (API) ---
+            $detectedPlaceName = null;
             if (!$hasAnyIn) {
                 $employee = null;
                 if ($user instanceof \App\Models\User) {
@@ -217,6 +218,7 @@ class AttendanceController extends Controller
 
                             if ($distance <= $place->radius) {
                                 $isWithinRange = true;
+                                $detectedPlaceName = $place->placename;
                                 break;
                             }
                         }
@@ -299,7 +301,7 @@ class AttendanceController extends Controller
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'mode' => 'mobile',
-            'place' => null,
+            'place' => $detectedPlaceName,
         ]);
 
         Log::info('Punch-in movement created (API)', [

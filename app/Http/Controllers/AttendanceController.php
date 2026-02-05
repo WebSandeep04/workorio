@@ -165,6 +165,7 @@ class AttendanceController extends Controller
 
             // --- Location Validation Start ---
             // Validate ONLY on first punch-in of the day
+            $detectedPlaceName = null;
             if (!$hasAnyIn) {
                 // Ensure user->employee relation is loaded/accessible
                 $employee = null;
@@ -210,6 +211,7 @@ class AttendanceController extends Controller
                             // Check if within radius
                             if ($distance <= $place->radius) {
                                 $isWithinRange = true;
+                                $detectedPlaceName = $place->placename;
                                 break;
                             }
                         }
@@ -341,7 +343,7 @@ class AttendanceController extends Controller
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'mode' => 'web',
-            'place' => null, // Placeholder for now or derive if needed
+            'place' => $detectedPlaceName,
         ]);
 
         Log::info('Punch-in movement created', [
