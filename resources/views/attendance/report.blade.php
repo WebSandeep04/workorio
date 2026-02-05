@@ -167,7 +167,7 @@
 
   .data-table-card .custom-table thead th {
     background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em;
-    text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem;
+    text-transform: capitalize; font-weight: 700; padding: 0.6rem 0.75rem;
     text-align: left; border-bottom: 1px solid #f1f3f5; border-right: 1px solid #f1f3f5;
     position: sticky; top: 0; z-index: 5; white-space: nowrap; font-family: Montserrat;
   }
@@ -412,6 +412,7 @@
                                     <th>Avg Hrs/Day</th>
                                     <th>Less 8:30</th>
                                     <th>More 8:30</th>
+                                    <th>Late Count</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -684,6 +685,7 @@ function loadMonthlySummary(){
             headerRow += '<th style="min-width:50px;">Absent</th>';
             headerRow += '<th style="min-width:65px;">Less 8:30</th>';
             headerRow += '<th style="min-width:65px;">More 8:30</th>';
+            headerRow += '<th style="min-width:65px;">Late Count</th>';
             headerRow += '</tr>';
             thead.innerHTML = headerRow;
 
@@ -718,6 +720,7 @@ function loadMonthlySummary(){
                     rowHtml += `<td class="text-center text-danger fw-bold">${s.days_absent}</td>`;
                     rowHtml += `<td class="text-center fw-bold" style="color: #64748b;">${s.total_less_8_30}</td>`;
                     rowHtml += `<td class="text-center fw-bold" style="color: #434afa;">${s.total_more_8_30}</td>`;
+                    rowHtml += `<td class="text-center fw-bold text-danger">${s.late_count || 0}</td>`;
                     
                     tr.innerHTML = rowHtml;
                     tbody.appendChild(tr);

@@ -1307,7 +1307,7 @@ class AttendanceController extends Controller
             ->toArray();
 
         // Calculate summary statistics
-        $summary = $this->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves);
+        $summary = $this->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData, $user);
         
         // Generate daily breakdown
         $dailyBreakdown = $this->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData);
@@ -1541,7 +1541,7 @@ class AttendanceController extends Controller
             foreach ($data['month']['dates'] as $d) {
                 $header[] = $d['day'] . '(' . $d['day_name'] . ')';
             }
-            $header = array_merge($header, ['Work Days', 'Present', 'Half Day', 'Holiday Work', 'Leave', 'Absent', 'Less 8:30', 'More 8:30']);
+            $header = array_merge($header, ['Work Days', 'Present', 'Half Day', 'Holiday Work', 'Leave', 'Absent', 'Less 8:30', 'More 8:30', 'Late Count']);
             fputcsv($file, $header);
 
             // Data Rows
@@ -1565,6 +1565,7 @@ class AttendanceController extends Controller
                 $row[] = $s['days_absent'];
                 $row[] = $s['total_less_8_30'];
                 $row[] = $s['total_more_8_30'];
+                $row[] = $s['late_count'] ?? 0;
                 
                 fputcsv($file, $row);
             }
@@ -1704,7 +1705,7 @@ class AttendanceController extends Controller
                 ->values()
                 ->toArray();
 
-            $summary = $this->calculateMonthlySummary($userAttendances, $startDate, $endDate, $holidays, $userLeavesSummary);
+            $summary = $this->calculateMonthlySummary($userAttendances, $startDate, $endDate, $holidays, $userLeavesSummary, null, $user);
 
             $reportData[] = [
                 'user' => [
@@ -1727,7 +1728,7 @@ class AttendanceController extends Controller
         ];
     }
 
-    private function calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves)
+    private function calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData = null, $user = null)
     {
         $totalWorkingDays = 0;
         $totalDaysWorked = 0;
@@ -1745,8 +1746,11 @@ class AttendanceController extends Controller
         $totalHolidaysWorked = 0;
         $totalLess8_30 = 0;
         $totalMore8_30 = 0;
+        $lateCount = 0;
+        $lateLogs = [];
         
-        // Calculate total working days (excluding Sundays and holidays)
+        $shiftRelation = $user ? ($user->employee->shiftRelation ?? null) : null;
+        $shift = $shiftRelation;
         $currentDate = $startDate->copy();
         while ($currentDate->lte($endDate)) {
             if ($currentDate->dayOfWeek === Carbon::SUNDAY) {
@@ -1811,6 +1815,46 @@ class AttendanceController extends Controller
                 $totalCycles['office'] += $cycles['office'];
                 $totalCycles['field'] += $cycles['field'];
                 $totalCycles['break'] += $cycles['break'];
+
+                // Late Check
+                if ($shift && $shift->start_time) {
+                    $firstPunch = $attendance->movements->whereIn('movement_type', ['office', 'field'])->first();
+                    if ($firstPunch) {
+                        $punchTime = Carbon::parse($firstPunch->time)->setTimezone('Asia/Kolkata');
+                        
+                        $shiftDate = Carbon::parse($attendance->date)->format('Y-m-d');
+                        $shiftTime = Carbon::parse($shift->start_time)->format('H:i:s');
+                        // Shift time is UTC in DB, convert to IST
+                        $shiftStart = Carbon::parse($shiftDate . ' ' . $shiftTime, 'UTC')->setTimezone('Asia/Kolkata');
+                        
+                        $lateThreshold = $shiftStart->copy()->addMinutes($shift->late_min ?? 0);
+                        
+                        $isLate = false;
+                        $reason = '';
+                        
+                        if ($punchTime->gt($lateThreshold)) {
+                            // Only count late if worked >= 4 hours
+                            if ($dayHours >= 4) {
+                                $lateCount++;
+                                $isLate = true;
+                                $reason = 'Late: Punched after threshold and worked >= 4hrs';
+                            } else {
+                                $reason = 'Not Late: Punched after threshold but worked < 4hrs';
+                            }
+                        } else {
+                            $reason = 'Not Late: on time';
+                        }
+                        
+                        $lateLogs[] = [
+                            'date' => $dateStr,
+                            'punch' => $punchTime->toDateTimeString(),
+                            'threshold' => $lateThreshold->toDateTimeString(),
+                            'hours' => $dayHours,
+                            'is_late' => $isLate,
+                            'reason' => $reason
+                        ];
+                    }
+                }
             }
         }
         
@@ -1890,7 +1934,9 @@ class AttendanceController extends Controller
             'avg_hours_per_day' => $totalDaysWorked > 0 ? round($totalHours / $totalDaysWorked, 2) : 0,
             'total_cycles' => $totalCycles,
             'total_less_8_30' => $totalLess8_30,
-            'total_more_8_30' => $totalMore8_30
+            'total_more_8_30' => $totalMore8_30,
+            'late_count' => $lateCount,
+            'late_logs' => $lateLogs
         ];
     }
 
