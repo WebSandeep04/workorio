@@ -1935,3 +1935,28 @@
 #68 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\DontDelete\\\\l...')
 #69 {main}
 "} 
+[2026-02-05 07:01:53] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-02-05 07:01:54] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-05 07:01:54] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-05 07:01:54] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-02-05 07:01:54] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-05 07:37:13] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-02-05 07:37:13] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-05 07:37:14] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-05 07:37:14] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep Kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-02-05 07:37:14] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-05 07:37:59] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-02-05 07:37:59] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-05 07:38:00] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-05 07:38:00] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep Kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-02-05 07:38:00] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-05 07:38:00] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-02-05 07:38:00] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-05 07:38:01] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-05 07:38:01] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep Kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-02-05 07:38:01] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-05 07:38:26] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-02-05 07:38:26] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-05 07:38:27] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-05 07:38:27] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-02-05 07:38:27] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

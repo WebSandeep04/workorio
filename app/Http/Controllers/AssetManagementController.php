@@ -115,6 +115,11 @@ class AssetManagementController extends Controller
             'description' => 'nullable|string'
         ]);
 
+        // Close any existing active assignments for this asset
+        AssetAssignment::where('asset_id', $request->asset_id)
+            ->where('status', 'assigned')
+            ->update(['status' => 'returned', 'return_date' => now()->toDateString()]);
+
         $assignment = AssetAssignment::create([
             'asset_id' => $request->asset_id,
             'employee_id' => $request->employee_id,
@@ -187,8 +192,8 @@ class AssetManagementController extends Controller
     {
         $categoryId = $request->category_id;
         $assets = Asset::where('asset_category_id', $categoryId)
-                       ->where('status', 'Available') // Only fetch available assets
-                       ->select('id', 'name', 'asset_id')
+                       ->whereIn('status', ['Available', 'Assigned']) // Include assigned assets for re-assignment
+                       ->select('id', 'name', 'asset_id', 'status')
                        ->get();
         return response()->json($assets);
     }

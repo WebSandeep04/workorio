@@ -1581,7 +1581,9 @@ $(function () {
                                                         </td>
                                                         <td>
                                                             <div class="d-flex gap-2 justify-content-center">
-                                                                <button class="btn-action btn-action-assign assignAssetBtn" data-id="${asset.id}" data-cat-id="${asset.asset_category_id}" title="Assign" ${asset.status !== 'Available' ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}><i class="bi bi-person-plus"></i></button>
+                                                                <button class="btn-action btn-action-assign assignAssetBtn" data-id="${asset.id}" data-cat-id="${asset.asset_category_id}" title="${asset.status === 'Assigned' ? 'Reassign' : 'Assign'}">
+                                                                    <i class="bi ${asset.status === 'Assigned' ? 'bi-person-gear' : 'bi-person-plus'}"></i>
+                                                                </button>
                                                                 <button class="btn-action btn-action-edit editAssetBtn" data-id="${asset.id}" title="Edit"><i class="bi bi-pencil"></i></button>
                                                                 <button class="btn-action btn-action-view historyAssetBtn" data-id="${asset.id}" title="History"><i class="bi bi-clock-history"></i></button>
                                                                 <button class="btn-action btn-action-delete deleteAssetBtn" data-id="${asset.id}" title="Delete"><i class="bi bi-trash"></i></button>
@@ -1721,11 +1723,12 @@ $(function () {
              if(data.length > 0) {
                  data.forEach(asset => {
                      const selected = asset.id == assetId ? 'selected' : '';
-                     options += `<option value="${asset.id}" ${selected}>${asset.name} (${asset.asset_id})</option>`;
+                     const statusInfo = asset.status === 'Assigned' ? ' [Already Assigned]' : '';
+                     options += `<option value="${asset.id}" ${selected}>${asset.name} (${asset.asset_id})${statusInfo}</option>`;
                  });
                  $assetSelect.html(options).prop('disabled', false);
              } else {
-                 $assetSelect.html('<option value="">No available assets</option>').prop('disabled', true);
+                 $assetSelect.html('<option value="">No assets found in this category</option>').prop('disabled', true);
              }
        });
    });
