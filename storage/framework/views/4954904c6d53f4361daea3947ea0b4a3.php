@@ -52,115 +52,12 @@
 <script src="<?php echo e(asset('js/notifications.js')); ?>"></script>
 
 
-<form id="auto-logout-form" action="<?php echo e(route('logout')); ?>" method="POST" style="display: none;">
-    <?php echo csrf_field(); ?>
-</form>
+
 
 <!-- Idle Timeout Warning Modal -->
-<div class="modal fade" id="idleTimeoutModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header text-white" style="background-color: #434afa; border-radius: 0;">
-        <h5 class="modal-title">Session Timeout Warning</h5>
-      </div>
-      <div class="modal-body">
-        <p>No activity detected. You will be logged out in <strong id="idleCountdown" class="text-danger">15</strong> seconds.</p>
-        <p class="mb-0">Do you want to stay logged in?</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" id="btnStayLoggedIn" style="border-radius: 0;">Resume Session</button>
-      </div>
-    </div>
-  </div>
-</div>
 
-<script>
-    (function() {
-        const IDLE_TIME = 10 * 60 * 1000; // 10 minutes of inactivity before warning
-        const WARNING_DURATION = 15;      // 15 seconds countdown
-        
-        let idleTimer;
-        let countdownInterval;
-        let isWarningShown = false;
-        
-        // Ensure DOM elements exist before referencing
-        const modalEl = document.getElementById('idleTimeoutModal');
-        const countdownEl = document.getElementById('idleCountdown');
-        const stayBtn = document.getElementById('btnStayLoggedIn');
-        
-        // We need a way to initialize the bootstrap modal safely
-        // Since this script runs at the end of body, Bootstrap should be loaded
-        let bsModal = null;
 
-        function getModal() {
-            if (!bsModal && window.bootstrap) {
-                bsModal = new bootstrap.Modal(modalEl);
-            }
-            return bsModal;
-        }
 
-        function startIdleTimer() {
-            clearTimeout(idleTimer);
-            clearInterval(countdownInterval);
-            isWarningShown = false;
-            
-            idleTimer = setTimeout(showWarning, IDLE_TIME);
-        }
-
-        function showWarning() {
-            isWarningShown = true;
-            let secondsLeft = WARNING_DURATION;
-            
-            // Show Modal
-            const modal = getModal();
-            if (modal) {
-                countdownEl.textContent = secondsLeft;
-                modal.show();
-                
-                countdownInterval = setInterval(() => {
-                    secondsLeft--;
-                    countdownEl.textContent = secondsLeft;
-                    
-                    if (secondsLeft <= 0) {
-                        clearInterval(countdownInterval);
-                        logoutUser();
-                    }
-                }, 1000);
-            } else {
-                // Fallback if bootstrap modal fails
-                logoutUser();
-            }
-        }
-
-        function logoutUser() {
-            document.getElementById('auto-logout-form').submit();
-        }
-
-        function activityDetected() {
-            // Only reset if strict idle timer constitutes "logged in" state
-            // If warning is shown, we force them to click "Resume" (better UX than accidental mouse move saving them)
-            if (!isWarningShown) {
-                startIdleTimer();
-            }
-        }
-        
-        if (stayBtn) {
-            stayBtn.addEventListener('click', function() {
-                const modal = getModal();
-                if (modal) modal.hide();
-                startIdleTimer();
-            });
-        }
-
-        const events = ['mousemove', 'keypress', 'click', 'scroll', 'touchstart'];
-        events.forEach(event => {
-            document.addEventListener(event, activityDetected, true);
-        });
-
-        // Init
-        startIdleTimer();
-    })();
-</script>
 
 <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>

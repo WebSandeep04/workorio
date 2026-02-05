@@ -1541,7 +1541,7 @@ class AttendanceController extends Controller
             foreach ($data['month']['dates'] as $d) {
                 $header[] = $d['day'] . '(' . $d['day_name'] . ')';
             }
-            $header = array_merge($header, ['Work Days', 'Present', 'Half Day', 'Holiday Work', 'Leave', 'Absent', 'Less 8:30', 'More 8:30', 'Late Count']);
+            $header = array_merge($header, ['Work Days', 'Total Present', 'Full Day', 'Half Day', 'Holiday Work', 'Leave', 'Absent', 'Less 8:30', 'More 8:30', 'Late Count']);
             fputcsv($file, $header);
 
             // Data Rows
@@ -1558,6 +1558,7 @@ class AttendanceController extends Controller
                 // Summaries
                 $s = $item['summary'];
                 $row[] = $s['total_working_days'];
+                $row[] = $s['total_present_combined'];
                 $row[] = $s['total_present'];
                 $row[] = $s['total_halfday'];
                 $row[] = $s['total_holidays_worked'];
@@ -1923,6 +1924,7 @@ class AttendanceController extends Controller
             'days_absent' => $daysAbsent,
             'days_on_leave' => $totalLeaves, // Show total leaves count (all leaves) for summary display
             'attendance_percentage' => $attendancePercentage,
+            'total_present_combined' => $presentDays + $halfDays + $totalHolidaysWorked,
             'total_present' => $presentDays,
             'total_halfday' => $halfDays,
             'total_sundays' => $totalSundays,

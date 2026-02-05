@@ -678,7 +678,8 @@ function loadMonthlySummary(){
             
             // Summary Columns (at end)
             headerRow += '<th style="min-width:60px;">Work Days</th>';
-            headerRow += '<th style="min-width:50px;">Present</th>';
+            headerRow += '<th style="min-width:60px;">Total Present</th>'; 
+            headerRow += '<th style="min-width:50px;">Full Day</th>';
             headerRow += '<th style="min-width:50px;">Half Day</th>';
             headerRow += '<th style="min-width:50px;">Holiday Work</th>';
             headerRow += '<th style="min-width:50px;">Leave</th>';
@@ -713,6 +714,7 @@ function loadMonthlySummary(){
                     
                     // Summary Columns (at end)
                     rowHtml += `<td class="text-center fw-bold">${s.total_working_days}</td>`;
+                    rowHtml += `<td class="text-center fw-bold text-success">${s.total_present_combined}</td>`; 
                     rowHtml += `<td class="text-center text-success fw-bold">${s.total_present}</td>`;
                     rowHtml += `<td class="text-center text-warning fw-bold">${s.total_halfday}</td>`;
                     rowHtml += `<td class="text-center text-info fw-bold">${s.total_holidays_worked}</td>`;
