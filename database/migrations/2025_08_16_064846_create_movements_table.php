@@ -23,6 +23,10 @@ return new class extends Migration
             $table->enum('movement_action', ['in', 'out', 'start', 'end']);
             $table->datetime('time');
             $table->string('description')->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
+            $table->decimal('latitude', 11, 8)->nullable();
+            $table->string('mode')->nullable();
+            $table->string('place')->nullable();
             $table->timestamps();
             
             $table->foreign('attendance_id')->references('id')->on('attendance')->onDelete('cascade');

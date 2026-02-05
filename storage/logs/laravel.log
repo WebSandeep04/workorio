@@ -9,3 +9,46 @@
 [2026-02-05 10:24:13] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-02-05 10:24:13] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
 [2026-02-05 10:24:13] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-05 11:19:47] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-02-05 11:19:47] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-05 11:19:48] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-05 11:19:48] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep Kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-02-05 11:19:48] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-05 11:21:47] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481651306368395","long":"80.34596642872529"} 
+[2026-02-05 11:21:48] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-05 11:21:50] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481651306368395","long":"80.34596642872529"} 
+[2026-02-05 11:21:50] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-05 11:23:07] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-02-05 11:23:07] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-05 11:23:08] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-05 11:23:08] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-02-05 11:23:08] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-05 11:29:59] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-02-05 11:29:59] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-05 11:29:59] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-05 11:29:59] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep Kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-02-05 11:29:59] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-05 11:30:41] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481652151944083","long":"80.34595670887626"} 
+[2026-02-05 11:30:42] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-05 11:31:08] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481652151944083","long":"80.34595670887626"} 
+[2026-02-05 11:31:08] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-05 11:31:08] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-02-05 11:31:08] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-02-05 04:30:00","late_min":10,"cutoff_time":"2026-02-05 04:40:00","now":"2026-02-05 11:31:08","is_late":true} 
+[2026-02-05 11:31:08] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-02-05 11:31:09] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481652151944083","long":"80.34595670887626"} 
+[2026-02-05 11:31:10] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-05 11:31:10] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-02-05 11:31:10] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-02-05 04:30:00","late_min":10,"cutoff_time":"2026-02-05 04:40:00","now":"2026-02-05 11:31:10","is_late":true} 
+[2026-02-05 11:31:10] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-02-05 11:31:15] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481652151944083","long":"80.34595670887626"} 
+[2026-02-05 11:31:16] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-02-05 11:31:16] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-02-05 11:31:16] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-02-05 04:30:00","late_min":10,"cutoff_time":"2026-02-05 04:40:00","now":"2026-02-05 11:31:16","is_late":true} 
+[2026-02-05 11:31:16] local.INFO: Late punch-in accepted with reason {"user_id":4,"movement_type":"office","description":"Late punch-in: Health-related (self or dependent)"} 
+[2026-02-05 11:31:16] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":996,"date":"2026-02-05"} 
+[2026-02-05 11:31:16] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":996} 
+[2026-02-05 11:31:16] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":996,"movement_id":2327,"movement_type":"office","description":"Late punch-in: Health-related (self or dependent)"} 
+[2026-02-05 12:13:09] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-05 12:21:18] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-05 12:21:21] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-05 12:21:22] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":997,"movement_id":2328} 

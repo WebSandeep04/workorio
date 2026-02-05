@@ -338,6 +338,10 @@ class AttendanceController extends Controller
             'movement_action' => 'in',
             'time' => Carbon::now(),
             'description' => $description,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'mode' => 'web',
+            'place' => null, // Placeholder for now or derive if needed
         ]);
 
         Log::info('Punch-in movement created', [
@@ -379,7 +383,9 @@ class AttendanceController extends Controller
     public function punchOut(Request $request): JsonResponse
     {
         $request->validate([
-            'movement_type' => 'required|in:office,field,break'
+            'movement_type' => 'required|in:office,field,break',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         $user = $this->getCurrentUser();
@@ -465,7 +471,11 @@ class AttendanceController extends Controller
             'movement_action' => 'out',
             'time' => Carbon::now(),
             'description' => null,
-            'message' => 'Successfully punched out for ' . $request->movement_type
+            'message' => 'Successfully punched out for ' . $request->movement_type,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'mode' => 'web',
+            'place' => null,
         ]);
 
         // Get current cycle number
@@ -529,7 +539,11 @@ class AttendanceController extends Controller
             'movement_action' => 'start',
             'time' => Carbon::now(),
             'description' => null,
-            'message' => 'Break started successfully'
+            'message' => 'Break started successfully',
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'mode' => 'web',
+            'place' => null,
         ]);
 
         // Get current cycle number
@@ -604,6 +618,10 @@ class AttendanceController extends Controller
             'movement_action' => 'end',
             'time' => Carbon::now(),
             'description' => null,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'mode' => 'web',
+            'place' => null,
             'message' => 'Break ended successfully'
         ]);
 

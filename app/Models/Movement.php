@@ -13,7 +13,12 @@ class Movement extends Model
         'movement_type',
         'movement_action',
         'time',
-        'description',];
+        'description',
+        'longitude',
+        'latitude',
+        'mode',
+        'place',
+    ];
 
     protected $casts = [
         'time' => 'datetime',
