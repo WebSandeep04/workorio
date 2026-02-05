@@ -1,7 +1,7 @@
-@extends('layouts.app')
 
-@section('content')
-@push('styles')
+
+<?php $__env->startSection('content'); ?>
+<?php $__env->startPush('styles'); ?>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
@@ -236,7 +236,7 @@
   .custom-toast.success i { color: #10b981; }
   .custom-toast.error i { color: #ef4444; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
 <div class="container-fluid px-2 mt-2">
 
@@ -263,14 +263,14 @@
                 <div class="filter-group">
                     <label class="filter-label">User</label>
                     <select id="user_id" class="form-select-custom">
-                        @foreach($users as $u)
-                            <option value="{{ $u->id }}">{{ $u->name }}</option>
-                        @endforeach
+                        <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $u): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($u->id); ?>"><?php echo e($u->name); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">Month</label>
-                    <input type="month" id="month" class="form-control-custom" value="{{ now()->format('Y-m') }}">
+                    <input type="month" id="month" class="form-control-custom" value="<?php echo e(now()->format('Y-m')); ?>">
                 </div>
                 <button type="button" id="loadReport" class="btn-load">
                     <i class="bi bi-play-circle me-1"></i> Load Report
@@ -380,7 +380,7 @@
             <div class="filter-bar">
                 <div class="filter-group">
                     <label class="filter-label">Month</label>
-                    <input type="month" id="monthly_month" class="form-control-custom" value="{{ now()->format('Y-m') }}">
+                    <input type="month" id="monthly_month" class="form-control-custom" value="<?php echo e(now()->format('Y-m')); ?>">
                 </div>
                 <button type="button" id="loadMonthlyReport" class="btn-load">
                     <i class="bi bi-play-circle me-1"></i> Load Summary
@@ -465,7 +465,7 @@ function loadReport(){
     $.ajax({
         url: '/attendance/report-data',
         method: 'POST',
-        data: { user_id: userId, month: month, _token: '{{ csrf_token() }}' },
+        data: { user_id: userId, month: month, _token: '<?php echo e(csrf_token()); ?>' },
         success: function(res){
             const s = res.summary;
             document.getElementById('sumWorkingDays').textContent = s.total_working_days;
@@ -557,7 +557,7 @@ function loadMonthlySummary(){
     $.ajax({
         url: '/attendance/monthly-report-data',
         method: 'POST',
-        data: { month: month, _token: '{{ csrf_token() }}' },
+        data: { month: month, _token: '<?php echo e(csrf_token()); ?>' },
         success: function(res){
             // 1. Build Header
             let headerRow = '<tr><th class="sticky-col" style="min-width:150px; background:#fff; left:0; z-index:10; border-right:2px solid #f1f3f5;">User</th>';
@@ -753,4 +753,6 @@ function showToast(message, type = 'success') {
     }, 4000);
 }
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/attendance/report.blade.php ENDPATH**/ ?>

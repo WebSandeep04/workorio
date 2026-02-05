@@ -1384,7 +1384,7 @@ class AttendanceController extends Controller
             foreach ($data['month']['dates'] as $d) {
                 $header[] = $d['day'] . '(' . $d['day_name'] . ')';
             }
-            $header = array_merge($header, ['Work Days', 'Present', 'Half Day', 'Holiday Work', 'Leave', 'Absent']);
+            $header = array_merge($header, ['Work Days', 'Present', 'Half Day', 'Holiday Work', 'Leave', 'Absent', 'Less 8:30', 'More 8:30']);
             fputcsv($file, $header);
 
             // Data Rows
@@ -1406,6 +1406,8 @@ class AttendanceController extends Controller
                 $row[] = $s['total_holidays_worked'];
                 $row[] = $s['days_on_leave'];
                 $row[] = $s['days_absent'];
+                $row[] = $s['total_less_8_30'];
+                $row[] = $s['total_more_8_30'];
                 
                 fputcsv($file, $row);
             }
@@ -1584,6 +1586,8 @@ class AttendanceController extends Controller
         $halfDays = 0; // Days with >= 4 hours but < 7 hours
         $totalSundays = 0;
         $totalHolidaysWorked = 0;
+        $totalLess8_30 = 0;
+        $totalMore8_30 = 0;
         
         // Calculate total working days (excluding Sundays and holidays)
         $currentDate = $startDate->copy();
@@ -1630,6 +1634,12 @@ class AttendanceController extends Controller
                     $presentDays++;
                 } elseif ($dayHours >= 4) {
                     $halfDays++;
+                }
+
+                if ($dayHours >= 8.5) {
+                    $totalMore8_30++;
+                } elseif ($dayHours >= 4) {
+                    $totalLess8_30++;
                 }
                 
                 $officeHours = $this->calculateTypeHours($attendance->movements, 'office');
@@ -1721,7 +1731,9 @@ class AttendanceController extends Controller
             'total_field_hours' => round($totalFieldHours, 2),
             'total_break_time' => round($totalBreakTime, 2),
             'avg_hours_per_day' => $totalDaysWorked > 0 ? round($totalHours / $totalDaysWorked, 2) : 0,
-            'total_cycles' => $totalCycles
+            'total_cycles' => $totalCycles,
+            'total_less_8_30' => $totalLess8_30,
+            'total_more_8_30' => $totalMore8_30
         ];
     }
 
