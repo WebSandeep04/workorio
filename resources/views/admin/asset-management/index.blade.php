@@ -1540,12 +1540,12 @@ $(function () {
                let accordionItem = `
                     <div class="accordion-item border mb-3 rounded shadow-sm overflow-hidden" style="border-radius: 8px !important;">
                         <h2 class="accordion-header" id="heading_${catId}">
-                            <button class="accordion-button ${isFirst ? '' : 'collapsed'} fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#${accordionId}" style="background: #f8f9ff; color: #434afa; font-size: 0.9rem;">
+                            <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#${accordionId}" style="background: #f8f9ff; color: #434afa; font-size: 0.9rem;">
                                 <i class="bi bi-folder2-open me-2"></i> ${category.name} 
                                 <span class="badge bg-primary ms-2 rounded-pill" style="font-size: 0.75rem;">${assets.length} Assets</span>
                             </button>
                         </h2>
-                        <div id="${accordionId}" class="accordion-collapse collapse ${isFirst ? 'show' : ''}" aria-labelledby="heading_${catId}">
+                        <div id="${accordionId}" class="accordion-collapse collapse" aria-labelledby="heading_${catId}" data-bs-parent="#assetCategoryAccordion">
                             <div class="accordion-body p-0">
                                 <div class="table-responsive">
                                     <table class="table custom-table mb-0" id="${tableId}">
