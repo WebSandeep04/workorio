@@ -41,3 +41,8 @@ Schedule::command('subscriptions:update-end-dates')
     ->daily()
     ->at('00:00')
     ->description('Auto-update subscription end dates based on recurrence');
+
+Schedule::command('subscriptions:generate-recurring')
+    ->daily()
+    ->at('00:05')
+    ->description('Generate new billing cycles for recurring subscriptions across all tenants');

@@ -1,159 +1,34 @@
- <?php
+<?php
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 require 'vendor/autoload.php';
 
-// ---------------- CONFIG ----------------
-$host   = "localhost";
-$user   = "u976774818_triserv360";
-$pass   = "g/OdVW0e8R";
+// DB Connection
+$host = "localhost";
+$user = "u976774818_triserv360";
+$pass = "g/OdVW0e8R";
 $dbname = "u976774818_triserv360";
 
-// Today (server local). If you prefer a fixed zone, set default timezone or compute as needed.
-$today = date("Y-m-d");
-
-// ---------------- DB CONNECT ----------------
-$conn = @new mysqli($host, $user, $pass, $dbname);
+$conn = new mysqli($host, $user, $pass, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-$conn->set_charset('utf8mb4');
 
-// ---------------- HELPERS ----------------
-function table_exists(mysqli $conn, string $name): bool {
-    $name = $conn->real_escape_string($name);
-    $sql = "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '$name' LIMIT 1";
-    $res = $conn->query($sql);
-    return $res && $res->num_rows > 0;
-}
+$today = date("Y-m-d");
+$startOfMonth = date("Y-m-01"); // First day of current month
 
-function column_exists(mysqli $conn, string $table, string $column): bool {
-    $table = $conn->real_escape_string($table);
-    $column = $conn->real_escape_string($column);
-    $sql = "SELECT 1 FROM information_schema.columns
-            WHERE table_schema = DATABASE()
-              AND table_name = '$table'
-              AND column_name = '$column'
-            LIMIT 1";
-    $res = $conn->query($sql);
-    return $res && $res->num_rows > 0;
-}
+// Fetch users except admin role for attendance data
+// Fetch users linked to ACTIVE employees only (excluding admins)
+$sql_users = "SELECT u.id, u.name, u.email 
+              FROM users u
+              JOIN employees e ON u.employee_id = e.id
+              WHERE u.role_id != 1 AND e.status = 'active'";
+$res_users = $conn->query($sql_users);
 
-// helper to pass bind_param by reference
-function ref_values(array $arr) {
-    if (strnatcmp(phpversion(),'5.3') >= 0) {
-        $refs = [];
-        foreach($arr as $k => $v) $refs[$k] = &$arr[$k];
-        return $refs;
-    }
-    return $arr;
-}
-
-// Try to detect approved leave for a user on a given date
-function user_is_on_leave_today(mysqli $conn, int $userId, string $today): bool {
-    $tables = [
-        'leaves','leave_requests','user_leaves','employee_leaves','hr_leaves','attendance_leaves'
-    ];
-    $userCols = ['user_id','employee_id'];
-    $fromCols = ['start_date','from_date','leave_from','date_from','date_start'];
-    $toCols   = ['end_date','to_date','leave_to','date_to','date_end'];
-    $singleDateCols = ['leave_date','date'];
-    $statusCols = ['status','approval_status','is_approved','approved','approved_status'];
-
-    $approvedStringValues = ['approved','approve','approved_by_hr','accepted','granted'];
-    $approvedNumericValues = ['1', 1, true];
-
-    foreach ($tables as $table) {
-        if (!table_exists($conn, $table)) continue;
-
-        $haveUser = null;
-        foreach ($userCols as $uc) {
-            if (column_exists($conn, $table, $uc)) { $haveUser = $uc; break; }
-        }
-        if (!$haveUser) continue;
-
-        $haveStatus = null;
-        foreach ($statusCols as $sc) {
-            if (column_exists($conn, $table, $sc)) { $haveStatus = $sc; break; }
-        }
-
-        $haveFrom = null; $haveTo = null;
-        foreach ($fromCols as $fc) {
-            if (column_exists($conn, $table, $fc)) { $haveFrom = $fc; break; }
-        }
-        foreach ($toCols as $tc) {
-            if (column_exists($conn, $table, $tc)) { $haveTo = $tc; break; }
-        }
-
-        if ($haveFrom && $haveTo) {
-            $sql = "SELECT 1 FROM `$table` WHERE `$haveUser` = ? AND ? BETWEEN `$haveFrom` AND `$haveTo`";
-            $types = "is";
-            $params = [$types, $userId, $today];
-
-            if ($haveStatus) {
-                $sql .= " AND (LOWER(COALESCE(`$haveStatus`,'')) IN (" . implode(',', array_fill(0, count($approvedStringValues), '?')) . ") OR COALESCE(`$haveStatus`,'') IN (" . implode(',', array_fill(0, count($approvedNumericValues), '?')) . "))";
-                $types .= str_repeat("s", count($approvedStringValues)) . str_repeat("s", count($approvedNumericValues));
-                $params = array_merge($params, $approvedStringValues, array_map('strval', $approvedNumericValues));
-                $params[0] = $types;
-            }
-
-            $stmt = $conn->prepare($sql);
-            if ($stmt) {
-                $stmt->bind_param(...ref_values($params));
-                $stmt->execute();
-                $stmt->store_result();
-                $found = $stmt->num_rows > 0;
-                $stmt->close();
-                if ($found) return true;
-            }
-        }
-
-        foreach ($singleDateCols as $dc) {
-            if (!column_exists($conn, $table, $dc)) continue;
-
-            $sql = "SELECT 1 FROM `$table` WHERE `$haveUser` = ? AND `$dc` = ?";
-            $types = "is";
-            $params = [$types, $userId, $today];
-
-            if ($haveStatus) {
-                $sql .= " AND (LOWER(COALESCE(`$haveStatus`,'')) IN (" . implode(',', array_fill(0, count($approvedStringValues), '?')) . ") OR COALESCE(`$haveStatus`,'') IN (" . implode(',', array_fill(0, count($approvedNumericValues), '?')) . "))";
-                $types .= str_repeat("s", count($approvedStringValues)) . str_repeat("s", count($approvedNumericValues));
-                $params = array_merge($params, $approvedStringValues, array_map('strval', $approvedNumericValues));
-                $params[0] = $types;
-            }
-
-            $stmt = $conn->prepare($sql);
-            if ($stmt) {
-                $stmt->bind_param(...ref_values($params));
-                $stmt->execute();
-                $stmt->store_result();
-                $found = $stmt->num_rows > 0;
-                $stmt->close();
-                if ($found) return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-// Get earliest movement (UTC → IST) - Updated to include description
-function get_first_movement_today(mysqli $conn, int $userId, string $today): ?array {
-    $sql = "SELECT m.movement_type, m.time, m.description
-            FROM attendance a
-            JOIN movements m ON m.attendance_id = a.id
-            WHERE a.user_id = ? AND a.date = ?
-            ORDER BY m.time ASC
-            LIMIT 1";
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) return null;
-    $stmt->bind_param("is", $userId, $today);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $row = $res && $res->num_rows > 0 ? $res->fetch_assoc() : null;
-    $stmt->close();
-    return $row ?: null;
+if (!$res_users) {
+    die("Error fetching users: " . $conn->error);
 }
 
 // Extract late reason from description (removes "Late punch-in: " prefix if present)
@@ -171,88 +46,454 @@ function extract_late_reason(?string $description): string {
     return trim($description);
 }
 
-// ---------------- FETCH USERS ----------------
-$sqlUsers = "SELECT u.id, u.name, u.email 
-             FROM users u
-             JOIN employees e ON u.employee_id = e.id
-             WHERE e.status = 'active'";
-$resUsers = $conn->query($sqlUsers);
+// Function to get late reason from first movement of the day
+function get_late_reason_for_day(mysqli $conn, int $attendanceId): string {
+    $sql = "SELECT description FROM movements 
+            WHERE attendance_id = ? AND movement_type IN ('office', 'field') 
+            AND movement_action = 'in' 
+            ORDER BY time ASC 
+            LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) return '-';
+    
+    $stmt->bind_param("i", $attendanceId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    
+    if ($row && !empty($row['description'])) {
+        return extract_late_reason($row['description']);
+    }
+    
+    return '-';
+}
 
-// ---------------- BUILD EMAIL TABLE ----------------
+// Prepare HTML content
 $table = "
-<h2 style='font-family: Arial, sans-serif; color: #2c3e50; margin:0 0 8px;'>📌 Today's Attendance Report</h2>
-<p style='font-family: Arial, sans-serif; font-size:13px; color:#555; margin:0 0 12px;'>
-Here is the summary of the first punch-in/field-in for all employees today:
+<h2 style='font-family: Arial, sans-serif; color: #2c3e50;'>📊 Attendance Summary</h2>
+<p style='font-family: Arial, sans-serif; font-size:14px; color:#555;'>
+Today's attendance summary and complete monthly breakdown for " . date("F Y") . ":
 </p>
-<table style='border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size:13px; border:1px solid #ddd;'>
-  <thead>
-    <tr style='background-color:#34495e; color:#fff;'>
-      <th style='padding:10px; border:1px solid #ddd; text-align:left;'>User</th>
-      <th style='padding:10px; border:1px solid #ddd; text-align:left;'>Attendance Type</th>
-      <th style='padding:10px; border:1px solid #ddd; text-align:left;'>Time (IST)</th>
-      <th style='padding:10px; border:1px solid #ddd; text-align:left;'>Late Reason</th>
-    </tr>
-  </thead>
-  <tbody>
 ";
 
-if ($resUsers && $resUsers->num_rows > 0) {
-    while ($userRow = $resUsers->fetch_assoc()) {
-        $userId = (int)$userRow['id'];
-        $userName = htmlspecialchars($userRow['name'] ?? 'User', ENT_QUOTES, 'UTF-8');
+// First, get today's attendance for all users
+$table .= "<h3 style='font-family: Arial, sans-serif; color: #34495e; margin-top: 30px;'>📅 Today's Attendance Summary - " . date("F j, Y") . "</h3>";
+$table .= "<table style='border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size:14px; border:1px solid #ddd; margin-bottom: 30px;'>";
+$table .= "<thead>
+<tr style='background-color:#34495e; color:#fff;'>
+<th style='padding:6px; border:1px solid #ddd;'>Employee</th>
+<th style='padding:6px; border:1px solid #ddd;'>Punch-In</th>
+<th style='padding:6px; border:1px solid #ddd;'>Punch-Out</th>
+<th style='padding:6px; border:1px solid #ddd;'>Mode</th>
+<th style='padding:6px; border:1px solid #ddd;'>Place</th>
+<th style='padding:6px; border:1px solid #ddd;'>Total Hours</th>
+<th style='padding:6px; border:1px solid #ddd;'>Late Reason</th>
+</tr>
+</thead>
+<tbody>";
 
-        $firstMovement = get_first_movement_today($conn, $userId, $today);
-        if ($firstMovement) {
-            $movementType = htmlspecialchars((string)$firstMovement['movement_type'], ENT_QUOTES, 'UTF-8');
-
-            // Convert UTC -> IST
-            $dt = new DateTime($firstMovement['time'], new DateTimeZone("UTC"));
-            $dt->setTimezone(new DateTimeZone("Asia/Kolkata"));
-            $timeIST = $dt->format("h:i A");
-
-            // Extract late reason from description
-            $lateReason = extract_late_reason($firstMovement['description'] ?? null);
-            $lateReasonHtml = htmlspecialchars($lateReason, ENT_QUOTES, 'UTF-8');
-            
-            // Style late reason column - show in orange if there's a reason, gray if none
-            $lateReasonStyle = ($lateReason !== '-') ? 'color:#e67e22; font-style:italic;' : 'color:#95a5a6;';
-
-            $table .= "
-            <tr style='background-color:#f9f9f9;'>
-              <td style='padding:8px; border:1px solid #ddd;'>$userName</td>
-              <td style='padding:8px; border:1px solid #ddd; text-transform:capitalize;'>$movementType</td>
-              <td style='padding:8px; border:1px solid #ddd; color:#27ae60; font-weight:bold;'>$timeIST</td>
-              <td style='padding:8px; border:1px solid #ddd; $lateReasonStyle'>$lateReasonHtml</td>
+while ($user = $res_users->fetch_assoc()) {
+    $userId = $user['id'];
+    
+    // Get today's attendance
+    $attRes = $conn->query("SELECT id FROM attendance WHERE user_id=$userId AND date='$today'");
+    
+    if ($attRes->num_rows == 0) {
+        // Check if user is on leave
+        $leaveRes = $conn->query("SELECT id FROM leaves WHERE user_id=$userId AND date='$today' AND status='approved'");
+        
+        if ($leaveRes->num_rows > 0) {
+            $table .= "<tr>
+                <td style='padding:5px; border:1px solid #ddd;'>{$user['name']}</td>
+                <td colspan='6' style='padding:5px; border:1px solid #ddd; text-align:center; color:#3498db; font-weight:bold;'>Leave</td>
             </tr>";
         } else {
-            // No attendance yet -> check if on approved leave
-            if (user_is_on_leave_today($conn, $userId, $today)) {
-                $table .= "
-                <tr style='background-color:#fff9e6;'>
-                  <td style='padding:8px; border:1px solid #ddd;'>$userName</td>
-                  <td style='padding:8px; border:1px solid #ddd; color:#e67e22; font-weight:bold;'>Leave</td>
-                  <td style='padding:8px; border:1px solid #ddd;'>-</td>
-                  <td style='padding:8px; border:1px solid #ddd; color:#95a5a6;'>-</td>
-                </tr>";
-            } else {
-                // Absent
-                $table .= "
-                <tr style='background-color:#ffe6e6;'>
-                  <td style='padding:8px; border:1px solid #ddd;'>$userName</td>
-                  <td style='padding:8px; border:1px solid #ddd; color:#e74c3c; font-weight:bold;'>Absent</td>
-                  <td style='padding:8px; border:1px solid #ddd;'>-</td>
-                  <td style='padding:8px; border:1px solid #ddd; color:#95a5a6;'>-</td>
-                </tr>";
-            }
+            $table .= "<tr>
+                <td style='padding:5px; border:1px solid #ddd;'>{$user['name']}</td>
+                <td colspan='6' style='padding:5px; border:1px solid #ddd; text-align:center; color:#e74c3c; font-weight:bold;'>Absent</td>
+            </tr>";
         }
+        continue;
     }
-} else {
-    $table .= "<tr><td colspan='4' style='padding:10px; text-align:center; border:1px solid #ddd;'>No users found.</td></tr>";
+    
+    $attId = $attRes->fetch_assoc()['id'];
+    
+    // Get late reason for today
+    $lateReason = get_late_reason_for_day($conn, $attId);
+    $lateReasonHtml = htmlspecialchars($lateReason, ENT_QUOTES, 'UTF-8');
+    $lateReasonStyle = ($lateReason !== '-') ? 'color:#e67e22; font-style:italic;' : 'color:#95a5a6;';
+    
+    // Get today's movements
+    $sqlMovements = "SELECT movement_type, movement_action, time, mode, place FROM movements 
+                     WHERE attendance_id=$attId ORDER BY time";
+    $resMovements = $conn->query($sqlMovements);
+    
+    if (!$resMovements) {
+        $table .= "<tr>
+            <td style='padding:5px; border:1px solid #ddd;'>{$user['name']}</td>
+            <td colspan='6' style='padding:5px; border:1px solid #ddd; text-align:center;'>Error loading data</td>
+        </tr>";
+        continue;
+    }
+    
+    $movements = [];
+    while ($row = $resMovements->fetch_assoc()) {
+        $movements[] = $row;
+    }
+    
+    // Calculate today's hours
+    $officeHours = calculateOfficeHours($movements);
+    
+    // Get punch in/out times for display
+    $punchIn = getPunchInTime($movements);
+    $punchOut = getPunchOutTime($movements);
+    
+    $punchInIST = $punchIn ? $punchIn->setTimezone(new DateTimeZone("Asia/Kolkata"))->format("h:i A") : "Not Marked";
+    $punchOutIST = $punchOut ? $punchOut->setTimezone(new DateTimeZone("Asia/Kolkata"))->format("h:i A") : "Not Marked";
+    
+    // Calculate total hours (only office hours now)
+    $totalHoursFormatted = $officeHours['formatted'];
+    
+
+    // Extract mode and place from the first movement or default to '-'
+    $mode = htmlspecialchars((string)($movements[0]['mode'] ?? '-'), ENT_QUOTES, 'UTF-8');
+    $place = htmlspecialchars((string)($movements[0]['place'] ?? '-'), ENT_QUOTES, 'UTF-8');
+
+    $table .= "<tr style='background-color:#f9f9f9;'>
+        <td style='padding:5px; border:1px solid #ddd;'>{$user['name']}</td>
+        <td style='padding:5px; border:1px solid #ddd;'>{$punchInIST}</td>
+        <td style='padding:5px; border:1px solid #ddd;'>{$punchOutIST}</td>
+        <td style='padding:5px; border:1px solid #ddd;'>{$mode}</td>
+        <td style='padding:5px; border:1px solid #ddd;'>{$place}</td>
+        <td style='padding:5px; border:1px solid #ddd; color:#8e44ad; font-weight:bold;'>{$totalHoursFormatted}</td>
+        <td style='padding:5px; border:1px solid #ddd; $lateReasonStyle'>{$lateReasonHtml}</td>
+    </tr>";
 }
 
 $table .= "</tbody></table>";
 
-// ---------------- SEND MAIL ----------------
+// Reset the result pointer to process users again for monthly data
+$res_users->data_seek(0);
+
+// Now show monthly breakdown for each user
+$table .= "<h3 style='font-family: Arial, sans-serif; color: #34495e; margin-top: 30px;'>📊 Monthly Attendance Breakdown</h3>";
+while ($user = $res_users->fetch_assoc()) {
+    $userId = $user['id'];
+    
+    // Get all attendance records for this month
+    $attRes = $conn->query("SELECT id, date FROM attendance WHERE user_id=$userId AND date BETWEEN '$startOfMonth' AND '$today' ORDER BY date");
+    
+    // Get all leaves for this month
+    $leaveRes = $conn->query("SELECT date FROM leaves WHERE user_id=$userId AND date BETWEEN '$startOfMonth' AND '$today' AND status='approved' ORDER BY date");
+    
+    $attendanceRecords = [];
+    while ($att = $attRes->fetch_assoc()) {
+        $attendanceRecords[] = $att;
+    }
+    
+    // Get leave dates
+    $leaveDates = [];
+    while ($leave = $leaveRes->fetch_assoc()) {
+        $leaveDates[] = $leave['date'];
+    }
+    
+    // Skip users with no attendance and no leaves
+    if (count($attendanceRecords) == 0 && count($leaveDates) == 0) {
+        continue;
+    }
+    
+    // User header
+    $table .= "<h4 style='font-family: Arial, sans-serif; color: #2c3e50; margin-top: 25px; margin-bottom: 10px;'>👤 {$user['name']}</h4>";
+    
+    // Monthly details table for this user
+    $table .= "<table style='border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size:13px; border:1px solid #ddd; margin-bottom: 20px;'>";
+    $table .= "<thead>
+    <tr style='background-color:#ecf0f1;'>
+    <th style='padding:4px; border:1px solid #ddd;'>Date</th>
+    <th style='padding:4px; border:1px solid #ddd;'>Punch-In</th>
+    <th style='padding:4px; border:1px solid #ddd;'>Punch-Out</th>
+    <th style='padding:4px; border:1px solid #ddd;'>Mode</th>
+    <th style='padding:4px; border:1px solid #ddd;'>Place</th>
+    <th style='padding:4px; border:1px solid #ddd;'>Total Hours</th>
+    <th style='padding:4px; border:1px solid #ddd;'>Late Reason</th>
+    </tr>
+    </thead>
+    <tbody>";
+    
+    // Initialize monthly totals
+    $monthlyOfficeTotal = 0;
+    
+    // Create a map of dates to attendance records for quick lookup
+    $attendanceByDate = [];
+    foreach ($attendanceRecords as $attendance) {
+        $attendanceByDate[$attendance['date']] = $attendance;
+    }
+    
+    // Get all unique dates (attendance + leaves) and sort them
+    $allDates = array_unique(array_merge(array_keys($attendanceByDate), $leaveDates));
+    sort($allDates);
+    
+    // Process each day
+    foreach ($allDates as $date) {
+        // Check if it's a leave day (and not an attendance day)
+        if (in_array($date, $leaveDates) && !isset($attendanceByDate[$date])) {
+            // Show leave row
+            $table .= "<tr>
+                <td style='padding:4px; border:1px solid #ddd;'>" . date("M j, Y", strtotime($date)) . "</td>
+                <td colspan='6' style='padding:4px; border:1px solid #ddd; text-align:center; color:#3498db; font-weight:bold;'>Leave</td>
+            </tr>";
+            continue;
+        }
+        
+        // Process attendance day
+        if (isset($attendanceByDate[$date])) {
+            $attendance = $attendanceByDate[$date];
+            $attId = $attendance['id'];
+            
+            // Get late reason for this day
+            $lateReason = get_late_reason_for_day($conn, $attId);
+            $lateReasonHtml = htmlspecialchars($lateReason, ENT_QUOTES, 'UTF-8');
+            $lateReasonStyle = ($lateReason !== '-') ? 'color:#e67e22; font-style:italic;' : 'color:#95a5a6;';
+            
+            // Get movements for this day
+            $sqlMovements = "SELECT movement_type, movement_action, time, mode, place FROM movements 
+                             WHERE attendance_id=$attId ORDER BY time";
+            $resMovements = $conn->query($sqlMovements);
+            
+            if (!$resMovements) {
+                continue;
+            }
+            
+            $movements = [];
+            while ($row = $resMovements->fetch_assoc()) {
+                $movements[] = $row;
+            }
+            
+            // Calculate hours for this day
+            $officeHours = calculateOfficeHours($movements);
+            
+            // Add to monthly totals
+            $monthlyOfficeTotal += $officeHours['total'];
+            
+            // Get punch in/out times for this day
+            $punchIn = getPunchInTime($movements);
+            $punchOut = getPunchOutTime($movements);
+            
+            $punchInIST = $punchIn ? $punchIn->setTimezone(new DateTimeZone("Asia/Kolkata"))->format("h:i A") : "Not Marked";
+            $punchOutIST = $punchOut ? $punchOut->setTimezone(new DateTimeZone("Asia/Kolkata"))->format("h:i A") : "Not Marked";
+            
+            // Calculate total hours for this day (only office hours now)
+            $dayTotalFormatted = $officeHours['formatted'];
+            
+            // Extract mode and place from the first movement or default to '-'
+            $mode = htmlspecialchars((string)($movements[0]['mode'] ?? '-'), ENT_QUOTES, 'UTF-8');
+            $place = htmlspecialchars((string)($movements[0]['place'] ?? '-'), ENT_QUOTES, 'UTF-8');
+
+            $table .= "<tr>
+                <td style='padding:4px; border:1px solid #ddd;'>" . date("M j, Y", strtotime($date)) . "</td>
+                <td style='padding:4px; border:1px solid #ddd;'>{$punchInIST}</td>
+                <td style='padding:4px; border:1px solid #ddd;'>{$punchOutIST}</td>
+                <td style='padding:4px; border:1px solid #ddd;'>{$mode}</td>
+                <td style='padding:4px; border:1px solid #ddd;'>{$place}</td>
+                <td style='padding:4px; border:1px solid #ddd; color:#8e44ad; font-weight:bold;'>{$dayTotalFormatted}</td>
+                <td style='padding:4px; border:1px solid #ddd; $lateReasonStyle'>{$lateReasonHtml}</td>
+            </tr>";
+        }
+    }
+    
+    // Add monthly total row
+    $table .= "<tr style='background-color:#f8f9fa; font-weight:bold;'>
+        <td style='padding:4px; border:1px solid #ddd;'><strong>Monthly Total</strong></td>
+        <td style='padding:4px; border:1px solid #ddd;'>-</td>
+        <td style='padding:4px; border:1px solid #ddd;'>-</td>
+        <td style='padding:4px; border:1px solid #ddd;'>-</td>
+        <td style='padding:4px; border:1px solid #ddd;'>-</td>
+        <td style='padding:4px; border:1px solid #ddd; color:#8e44ad;'>" . formatHoursMinutes($monthlyOfficeTotal) . "</td>
+        <td style='padding:4px; border:1px solid #ddd; color:#95a5a6;'>-</td>
+    </tr>";
+    
+    $table .= "</tbody></table>";
+}
+
+// Function to calculate office hours (first punch-in to last punch-out)
+function calculateOfficeHours($movements) {
+    $officeMovements = array_filter($movements, function($m) {
+        return $m['movement_type'] === 'office';
+    });
+    
+    if (empty($officeMovements)) {
+        return ['total' => 0, 'formatted' => '0:00 hrs'];
+    }
+    
+    $firstPunchIn = null;
+    $lastPunchOut = null;
+    
+    foreach ($officeMovements as $movement) {
+        if ($movement['movement_action'] === 'in' && !$firstPunchIn) {
+            $firstPunchIn = new DateTime($movement['time'], new DateTimeZone("UTC"));
+        }
+        if ($movement['movement_action'] === 'out') {
+            $lastPunchOut = new DateTime($movement['time'], new DateTimeZone("UTC"));
+        }
+    }
+    
+    if (!$firstPunchIn) {
+        return ['total' => 0, 'formatted' => '0:00 hrs'];
+    }
+    
+    if (!$lastPunchOut) {
+        // If no punch-out, don't calculate office hours
+        return ['total' => 0, 'formatted' => '0:00 hrs'];
+    }
+    
+    $interval = $firstPunchIn->diff($lastPunchOut);
+    $totalMinutes = ($interval->h * 60) + $interval->i;
+    
+    return [
+        'total' => $totalMinutes / 60,
+        'formatted' => formatHoursMinutes($totalMinutes / 60)
+    ];
+}
+
+// Function to calculate field hours (first punch-in to last punch-out)
+function calculateFieldHours($movements) {
+    $fieldMovements = array_filter($movements, function($m) {
+        return $m['movement_type'] === 'field';
+    });
+    
+    if (empty($fieldMovements)) {
+        return ['total' => 0, 'formatted' => '0:00 hrs'];
+    }
+    
+    $firstPunchIn = null;
+    $lastPunchOut = null;
+    
+    foreach ($fieldMovements as $movement) {
+        if ($movement['movement_action'] === 'in' && !$firstPunchIn) {
+            $firstPunchIn = new DateTime($movement['time'], new DateTimeZone("UTC"));
+        }
+        if ($movement['movement_action'] === 'out') {
+            $lastPunchOut = new DateTime($movement['time'], new DateTimeZone("UTC"));
+        }
+    }
+    
+    if (!$firstPunchIn) {
+        return ['total' => 0, 'formatted' => '0:00 hrs'];
+    }
+    
+    if (!$lastPunchOut) {
+        // If no field-out, don't calculate field hours
+        return ['total' => 0, 'formatted' => '0:00 hrs'];
+    }
+    
+    $interval = $firstPunchIn->diff($lastPunchOut);
+    $totalMinutes = ($interval->h * 60) + $interval->i;
+    
+    return [
+        'total' => $totalMinutes / 60,
+        'formatted' => formatHoursMinutes($totalMinutes / 60)
+    ];
+}
+
+// Function to calculate break hours (sum of all break periods)
+function calculateBreakHours($movements) {
+    $breakMovements = array_filter($movements, function($m) {
+        return $m['movement_type'] === 'break';
+    });
+    
+    if (empty($breakMovements)) {
+        return ['total' => 0, 'formatted' => '0:00 hrs'];
+    }
+    
+    $totalMinutes = 0;
+    $start = null;
+    
+    foreach ($breakMovements as $movement) {
+        if ($movement['movement_action'] === 'start') {
+            $start = new DateTime($movement['time'], new DateTimeZone("UTC"));
+        } elseif ($movement['movement_action'] === 'end' && $start) {
+            $end = new DateTime($movement['time'], new DateTimeZone("UTC"));
+            $interval = $start->diff($end);
+            $totalMinutes += ($interval->h * 60) + $interval->i;
+            $start = null;
+        }
+    }
+    
+    // If break is still active, calculate until now
+    if ($start) {
+        $end = new DateTime("now", new DateTimeZone("UTC"));
+        $interval = $start->diff($end);
+        $totalMinutes += ($interval->h * 60) + $interval->i;
+    }
+    
+    return [
+        'total' => $totalMinutes / 60,
+        'formatted' => formatHoursMinutes($totalMinutes / 60)
+    ];
+}
+
+// Function to format hours and minutes
+function formatHoursMinutes($decimalHours) {
+    if ($decimalHours === 0) {
+        return '0:00 hrs';
+    }
+    
+    $hours = floor($decimalHours);
+    $minutes = round(($decimalHours - $hours) * 60);
+    
+    // Handle case where minutes round to 60
+    if ($minutes === 60) {
+        $hours += 1;
+        $minutes = 0;
+    }
+    
+    return $hours . ':' . str_pad($minutes, 2, '0', STR_PAD_LEFT) . ' hrs';
+}
+
+// Function to get first punch-in time
+function getPunchInTime($movements) {
+    $officeMovements = array_filter($movements, function($m) {
+        return $m['movement_type'] === 'office' && $m['movement_action'] === 'in';
+    });
+    
+    if (empty($officeMovements)) {
+        return null;
+    }
+    
+    $firstPunchIn = null;
+    foreach ($officeMovements as $movement) {
+        $punchTime = new DateTime($movement['time'], new DateTimeZone("UTC"));
+        if (!$firstPunchIn || $punchTime < $firstPunchIn) {
+            $firstPunchIn = $punchTime;
+        }
+    }
+    
+    return $firstPunchIn;
+}
+
+// Function to get last punch-out time
+function getPunchOutTime($movements) {
+    $officeMovements = array_filter($movements, function($m) {
+        return $m['movement_type'] === 'office' && $m['movement_action'] === 'out';
+    });
+    
+    if (empty($officeMovements)) {
+        return null;
+    }
+    
+    $lastPunchOut = null;
+    foreach ($officeMovements as $movement) {
+        $punchTime = new DateTime($movement['time'], new DateTimeZone("UTC"));
+        if (!$lastPunchOut || $punchTime > $lastPunchOut) {
+            $lastPunchOut = $punchTime;
+        }
+    }
+    
+    return $lastPunchOut;
+}
+
+// Send Mail
 $mail = new PHPMailer(true);
 try {
     $mail->isSMTP();
@@ -262,32 +503,40 @@ try {
     $mail->Password   = 'mqyjzlbdxekoupqy';
     $mail->SMTPSecure = 'tls';
     $mail->Port       = 587;
-    $mail->CharSet    = "UTF-8";
-    $mail->Encoding   = "base64";
-
+    $mail->CharSet = "UTF-8";  
+    $mail->Encoding = "base64"; 
+    
     $mail->setFrom('triserv360businesssolutions@gmail.com', 'Workorio Alert');
-
-    // ---------------- MANUAL RECIPIENTS ONLY ----------------
-    $recipients = [
-        "areesha@triserv360.com"      => "Admin Dept",
-        "sandeep@triserv360.com"      => "Developer",
-        "shamshad@triserv360.com"     => "Owner",
-    ];
-
-    foreach ($recipients as $email => $name) {
-        $mail->addAddress($email, $name);
+    
+    // Send to all users including admin
+    // Send to all ACTIVE users (who have an active employee record)
+    $sql_recipients = "SELECT u.email, u.name 
+                       FROM users u
+                       JOIN employees e ON u.employee_id = e.id
+                       WHERE e.status = 'active'";
+    $res_users = $conn->query($sql_recipients);
+    if ($res_users && $res_users->num_rows > 0) {
+        $sent_to = [];
+        while ($u = $res_users->fetch_assoc()) {
+            if (!empty($u['email'])) {
+                $mail->addAddress($u['email'], $u['name']);
+                $sent_to[] = $u['name'] . " (" . $u['email'] . ")";
+            }
+        }
     }
-
-    // ---------------- EMAIL CONTENT ----------------
+    
     $mail->isHTML(true);
-    $mail->Subject = "Today's Attendance Summary - " . date('d M Y');
-    $mail->Body    = $table . "<br><p style='font-family: Arial, sans-serif; font-size:12px; color:#555;'>Regards,<br><b>HR Team</b></p>";
-    $mail->AltBody = "Today's Attendance Summary\n\nPlease switch to HTML mode to view the table.";
-
+    $mail->Subject = "Monthly Attendance Summary - " . date("F Y");
+    $mail->Body    = $table . "<br><p style='font-family: Arial, sans-serif; font-size:13px; color:#555;'>Regards,<br><b>HR Team</b></p>";
+    
     $mail->send();
-    echo "✅ Attendance summary email sent to selected recipients only!";
+    echo "✅ Attendance summary email sent successfully!<br><br>";
+    echo "<strong>Mail sent to the following recipients:</strong><br>";
+    echo implode("<br>", $sent_to);
 } catch (Exception $e) {
     echo "❌ Mailer Error: {$mail->ErrorInfo}";
 }
 
 $conn->close();
+
+?>
