@@ -50,17 +50,17 @@
 
 <?php $__env->startPush('styles'); ?>
 <style>
-    .pulse-marker {
+    .pulse-marker-green {
         background: #28a745;
         border-radius: 50%;
         height: 15px;
         width: 15px;
         box-shadow: 0 0 0 0 rgba(40, 167, 69, 1);
         transform: scale(1);
-        animation: pulse 2s infinite;
+        animation: pulse-green 2s infinite;
     }
 
-    @keyframes pulse {
+    @keyframes pulse-green {
         0% {
             transform: scale(0.95);
             box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
@@ -72,6 +72,56 @@
         100% {
             transform: scale(0.95);
             box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+        }
+    }
+
+    .pulse-marker-red {
+        background: #dc3545;
+        border-radius: 50%;
+        height: 15px;
+        width: 15px;
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 1);
+        transform: scale(1);
+        animation: pulse-red 2s infinite;
+    }
+
+    @keyframes pulse-red {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+    }
+
+    .pulse-marker-yellow {
+        background: #ffc107;
+        border-radius: 50%;
+        height: 15px;
+        width: 15px;
+        box-shadow: 0 0 0 0 rgba(255, 193, 7, 1);
+        transform: scale(1);
+        animation: pulse-yellow 2s infinite;
+    }
+
+    @keyframes pulse-yellow {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
         }
     }
 
@@ -133,7 +183,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        updateMap(data.data);
+                        updateMap(data.data, data.employee_details);
                     }
                 })
                 .catch(error => console.error('Error fetching locations:', error))
@@ -160,7 +210,7 @@
             return past.toLocaleDateString();
         }
 
-        function updateMap(locations) {
+        function updateMap(locations, employeeDetails = {}) {
             markersLayer.clearLayers();
             polylineLayer.clearLayers();
 
@@ -193,6 +243,23 @@
                     var isLatest = (index === track.length - 1);
                     var date = new Date(loc.tracked_at);
                     
+                    var empDetail = employeeDetails[loc.employee_id] || { color: '#dc3545', details: {} };
+                    var details = empDetail.details || {};
+
+                    var detailsHtml = '';
+                    if (isLatest && details && details.current_status) {
+                        var statusClass = 'bg-secondary';
+                        if (['Punched In', 'Field In'].includes(details.current_status)) statusClass = 'bg-success';
+                        if (['Punched Out', 'Field Out'].includes(details.current_status)) statusClass = 'bg-danger';
+                        if (details.current_status === 'On Break') statusClass = 'bg-warning text-dark';
+
+                        detailsHtml = `
+                            <div style="margin-top: 8px; font-size: 0.9em; border-top: 1px solid #eee; padding-top: 5px; text-align: center;">
+                                <span class="badge ${statusClass}" style="font-size: 0.9rem; padding: 6px 12px;">${details.current_status}</span>
+                            </div>
+                        `;
+                    }
+
                     var popupContent = `
                         <div class="tracking-popup">
                             <div style="border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 8px;">
@@ -202,6 +269,7 @@
                             <div style="color: #666; font-size: 0.9em;">
                                 <i class="bi bi-clock"></i> ${formatTime(loc.tracked_at)} | <i class="bi bi-calendar3"></i> ${date.toLocaleDateString()}
                             </div>
+                            ${detailsHtml}
                             <div class="last-updated-badge">
                                 <i class="bi bi-arrow-repeat"></i> Updated ${getRelativeTime(loc.tracked_at)}
                             </div>
@@ -209,9 +277,14 @@
                     `;
 
                     if (isLatest) {
+                        var statusColor = empDetail.color;
+                        var pulseClass = 'pulse-marker-red';
+                        if (statusColor === '#28a745') pulseClass = 'pulse-marker-green';
+                        if (statusColor === '#ffc107') pulseClass = 'pulse-marker-yellow';
+
                         var pulseIcon = L.divIcon({
                             className: 'custom-div-icon',
-                            html: '<div class="pulse-marker"></div>',
+                            html: `<div class="${pulseClass}"></div>`,
                             iconSize: [15, 15],
                             iconAnchor: [7, 7]
                         });

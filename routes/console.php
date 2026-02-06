@@ -37,10 +37,6 @@ Artisan::command('prospectus:import-sql {path}', function (string $path) {
 // Schedule subscription end date updates daily
 use Illuminate\Support\Facades\Schedule;
 
-Schedule::command('subscriptions:update-end-dates')
-    ->daily()
-    ->at('00:00')
-    ->description('Auto-update subscription end dates based on recurrence');
 
 Schedule::command('subscriptions:generate-recurring')
     ->daily()
