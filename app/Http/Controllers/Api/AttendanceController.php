@@ -688,16 +688,63 @@ class AttendanceController extends Controller
         // Group movements by type for frontend compatibility
         $movementsByType = $movements->sortBy('time')->groupBy('movement_type');
 
-        // Calculate completed working hours (excluding current active session)
+        // Calculate completed working hours (sum of completed sessions)
         $officeSeconds = $this->calculateCompletedDuration($movementsByType->get('office', collect()));
         $fieldSeconds = $this->calculateCompletedDuration($movementsByType->get('field', collect()));
         
-        $totalSeconds = $officeSeconds + $fieldSeconds;
+        $totalCompletedSeconds = $officeSeconds + $fieldSeconds;
         
-        // Format: Hh Mm
-        $hours = floor($totalSeconds / 3600);
-        $minutes = floor(($totalSeconds % 3600) / 60);
-        $workingHours = sprintf('%dh %dm', $hours, $minutes);
+        // Format Completed Hours: Hh Mm
+        $completedHours = floor($totalCompletedSeconds / 3600);
+        $completedMinutes = floor(($totalCompletedSeconds % 3600) / 60);
+        $completedHoursFormatted = sprintf('%dh %dm', $completedHours, $completedMinutes);
+
+        // --- NEW LOGIC: Total Elapsed Time since First Punch-In ---
+        // 1. Find the very first 'in' punch of the day (office or field)
+        $allMovements = $movements->sortBy('time');
+        $firstPunchIn = $allMovements->first(function ($movement) {
+            return in_array($movement->movement_type, ['office', 'field']) && $movement->movement_action === 'in';
+        });
+
+        $elapsedSeconds = 0;
+
+        if ($firstPunchIn) {
+            $startTime = Carbon::parse($firstPunchIn->time);
+            
+            // Determine if the user is currently "Active" (Punched In)
+            // Check Office active
+            $officeIn = $movementsByType->get('office', collect())->where('movement_action', 'in')->last();
+            $officeOut = $movementsByType->get('office', collect())->where('movement_action', 'out')->last();
+            $officeActive = $officeIn && (!$officeOut || $officeOut->time < $officeIn->time);
+
+            // Check Field active
+            $fieldIn = $movementsByType->get('field', collect())->where('movement_action', 'in')->last();
+            $fieldOut = $movementsByType->get('field', collect())->where('movement_action', 'out')->last();
+            $fieldActive = $fieldIn && (!$fieldOut || $fieldOut->time < $fieldIn->time);
+
+            $isCurrentlyActive = $officeActive || $fieldActive;
+
+            if ($isCurrentlyActive) {
+                // If active, calculate time from First IN to NOW
+                $endTime = Carbon::now();
+            } else {
+                // If fully checked out, calculate time from First IN to Last OUT
+                $lastPunchOut = $allMovements->last(function ($movement) {
+                    return in_array($movement->movement_type, ['office', 'field']) && $movement->movement_action === 'out';
+                });
+                
+                // Fallback to NOW if no OUT found (shouldn't happen if inactive but safe fallback)
+                $endTime = $lastPunchOut ? Carbon::parse($lastPunchOut->time) : Carbon::now();
+            }
+
+            $elapsedSeconds = abs($endTime->getTimestamp() - $startTime->getTimestamp());
+        }
+
+        // Format Working Hours (Elapsed): Hh Mm
+        $elapsedHours = floor($elapsedSeconds / 3600);
+        $elapsedMinutes = floor(($elapsedSeconds % 3600) / 60);
+        $workingHoursFormatted = sprintf('%dh %dm', $elapsedHours, $elapsedMinutes);
+
 
         // Calculate cycles for each type
         $cycles = [
@@ -767,8 +814,8 @@ class AttendanceController extends Controller
 
         return response()->json([
             'attendance' => $attendance,
-            'working_hours' => $workingHours,
-            'completed_hours' => $workingHours,
+            'working_hours' => $workingHoursFormatted, // Total elapsed from First IN
+            'completed_hours' => $completedHoursFormatted, // Actual worked time (sum of completed sessions)
             'last_action_time' => $activeLastActionTime,
             'movements' => $movementsArray,
             'status' => $status,
