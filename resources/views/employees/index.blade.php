@@ -27,6 +27,44 @@
         font-size: 0.6rem;
         padding: 0.2rem 0.3rem;
     }
+
+    /* Profile Avatar Styles */
+    .profile-page-avatar {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 1rem;
+      position: relative;
+      cursor: pointer;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .profile-page-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .profile-page-avatar:hover .avatar-overlay {
+      opacity: 1;
+    }
 </style>
 @endpush
 
@@ -322,6 +360,25 @@
         $('#employee_id').val(entityId);
         $('#employeeModalLabel').text(data ? 'Edit Employee' : 'Add Employee');
         $('#employeeError').addClass('d-none').text('');
+
+        // Profile Picture
+        const defaultAvatar = "{{ asset('img/avatar.png') }}"; 
+        
+        let profilePicUrl = defaultAvatar;
+        if (data && data.profile_picture) {
+            // Use the named route pattern: profile.picture with ID
+            profilePicUrl = `{{ url('profile/picture') }}/${data.id}?t=${new Date().getTime()}`;
+        }
+        
+        $('#modal_profile_preview').attr('src', profilePicUrl).show();
+        // Fallback
+        $('#modal_profile_preview').off('error').on('error', function() {
+             $(this).attr('src', 'https://ui-avatars.com/api/?name=' + (data && data.name ? data.name : 'Employee'));
+        });
+        
+        // Reset file input
+        $('#modal_profile_picture_input').val('');
+
         var branchId = data ? (data.branch_id || (data.branch ? data.branch.id : '')) : '';
         var deptId = data ? (data.department_id || (data.department_relation ? data.department_relation.id : '')) : '';
         var designationId = data ? (data.designation_id || (data.designation_relation ? data.designation_relation.id : '')) : '';
@@ -349,8 +406,8 @@
             $('#employee_state_select').val(stateId || '');
             $('#employee_country_select').val(countryId || '');
             $('#employee_personal_email').val(data.personal_email || '');
-            $('#employee_doj').val(data.date_of_joining || '');
-            $('#employee_dob').val(data.date_of_birth || '');
+            $('#employee_doj').val(data.date_of_joining ? data.date_of_joining.toString().substring(0, 10) : '');
+            $('#employee_dob').val(data.date_of_birth ? data.date_of_birth.toString().substring(0, 10) : '');
             $('#employee_status').val(data.status || 'active');
             $('#employee_work_location').val(data.work_location || '');
             $('#employee_address').val(data.address_line || '');
@@ -359,7 +416,7 @@
             $('#employee_spouse_name').val(data.spouse_name || '');
             $('#employee_dependents').val(data.number_of_dependents || '');
             $('#employee_passport_number').val(data.passport_number || '');
-            $('#employee_passport_expiry').val(data.passport_expiry || '');
+            $('#employee_passport_expiry').val(data.passport_expiry ? data.passport_expiry.toString().substring(0, 10) : '');
             $('#employee_aadhaar_number').val(data.aadhaar_number || '');
             $('#employee_pan_number').val(data.pan_number || '');
             $('#employee_highest_qualification').val(data.highest_qualification || '');
@@ -379,7 +436,7 @@
             $('#employee_esi').val(data.esi_number || '');
             $('#employee_insurance_provider').val(data.insurance_provider || '');
             $('#employee_insurance_policy').val(data.insurance_policy_number || '');
-            $('#employee_insurance_valid').val(data.insurance_valid_till || '');
+            $('#employee_insurance_valid').val(data.insurance_valid_till ? data.insurance_valid_till.toString().substring(0, 10) : '');
             $('#employee_medical_conditions').val(data.medical_conditions || '');
             $('#employee_allergies').val(data.allergies || '');
             $('#employee_postal').val(data.postal_code || '');
@@ -408,6 +465,11 @@
             updateSelectedCount();
 
         } else {
+            // Setup for new employee
+             const defaultAvatar = "{{ asset('img/avatar.png') }}";
+             $('#modal_profile_preview').attr('src', defaultAvatar);
+             $('#modal_profile_picture_input').val('');
+             
             $('#employee_status').val('active');
             // Clear document lists for new employee and show upload links
             $('#aadhaar_document_list').html('');
@@ -571,13 +633,54 @@
 
     function saveEmployee() {
         const id = $('#employee_id').val();
-        const payload = collectEmployeeForm();
-        payload._token = csrf;
-        const method = id ? 'PUT' : 'POST';
-        const url = id ? `{{ url('/employees') }}/${id}` : storeUrl;
+        const payloadObject = collectEmployeeForm();
+        const method = 'POST'; // Always POST for FormData, use _method=PUT for updates if needed, or just POST for store/update via route handling (API usually accepts PUT/PATCH)
+        // However, standard FormData with files usually requires POST. 
+        // Laravel method spoofing: append _method field.
+        
+        let url = storeUrl;
+        let finalMethod = 'POST';
+
+        const formData = new FormData();
+        formData.append('_token', csrf);
+        
+        if (id) {
+             url = `{{ url('/employees') }}/${id}`;
+             formData.append('_method', 'POST'); // Actually, Laravel resource update expects PUT/PATCH.
+             // But PHP can't parse multipart/form-data for PUT requests natively.
+             // So we must use POST and spoof _method="POST" (wait, actually _method="PUT").
+             formData.append('_method', 'POST'); // Correction: Use POST and let the Controller handle it? 
+             // Laravel standard: POST to url, with _method=PUT.
+             formData.append('_method', 'PUT'); 
+        }
+
+        // iterate payloadObject
+        for (const key in payloadObject) {
+            if (payloadObject.hasOwnProperty(key)) {
+                const value = payloadObject[key];
+                 if (Array.isArray(value)) {
+                    value.forEach(v => formData.append(`${key}[]`, v));
+                } else if(value !== null && value !== undefined) {
+                    formData.append(key, value);
+                }
+            }
+        }
+        
+        // Append Profile Picture
+        const profilePic = document.getElementById('modal_profile_picture_input').files[0];
+        if (profilePic) {
+            formData.append('profile_picture', profilePic);
+        }
 
         $('#saveEmployeeBtn').prop('disabled', true).text('Saving...');
-        $.ajax({ url, method, data: payload })
+        
+        $.ajax({
+            url: url,
+            method: finalMethod,
+            data: formData,
+            processData: false,
+            contentType: false,
+        })
             .done(function (response) {
                 const employeeId = response.employee ? response.employee.id : id;
                 
@@ -799,6 +902,18 @@
     let selectedPlaceIds = [];
     let placesData = [];
     const placesListUrl = "{{ route('places.list') }}";
+
+    // Preview Image on Select
+    $('#modal_profile_picture_input').on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#modal_profile_preview').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
 
     $(document).on('click', '.delete-document-inline', function () {
         const employeeId = $(this).data('employee-id');
@@ -1184,6 +1299,20 @@
             <div class="modal-body">
                 <form id="employeeForm">
                     <input type="hidden" id="employee_id">
+                    
+                    {{-- Profile Picture Upload --}}
+                    <div class="row justify-content-center mb-3">
+                        <div class="col-auto">
+                            <div class="profile-page-avatar" onclick="document.getElementById('modal_profile_picture_input').click()">
+                                <img id="modal_profile_preview" src="{{ asset('img/avatar.png') }}" alt="Profile Picture">
+                                <div class="avatar-overlay">
+                                    <i class="bi bi-camera"></i>
+                                </div>
+                            </div>
+                            <input type="file" id="modal_profile_picture_input" class="d-none" accept="image/*">
+                        </div>
+                    </div>
+
                     <div class="row g-2">
                         <div class="col-md-4">
                             <label class="form-label">Employee Code</label>

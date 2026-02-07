@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Employee;
 
 class ProfileController extends Controller
@@ -180,11 +181,24 @@ class ProfileController extends Controller
             'insurance_valid_till' => 'nullable|date',
             'medical_conditions' => 'nullable|string',
             'allergies' => 'nullable|string',
+            'profile_picture' => 'nullable|image',
         ];
 
         $validated = $request->validate($rules);
 
         try {
+            if ($request->hasFile('profile_picture')) {
+                $image = $request->file('profile_picture');
+                $path = $image->store('employee-profiles', 'public');
+                
+                // Delete old profile picture if it exists
+                if ($employee->profile_picture) {
+                    Storage::disk('public')->delete($employee->profile_picture);
+                }
+                
+                $validated['profile_picture'] = $path;
+            }
+
             $employee->update($validated);
             
             return response()->json([
@@ -198,6 +212,29 @@ class ProfileController extends Controller
                 'message' => 'Failed to update profile: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Serve the profile picture.
+     */
+    /**
+     * Serve the profile picture.
+     */
+    public function getProfilePicture($id)
+    {
+        $employee = Employee::findOrFail($id);
+        
+        if (!$employee->profile_picture) {
+            abort(404);
+        }
+
+        $path = Storage::disk('public')->path($employee->profile_picture);
+        
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->file($path);
     }
 
     private function getAuthenticatedUser()

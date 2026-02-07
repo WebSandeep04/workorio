@@ -278,7 +278,20 @@ class EmployeeController extends Controller
             'is_tracking' => 'boolean',
             'places' => 'array',
             'places.*' => 'exists:places,id',
+            'profile_picture' => 'nullable|image',
         ]);
+
+        if ($request->hasFile('profile_picture')) {
+            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+            $data['profile_picture'] = $path;
+
+            if ($employeeId) {
+                $employee = Employee::find($employeeId);
+                if ($employee && $employee->profile_picture) {
+                    Storage::disk('public')->delete($employee->profile_picture);
+                }
+            }
+        }
 
         if (!empty($data['department_id'])) {
             $department = Department::find($data['department_id']);

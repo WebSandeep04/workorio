@@ -17,6 +17,7 @@ class Employee extends Model
         'email',
         'phone',
         'designation',
+        'profile_picture',
         'department',
         'date_of_joining',
         'employment_type',

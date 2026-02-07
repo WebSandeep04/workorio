@@ -1,5 +1,9 @@
 <?php
     $headerUser = auth()->user();
+    if (!$headerUser && session()->has('user_id')) {
+        $headerUser = \App\Models\User::find(session('user_id'));
+    }
+
     $headerName = $headerUser->name ?? (session('user_name') ?? 'Guest');
     $headerRole = optional(optional($headerUser)->role)->role_name ?? (session('user_role') ?? 'Team Member');
     if (is_numeric($headerRole)) {
@@ -12,6 +16,13 @@
     $isSuperAdmin = $headerUser && $headerUser->role_id == 3 && \Illuminate\Support\Facades\DB::getDefaultConnection() === 'mysql';
     $isTenantUser = session()->has('tenant_id');
     $logoutRoute = $isSuperAdmin ? 'superadmin.logout' : 'logout';
+
+    // Find Employee for Profile Picture
+    $headerEmployee = $headerUser ? $headerUser->employee : null;
+    if (!$headerEmployee && $headerUser) {
+        $headerEmployee = \App\Models\Employee::where('user_id', $headerUser->id)->first() ?? 
+                         \App\Models\Employee::where('email', $headerUser->email)->first();
+    }
 ?>
 <div class="app-header d-none d-md-flex align-items-center justify-content-between">
     <div class="app-header-text">
@@ -49,7 +60,11 @@
         <div class="header-profile minimal dropdown">
             <button class="btn dropdown-toggle d-flex align-items-center gap-2 p-0 border-0 bg-transparent" type="button" id="headerProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="gap: 12px;">
                 <div class="profile-avatar">
-                    <img src="<?php echo e(asset('img/avatar.png')); ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    <?php if($headerEmployee && $headerEmployee->profile_picture): ?>
+                        <img src="<?php echo e(route('profile.picture', $headerEmployee->id)); ?>?t=<?php echo e(time()); ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    <?php else: ?>
+                        <img src="<?php echo e(asset('img/avatar.png')); ?>" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    <?php endif; ?>
                 </div>
                 <div class="profile-meta">
                     <span class="profile-name"><?php echo e($headerName); ?></span>

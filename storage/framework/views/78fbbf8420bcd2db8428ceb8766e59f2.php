@@ -97,6 +97,38 @@
     margin: 0 auto 1.5rem;
     border: 4px solid #fff;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  
+  .profile-page-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+  }
+
+  .profile-page-avatar:hover .avatar-overlay {
+      opacity: 1;
+  }
+
+  .avatar-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      opacity: 0;
+      transition: opacity 0.2s;
+  }
+  
+  .avatar-overlay i {
+      font-size: 1.5rem;
   }
 
   /* Upload Link Styling */
@@ -189,10 +221,18 @@
         <div class="modern-card-body">
             
           <div class="text-center mb-4">
-            <div class="profile-page-avatar">
-              <?php echo e(strtoupper(substr($employee->name, 0, 1))); ?>
+            <div class="profile-page-avatar" onclick="document.getElementById('profile_picture_input').click()">
+              <?php if($employee->profile_picture): ?>
+                  <img src="<?php echo e(route('profile.picture', $employee->id)); ?>?t=<?php echo e(time()); ?>" alt="Profile Picture">
+              <?php else: ?>
+                  <?php echo e(strtoupper(substr($employee->name, 0, 1))); ?>
 
+              <?php endif; ?>
+              <div class="avatar-overlay">
+                  <i class="bi bi-camera"></i>
+              </div>
             </div>
+            <input type="file" id="profile_picture_input" name="profile_picture" class="d-none" accept="image/*" form="profileForm">
             <h4 class="mb-1"><?php echo e($employee->name); ?></h4>
             <p class="text-muted mb-0"><?php echo e($employee->designation ?? 'Employee'); ?></p>
             <p class="text-muted small"><?php echo e($employee->employee_code); ?></p>
@@ -228,9 +268,9 @@
                   <label class="form-label-modern">Department</label>
                   <input type="text" class="form-control-modern" name="department" value="<?php echo e($employee->department); ?>">
               </div>
-               <div class="col-md-4 mb-3">
+              <div class="col-md-4 mb-3">
                   <label class="form-label-modern">Date of Joining</label>
-                  <input type="text" class="form-control-modern" value="<?php echo e($employee->date_of_joining); ?>" readonly style="background-color: #f3f4f6;">
+                  <input type="text" class="form-control-modern" value="<?php echo e(optional($employee->date_of_joining)->format('Y-m-d')); ?>" readonly style="background-color: #f3f4f6;">
               </div>
             </div>
 
@@ -243,7 +283,7 @@
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label-modern">Date of Birth</label>
-                    <input type="date" class="form-control-modern" name="date_of_birth" value="<?php echo e($employee->date_of_birth); ?>">
+                    <input type="date" class="form-control-modern" name="date_of_birth" value="<?php echo e(optional($employee->date_of_birth)->format('Y-m-d')); ?>">
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label-modern">Blood Group</label>
@@ -302,7 +342,7 @@
                 </div>
                  <div class="col-md-3 mb-3">
                     <label class="form-label-modern">Passport Expiry</label>
-                    <input type="date" class="form-control-modern" name="passport_expiry" value="<?php echo e($employee->passport_expiry); ?>">
+                    <input type="date" class="form-control-modern" name="passport_expiry" value="<?php echo e(optional($employee->passport_expiry)->format('Y-m-d')); ?>">
                 </div>
             </div>
 
@@ -356,6 +396,35 @@
                  <div class="col-md-4 mb-3">
                     <label class="form-label-modern">UAN Number</label>
                      <input type="text" class="form-control-modern" name="uan_number" value="<?php echo e($employee->uan_number); ?>">
+                </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label-modern">PF Number</label>
+                    <input type="text" class="form-control-modern" name="pf_number" value="<?php echo e($employee->pf_number); ?>">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label-modern">ESI Number</label>
+                    <input type="text" class="form-control-modern" name="esi_number" value="<?php echo e($employee->esi_number); ?>">
+                </div>
+                 <div class="col-md-4 mb-3">
+                    <label class="form-label-modern">Insurance Provider</label>
+                    <input type="text" class="form-control-modern" name="insurance_provider" value="<?php echo e($employee->insurance_provider); ?>">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label-modern">Insurance Policy Number</label>
+                    <input type="text" class="form-control-modern" name="insurance_policy_number" value="<?php echo e($employee->insurance_policy_number); ?>">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label-modern">Insurance Valid Till</label>
+                    <input type="date" class="form-control-modern" name="insurance_valid_till" value="<?php echo e(optional($employee->insurance_valid_till)->format('Y-m-d')); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label-modern">Medical Conditions</label>
+                    <textarea class="form-control-modern" name="medical_conditions" rows="2"><?php echo e($employee->medical_conditions); ?></textarea>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label-modern">Allergies</label>
+                    <textarea class="form-control-modern" name="allergies" rows="2"><?php echo e($employee->allergies); ?></textarea>
                 </div>
             </div>
 
@@ -544,6 +613,33 @@
         `;
     }
 
+    // Live Profile Picture Preview
+    document.getElementById('profile_picture_input').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const container = document.querySelector('.profile-page-avatar');
+                container.innerHTML = ''; // Clear current content (img or initials)
+                
+                // Create new image
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = "Profile Picture Preview";
+                // Style handled by CSS for .profile-page-avatar img
+                
+                // create overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'avatar-overlay';
+                overlay.innerHTML = '<i class="bi bi-camera"></i>';
+                
+                container.appendChild(img);
+                container.appendChild(overlay);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
     $(document).ready(function() {
         renderDocuments();
 
@@ -595,12 +691,23 @@
             const btn = $('#saveBtn');
             const originalContent = btn.html();
             
+            
             btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Saving...');
             
+            // Create FormData object to handle file uploads
+            var formData = new FormData(this);
+            // Append profile picture if selected outside the form (though 'form="profileForm"' should handle it, explicit append ensures it)
+            var profilePicInput = document.getElementById('profile_picture_input');
+            if (profilePicInput && profilePicInput.files.length > 0) {
+                formData.append('profile_picture', profilePicInput.files[0]);
+            }
+
             $.ajax({
                 url: "<?php echo e(route('profile.update')); ?>",
                 method: "POST",
-                data: $(this).serialize(),
+                data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response) {
                     if(response.success) {
                         // Profile updated, now check for documents

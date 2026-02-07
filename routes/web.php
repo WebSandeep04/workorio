@@ -496,6 +496,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/profile/update', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/documents', [\App\Http\Controllers\ProfileController::class, 'storeDocument'])->name('profile.documents.store');
     Route::delete('/profile/documents/{document}', [\App\Http\Controllers\ProfileController::class, 'destroyDocument'])->name('profile.documents.destroy');
+    Route::get('/profile/picture/{id}', [\App\Http\Controllers\ProfileController::class, 'getProfilePicture'])->name('profile.picture');
 });
 
 // Role Master routes
