@@ -42,3 +42,10 @@ Schedule::command('subscriptions:generate-recurring')
     ->daily()
     ->at('00:05')
     ->description('Generate new billing cycles for recurring subscriptions across all tenants');
+
+// Dummy command to test cron job
+use Illuminate\Support\Facades\Log;
+
+Schedule::call(function () {
+    Log::info('Cron Job Test: Scheduler is running at ' . now());
+})->everyMinute()->name('cron:test');
