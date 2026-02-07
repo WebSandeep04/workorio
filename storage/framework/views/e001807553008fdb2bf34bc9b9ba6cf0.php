@@ -57,7 +57,12 @@
                 </div>
                 <!-- <i class="bi bi-chevron-down"></i> -->
             </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="headerProfileDropdown">
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="headerProfileDropdown" style="border-radius: 8px;">
+                <li>
+                    <a class="dropdown-item py-2" href="<?php echo e(route('profile.index')); ?>">
+                        <i class="bi bi-person me-2 text-primary"></i> My Profile
+                    </a>
+                </li>
             </ul>
         </div>
     </div>

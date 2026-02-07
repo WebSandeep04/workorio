@@ -490,6 +490,14 @@ Route::post('/user/store', [UserController::class, 'store'])->name('user.store')
 Route::delete('/user/delete/{id}', [UserController::class, 'destroy'])->name('user.destroy');
 });
 
+// User Profile (Employee Information)
+Route::middleware(['auth.or.session'])->group(function () {
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'index'])->name('profile.index');
+    Route::post('/profile/update', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/documents', [\App\Http\Controllers\ProfileController::class, 'storeDocument'])->name('profile.documents.store');
+    Route::delete('/profile/documents/{document}', [\App\Http\Controllers\ProfileController::class, 'destroyDocument'])->name('profile.documents.destroy');
+});
+
 // Role Master routes
 Route::middleware(['auth.or.session'])->group(function () {
 Route::get('/role-master', [App\Http\Controllers\RoleMasterController::class, 'index'])->name('role-master');
