@@ -17,7 +17,7 @@ class EmployeeController extends Controller
         // We select minimal fields as requested
         $employees = Employee::where('status', 'active')
             ->whereNotNull('date_of_birth')
-            ->select('id', 'name', 'date_of_birth', 'employee_code')
+            ->select('id', 'name', 'date_of_birth', 'employee_code', 'profile_picture')
             ->get();
 
         $today = now()->startOfDay();
@@ -42,8 +42,9 @@ class EmployeeController extends Controller
             return [
                 'name' => $employee->name,
                 'dob' => $employee->date_of_birth,
-                // Optional: formatted date or just ISO string. 
-                // DB usually returns Y-m-d.
+                'image' => $employee->profile_picture 
+                            ? asset('storage/' . $employee->profile_picture) 
+                            : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($employee->name),
             ];
         });
 
