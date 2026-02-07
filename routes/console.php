@@ -40,12 +40,13 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('subscriptions:generate-recurring')
     ->daily()
-    ->at('00:05')
+    ->at('01:00')
+    ->timezone('Asia/Kolkata')
     ->description('Generate new billing cycles for recurring subscriptions across all tenants');
 
 // Dummy command to test cron job
-use Illuminate\Support\Facades\Log;
+// use Illuminate\Support\Facades\Log;
 
-Schedule::call(function () {
-    Log::info('Cron Job Test: Scheduler is running at ' . now());
-})->everyMinute()->name('cron:test');
+// Schedule::call(function () {
+//     Log::info('Cron Job Test: Scheduler is running at ' . now());
+// })->dailyAt('18:40')->timezone('Asia/Kolkata')->name('cron:test');
