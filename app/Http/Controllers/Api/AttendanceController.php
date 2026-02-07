@@ -640,6 +640,9 @@ class AttendanceController extends Controller
         if (!$attendance) {
             return response()->json([
                 'attendance' => null,
+                'working_hours' => '0h 0m',
+                'completed_hours' => '0h 0m',
+                'last_action_time' => null,
                 'movements' => [],
                 'status' => [
                     'office' => [
@@ -685,6 +688,17 @@ class AttendanceController extends Controller
         // Group movements by type for frontend compatibility
         $movementsByType = $movements->sortBy('time')->groupBy('movement_type');
 
+        // Calculate completed working hours (excluding current active session)
+        $officeSeconds = $this->calculateCompletedDuration($movementsByType->get('office', collect()));
+        $fieldSeconds = $this->calculateCompletedDuration($movementsByType->get('field', collect()));
+        
+        $totalSeconds = $officeSeconds + $fieldSeconds;
+        
+        // Format: Hh Mm
+        $hours = floor($totalSeconds / 3600);
+        $minutes = floor(($totalSeconds % 3600) / 60);
+        $workingHours = sprintf('%dh %dm', $hours, $minutes);
+
         // Calculate cycles for each type
         $cycles = [
             'office_cycles' => $this->calculateCycles($movementsByType->get('office', collect())),
@@ -692,8 +706,10 @@ class AttendanceController extends Controller
             'break_cycles' => $this->calculateCycles($movementsByType->get('break', collect()))
         ];
 
-        // Determine current status for each type
+        // Determine current status for each type and find active session start time
         $status = [];
+        $activeLastActionTime = null;
+
         foreach (['office', 'field', 'break'] as $type) {
             $typeMovements = $movementsByType->get($type, collect());
             
@@ -720,6 +736,10 @@ class AttendanceController extends Controller
                 // Check if currently active (punched in but not punched out)
                 $isCurrentlyActive = $punchIn && (!$punchOut || $punchOut->time < $punchIn->time);
                 
+                if ($isCurrentlyActive && $punchIn) {
+                    $activeLastActionTime = Carbon::parse($punchIn->time)->format('Y-m-d H:i:s');
+                }
+
                 $statusText = $isCurrentlyActive ? 
                     ($type === 'office' ? 'Punched In' : 'In Field') : 
                     'Ready for New Cycle';
@@ -747,6 +767,9 @@ class AttendanceController extends Controller
 
         return response()->json([
             'attendance' => $attendance,
+            'working_hours' => $workingHours,
+            'completed_hours' => $workingHours,
+            'last_action_time' => $activeLastActionTime,
             'movements' => $movementsArray,
             'status' => $status,
             'cycles' => $cycles,
@@ -820,6 +843,41 @@ class AttendanceController extends Controller
 
         // If there's an active in/start action, the current cycle is cycles + 1
         return $inAction ? $cycles + 1 : $cycles + 1;
+    }
+
+    /**
+     * Calculate total duration of completed sessions for a movement type (in seconds)
+     */
+    private function calculateCompletedDuration($movements)
+    {
+        if ($movements->isEmpty()) {
+            return 0;
+        }
+
+        // Ensure movements are sorted by time
+        $sortedMovements = $movements->sortBy('time');
+
+        $totalSeconds = 0;
+        $inAction = null;
+
+        foreach ($sortedMovements as $movement) {
+            // Only process 'in' (start) and 'out' (end) movements
+            // Only consider office and field types for working hours, but this method can be generic
+            if ($movement->movement_action === 'in' || $movement->movement_action === 'start') {
+                $inAction = $movement;
+            } elseif (($movement->movement_action === 'out' || $movement->movement_action === 'end') && $inAction) {
+                // Determine duration
+                $startTime = Carbon::parse($inAction->time);
+                $endTime = Carbon::parse($movement->time);
+                
+                // Use absolute timestamp difference to prevent negative values
+                $totalSeconds += abs($endTime->getTimestamp() - $startTime->getTimestamp());
+                
+                $inAction = null;
+            }
+        }
+
+        return $totalSeconds;
     }
 
     /**
