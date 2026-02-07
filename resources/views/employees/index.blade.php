@@ -4,28 +4,722 @@
 @section('page_title', 'Employees')
 
 @push('styles')
-<style>
-    .compact-table {
-        font-size: 0.75rem;
-        font-family: Montserrat;
+  <style>
+    .container-fluid {
+      padding: 0.5rem;
+      padding-right: 0.5rem;
+      margin-right: 0;
     }
-    .compact-table thead th {
-        padding: 0.3rem 0.2rem;
-        font-size: 0.7rem;
-        font-family: Montserrat;
-        font-weight: 600;
+
+    .summary-cards,
+    .status-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 1rem;
     }
-    .compact-table tbody td {
-        padding: 0.25rem 0.2rem;
-        vertical-align: middle;
+
+    .summary-card,
+    .status-card {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #eceef3;
+      padding: 0.4rem;
+      box-shadow: 0px 4px 4px 0px #0000000A;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      min-height: 55px;
+      height: 55px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
-    .compact-table .btn-sm {
-        padding: 0.1rem 0.25rem;
-        font-size: 0.65rem;
+
+    .metric-arrow {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      color: #000;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      font-size: 0.8rem;
     }
-    .compact-table .badge {
-        font-size: 0.6rem;
-        padding: 0.2rem 0.3rem;
+
+    .metric-arrow:hover {
+      background: #5b59f7;
+      color: #fff;
+    }
+
+    .summary-card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .summary-card-icon img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+
+    .icon-sunrise {
+      background: linear-gradient(135deg, #f97316, #fb923c);
+    }
+
+    .icon-amber {
+      background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    }
+
+    .icon-emerald {
+      background: linear-gradient(135deg, #34d399, #10b981);
+    }
+
+    .icon-rose {
+      background: linear-gradient(135deg, #fb7185, #f43f5e);
+    }
+
+    .icon-sky {
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    }
+
+    .icon-violet {
+      background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+    }
+
+    .summary-card-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    .summary-card::before,
+    .status-card::before {
+      display: none;
+    }
+
+    .summary-card:hover,
+    .status-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0px 8px 8px 0px #0000000A;
+    }
+
+    .summary-card.card-1 {
+      background: #fff;
+    }
+
+    .summary-card.card-2 {
+      background: #fff;
+    }
+
+    .summary-card.card-3 {
+      background: #fff;
+    }
+
+    .summary-card.card-4 {
+      background: #fff;
+    }
+
+    .summary-card.card-5 {
+      background: #fff;
+    }
+
+    /* Status cards - all white background like dashboard */
+    .status-card:nth-child(6n+1),
+    .status-card:nth-child(6n+2),
+    .status-card:nth-child(6n+3),
+    .status-card:nth-child(6n+4),
+    .status-card:nth-child(6n+5),
+    .status-card:nth-child(6n+6),
+    .status-card:nth-child(6n+7),
+    .status-card:nth-child(6n+8),
+    .status-card:nth-child(6n+9),
+    .status-card:nth-child(6n+10),
+    .status-card:nth-child(6n+11),
+    .status-card:nth-child(6n+12) {
+      background: #fff;
+    }
+
+    .summary-card-label,
+    .status-card-label {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 0.15rem;
+      color: #000;
+      flex-shrink: 0;
+      line-height: 1.1;
+      font-family: Montserrat;
+    }
+
+    .summary-card-value,
+    .status-card-value {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin: 0;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      line-height: 1;
+      color: #101828;
+      font-family: Montserrat;
+    }
+
+    .status-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .filterBox {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.5rem;
+      background: #434AFA;
+      padding: 0.75rem;
+      color: #fff;
+      border-radius: 5px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(67, 74, 250, 0.3);
+      margin-bottom: 0.5rem;
+      border: 1px solid #434AFA;
+      font-family: Montserrat, sans-serif;
+    }
+
+    .filterBox .form-label-modern {
+      color: #fff;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 10px;
+      font-family: Montserrat, sans-serif;
+    }
+
+    .filterBox .form-control-modern {
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 2px;
+      padding: 0.35rem 0.5rem;
+      background: rgba(255, 255, 255, 0.98);
+      color: #000;
+      transition: all 0.3s ease;
+      font-size: 10px;
+      font-family: Montserrat, sans-serif;
+    }
+
+    .filterBox .form-control-modern option {
+      color: #000;
+      background: #fff;
+      font-family: Montserrat, sans-serif;
+    }
+
+    .filterBox .form-control-modern:focus {
+      outline: none;
+      border-color: #fff;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+      transform: translateY(-1px);
+      color: #000;
+    }
+
+    .filterBox .form-control-modern:hover {
+      border-color: rgba(255, 255, 255, 0.6);
+      background: #fff;
+    }
+
+    .table-range-meta {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin: 0.35rem 0 0.75rem;
+    }
+
+    .table-search {
+      width: 100%;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .table-search-field {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #f4f5f7;
+      border: 1px solid #e5e7eb;
+      border-radius: 2px;
+      padding: 0.35rem 0.9rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    .table-search-btn {
+      padding: 0.35rem 1rem;
+      background: #434afa;
+      color: white;
+      border: none;
+      border-radius: 2px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .table-search-btn:hover {
+      background: #3538d4;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(67, 74, 250, 0.4);
+      color: white;
+      text-decoration: none;
+    }
+
+    .table-search-btn:active {
+      transform: translateY(0);
+      background: #2d30b8;
+    }
+
+    .table-search-field i {
+      color: #9ca3af;
+      font-size: 0.85rem;
+    }
+
+    .table-search-field input {
+      border: none;
+      background: transparent;
+      font-size: 0.85rem;
+      width: 100%;
+      outline: none;
+      color: #111827;
+    }
+
+    .modern-card {
+      padding: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    .modern-card-body {
+      padding: 0.5rem;
+    }
+
+    .custom-table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      background: white;
+      border-radius: 0px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .custom-table th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 9px;
+      padding: 0;
+      text-align: center;
+      border: none;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .custom-table td {
+      font-size: 9px;
+      padding: 0;
+      vertical-align: middle;
+      text-align: center;
+      border-bottom: 1px solid #e9ecef;
+      transition: all 0.3s ease;
+    }
+
+    .custom-table tbody tr {
+      transition: all 0.3s ease;
+    }
+
+    .custom-table tbody tr:hover {
+      background: rgba(102, 126, 234, 0.08);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    }
+
+    .custom-table tbody tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    .assign-select {
+      font-size: 9px;
+      padding: 2px 4px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      background: white;
+      width: 100%;
+      max-width: 120px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .assign-select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);
+    }
+
+    .bulk-assignment-controls {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+    }
+
+    .bulk-assignment-controls .form-select {
+      border: 2px solid #667eea;
+      border-radius: 6px;
+      padding: 0.25rem 0.5rem;
+      font-size: 10px;
+    }
+
+    .bulk-assignment-controls .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 6px;
+      padding: 0.25rem 0.75rem;
+      font-size: 10px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .bulk-assignment-controls .btn-primary:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+    }
+
+    .lead-checkbox {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      accent-color: #667eea;
+    }
+
+    .status-badge {
+      display: inline-block;
+      color: #000;
+      font-size: 0.85rem;
+      font-weight: normal;
+      font-family: Montserrat, sans-serif;
+    }
+
+    .custom-table .badge {
+      font-size: 9px;
+      padding: 2px 6px;
+    }
+
+    .pagination .page-link {
+      color: #434afa;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 0.25rem 0.5rem;
+      margin: 0 2px;
+      font-size: 10px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .pagination .page-item.active .page-link {
+      background: #434afa;
+      border-color: #434afa;
+      color: white;
+      box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+    }
+
+    .pagination .page-link:hover {
+      background: rgba(67, 74, 250, 0.15);
+      border-color: #434afa;
+      transform: translateY(-1px);
+    }
+
+    .table-responsive {
+      border-radius: 5px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .data-table-card {
+      border-radius: 5px;
+      border: 1px solid #f2f4f7;
+      background: #fff;
+      box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    .data-table-card .modern-card-body {
+      padding: 0;
+    }
+
+    .data-table-card .table-responsive {
+      border-radius: 18px;
+      border: none;
+      box-shadow: none;
+      padding: 0.5rem 0.75rem 1rem;
+      overflow-x: auto;
+      background: transparent;
+    }
+
+    .data-table-card .table-responsive::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .data-table-card .table-responsive::-webkit-scrollbar-track {
+      background: #e4e7ec;
+      border-radius: 999px;
+    }
+
+    .data-table-card .table-responsive::-webkit-scrollbar-thumb {
+      background: #434AFA;
+      border-radius: 999px;
+    }
+
+    .data-table-card .table-responsive {
+      scrollbar-color: #434AFA #e4e7ec;
+    }
+
+    .data-table-card .custom-table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      font-size: 0.85rem;
+      background: transparent;
+      table-layout: auto;
+      min-width: 100%;
+    }
+
+    .data-table-card .custom-table thead th {
+      background: #fff;
+      color: #000;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 0.6rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #f1f3f5;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      font-family: Montserrat;
+    }
+
+    .data-table-card .custom-table thead th,
+    .data-table-card .custom-table tbody td {
+      white-space: nowrap;
+    }
+
+    .data-table-card .custom-table tbody td {
+      font-size: 0.85rem;
+      padding: 0.65rem 0.75rem;
+      color: #000;
+      border-bottom: 1px solid #f4f4f6;
+      text-align: left;
+      background: transparent;
+      font-family: Montserrat;
+    }
+
+    .data-table-card .custom-table tbody tr {
+      transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .data-table-card .custom-table tbody tr:hover {
+      background: #f8f9ff;
+      box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .data-table-card .custom-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .data-table-card .custom-table tbody td .text-danger,
+    .data-table-card .custom-table tbody td .priority-high,
+    .data-table-card .custom-table tbody td .highlight-high {
+      color: #ef4444;
+      font-weight: 600;
+    }
+
+    .remark-link {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .remark-link:hover {
+      color: #764ba2;
+      text-decoration: underline;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 1rem;
+      color: #667eea;
+      font-size: 10px;
+    }
+
+    .loading-state i {
+      font-size: 1rem;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 1rem;
+      color: #6c757d;
+      font-size: 10px;
+    }
+
+    .empty-state i {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      opacity: 0.5;
+    }
+
+    @media (max-width: 767px) {
+      .container-fluid {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+
+      .summary-cards,
+      .status-cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .data-table-card .custom-table tbody td {
+        font-size: 0.75rem
+      }
+
+      .table-search {
+        flex-direction: row;
+        gap: 0.5rem;
+      }
+
+      .table-search-btn {
+        width: auto;
+        padding: 0.35rem 0.75rem;
+      }
+
+      .table-search-field {
+        width: 100%;
+      }
+    }
+
+
+    /* Modal Styles */
+    .modal-content {
+      border-radius: 0px !important;
+      border: none;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      border-radius: 0px !important;
+      background: #434AFA !important;
+      color: white;
+      border-bottom: none;
+      padding: 0.6rem 1rem;
+    }
+
+    .modal-footer {
+      border-top: 1px solid #f0f0f0;
+      padding: 0.6rem 1rem;
+      background: #fff;
+    }
+
+    .form-label-modern {
+      color: #434AFA;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      font-family: Montserrat, sans-serif;
+    }
+
+    .form-control-modern,
+    .form-select-modern {
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 0.4rem 0.6rem;
+      transition: all 0.3s ease;
+      font-size: 0.8rem;
+      font-family: Montserrat, sans-serif;
+    }
+
+    .form-control-modern:focus,
+    .form-select-modern:focus {
+      border-color: #434AFA;
+      box-shadow: 0 0 0 2px rgba(67, 74, 250, 0.1);
+      outline: none;
+    }
+
+    .btn-modern {
+      padding: 0.4rem 1.2rem;
+      border-radius: 4px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-family: Montserrat, sans-serif;
+    }
+
+    .btn-modern-primary {
+      background: #434AFA;
+      color: white;
+    }
+
+    .btn-modern-primary:hover {
+      background: #3538d4;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(67, 74, 250, 0.2);
+      color: white;
     }
 
     /* Profile Avatar Styles */
@@ -65,23 +759,29 @@
     .profile-page-avatar:hover .avatar-overlay {
       opacity: 1;
     }
-</style>
+  </style>
 @endpush
 
 @section('content')
-<div class="container-fluid mt-2">
-    <div class="card shadow-sm">
-        <div class="card-header d-flex justify-content-between align-items-center" style="background: white; color: black;">
-            <h5 class="mb-0" style="font-family: Montserrat;"><i class="bi bi-people me-2"></i>Employee Master</h5>
-            <button type="button" style="background: #434AFA; color: white; border: 1px solid white; font-size: 15px; padding: 6px; font-family: Montserrat;" id="openEmployeeModal">
-                Add <i class="bi bi-plus"></i>
-            </button>
+<div class="container-fluid px-2">
+    <!-- Search and Action -->
+    <div class="table-search mb-2">
+        <div class="table-search-field">
+            <i class="bi bi-search"></i>
+            <input type="text" id="employeeSearch" placeholder="Search by name, email, phone..." onkeyup="filterEmployees()">
         </div>
-        <div class="card-body">
+        <button type="button" class="table-search-btn" id="openEmployeeModal">
+            <i class="bi bi-plus me-1"></i>Add
+        </button>
+    </div>
+
+    <!-- Table Card -->
+    <div class="modern-card data-table-card">
+        <div class="modern-card-body">
             <div class="alert alert-danger d-none" id="employeeTableError"></div>
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-center shadow-sm compact-table">
-                    <thead class="table-secondary">
+                <table class="table custom-table" id="employeeTable">
+                    <thead>
                         <tr>
                             <th>Code</th>
                             <th>Name</th>
@@ -105,11 +805,15 @@
                         </tr>
                     </thead>
                     <tbody id="employeeTableBody">
-                        <tr><td colspan="18" class="text-center">Loading...</td></tr>
+                        <tr><td colspan="19" class="loading-state"><i class="bi bi-arrow-repeat"></i><p class="mt-2 mb-0">Loading employees...</p></td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
+    </div>
+
+    <div class="table-range-meta" id="employeeCountInfo">
+        Showing 0 data
     </div>
 </div>
 @endsection
@@ -118,6 +822,7 @@
 <script>
 (function () {
     let employeeCache = {};
+    let allEmployees = [];
     const csrf = $('meta[name="csrf-token"]').attr('content');
     const listUrl = "{{ route('employees.list') }}";
     const storeUrl = "{{ route('employees.store') }}";
@@ -140,49 +845,72 @@
             .replace(/'/g, '&#039;');
     }
 
+    function renderEmployees(rows) {
+        if (!rows || rows.length === 0) {
+            $('#employeeTableBody').html('<tr><td colspan="19" class="empty-state"><i class="bi bi-inbox"></i><p>No employees found</p></td></tr>');
+             $('#employeeCountInfo').text('Showing 0 data');
+            return;
+        }
+        let html = '';
+        rows.forEach(function (row) {
+            // Update cache just in case, though usually done on load
+            if(!employeeCache[row.id]) employeeCache[row.id] = row;
+            
+            html += `<tr>
+                <td>${escapeHtml(row.employee_code)}</td>
+                <td>${escapeHtml(row.name)}</td>
+                <td>${escapeHtml(row.email || '')}</td>
+                <td>${escapeHtml(row.phone || '')}</td>
+                <td>${escapeHtml((row.branch && row.branch.name) || '')}</td>
+                <td>${escapeHtml((row.department_relation && row.department_relation.name) || '')}</td>
+                <td>${escapeHtml(row.department || '')}</td>
+                <td>${escapeHtml((row.designation_relation && row.designation_relation.title) || '')}</td>
+                <td>${escapeHtml(row.designation || '')}</td>
+                <td>${escapeHtml((row.employment_type_relation && row.employment_type_relation.name) || '')}</td>
+                <td>${escapeHtml(row.employment_type || '')}</td>
+                <td>${escapeHtml((row.shift_relation && row.shift_relation.name) || '')}</td>
+                <td>${escapeHtml((row.country_relation && row.country_relation.name) || row.country || '')}</td>
+                <td>${escapeHtml((row.state_relation && row.state_relation.state_name) || row.state || '')}</td>
+                <td>${escapeHtml((row.city_relation && row.city_relation.city_name) || row.city || '')}</td>
+                <td>${row.date_of_joining ? row.date_of_joining.toString().substring(0, 10) : ''}</td>
+                <td><span class="badge ${row.status === 'active' ? 'bg-success' : 'bg-secondary'}">${escapeHtml(row.status || '')}</span></td>
+                <td class="text-center">${row.documents_count || 0}</td>
+                <td class="text-center">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-primary edit-employee" data-id="${row.id}"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-danger delete-employee" data-id="${row.id}"><i class="bi bi-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        });
+        $('#employeeTableBody').html(html);
+        $('#employeeCountInfo').text(`Showing ${rows.length} data`);
+    }
+
+    window.filterEmployees = function() {
+        const query = $('#employeeSearch').val().toLowerCase();
+        const filtered = allEmployees.filter(emp => {
+            return (emp.name && emp.name.toLowerCase().includes(query)) ||
+                   (emp.email && emp.email.toLowerCase().includes(query)) ||
+                   (emp.phone && emp.phone.toLowerCase().includes(query)) ||
+                   (emp.employee_code && emp.employee_code.toLowerCase().includes(query));
+        });
+        renderEmployees(filtered);
+    };
+
     function loadEmployees() {
-        $('#employeeTableBody').html('<tr><td colspan="18" class="text-center">Loading...</td></tr>');
+        $('#employeeTableBody').html('<tr><td colspan="19" class="loading-state"><i class="bi bi-arrow-repeat"></i><p class="mt-2 mb-0">Loading employees...</p></td></tr>');
         $.get(listUrl)
             .done(function (rows) {
+                allEmployees = rows || [];
+                // Populate cache
                 employeeCache = {};
-                if (!rows || rows.length === 0) {
-                    $('#employeeTableBody').html('<tr><td colspan="18" class="text-center">No employees found</td></tr>');
-                    return;
-                }
-                let html = '';
-                rows.forEach(function (row) {
-                    employeeCache[row.id] = row;
-                    html += `<tr>
-                        <td>${escapeHtml(row.employee_code)}</td>
-                        <td>${escapeHtml(row.name)}</td>
-                        <td>${escapeHtml(row.email || '')}</td>
-                        <td>${escapeHtml(row.phone || '')}</td>
-                        <td>${escapeHtml((row.branch && row.branch.name) || '')}</td>
-                        <td>${escapeHtml((row.department_relation && row.department_relation.name) || '')}</td>
-                        <td>${escapeHtml(row.department || '')}</td>
-                        <td>${escapeHtml((row.designation_relation && row.designation_relation.title) || '')}</td>
-                        <td>${escapeHtml(row.designation || '')}</td>
-                        <td>${escapeHtml((row.employment_type_relation && row.employment_type_relation.name) || '')}</td>
-                        <td>${escapeHtml(row.employment_type || '')}</td>
-                        <td>${escapeHtml((row.shift_relation && row.shift_relation.name) || '')}</td>
-                        <td>${escapeHtml((row.country_relation && row.country_relation.name) || row.country || '')}</td>
-                        <td>${escapeHtml((row.state_relation && row.state_relation.state_name) || row.state || '')}</td>
-                        <td>${escapeHtml((row.city_relation && row.city_relation.city_name) || row.city || '')}</td>
-                        <td>${row.date_of_joining || ''}</td>
-                        <td><span class="badge ${row.status === 'active' ? 'bg-success' : 'bg-secondary'}">${escapeHtml(row.status || '')}</span></td>
-                        <td class="text-center">${row.documents_count || 0}</td>
-                        <td class="text-center">
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-primary edit-employee" data-id="${row.id}"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-danger delete-employee" data-id="${row.id}"><i class="bi bi-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>`;
-                });
-                $('#employeeTableBody').html(html);
+                allEmployees.forEach(row => { employeeCache[row.id] = row; });
+                
+                renderEmployees(allEmployees);
             })
             .fail(function () {
-                $('#employeeTableBody').html('<tr><td colspan="18" class="text-center text-danger">Failed to load employees</td></tr>');
+                $('#employeeTableBody').html('<tr><td colspan="19" class="text-center text-danger">Failed to load employees</td></tr>');
             });
     }
 
