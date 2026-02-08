@@ -70,6 +70,9 @@ use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\LateReasonController;
 
+// Public Download Route
+Route::view('/download', 'download')->name('download');
+
 // Main login page - choose login type
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');

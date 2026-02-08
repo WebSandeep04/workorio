@@ -26,6 +26,7 @@ function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 // ================== FETCH RECIPIENTS ==================
 $recipientEmails = [
     'sandeep@triserv360.com',
+   'shamshad@triserv360.com'
 ];
 
 if (empty($recipientEmails)) {
@@ -34,10 +35,18 @@ if (empty($recipientEmails)) {
     exit;
 }
 
+// ================== DEBUG MODE ==================
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 echo "📧 Preparing report for " . count($recipientEmails) . " recipients...<br>";
 
 // ================== FETCH ACTIVE SUBSCRIPTIONS & LATEST HISTORY ==================
-// Logic: Get Active Subscriptions + Their LATEST History record.
+echo "🔍 status: Connecting to Database...<br>";
+
+// ... (previous logic) ...
+
 $sql = "
     SELECT 
         s.id,
@@ -62,176 +71,160 @@ $sql = "
     FROM subscriptions s 
     LEFT JOIN customers c ON s.customer_id = c.id 
     LEFT JOIN sales_products p ON s.product_id = p.id 
-    LEFT JOIN subscription_histories h ON h.id = (
-        SELECT id FROM subscription_histories 
-        WHERE subscription_id = s.id 
-        ORDER BY due_date DESC, id DESC 
-        LIMIT 1
-    )
+    LEFT JOIN subscription_histories h ON s.id = h.subscription_id
     WHERE s.is_active = 1 
-    ORDER BY c.name ASC
+    ORDER BY c.name ASC, h.due_date DESC
 ";
 
+echo "🔍 status: Running SQL Query...<br>";
 $result = $conn->query($sql);
+if (!$result) {
+    die("❌ SQL Error: " . $conn->error);
+}
+echo "✅ SQL Success. Found " . $result->num_rows . " rows.<br>";
 
-$groups = [
-    'Overdue' => [],
-    'Due Soon' => [],
-    'Pending' => [],
-    'Other' => []
-];
+// ================== DATA PROCESSING ==================
+$overdueItems = [];
+$statusGroups = []; 
 
-$totalReceivable = 0;
 $totalActive = 0;
-
+$totalReceivable = 0;
 $today = date('Y-m-d');
-$next7Days = date('Y-m-d', strtotime('+7 days'));
 
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $totalActive++;
-        $status = strtolower($row['history_status'] ?? 'pending');
+        // Validating data 
+        
+        $statusRaw = $row['history_status'] ?? 'Pending'; // Default to Pending if null
+        $statusKey = ucwords(strtolower($statusRaw));     // Normalize for grouping
         $dueDate = $row['due_date'];
         
-        // Sanitize & Format Data
+        if (in_array(strtolower($statusRaw), ['payment received', 'last payment received'])) {
+            continue;
+        }
+
+        // Item Data
         $item = [
-            'customer' => $row['customer_name'] ?: ($row['company_name'] ?: 'Unknown Customer'),
-            'product' => $row['product_name'] ?: ($row['subscription_name'] ?: 'Subscription #' . $row['id']),
-            'amount' => $row['amount'],
+            'customer' => $row['customer_name'] ?: ($row['company_name'] ?: 'Unknown'),
+            'product' => $row['product_name'] ?: ($row['subscription_name'] ?: 'Sub #' . $row['id']),
+            'amount' => (float)$row['amount'],
             'due_date' => $dueDate,
-            'status' => ucwords($status),
+            'status' => $statusKey, 
             'recurrence' => ucfirst($row['recurrence_type'] ?? 'One Time'),
             'billing' => ucfirst($row['billing_type'] ?? '-'),
-            'contact' => $row['phone'] ?: $row['email'] ?: '-'
         ];
 
         // Classification Logic
-        $isPaid = in_array($status, ['payment received', 'paid', 'completed']);
+        // 1. Check strict payment status
+        $isPaid = in_array(strtolower($statusKey), ['paid', 'payment received', 'completed']);
         
-        if ($isPaid) {
-            $groups['Other'][] = $item;
+        // 2. Check Overdue (Priority Rule: Unpaid + Past Due)
+        $isOverdue = (!$isPaid && $dueDate && $dueDate < $today);
+
+        if ($isOverdue) {
+            $daysOver = (strtotime($today) - strtotime($dueDate)) / (60 * 60 * 24);
+            $item['notes'] = floor($daysOver) . " days overdue";
+            $overdueItems[] = $item;
+            $totalReceivable += $item['amount'];
         } else {
-            // Unpaid calculation
-            $totalReceivable += $row['amount'];
-            
-            if ($dueDate && $dueDate < $today) {
-                $daysOver = (strtotime($today) - strtotime($dueDate)) / (60 * 60 * 24);
-                $item['notes'] =  floor($daysOver) . " days overdue";
-                $groups['Overdue'][] = $item;
-            } elseif ($dueDate && $dueDate <= $next7Days) {
-                 $daysLeft = (strtotime($dueDate) - strtotime($today)) / (60 * 60 * 24);
-                 $item['notes'] = "Due in " . ceil($daysLeft) . " days";
-                 $groups['Due Soon'][] = $item;
-            } else {
-                $item['notes'] = "Pending";
-                $groups['Pending'][] = $item;
+            // 3. Group by Database Status
+            if (!$isPaid) {
+                 $totalReceivable += $item['amount'];
+                 // Optional: Add "Due Soon" note for context only, NOT grouping
+                 if ($dueDate) {
+                     $daysLeft = (strtotime($dueDate) - strtotime($today)) / (60 * 60 * 24);
+                     if ($daysLeft >= 0 && $daysLeft <= 7) {
+                         $item['notes'] = "Due in " . ceil($daysLeft) . " days";
+                     }
+                 }
             }
+            $statusGroups[$statusKey][] = $item;
         }
     }
 }
+echo "✅ Processed $totalActive subscriptions.<br>";
 
-// Custom Sort for Overdue: Pending -> Invoice -> Other
-if (!empty($groups['Overdue'])) {
-    usort($groups['Overdue'], function($a, $b) {
-        $p = function($s) {
-            if (stripos($s, 'pending') !== false) return 1;
-            if (stripos($s, 'invoice') !== false || stripos($s, 'pi') !== false) return 2;
-            return 3;
-        };
-        $pA = $p($a['status']);
-        $pB = $p($b['status']);
-        return $pA <=> $pB;
-    });
-}
-
-// ================== HELPER: RENDER COMPACT TABLE ==================
-function renderCompactTable($subscriptions, $title = '') {
-    if (empty($subscriptions)) {
-        return "";
-    }
+// ================== HELPER: RENDER TABLE ==================
+function renderTable($items, $title, $titleColor = '#111827', $isOverdue = false) {
+    if (empty($items)) return "";
 
     $rows = "";
-    foreach ($subscriptions as $idx => $item) {
-        $bg = ($idx % 2 == 0) ? '#ffffff' : '#f8f9fa';
+    foreach ($items as $idx => $item) {
+        $bg = ($idx % 2 == 0) ? '#ffffff' : '#f9fafb';
         $amount = number_format($item['amount'], 2);
         
-        // Handle dates
-        $dueDateRaw = $item['due_date'];
-        $dueDateDisplay = $dueDateRaw ? date('d M Y', strtotime($dueDateRaw)) : '-';
+        $dateDisplay = $item['due_date'] ? date('d M Y', strtotime($item['due_date'])) : '-';
         
-        $dueDateStyle = "color:#4b5563;";
-        if (isset($item['notes']) && strpos($item['notes'], 'overdue') !== false) {
-             $dueDateStyle = "color:#dc2626;font-weight:700;";
+        $dateStyle = "color:#4b5563;";
+        if ($isOverdue) {
+            $dateStyle = "color:#dc2626;font-weight:700;";
+        } elseif (isset($item['notes']) && strpos($item['notes'], 'Due in') !== false) {
+             $dateStyle = "color:#d97706;font-weight:700;";
+             $dateDisplay .= "<div style='font-size:9px;'>{$item['notes']}</div>";
         }
         
-        $customerName = h($item['customer']);
-        $productName = h($item['product']);
-        $Recur = h($item['recurrence']);
-        $Billing = h($item['billing']);
-        $status = h($item['status']);
-        $sn = $idx + 1;
-        
-        $statusColor = '#374151';
-        $statusBg = 'transparent';
-        if (stripos($status, 'paid') !== false || stripos($status, 'received') !== false) {
-             $statusColor = '#059669'; $statusBg = '#ecfdf5';
-        } elseif (stripos($status, 'pending') !== false || stripos($status, 'due') !== false) {
-             $statusColor = '#d97706'; $statusBg = '#fffbeb';
-        } elseif (stripos($status, 'overdue') !== false) {
-             $statusColor = '#dc2626'; $statusBg = '#fef2f2';
+        $statusStyle = "background:#f3f4f6;color:#374151;";
+        $s = strtolower($item['status']);
+
+        // Quick Visual Coding
+        if (strpos($s, 'paid') !== false || strpos($s, 'received') !== false) {
+             $statusStyle = "background:#ecfdf5;color:#059669;";
+        } elseif (strpos($s, 'pending') !== false) {
+             $statusStyle = "background:#fffbeb;color:#d97706;";
+        } elseif (strpos($s, 'invoice') !== false || strpos($s, 'sent') !== false) {
+             $statusStyle = "background:#eff6ff;color:#2563eb;";
+        } elseif (strpos($s, 'overdue') !== false) {
+             $statusStyle = "background:#fef2f2;color:#dc2626;";
         }
 
         $rows .= "
         <tr style='background:{$bg};border-bottom:1px solid #e5e7eb;'>
-            <td style='padding:6px 8px;color:#6b7280;font-size:10px;text-align:center;'>{$sn}</td>
-            <td style='padding:6px 8px;color:#111827;font-weight:600;'>{$customerName}</td>
-            <td style='padding:6px 8px;color:#374151;'>{$productName}</td>
-            <td style='padding:6px 8px;color:#374151;'>{$Recur}</td>
-            <td style='padding:6px 8px;color:#374151;'>{$Billing}</td>
-            <td style='padding:6px 8px;text-align:right;color:#111827;font-weight:600;'>₹{$amount}</td>
-            <td style='padding:6px 8px;text-align:center;{$dueDateStyle}'>{$dueDateDisplay}</td>
-            <td style='padding:6px 8px;text-align:center;'><span style='color:{$statusColor};background:{$statusBg};padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;'>{$status}</span></td>
+            <td style='padding:8px;font-size:11px;color:#111827;'>{$item['customer']}</td>
+            <td style='padding:8px;font-size:11px;color:#4b5563;'>{$item['product']}</td>
+            <td style='padding:8px;font-size:11px;color:#4b5563;text-align:right;'><b>{$amount}</b></td>
+            <td style='padding:8px;font-size:11px;{$dateStyle};text-align:center;'>{$dateDisplay}</td>
+            <td style='padding:8px;text-align:center;'><span style='font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;{$statusStyle}'>{$item['status']}</span></td>
         </tr>";
     }
 
-    $header = $title ? "<div style='background:#f3f4f6;padding:8px 10px;font-weight:700;color:#111827;font-size:12px;text-transform:uppercase;border:1px solid #e5e7eb;border-bottom:none;margin-top:15px;'>{$title}</div>" : "";
-
     return "
-    {$header}
-    <table width='100%' cellspacing='0' cellpadding='0' style='font-size:11px;border-collapse:collapse;border:1px solid #e5e7eb;margin-bottom:0;'>
-        <thead>
-            <tr style='background:#ffffff;border-bottom:2px solid #e5e7eb;'>
-                <th style='padding:8px;text-align:center;color:#4b5563;font-weight:700;text-transform:uppercase;font-size:10px;width:30px;'>#</th>
-                <th style='padding:8px;text-align:left;color:#4b5563;font-weight:700;text-transform:uppercase;font-size:10px;'>Customer</th>
-                <th style='padding:8px;text-align:left;color:#4b5563;font-weight:700;text-transform:uppercase;font-size:10px;'>Product</th>
-                <th style='padding:8px;text-align:left;color:#4b5563;font-weight:700;text-transform:uppercase;font-size:10px;'>Type</th>
-                <th style='padding:8px;text-align:left;color:#4b5563;font-weight:700;text-transform:uppercase;font-size:10px;'>Billing</th>
-                <th style='padding:8px;text-align:right;color:#4b5563;font-weight:700;text-transform:uppercase;font-size:10px;'>Amount</th>
-                <th style='padding:8px;text-align:center;color:#4b5563;font-weight:700;text-transform:uppercase;font-size:10px;'>Next Due</th>
-                <th style='padding:8px;text-align:center;color:#4b5563;font-weight:700;text-transform:uppercase;font-size:10px;'>Status</th>
-            </tr>
-        </thead>
-        <tbody>{$rows}</tbody>
-    </table>";
+    <div style='margin-top:20px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;'>
+        <div style='background:#f3f4f6;padding:8px 12px;font-weight:700;color:{$titleColor};font-size:13px;border-bottom:1px solid #e5e7eb;'>
+            {$title} <span style='font-weight:400;color:#6b7280;margin-left:5px;'>(" . count($items) . ")</span>
+        </div>
+        <table width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;'>
+            <thead style='background:#ffffff;border-bottom:1px solid #e5e7eb;'>
+                <tr>
+                    <th style='padding:8px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase;'>Customer</th>
+                    <th style='padding:8px;text-align:left;font-size:10px;color:#6b7280;text-transform:uppercase;'>Product</th>
+                    <th style='padding:8px;text-align:right;font-size:10px;color:#6b7280;text-transform:uppercase;'>Amount</th>
+                    <th style='padding:8px;text-align:center;font-size:10px;color:#6b7280;text-transform:uppercase;'>Due Date</th>
+                    <th style='padding:8px;text-align:center;font-size:10px;color:#6b7280;text-transform:uppercase;'>Status</th>
+                </tr>
+            </thead>
+            <tbody>{$rows}</tbody>
+        </table>
+    </div>";
 }
 
+// ================== BUILD REPORT HTML ==================
 $tablesHtml = "";
-if (empty($groups['Overdue']) && empty($groups['Due Soon']) && empty($groups['Pending']) && empty($groups['Other'])) {
-    $tablesHtml = "<div style='padding:20px;text-align:center;color:#666;'>No active subscriptions found.</div>";
-} else {
-    // Render Sections
-    if (!empty($groups['Overdue'])) {
-        $tablesHtml .= renderCompactTable($groups['Overdue'], "⚠️ Overdue Subscriptions");
-    }
-    if (!empty($groups['Due Soon'])) {
-        $tablesHtml .= renderCompactTable($groups['Due Soon'], "⏰ Due Soon (Next 7 Days)");
-    }
-    if (!empty($groups['Pending'])) {
-        $tablesHtml .= renderCompactTable($groups['Pending'], "⏳ Pending");
-    }
-    if (!empty($groups['Other'])) {
-        $tablesHtml .= renderCompactTable($groups['Other'], "✅ Paid / Up to Date");
-    }
+
+// 1. Overdue Table (Priority)
+if (!empty($overdueItems)) {
+    $tablesHtml .= renderTable($overdueItems, "⚠️ Overdue Subscriptions", "#dc2626", true);
+}
+
+// 2. Status Tables (Sorted by Name)
+ksort($statusGroups); // A-Z Sort of Statuses
+foreach ($statusGroups as $statusName => $items) {
+    if (empty($items)) continue;
+    $tablesHtml .= renderTable($items, "➤ Status: " . $statusName);
+}
+
+if(empty($tablesHtml)) {
+    $tablesHtml = "<div style='padding:20px;text-align:center;color:#6b7280;'>No subscriptions to display.</div>";
 }
 
 $dateDisplay = date('d M Y');
@@ -242,47 +235,44 @@ $bodyHtml = "
 <html>
 <head>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; margin: 0; padding: 0; }
-  .wrapper { width: 100%; table-layout: fixed; background-color: #ffffff; padding: 10px; }
-  .main-table { background-color: #ffffff; margin: 0 auto; width: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; }
+  .wrapper { width: 100%; margin: 0 auto; background-color: #ffffff; padding: 0; border-radius:8px; overflow:hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+  .header { background:#4f46e5; padding:20px; color:white; }
+  .content { padding:20px; }
 </style>
 </head>
 <body>
 <div class='wrapper'>
-  <table align='center' class='main-table' cellpadding='0' cellspacing='0'>
-    <tr>
-      <td style='padding-bottom: 10px; border-bottom: 2px solid #434AFA; margin-bottom: 10px;'>
-         <table width='100%'>
-             <tr>
-                 <td style='color: #434AFA; font-size: 16px; font-weight: 700;'>Subscription Report</td>
-                 <td style='text-align:right; color: #6b7280; font-size: 11px;'>{$dateDisplay} &bull; Active: <strong>{$totalActive}</strong> &bull; Pending: <strong>₹{$receivableDisplay}</strong></td>
-             </tr>
-         </table>
-      </td>
-    </tr>
-    <tr>
-      <td style='padding-top: 10px;'>
+    <div class='header'>
+        <table width='100%'>
+            <tr>
+                <td style='font-size:18px;font-weight:bold;'>Subscription Report</td>
+                <td style='text-align:right;font-size:12px;opacity:0.9;'>{$dateDisplay}</td>
+            </tr>
+        </table>
+    </div>
+    <div class='content'>
         {$tablesHtml}
-         <div style='text-align:center; color:#9ca3af; font-size:10px; margin-top:15px; border-top:1px solid #f3f4f6; padding-top:5px;'>
-            Workorio Auto-Report
-         </div>
-      </td>
-    </tr>
-  </table>
+    </div>
+    <div style='background:#f9fafb;padding:15px;text-align:center;font-size:10px;color:#6b7280;border-top:1px solid #e5e7eb;'>
+        Workorio Automated Report &bull; Total Active: {$totalActive} &bull; Pending: ₹{$receivableDisplay}
+    </div>
 </div>
 </body>
 </html>
 ";
 
 $plainText = "Subscription Report - $dateDisplay\n\n";
-$plainText .= "Total Pending Receivable: ₹$receivableDisplay\n";
-$plainText .= "Total Active: $totalActive\n\n";
-foreach ($groups as $name => $items) {
-    if (!empty($items)) {
-        $plainText .= "[$name]: " . count($items) . " subscriptions\n";
-    }
+if (!empty($overdueItems)) {
+    $plainText .= "⚠️ OVERDUE: " . count($overdueItems) . " items\n";
 }
-$plainText .= "\nPlease verify details on the dashboard.";
+foreach ($statusGroups as $name => $items) {
+    $plainText .= "[$name]: " . count($items) . " items\n";
+}
+$plainText .= "\nTotal Pending: ₹$receivableDisplay\n";
+$plainText .= "Please check dashboard for details.";
+
+echo "📝 HTML Report Generated. Sending emails...<br>";
 
 // ================== SEND EMAIL ==================
 foreach ($recipientEmails as $to) {
@@ -302,7 +292,7 @@ foreach ($recipientEmails as $to) {
         $mail->isHTML(true);
         
         // Dynamic subject line
-        $subjectPrefix = count($groups['Overdue']) > 0 ? " Alert: " . count($groups['Overdue']) . " Overdue" : "✅ Daily Report";
+        $subjectPrefix = count($overdueItems) > 0 ? " Alert: " . count($overdueItems) . " Overdue" : "✅ Daily Report";
         $mail->Subject = "$subjectPrefix | Subscription Summary - $dateDisplay";
         
         $mail->Body    = $bodyHtml;
