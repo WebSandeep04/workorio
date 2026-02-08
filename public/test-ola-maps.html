@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ola Maps API Key Diagnostic Test</title>
+    <!-- Ola Maps Web SDK -->
+    <link href="https://www.unpkg.com/olamaps-web-sdk@latest/dist/style.css" rel="stylesheet" />
+    <script src="https://www.unpkg.com/olamaps-web-sdk@latest/dist/olamaps-web-sdk.umd.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+            background: #eee;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .log-box {
+            background: #1e1e1e;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            color: #0f0;
+        }
+
+        .error {
+            color: #ffcccc;
+            font-weight: bold;
+        }
+
+        .warning {
+            color: #ffcc00;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .status-badge.pending {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .status-badge.success {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .status-badge.error {
+            background: #dc3545;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Ola Maps Diagnostic Test</h1>
+
+        <div id="status-badge" class="status-badge pending">Status: Testing...</div>
+
+        <div class="log-box" id="console-log">
+            <div>> Starting diagnostic test...</div>
+        </div>
+
+        <div id="map">
+            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#666;">Map Container
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const API_KEY = 'iLBQa55RFiKpDxyF0h9mf8IEC37Xe4e09CyNwtlT';
+        // ---------------------
+
+        const logBox = document.getElementById('console-log');
+        const statusBadge = document.getElementById('status-badge');
+
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString();
+            div.innerHTML = `[${timestamp}] ${msg}`;
+            if (type === 'error') div.className = 'error';
+            if (type === 'success') div.className = 'success';
+            if (type === 'warning') div.className = 'warning';
+            logBox.appendChild(div);
+            logBox.scrollTop = logBox.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${msg}`);
+        }
+
+        function setStatus(status, text) {
+            statusBadge.className = `status-badge ${status}`;
+            statusBadge.innerText = `Status: ${text}`;
+        }
+
+        async function runDiagnostics() {
+            log(`API Key: ${API_KEY.substring(0, 5)}...${API_KEY.substring(API_KEY.length - 5)}`);
+            log("Checking environment: " + window.location.href);
+
+            // 1. Check SDK Loading
+            if (typeof OlaMapsSDK === 'undefined') {
+                log("CRITICAL: OlaMapsSDK library not loaded. Check internet connection or CDN URL.", "error");
+                setStatus('error', 'SDK Load Failed');
+                return;
+            }
+            log("SDK Loaded successfully.", "success");
+
+            // 2. Initialize SDK
+            let olaMaps;
+            try {
+                olaMaps = new OlaMapsSDK.OlaMaps({ apiKey: API_KEY });
+                log("OlaMaps client instantiated.", "success");
+            } catch (e) {
+                log("Error instantiating OlaMaps client: " + e.message, "error");
+                setStatus('error', 'Client Init Failed');
+                return;
+            }
+
+            // 3. Test HTTP Access to Tiles (Pre-check)
+            // Trying '-mr' suffix which is arguably the standard for some tiers
+            const styleName = 'default-light-standard-mr';
+            const testUrl = `https://api.olamaps.io/tiles/vector/v1/styles/${styleName}/style.json?api_key=${API_KEY}`;
+            log(`Testing direct connectivity to: ${testUrl}`, 'info');
+
+            try {
+                const response = await fetch(testUrl);
+                log(`HTTP Status: ${response.status} ${response.statusText}`);
+
+                if (response.status === 200) {
+                    log("Direct API access successful! (200 OK)", "success");
+                } else if (response.status === 401) {
+                    log("Direct API access FAILED (401 Unauthorized). Check Subscriptions/Domains.", "error");
+                    setStatus('error', 'Authentication Failed');
+                } else if (response.status === 403) {
+                    log("Direct API access FAILED (403 Forbidden). checking response...", "error");
+                    const text = await response.text();
+                    log(`Server Response: ${text}`, "error");
+                    setStatus('error', '403 Forbidden (Wrong Style?)');
+                } else {
+                    log(`Unexpected status: ${response.status}`, "warning");
+                }
+            } catch (err) {
+                log("Network request failed: " + err.message, "error");
+            }
+
+            // 4. Render Map
+            log("Attempting to render map...", "info");
+            try {
+                const myMap = await olaMaps.init({
+                    style: `https://api.olamaps.io/tiles/vector/v1/styles/${styleName}/style.json`,
+                    container: 'map',
+                    center: [80.34293896109307, 26.49832844056538], // Bangalore
+                    zoom: 12,
+                });
+
+                // Hook into map errors
+                myMap.on('error', (e) => {
+                    // Fix circular JSON error by logging specific properties
+                    console.error(e);
+                    log("Map Internal Error: " + (e.error ? JSON.stringify(e.error) : 'Unknown Error'), "error");
+                    if (e.error && (e.error.status === 401 || e.error.status === 403)) {
+                        setStatus('error', e.error.status + ' Access Denied');
+                    }
+                });
+
+                myMap.on('load', () => {
+                    log("Map 'load' event fired. Rendering complete.", "success");
+                    setStatus('success', 'Map Working!');
+
+                    // Add a test marker
+                    log("Adding test marker...", "info");
+                    const el = document.createElement('div');
+                    el.style.backgroundColor = 'red';
+                    el.style.width = '20px'; el.style.height = '20px';
+                    el.style.borderRadius = '50%';
+
+                    olaMaps.addMarker({ element: el, anchor: 'center' })
+                        .setLngLat([77.5946, 12.9716])
+                        .addTo(myMap);
+                });
+
+            } catch (e) {
+                log("Map Initialization Crashed: " + e.message, "error");
+                setStatus('error', 'Map Init Crash');
+            }
+        }
+
+        runDiagnostics();
+    </script>
+
+</body>
+
+</html>

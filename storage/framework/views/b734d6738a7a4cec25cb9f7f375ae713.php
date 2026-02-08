@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -12,14 +12,14 @@
                             <label for="employee_id" class="form-label">Select Employee</label>
                             <select class="form-select" id="employee_id" name="employee_id">
                                 <option value="">All Employees</option>
-                                @foreach($employees as $employee)
-                                    <option value="{{ $employee->id }}">{{ $employee->name }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($employee->id); ?>"><?php echo e($employee->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label for="date" class="form-label">Select Date</label>
-                            <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}">
+                            <input type="date" class="form-control" id="date" name="date" value="<?php echo e(date('Y-m-d')); ?>">
                         </div>
                         <div class="col-md-4">
                             <button type="submit" class="btn btn-primary">Filter</button>
@@ -101,7 +101,7 @@
             const date = document.getElementById('date').value;
 
             try {
-                const response = await fetch(`{{ route('tracking.fetch-locations') }}?employee_id=${employeeId}&date=${date}`);
+                const response = await fetch(`<?php echo e(route('tracking.fetch-locations')); ?>?employee_id=${employeeId}&date=${date}`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -230,4 +230,6 @@
         setInterval(fetchLocations, 30000);
     });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/tracking/index.blade.php ENDPATH**/ ?>
