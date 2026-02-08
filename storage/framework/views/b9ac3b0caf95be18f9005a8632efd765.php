@@ -210,7 +210,7 @@
             <div class="d-none d-md-block" style="font-size: 12px; color: #5f6368;">Contains ads &bull; In-app purchases</div>
             
             <div class="mt-3 d-none d-md-block">
-                <button class="install-btn" onclick="document.getElementById('downloadLink').click()">Install</button>
+                <button class="install-btn" onclick="document.getElementById('downloadLink').click()">Download</button>
                 <div class="mt-2 text-success small"><i class="bi bi-check-circle-fill me-1"></i> Verified by Triserv 360 Business Solutions</div>
             </div>
         </div>
@@ -232,7 +232,7 @@
                 <div class="stat-label">Everyone</div>
             </div>
         </div>
-        <button class="install-btn" onclick="document.getElementById('downloadLink').click()">Install</button>
+        <button class="install-btn" onclick="document.getElementById('downloadLink').click()">Download</button>
     </div>
 
     <!-- Stats Row (Desktop) -->
@@ -253,7 +253,7 @@
 
     <!-- Screenshots -->
     <div style="position: relative;">
-        <button class="scroll-btn scroll-left" onclick="scrollScreenshots(-1)"><i class="bi bi-chevron-left"></i></button>
+        <button class="scroll-btn scroll-left d-none d-md-flex" onclick="scrollScreenshots(-1)"><i class="bi bi-chevron-left"></i></button>
         <div class="screenshot-scroller" id="scroller">
             <!-- Using placeholder images or actual screenshots if available -->
             <img src="/img/appScreenshot/w1.jpeg" class="screenshot-img" alt="Workorio Dashboard">
@@ -271,7 +271,7 @@
             <img src="/img/appScreenshot/w13.jpeg" class="screenshot-img" alt="Workorio App 13">
             <img src="/img/appScreenshot/w14.jpeg" class="screenshot-img" alt="Workorio App 14">
         </div>
-        <button class="scroll-btn scroll-right" onclick="scrollScreenshots(1)"><i class="bi bi-chevron-right"></i></button>
+        <button class="scroll-btn scroll-right d-none d-md-flex" onclick="scrollScreenshots(1)"><i class="bi bi-chevron-right"></i></button>
     </div>
 
     <!-- Description -->
@@ -318,7 +318,7 @@
 </div>
 
 <!-- Hidden Download Link (Replace with actual APK path) -->
-<a id="downloadLink" href="/app-release.apk" style="display:none;" download></a>
+<a id="downloadLink" href="<?php echo e(asset('apk/app-release.apk')); ?>" style="display:none;" download></a>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
