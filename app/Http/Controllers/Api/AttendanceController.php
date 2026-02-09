@@ -268,10 +268,18 @@ class AttendanceController extends Controller
         }
 
         // All validations passed. Now ensure we have an attendance row for today.
-        $attendance = $existingAttendance ?: Attendance::create([
-            'user_id' => $user->id,
-            'date' => $today,
-        ]);
+        if ($existingAttendance) {
+            $attendance = $existingAttendance;
+            if ($request->boolean('emergency_attendance') && !$attendance->is_emergency) {
+                $attendance->update(['is_emergency' => 1]);
+            }
+        } else {
+            $attendance = Attendance::create([
+                'user_id' => $user->id,
+                'date' => $today,
+                'is_emergency' => $request->boolean('emergency_attendance') ? 1 : 0,
+            ]);
+        }
 
         // Get the last movement for this specific movement type
         $lastMovement = Movement::where('attendance_id', $attendance->id)

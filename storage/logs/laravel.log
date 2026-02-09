@@ -928,3 +928,6 @@
 [2026-02-09 07:00:28] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1030,"movement_id":2419} 
 [2026-02-09 07:00:31] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"field"} 
 [2026-02-09 07:00:32] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1030,"movement_id":2421} 
+[2026-02-09 07:46:50] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 07:46:54] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 07:46:54] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1031,"movement_id":2427} 
