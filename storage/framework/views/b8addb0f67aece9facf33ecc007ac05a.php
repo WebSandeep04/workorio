@@ -289,7 +289,6 @@
       padding: 2px 6px;
       border-radius: 4px;
       margin-left: 5px;
-      text-transform: uppercase;
   }
 </style>
 <?php $__env->stopPush(); ?>
@@ -438,7 +437,7 @@ $(document).ready(function() {
                 
                 if (data.length > 0) {
                     data.forEach(function(item) {
-                        let emergencyBadge = item.is_emergency ? '<span class="badge-emergency">Emergency</span>' : '';
+                        let emergencyBadge = item.is_emergency ? '<span class="badge-emergency">Provisional</span>' : '';
                         
                         // Helper for badges
                         let getBadge = (type) => {
