@@ -13,7 +13,9 @@ class Attendance extends Model
     
     protected $fillable = [
         'user_id',
-        'date',];
+        'date',
+        'is_approved',
+    ];
 
     protected $casts = [
         'date' => 'date',

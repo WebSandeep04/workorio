@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->date('date');
             $table->timestamps();
+            $table->boolean('is_approved')->default(0);
             
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->unique(['user_id', 'date'], 'unique_user_date');
