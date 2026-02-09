@@ -867,6 +867,7 @@ Route::get('/worklog-missing-summary', function() {
                 Route::get('/attendance/approval/fetch', [App\Http\Controllers\AttendanceApprovalController::class, 'fetch'])->name('attendance.approval.fetch');
                 Route::post('/attendance/approve/{id}', [App\Http\Controllers\AttendanceApprovalController::class, 'approve'])->name('attendance.approve');
                 Route::post('/attendance/approve-bulk', [App\Http\Controllers\AttendanceApprovalController::class, 'bulkApprove'])->name('attendance.approve-bulk');
+                Route::post('/attendance/update-times/{id}', [App\Http\Controllers\AttendanceApprovalController::class, 'updateTimes'])->name('attendance.update-times');
                 
                 Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance');
                 Route::post('/attendance/punch-in', [AttendanceController::class, 'punchIn'])->name('attendance.punch-in');

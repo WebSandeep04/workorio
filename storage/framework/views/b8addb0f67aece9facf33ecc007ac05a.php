@@ -363,6 +363,38 @@
     <div id="paginationLinks"></div>
   </div>
 </div>
+
+<!-- Edit Time Modal -->
+<div class="modal fade" id="editTimeModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-primary text-white p-2">
+        <h6 class="modal-title ms-2">Edit Punch Times</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editTimeForm">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" id="edit_attendance_id">
+        <div class="modal-body p-3">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Punch In Time</label>
+            <input type="time" class="form-control form-control-sm" name="in_time" id="edit_in_time" required>
+          </div>
+          <div class="mb-1">
+            <label class="small fw-bold">Punch Out Time</label>
+            <input type="time" class="form-control form-control-sm" name="out_time" id="edit_out_time">
+            <small class="text-muted" style="font-size: 0.65rem;">Leave empty if not left yet.</small>
+          </div>
+        </div>
+        <div class="modal-footer p-2 d-flex justify-content-center border-0">
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary px-3">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
@@ -429,6 +461,9 @@ $(document).ready(function() {
                                 <td>
                                     <button class="btn-action text-success" title="Approve" onclick="approveAttendance(${item.id})">
                                         <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button class="btn-action text-primary ms-1" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}')">
+                                        <i class="bi bi-pencil"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -508,6 +543,47 @@ $(document).ready(function() {
             }
         });
     }
+
+    // Edit Times Modal Helper
+    window.editTimes = function(id, inRaw, outRaw) {
+        $('#edit_attendance_id').val(id);
+        $('#edit_in_time').val(inRaw);
+        $('#edit_out_time').val(outRaw);
+        $('#editTimeModal').modal('show');
+    }
+
+    // Submit Time Edit
+    $('#editTimeForm').submit(function(e) {
+        e.preventDefault();
+        let id = $('#edit_attendance_id').val();
+        let submitBtn = $(this).find('button[type="submit"]');
+        let originalText = submitBtn.text();
+
+        submitBtn.text('Updating...').prop('disabled', true);
+
+        $.ajax({
+            url: "/attendance/update-times/" + id,
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                submitBtn.text(originalText).prop('disabled', false);
+                if (response.success) {
+                    $('#editTimeModal').modal('hide');
+                    fetchAttendance(currentPage);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                submitBtn.text(originalText).prop('disabled', false);
+                let msg = 'Error updating times';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg += ': ' + xhr.responseJSON.message;
+                }
+                alert(msg);
+            }
+        });
+    });
 
     window.bulkApprove = function() {
         let ids = [];

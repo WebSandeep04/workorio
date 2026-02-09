@@ -17,7 +17,7 @@ class AttendanceApprovalController extends Controller
 
     public function fetch(Request $request)
     {
-        $today = Carbon::today()->toDateString();
+        $today = Carbon::today('Asia/Kolkata')->toDateString();
         
         // Start query
         $query = Attendance::with(['user', 'movements'])
@@ -56,9 +56,11 @@ class AttendanceApprovalController extends Controller
                 'id' => $attendance->id,
                 'user_name' => $attendance->user ? $attendance->user->name : 'Unknown',
                 'date' => Carbon::parse($attendance->date)->format('d M Y'),
-                'in_time' => $firstMovement ? Carbon::parse($firstMovement->time)->format('h:i A') : '-',
+                'in_time' => $firstMovement ? Carbon::parse($firstMovement->time)->setTimezone('Asia/Kolkata')->format('h:i A') : '-',
+                'in_time_raw' => $firstMovement ? Carbon::parse($firstMovement->time)->setTimezone('Asia/Kolkata')->format('H:i') : '',
                 'in_type' => $firstMovement ? $firstMovement->movement_type : null,
-                'out_time' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? Carbon::parse($lastMovement->time)->format('h:i A') : '-',
+                'out_time' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata')->format('h:i A') : '-',
+                'out_time_raw' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata')->format('H:i') : '',
                 'out_type' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? $lastMovement->movement_type : null,
                 'status' => 'Pending',
                 'is_emergency' => $attendance->is_emergency,
@@ -93,6 +95,51 @@ class AttendanceApprovalController extends Controller
             return response()->json(['success' => true, 'message' => 'Selected records approved successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error approving records: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function updateTimes(Request $request, $id)
+    {
+        $request->validate([
+            'in_time' => 'required',
+            'out_time' => 'nullable'
+        ]);
+
+        try {
+            $attendance = Attendance::with('movements')->findOrFail($id);
+            $dateStr = $attendance->date->toDateString(); // Ensure Y-m-d format
+
+            // Update First Movement (Punch In)
+            $firstMovement = $attendance->movements->sortBy('id')->first();
+            if ($firstMovement) {
+                // Convert submitted IST time back to UTC for database
+                $inTimeStr = "{$dateStr} {$request->in_time}";
+                $inTime = Carbon::createFromFormat('Y-m-d H:i', $inTimeStr, 'Asia/Kolkata')->setTimezone('UTC');
+                $firstMovement->update(['time' => $inTime]);
+            }
+
+            // Update Last Movement (Punch Out)
+            $lastMovement = $attendance->movements->sortByDesc('id')->first();
+            if ($request->filled('out_time')) {
+                $outTimeStr = "{$dateStr} {$request->out_time}";
+                $outTime = Carbon::createFromFormat('Y-m-d H:i', $outTimeStr, 'Asia/Kolkata')->setTimezone('UTC');
+                
+                if ($lastMovement && $lastMovement->id != $firstMovement->id) {
+                    $lastMovement->update(['time' => $outTime]);
+                } else {
+                    // If no out movement exists or it's the same as "In", create a new "Out" movement
+                    $attendance->movements()->create([
+                        'movement_type' => $firstMovement ? $firstMovement->movement_type : 'office',
+                        'movement_action' => 'out',
+                        'time' => $outTime,
+                        'description' => 'Manual adjustment'
+                    ]);
+                }
+            }
+
+            return response()->json(['success' => true, 'message' => 'Times updated successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error updating times: ' . $e->getMessage()], 500);
         }
     }
 }
