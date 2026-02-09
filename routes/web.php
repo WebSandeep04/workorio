@@ -862,6 +862,12 @@ Route::get('/worklog-missing-summary', function() {
              
             // Attendance routes (tenant DB)
             Route::middleware(['tenant.db'])->group(function () {
+                // Attendance Approval
+                Route::get('/attendance/approval', [App\Http\Controllers\AttendanceApprovalController::class, 'index'])->name('attendance.approval');
+                Route::get('/attendance/approval/fetch', [App\Http\Controllers\AttendanceApprovalController::class, 'fetch'])->name('attendance.approval.fetch');
+                Route::post('/attendance/approve/{id}', [App\Http\Controllers\AttendanceApprovalController::class, 'approve'])->name('attendance.approve');
+                Route::post('/attendance/approve-bulk', [App\Http\Controllers\AttendanceApprovalController::class, 'bulkApprove'])->name('attendance.approve-bulk');
+                
                 Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance');
                 Route::post('/attendance/punch-in', [AttendanceController::class, 'punchIn'])->name('attendance.punch-in');
                 Route::post('/attendance/punch-out', [AttendanceController::class, 'punchOut'])->name('attendance.punch-out');
