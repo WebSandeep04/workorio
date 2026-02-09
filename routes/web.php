@@ -868,6 +868,13 @@ Route::get('/worklog-missing-summary', function() {
                 Route::post('/attendance/approve/{id}', [App\Http\Controllers\AttendanceApprovalController::class, 'approve'])->name('attendance.approve');
                 Route::post('/attendance/approve-bulk', [App\Http\Controllers\AttendanceApprovalController::class, 'bulkApprove'])->name('attendance.approve-bulk');
                 Route::post('/attendance/update-times/{id}', [App\Http\Controllers\AttendanceApprovalController::class, 'updateTimes'])->name('attendance.update-times');
+
+                // Unlock Attendance
+                Route::get('/attendance/unlock', [App\Http\Controllers\UnlockAttendanceController::class, 'index'])->name('attendance.unlock');
+                Route::get('/attendance/unlock/fetch', [App\Http\Controllers\UnlockAttendanceController::class, 'fetch'])->name('attendance.unlock.fetch');
+                Route::post('/attendance/unlock/{id}', [App\Http\Controllers\UnlockAttendanceController::class, 'unlock'])->name('attendance.unlock.process');
+                Route::post('/attendance/unlock-bulk', [App\Http\Controllers\UnlockAttendanceController::class, 'unlockBulk'])->name('attendance.unlock-bulk');
+                Route::post('/attendance/unlock-by-date', [App\Http\Controllers\UnlockAttendanceController::class, 'unlockByDate'])->name('attendance.unlock-by-date');
                 
                 Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance');
                 Route::post('/attendance/punch-in', [AttendanceController::class, 'punchIn'])->name('attendance.punch-in');

@@ -182,6 +182,7 @@ return [
                 ['route' => 'approvals.petty', 'title' => 'Petty Approval', 'icon' => 'bi bi-cash', 'permission' => 'approvals.petty'],
                 ['route' => 'worklog-approvals', 'title' => 'Timesheet Approvals', 'icon' => 'bi bi-check2-square', 'permission' => 'worklog.approvals'],
                 ['route' => 'attendance.approval', 'title' => 'Attendance Approval', 'icon' => 'bi bi-person-check', 'permission' => 'attendance.approval'],
+                ['route' => 'attendance.unlock', 'title' => 'Unlock Attendance', 'icon' => 'bi bi-unlock', 'permission' => 'attendance.approval'],
             ],
         ],
         // Contact Management section
