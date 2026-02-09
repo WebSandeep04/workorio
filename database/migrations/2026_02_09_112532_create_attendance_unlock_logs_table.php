@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+           // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
+        
         Schema::create('attendance_unlock_logs', function (Blueprint $table) {
             $table->id();
             $table->date('date'); // date on which attendance unlock

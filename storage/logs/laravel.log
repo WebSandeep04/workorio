@@ -931,3 +931,22 @@
 [2026-02-09 07:46:50] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
 [2026-02-09 07:46:54] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
 [2026-02-09 07:46:54] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1031,"movement_id":2427} 
+[2026-02-09 13:17:27] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:17:28] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1031,"movement_id":2429} 
+[2026-02-09 13:20:28] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:20:29] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1031,"movement_id":2430} 
+[2026-02-09 13:22:46] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:23:10] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:24:11] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:24:19] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:24:26] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:25:15] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:26:02] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:26:08] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:26:08] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1032,"movement_id":2431} 
+[2026-02-09 13:27:45] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"field"} 
+[2026-02-09 13:27:45] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1032,"movement_id":2433} 
+[2026-02-09 13:27:52] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 13:27:53] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1032,"movement_id":2435} 
+[2026-02-09 13:27:57] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"field"} 
+[2026-02-09 13:27:57] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1032,"movement_id":2437} 

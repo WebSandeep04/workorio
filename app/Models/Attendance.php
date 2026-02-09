@@ -16,6 +16,7 @@ class Attendance extends Model
         'date',
         'is_approved',
         'is_emergency',
+        'is_wfh',
     ];
 
     protected $casts = [

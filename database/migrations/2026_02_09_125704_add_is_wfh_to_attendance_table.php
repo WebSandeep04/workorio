@@ -15,8 +15,9 @@ return new class extends Migration
         if (Schema::getConnection()->getName() === 'mysql') {
             return;
         }
+        
         Schema::table('attendance', function (Blueprint $table) {
-            //
+            $table->tinyInteger('is_wfh')->default(0)->after('is_approved');
         });
     }
 
@@ -26,7 +27,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('attendance', function (Blueprint $table) {
-            //
+            $table->dropColumn('is_wfh');
         });
     }
 };

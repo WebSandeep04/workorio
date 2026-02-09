@@ -593,7 +593,10 @@ function loadReport(){
                     const lastOut = findLastOut(d.movements);
                     
                     tr.innerHTML = `
-                        <td class="fw-bold text-dark">${d.display_date}</td>
+                        <td class="fw-bold text-dark">
+                            ${d.display_date} 
+                            ${d.is_wfh ? '<span class="badge bg-secondary text-white ms-1" style="font-size: 0.6rem; vertical-align: middle;">WFH</span>' : ''}
+                        </td>
                         <td>${statusBadge(d.status, d.holiday_name)}</td>
                         <td class="font-monospace">${firstIn||'-'}</td>
                         <td class="font-monospace">${lastOut||'-'}</td>
@@ -908,7 +911,10 @@ function loadDateReport() {
                     }
 
                     tr.innerHTML = `
-                        <td class="fw-bold text-dark">${d.user.name}</td>
+                        <td class="fw-bold text-dark">
+                            ${d.user.name} 
+                            ${d.is_wfh ? '<span class="badge bg-secondary text-white ms-1" style="font-size: 0.6rem; vertical-align: middle;">WFH</span>' : ''}
+                        </td>
                         <td>${statusBadge(d.status, d.holiday_name)}</td>
                         <td class="font-monospace">${d.first_in}</td>
                         <td class="font-monospace">${d.last_out}</td>

@@ -449,7 +449,12 @@
         <!-- <span id="attendanceStatusDot" class="rounded-circle" style="width: 12px; height: 12px; background-color: #cbd5e0; display: inline-block;"></span> -->
       </div>
       
-      <div class="action-buttons justify-content-around d-flex gap-3 align-items-center">
+      <div class="action-buttons justify-content-around d-flex flex-wrap gap-3 align-items-center">
+          <div class="form-check form-switch mb-0" style="padding-left: 2.5em;">
+            <input class="form-check-input" type="checkbox" id="is_wfh_toggle" style="cursor: pointer; width: 2.5em; height: 1.25em;">
+            <label class="form-check-label fw-bold ms-2" for="is_wfh_toggle" style="cursor: pointer; color: #2d3748;">Work From Home</label>
+          </div>
+
           <!-- Office Actions -->
             <div class="control-actions d-grid gap-3">
               <button type="button" class="btn btn-success" style="background: #434AFA; border-radius:3px;" id="officePunchIn" onclick="punchIn('office')">
@@ -657,7 +662,8 @@ function performPunchIn(type) {
             movement_type: type,
             _token: '{{ csrf_token() }}',
             latitude: lat,
-            longitude: long
+            longitude: long,
+            work_from_home: $('#is_wfh_toggle').is(':checked') ? 1 : 0
         };
 
         $.ajax({

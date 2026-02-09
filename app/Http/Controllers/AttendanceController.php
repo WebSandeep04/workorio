@@ -86,6 +86,8 @@ class AttendanceController extends Controller
             'late_reason' => 'nullable|string|max:500',
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
+            'work_from_home' => 'nullable|boolean',
+            'emergency_attendance' => 'nullable|boolean',
         ]);
 
         $user = $this->getCurrentUser();
@@ -177,11 +179,16 @@ class AttendanceController extends Controller
                 }
 
                 if ($employee && $employee->is_place_allowed) {
+                    $isWFH = $request->boolean('work_from_home');
+                    $isEmergency = $request->boolean('emergency_attendance');
+
                     if (empty($request->latitude) || empty($request->longitude)) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Location access is required for attendance. Please enable location services.',
-                        ], 422);
+                        if (!$isEmergency) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Location access is required for attendance. Please enable location services.',
+                            ], 422);
+                        }
                     }
 
                     $allowedPlaces = $employee->places;
@@ -216,7 +223,7 @@ class AttendanceController extends Controller
                             }
                         }
 
-                        if (!$isWithinRange) {
+                        if (!$isWithinRange && !$isEmergency) {
                             $distStr = number_format($minDistance, 1);
                             return response()->json([
                                 'success' => false,
@@ -288,6 +295,8 @@ class AttendanceController extends Controller
         $attendance = $existingAttendance ?: Attendance::create([
             'user_id' => $user->id,
             'date' => $today,
+            'is_wfh' => $request->boolean('work_from_home') ? 1 : 0,
+            'is_emergency' => $request->boolean('emergency_attendance') ? 1 : 0,
         ]);
 
         Log::info('Punch-in attendance resolved', [
@@ -1434,6 +1443,7 @@ class AttendanceController extends Controller
                 'first_in' => '-',
                 'last_out' => '-',
                 'description' => null,
+                'is_wfh' => false,
                 'movements' => []
             ];
 
@@ -1442,6 +1452,7 @@ class AttendanceController extends Controller
                 $dayData['office_hours'] = $this->calculateTypeHours($attendance->movements, 'office');
                 $dayData['field_hours'] = $this->calculateTypeHours($attendance->movements, 'field');
                 $dayData['break_time'] = $this->calculateTypeHours($attendance->movements, 'break');
+                $dayData['is_wfh'] = $attendance->is_wfh;
                 
                 $firstInMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'in')->first();
                 if ($firstInMov) {
@@ -2010,6 +2021,7 @@ class AttendanceController extends Controller
                 $dayData['field_hours'] = $this->calculateTypeHours($attendance->movements, 'field');
                 $dayData['break_time'] = $this->calculateTypeHours($attendance->movements, 'break');
                 $dayData['cycles'] = $this->calculateDayCycles($attendance->movements);
+                $dayData['is_wfh'] = $attendance->is_wfh;
                 
                 // Determine status based on total hours (not applicable for holidays and Sundays)
                 if ($dayData['hours'] >= 7) {

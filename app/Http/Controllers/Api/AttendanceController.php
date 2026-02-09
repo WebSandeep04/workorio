@@ -107,6 +107,7 @@ class AttendanceController extends Controller
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'emergency_attendance' => 'nullable|boolean',
+            'work_from_home' => 'nullable|boolean',
         ]);
 
         $user = $this->getCurrentUser();
@@ -278,6 +279,7 @@ class AttendanceController extends Controller
                 'user_id' => $user->id,
                 'date' => $today,
                 'is_emergency' => $request->boolean('emergency_attendance') ? 1 : 0,
+                'is_wfh' => $request->boolean('work_from_home') ? 1 : 0,
             ]);
         }
 

@@ -64,6 +64,7 @@ class AttendanceApprovalController extends Controller
                 'out_type' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? $lastMovement->movement_type : null,
                 'status' => 'Pending',
                 'is_emergency' => $attendance->is_emergency,
+                'is_wfh' => $attendance->is_wfh,
             ];
         });
 

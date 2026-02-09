@@ -438,6 +438,7 @@ $(document).ready(function() {
                 if (data.length > 0) {
                     data.forEach(function(item) {
                         let emergencyBadge = item.is_emergency ? '<span class="badge-emergency">Provisional</span>' : '';
+                        let wfhBadge = item.is_wfh ? '<span class="badge bg-secondary text-white ms-1" style="font-size: 0.6rem; vertical-align: middle;">WFH</span>' : '';
                         
                         // Helper for badges
                         let getBadge = (type) => {
@@ -453,7 +454,7 @@ $(document).ready(function() {
                             <tr>
                                 <td><input type="checkbox" class="row-checkbox" value="${item.id}"></td>
                                 <td>${item.date}</td>
-                                <td><span class="fw-bold">${item.user_name}</span> ${emergencyBadge}</td>
+                                <td><span class="fw-bold">${item.user_name}</span> ${emergencyBadge} ${wfhBadge}</td>
                                 <td>${inEntry}</td>
                                 <td>${outEntry}</td>
                                 <td><span class="badge bg-warning text-dark" style="font-size: 0.7rem;">${item.status}</span></td>
