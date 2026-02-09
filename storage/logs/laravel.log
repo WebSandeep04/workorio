@@ -910,3 +910,21 @@
 #68 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\DontDelete\\\\l...')
 #69 {main}
 "} 
+[2026-02-09 06:36:18] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-02-09 06:36:21] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-09 06:36:22] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-09 06:36:22] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-02-09 06:36:22] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-09 06:50:42] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 06:50:52] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 06:51:36] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 06:52:45] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 06:54:50] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 06:54:54] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 06:54:55] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1030,"movement_id":2413} 
+[2026-02-09 06:59:54] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"field"} 
+[2026-02-09 06:59:54] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1030,"movement_id":2416} 
+[2026-02-09 07:00:28] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-02-09 07:00:28] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1030,"movement_id":2419} 
+[2026-02-09 07:00:31] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"field"} 
+[2026-02-09 07:00:32] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1030,"movement_id":2421} 
