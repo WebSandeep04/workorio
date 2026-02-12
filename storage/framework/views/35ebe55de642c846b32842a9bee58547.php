@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Petty Cash')
-@section('page_title', 'Petty Cash')
 
-@push('styles')
+<?php $__env->startSection('title', 'Petty Cash'); ?>
+<?php $__env->startSection('page_title', 'Petty Cash'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -536,9 +536,9 @@
     }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <!-- Summary Cards -->
   <div class="summary-cards">
@@ -550,7 +550,7 @@
           <div class="summary-card-label">Total Opening Balance</div>
           <div class="summary-card-value text-dark">₹<span id="stat_opening_balance">0.00</span></div>
         </div>
-        <a href="{{ route('petty-cash.department-summary') }}" class="metric-arrow">
+        <a href="<?php echo e(route('petty-cash.department-summary')); ?>" class="metric-arrow">
             <i class="bi bi-arrow-right"></i>
         </a>
       </div>
@@ -588,9 +588,9 @@
         <label class="form-label-modern"><i class="bi bi-building"></i> Department</label>
         <select class="form-control-modern" id="filter_department">
             <option value="">All Departments</option>
-            @foreach($departments as $department)
-              <option value="{{ $department->id }}">{{ $department->name }}</option>
-            @endforeach
+            <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $department): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+              <option value="<?php echo e($department->id); ?>"><?php echo e($department->name); ?></option>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </select>
     </div>
     <div class="d-flex flex-column">
@@ -688,15 +688,15 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form id="createEntryForm" enctype="multipart/form-data">
-        @csrf
+        <?php echo csrf_field(); ?>
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Wallet <span class="text-danger">*</span></label>
             <select class="form-select" name="department_id" id="create_department_id" required>
               <option value="">Select Wallet</option>
-              @foreach($departments as $department)
-                <option value="{{ $department->id }}" {{ $department->id == 1 ? 'selected' : '' }}>{{ $department->name }}</option>
-              @endforeach
+              <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $department): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <option value="<?php echo e($department->id); ?>" <?php echo e($department->id == 1 ? 'selected' : ''); ?>><?php echo e($department->name); ?></option>
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
           </div>
           <div class="mb-3">
@@ -736,16 +736,16 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form id="editEntryForm" enctype="multipart/form-data">
-        @csrf
+        <?php echo csrf_field(); ?>
         <input type="hidden" id="edit_entry_id">
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Wallet <span class="text-danger">*</span></label>
             <select class="form-select" name="department_id" id="edit_department_id" required>
               <option value="">Select Wallet</option>
-              @foreach($departments as $department)
-                <option value="{{ $department->id }}">{{ $department->name }}</option>
-              @endforeach
+              <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $department): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <option value="<?php echo e($department->id); ?>"><?php echo e($department->name); ?></option>
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
           </div>
           <div class="mb-3">
@@ -776,7 +776,7 @@
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
 <!-- Remark View Modal -->
 <div class="modal fade" id="viewRemarkModal" tabindex="-1">
@@ -796,7 +796,7 @@
   </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
   loadData();
@@ -819,7 +819,7 @@ $(document).ready(function() {
 
   function loadStats() {
       const departmentId = $('#filter_department').val();
-      $.get("{{ route('petty-cash.stats') }}", { department_id: departmentId }, function(data) {
+      $.get("<?php echo e(route('petty-cash.stats')); ?>", { department_id: departmentId }, function(data) {
           // Overall Stats
           $('#stat_opening_balance').text(parseFloat(data.total_opening_balance || 0).toFixed(2));
           $('#stat_all_expense').text(parseFloat(data.total_expense || 0).toFixed(2));
@@ -828,7 +828,7 @@ $(document).ready(function() {
   }
 
   function loadExpenses() {
-    $.get("{{ route('petty-cash.fetch-expenses') }}", function(data) {
+    $.get("<?php echo e(route('petty-cash.fetch-expenses')); ?>", function(data) {
       let options = '<option value="">Select Expense</option>';
       let filterOptions = '<option value="">All Expenses</option>';
       
@@ -862,7 +862,7 @@ $(document).ready(function() {
       let formData = new FormData(this);
       
       $.ajax({
-          url: "{{ route('petty-cash.store') }}",
+          url: "<?php echo e(route('petty-cash.store')); ?>",
           type: 'POST',
           data: formData,
           processData: false,
@@ -919,7 +919,7 @@ $(document).ready(function() {
       $.ajax({
         url: `/petty-cash/${id}`,
         type: 'DELETE',
-        data: { _token: '{{ csrf_token() }}' },
+        data: { _token: '<?php echo e(csrf_token()); ?>' },
         success: function(res) {
           loadData();
           loadStats();
@@ -931,7 +931,7 @@ $(document).ready(function() {
   // Toggle Approval
   window.toggleApproval = function(id) {
       $.post(`/petty-cash/${id}/toggle-approval`, {
-          _token: '{{ csrf_token() }}'
+          _token: '<?php echo e(csrf_token()); ?>'
       }, function(response) {
           loadData();
           loadStats();
@@ -956,7 +956,7 @@ $(document).ready(function() {
     let month = $('#filter_month').val();
 
     $.ajax({
-      url: "{{ route('petty-cash.fetch') }}",
+      url: "<?php echo e(route('petty-cash.fetch')); ?>",
       data: {
         page: page,
         search: search,
@@ -1055,4 +1055,6 @@ $(document).ready(function() {
 });
 </script>
 <!-- Toastr for notifications (if usually present in layout) -->
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/pettycash/index.blade.php ENDPATH**/ ?>

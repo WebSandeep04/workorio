@@ -14,6 +14,7 @@ class PettyCashData extends Model
         'price',
         'is_approved',
         'attachment',
+        'remark',
     ];
 
     public function expense()

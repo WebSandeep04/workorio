@@ -104,6 +104,7 @@ class PettyCashController extends Controller
             'price' => 'required|numeric|min:0',
             'is_approved' => 'boolean',
             'attachment' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,pdf|max:2048',
+            'remark' => 'nullable|string',
         ]);
 
         $attachmentPath = null;
@@ -117,6 +118,7 @@ class PettyCashController extends Controller
             'price' => $request->price,
             'is_approved' => $request->is_approved ?? false,
             'attachment' => $attachmentPath,
+            'remark' => $request->remark,
         ]);
 
         return response()->json(['success' => true, 'message' => 'Petty cash entry created successfully.']);
@@ -128,7 +130,8 @@ class PettyCashController extends Controller
             'expense_id' => 'required|exists:expenses,id',
             'department_id' => 'required|exists:departments,id',
             'price' => 'required|numeric|min:0',
-            'is_approved' => 'boolean'
+            'is_approved' => 'boolean',
+            'remark' => 'nullable|string',
         ]);
 
         $entry = PettyCashData::findOrFail($id);
@@ -136,7 +139,8 @@ class PettyCashController extends Controller
             'expense_id' => $request->expense_id,
             'department_id' => $request->department_id,
             'price' => $request->price,
-            'is_approved' => $request->is_approved ?? $entry->is_approved
+            'is_approved' => $request->is_approved ?? $entry->is_approved,
+            'remark' => $request->remark,
         ]);
 
         return response()->json(['success' => true, 'message' => 'Petty cash entry updated successfully.']);
