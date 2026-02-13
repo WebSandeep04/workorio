@@ -71,6 +71,8 @@ class FormBuilderController extends Controller
             // allow only sender-related fields and a few extras for the lead form builder
             $allowedExact = [
                 'company_name',
+                'no_of_employees',
+                'remarks',
             ];
             $allowedPrefixes = ['sender_'];
 
@@ -363,7 +365,7 @@ class FormBuilderController extends Controller
         Log::info('[FormSubmit]['.$debugId.'] Found columns', ['columns' => $existingColumns]);
 
         // Allow only sender-related fields and company_name per earlier whitelist
-        $allowedExact = ['company_name'];
+        $allowedExact = ['company_name', 'no_of_employees', 'remarks'];
         $allowedPrefixes = ['sender_'];
         $payload = [];
         foreach ($validated as $key => $value) {
@@ -571,7 +573,7 @@ class FormBuilderController extends Controller
         $existingColumns = [];
         foreach ($rows as $r) { $existingColumns[$r->COLUMN_NAME] = strtoupper($r->IS_NULLABLE ?? 'YES') === 'YES'; }
 
-        $allowedExact = ['company_name'];
+        $allowedExact = ['company_name', 'no_of_employees', 'remarks'];
         $allowedPrefixes = ['sender_'];
         $payload = [];
         foreach ($validated as $key => $value) {

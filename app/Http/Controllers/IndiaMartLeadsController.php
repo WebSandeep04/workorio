@@ -272,9 +272,15 @@ class IndiaMartLeadsController extends Controller
                 'website_link' => null,
             ]);
 
-            // Create initial remark from query message
-            $remarkText = $lead->query_message ?? null;
-            if ($remarkText) {
+            // Create initial remark from query message and new fields
+            $remarkParts = [];
+            if ($lead->query_message) $remarkParts[] = "Query: " . $lead->query_message;
+            if (!empty($lead->no_of_employees)) $remarkParts[] = "No of Employees: " . $lead->no_of_employees;
+            if ($lead->remarks) $remarkParts[] = "Lead Remarks: " . $lead->remarks;
+            
+            $remarkText = implode("\n", $remarkParts);
+            
+            if (!empty($remarkText)) {
                 Remark::create([
                     'remark_date' => now()->toDateString(),
                     'remark' => $remarkText,
@@ -472,9 +478,15 @@ class IndiaMartLeadsController extends Controller
                         'website_link' => null,
                     ]);
 
-                    // Create initial remark from query message
-                    $remarkText = $lead->query_message ?? null;
-                    if ($remarkText) {
+                    // Create initial remark from query message and new fields
+                    $remarkParts = [];
+                    if ($lead->query_message) $remarkParts[] = "Query: " . $lead->query_message;
+                    if (!empty($lead->no_of_employees)) $remarkParts[] = "No of Employees: " . $lead->no_of_employees;
+                    if ($lead->remarks) $remarkParts[] = "Lead Remarks: " . $lead->remarks;
+                    
+                    $remarkText = implode("\n", $remarkParts);
+                    
+                    if (!empty($remarkText)) {
                         Remark::create([
                             'remark_date' => now()->toDateString(),
                             'remark' => $remarkText,
