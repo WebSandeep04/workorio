@@ -68,7 +68,21 @@ class AssetController extends Controller
              });
         }
 
-        $assets = $query->latest()->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        
+        if ($perPage === 'all') {
+            $assets = $query->latest()->get();
+            return response()->json([
+                'current_page' => 1,
+                'data' => $assets,
+                'total' => $assets->count(),
+                'last_page' => 1,
+                'from' => 1,
+                'to' => $assets->count()
+            ]);
+        }
+
+        $assets = $query->latest()->paginate($perPage);
 
         return response()->json($assets);
     }
