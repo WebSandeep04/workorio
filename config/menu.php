@@ -42,6 +42,15 @@ return [
             ],
         ],
         [
+            'key' => 'admin_projects',
+            'title' => 'Projects',
+            'route' => 'projects.index',
+            'icon' => 'bi bi-kanban',
+            'feature_flag' => 'is_worklog_enabled',
+            'roles' => ['admin'],
+            'permission' => 'projects.view',
+        ],
+        [
             'key' => 'admin_subs_renewal',
             'title' => 'Subs & Renewal',
             'route' => 'subscriptions.index',

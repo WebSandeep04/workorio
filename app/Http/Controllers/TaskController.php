@@ -237,6 +237,43 @@ class TaskController extends Controller
     }
 
     /**
+     * Fetch tasks for a specific customer project
+     */
+    public function fetchByCustomerProject($projectId)
+    {
+        try {
+            $tasks = Task::with($this->includeAssignedUsers([
+                    'user',
+                    'customer',
+                    'creator',
+                    'status',
+                    'priority',
+                    'customerProject',
+                    'workflowTask.successorDependencies.type',
+                ]))
+                ->where('customer_project_id', $projectId)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Load images separately
+            if (Schema::hasTable('task_images')) {
+                $tasks->load('images');
+            } else {
+                $tasks->each(function($task) {
+                    $task->setRelation('images', collect([]));
+                });
+            }
+
+            $tasks = $this->filterCriticalPathVisibility($tasks);
+
+            return response()->json($tasks->values());
+        } catch (\Exception $e) {
+            \Log::error('Error fetching project tasks: ' . $e->getMessage());
+            return response()->json(['error' => 'Error loading tasks', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Store a new task
      */
     public function store(Request $request)
@@ -327,11 +364,11 @@ class TaskController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'user_ids' => 'required|array|min:1',
+            'customer_id' => 'sometimes|exists:customers,id',
+            'user_ids' => 'sometimes|array|min:1',
             'user_ids.*' => 'exists:users,id',
-            'task_name' => 'required|string|max:255',
-            'task' => 'required|string',
+            'task_name' => 'sometimes|string|max:255',
+            'task' => 'sometimes|string',
             'task_type' => 'nullable|in:task,qc,cp',
             'task_status_id' => 'nullable|exists:task_statuses,id',
             'task_priority_id' => 'nullable|exists:task_priorities,id',
@@ -358,27 +395,38 @@ class TaskController extends Controller
             return response()->json(['message' => 'Please select at least one assignee'], 422);
         }
         $primaryAssigneeId = $assigneeIds[0];
-        $task->update([
-            'customer_id' => $request->customer_id,
-            'user_id' => $primaryAssigneeId,
-            'task_name' => $request->task_name,
-            'task' => $request->task,
-            'task_type' => $request->task_type ?? 'task',
-            'is_recurring' => (bool)($request->is_recurring ?? false),
-            'recurrence_type' => $request->is_recurring ? ($request->recurrence_type ?? null) : null,
-            'recurrence_interval' => $request->is_recurring ? ($request->recurrence_interval ?? null) : null,
-            'recurrence_days_of_week' => $request->is_recurring ? ($request->recurrence_days_of_week ?? null) : null,
-            'recurrence_day_of_month' => $request->is_recurring ? ($request->recurrence_day_of_month ?? null) : null,
-            'recurrence_months' => $request->is_recurring ? ($request->recurrence_months ?? null) : null,
-            'recurrence_end_date' => $request->is_recurring ? ($request->recurrence_end_date ?? null) : null,
-            'due_date' => $request->due_date ?: null,
-            'task_status_id' => $request->task_status_id,
-            'task_priority_id' => $request->task_priority_id,
-            'customer_project_id' => $request->customer_project_id ?? $task->customer_project_id,
-            'workflow_task_id' => $request->workflow_task_id ?? $task->workflow_task_id,
-            'started_at' => $request->started_at ?? $task->started_at,
-            'completed_at' => $request->completed_at ?? $task->completed_at,
-        ]);
+        $updateData = [];
+        if($request->has('customer_id')) $updateData['customer_id'] = $request->customer_id;
+        if($primaryAssigneeId) $updateData['user_id'] = $primaryAssigneeId;
+        if($request->has('task_name')) $updateData['task_name'] = $request->task_name;
+        if($request->has('task')) $updateData['task'] = $request->task;
+        if($request->has('task_type')) $updateData['task_type'] = $request->task_type;
+        
+        // Recurrence logic needs care to not overwrite if not sent, or handle as group
+        if($request->has('is_recurring')) {
+             $updateData['is_recurring'] = (bool)$request->is_recurring;
+             if($updateData['is_recurring']) {
+                 if($request->has('recurrence_type')) $updateData['recurrence_type'] = $request->recurrence_type;
+                 if($request->has('recurrence_interval')) $updateData['recurrence_interval'] = $request->recurrence_interval;
+                 if($request->has('recurrence_days_of_week')) $updateData['recurrence_days_of_week'] = $request->recurrence_days_of_week;
+                 if($request->has('recurrence_day_of_month')) $updateData['recurrence_day_of_month'] = $request->recurrence_day_of_month;
+                 if($request->has('recurrence_months')) $updateData['recurrence_months'] = $request->recurrence_months;
+                 if($request->has('recurrence_end_date')) $updateData['recurrence_end_date'] = $request->recurrence_end_date;
+             } else {
+                 // If disabling recurrence, clear fields? OR just set is_recurring false. 
+                 // Keeping it simple: just update what's sent.
+             }
+        }
+
+        if($request->has('due_date')) $updateData['due_date'] = $request->due_date ?: null;
+        if($request->has('task_status_id')) $updateData['task_status_id'] = $request->task_status_id;
+        if($request->has('task_priority_id')) $updateData['task_priority_id'] = $request->task_priority_id;
+        if($request->has('customer_project_id')) $updateData['customer_project_id'] = $request->customer_project_id;
+        if($request->has('workflow_task_id')) $updateData['workflow_task_id'] = $request->workflow_task_id;
+        if($request->has('started_at')) $updateData['started_at'] = $request->started_at;
+        if($request->has('completed_at')) $updateData['completed_at'] = $request->completed_at;
+
+        $task->update($updateData);
 
         $this->syncTaskAssignees($task, $assigneeIds, $this->getCurrentUserId());
 
@@ -932,5 +980,37 @@ class TaskController extends Controller
         }
 
         return null;
+    }
+
+    // --- Task Helper API Methods for Dropdowns ---
+
+    public function users()
+    {
+        $users = User::select('id', 'name')->orderBy('name')->get();
+        return response()->json($users);
+    }
+
+    public function statuses()
+    {
+        $statuses = TaskStatus::select('id', 'name', 'color')->orderBy('id')->get();
+        return response()->json($statuses);
+    }
+
+    public function priorities()
+    {
+        $priorities = TaskPriority::select('id', 'name', 'color')->orderBy('id')->get();
+        return response()->json($priorities);
+    }
+
+    public function fetchByProject($projectId)
+    {
+        $tasks = Task::with(
+                $this->includeAssignedUsers(['user', 'customer', 'creator', 'status', 'priority', 'images'])
+            )
+            ->where('customer_project_id', $projectId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        return response()->json($tasks);
     }
 }

@@ -110,6 +110,16 @@ class RoleMasterController extends Controller
                     'subscription.delete' => 'Subscription: Delete Subscriptions',
                 ]
             ],
+            'projects' => [
+                'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
+                'setup_enabled' => false,
+                'permissions' => [
+                    'projects.view' => 'Projects: View Projects',
+                    'projects.create' => 'Projects: Create Projects',
+                    'projects.edit' => 'Projects: Edit Projects',
+                    'projects.delete' => 'Projects: Delete Projects',
+                ]
+            ],
             'documents' => [
                 'enabled' => (bool) ($tenant->is_document_management_enabled ?? true),
                 'setup_enabled' => false,
@@ -314,6 +324,16 @@ class RoleMasterController extends Controller
                     'subscription.create' => 'Subscription: Create Subscriptions',
                     'subscription.edit' => 'Subscription: Edit Subscriptions',
                     'subscription.delete' => 'Subscription: Delete Subscriptions',
+                ]
+            ],
+            'projects' => [
+                'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
+                'setup_enabled' => false,
+                'permissions' => [
+                    'projects.view' => 'Projects: View Projects',
+                    'projects.create' => 'Projects: Create Projects',
+                    'projects.edit' => 'Projects: Edit Projects',
+                    'projects.delete' => 'Projects: Delete Projects',
                 ]
             ],
             'documents' => [

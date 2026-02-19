@@ -1,8 +1,8 @@
-@extends('layouts.app')
-@section('title', 'My Created Tasks')
-@section('page_title', 'My Created Tasks')
 
-@push('styles')
+<?php $__env->startSection('title', 'My Created Tasks'); ?>
+<?php $__env->startSection('page_title', 'My Created Tasks'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .data-table-card .custom-table thead th {  
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
@@ -674,15 +674,15 @@
 }
 
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <!-- Summary Cards -->
   <div class="summary-cards">
     <div class="summary-card card-1">
       <div class="summary-card-icon icon-sunrise">
-        <img src="{{ asset('img/icons/call.png') }}" alt="Total Tasks">
+        <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Total Tasks">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">Total Tasks</div>
@@ -691,7 +691,7 @@
     </div>
     <div class="summary-card card-2">
       <div class="summary-card-icon icon-amber">
-        <img src="{{ asset('img/icons/underprocess.png') }}" alt="In Progress">
+        <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="In Progress">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">In Progress</div>
@@ -700,7 +700,7 @@
     </div>
     <div class="summary-card card-3">
       <div class="summary-card-icon icon-emerald">
-        <img src="{{ asset('img/icons/tick.png') }}" alt="Completed">
+        <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Completed">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">Completed</div>
@@ -709,7 +709,7 @@
     </div>
     <div class="summary-card card-4">
       <div class="summary-card-icon icon-rose">
-        <img src="{{ asset('img/icons/pending.png') }}" alt="Pending">
+        <img src="<?php echo e(asset('img/icons/pending.png')); ?>" alt="Pending">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">Pending</div>
@@ -718,7 +718,7 @@
     </div>
     <div class="summary-card card-5">
       <div class="summary-card-icon icon-sky">
-        <img src="{{ asset('img/icons/new.png') }}" alt="Today's Tasks">
+        <img src="<?php echo e(asset('img/icons/new.png')); ?>" alt="Today's Tasks">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">Today's Tasks</div>
@@ -857,7 +857,7 @@
             </div>
             <form id="taskForm">
                 <div class="modal-body form-compact">
-                    @csrf
+                    <?php echo csrf_field(); ?>
                     
                     <!-- Recurring (Top, colorful) -->
                     <div class="form-accent mb-2" id="recurrenceSection">
@@ -1316,9 +1316,9 @@
     </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
     const $dueDateRow = $('#due_date').closest('.mb-3');
@@ -1540,7 +1540,7 @@ $(document).ready(function() {
     }
 
     // Load users dropdown / checkboxes
-    $.get("{{ route('task.users') }}", function(data) {
+    $.get("<?php echo e(route('task.users')); ?>", function(data) {
         console.log('Users loaded:', data);
         allUsers = Array.isArray(data) ? data : [];
         renderUserCheckboxes('#assignUsersContainer');
@@ -1564,7 +1564,7 @@ $(document).ready(function() {
     });
 
     // Load customers dropdown
-    $.get("{{ route('task.customers') }}", function(data) {
+    $.get("<?php echo e(route('task.customers')); ?>", function(data) {
         console.log('Customers loaded:', data);
         let options = '<option value="">Select Customer</option>';
         let filterOptions = '<option value="">All Customers</option>';
@@ -1626,7 +1626,7 @@ $(document).ready(function() {
     });
 
     // Load task statuses dropdown
-    $.get("{{ route('task.statuses') }}", function(data) {
+    $.get("<?php echo e(route('task.statuses')); ?>", function(data) {
         console.log('Task statuses loaded:', data);
         let options = '<option value="">Select Status</option>';
         let filterOptions = '<option value="">All Statuses</option><option value="done">Done</option>';
@@ -1653,7 +1653,7 @@ $(document).ready(function() {
     });
 
     // Load task priorities dropdown
-    $.get("{{ route('task.priorities') }}", function(data) {
+    $.get("<?php echo e(route('task.priorities')); ?>", function(data) {
         console.log('Task priorities loaded:', data);
         let options = '<option value="">Select Priority</option>';
         let filterOptions = '<option value="">All Priorities</option>';
@@ -1719,7 +1719,7 @@ $(document).ready(function() {
       `);
 
       $.ajax({
-        url: "{{ route('task.fetch') }}",
+        url: "<?php echo e(route('task.fetch')); ?>",
         type: "GET",
         dataType: 'json',
         success: function(data) {
@@ -2244,7 +2244,7 @@ $(document).ready(function() {
         }
         
         $.ajax({
-            url: "{{ route('task.store') }}",
+            url: "<?php echo e(route('task.store')); ?>",
             type: "POST",
             data: formData,
             processData: false,
@@ -2427,7 +2427,7 @@ $(document).ready(function() {
     window.loadTasks = function() {
         console.log('Loading tasks...');
         $.ajax({
-            url: "{{ route('task.fetch') }}",
+            url: "<?php echo e(route('task.fetch')); ?>",
             type: "GET",
             dataType: 'json',
             success: function(data) {
@@ -2642,7 +2642,7 @@ $(document).ready(function() {
         // Load dropdowns first - mimicking all-tasks.blade.php
         function loadEditModalDropdowns() {
             // Load users for edit modal
-            $.get("{{ route('task.users') }}", function(data) {
+            $.get("<?php echo e(route('task.users')); ?>", function(data) {
                 let options = '';
                 if (data && data.length > 0) {
                     $.each(data, function(i, user) {
@@ -2667,7 +2667,7 @@ $(document).ready(function() {
             });
 
             // Load customers for edit modal
-            $.get("{{ route('task.customers') }}", function(data) {
+            $.get("<?php echo e(route('task.customers')); ?>", function(data) {
                 let options = '<option value="">Select Customer</option>';
                 if (data && data.length > 0) {
                     $.each(data, function(i, customer) {
@@ -2678,7 +2678,7 @@ $(document).ready(function() {
             });
 
             // Load task statuses for edit modal
-            $.get("{{ route('task.statuses') }}", function(data) {
+            $.get("<?php echo e(route('task.statuses')); ?>", function(data) {
                 let options = '<option value="">Select Status</option>';
                 if (data && data.length > 0) {
                     $.each(data, function(i, status) {
@@ -2689,7 +2689,7 @@ $(document).ready(function() {
             });
 
             // Load task priorities for edit modal
-            $.get("{{ route('task.priorities') }}", function(data) {
+            $.get("<?php echo e(route('task.priorities')); ?>", function(data) {
                 let options = '<option value="">Select Priority</option>';
                 if (data && data.length > 0) {
                     $.each(data, function(i, priority) {
@@ -2702,7 +2702,7 @@ $(document).ready(function() {
         loadEditModalDropdowns();
         
         // Fetch task data
-        $.get("{{ route('task.fetch') }}", function(data) {
+        $.get("<?php echo e(route('task.fetch')); ?>", function(data) {
             let task = data.find(t => t.id === id);
             if (task) {
                 $('#edit_task_id').val(task.id);
@@ -3241,4 +3241,6 @@ $(document).ready(function() {
     // loadTasks() is already called above
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/worklog/task.blade.php ENDPATH**/ ?>

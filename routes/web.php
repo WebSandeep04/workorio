@@ -621,6 +621,17 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/invoice-followup/{invoiceId}', [InvoiceFollowupController::class, 'store'])->name('invoice-followup.store');
     Route::put('/invoice-followup/{invoiceId}/followup/{id}', [InvoiceFollowupController::class, 'update'])->name('invoice-followup.update');
 
+    // Projects routes
+    Route::get('/project-tracking', [App\Http\Controllers\ProjectsController::class, 'index'])->name('projects.index');
+    Route::get('/project-tracking/{id}', [App\Http\Controllers\ProjectsController::class, 'show'])->name('projects.show');
+    Route::get('/projects/fetch', [App\Http\Controllers\ProjectsController::class, 'fetch'])->name('projects.fetch');
+    Route::get('/projects/fetch-customers', [App\Http\Controllers\ProjectsController::class, 'fetchCustomers'])->name('projects.fetch_customers');
+    Route::get('/projects/fetch/{customerId}', [App\Http\Controllers\ProjectsController::class, 'fetchByCustomer'])->name('projects.fetch_by_customer');
+    Route::post('/projects', [App\Http\Controllers\ProjectsController::class, 'store'])->name('projects.store');
+    Route::get('/projects/options', [App\Http\Controllers\ProjectsController::class, 'getOptions'])->name('projects.options');
+    Route::put('/projects/{id}', [App\Http\Controllers\ProjectsController::class, 'update'])->name('projects.update');
+    Route::delete('/projects/{id}', [App\Http\Controllers\ProjectsController::class, 'destroy'])->name('projects.destroy');
+
     // Subscription routes
     // Subscription routes - specific routes must come BEFORE parameterized routes
     Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
@@ -822,6 +833,7 @@ Route::get('/worklog-missing-summary', function() {
              // Task routes (shows tasks created by user)
              Route::get('/task', [\App\Http\Controllers\TaskController::class, 'index'])->name('task.index');
              Route::get('/task/fetch', [\App\Http\Controllers\TaskController::class, 'fetch'])->name('task.fetch');
+             Route::get('/task/project/{projectId}', [\App\Http\Controllers\TaskController::class, 'fetchByCustomerProject'])->name('task.fetchByProject');
             Route::get('/task/users', [\App\Http\Controllers\TaskController::class, 'getUsers'])->name('task.users');
             Route::get('/task/customers', [\App\Http\Controllers\TaskController::class, 'getCustomers'])->name('task.customers');
             Route::get('/task/statuses', [\App\Http\Controllers\TaskController::class, 'getTaskStatuses'])->name('task.statuses');
@@ -1176,6 +1188,25 @@ Route::middleware(['auth.or.session'])->group(function () {
         
         return response()->json(['success' => true]);
     })->name('notifications.clear-all');
+});
+
+// Task Helper Routes
+Route::middleware(['auth.or.session'])->group(function () {
+    Route::get('/task/users', [App\Http\Controllers\TaskController::class, 'users'])->name('task.users');
+    Route::get('/task/statuses', [App\Http\Controllers\TaskController::class, 'statuses'])->name('task.statuses');
+    Route::get('/task/priorities', [App\Http\Controllers\TaskController::class, 'priorities'])->name('task.priorities');
+    
+    // Task CRUD & Actions
+    Route::get('/task/project/{projectId}', [App\Http\Controllers\TaskController::class, 'fetchByProject'])->name('task.fetchByProject');
+    Route::post('/task', [App\Http\Controllers\TaskController::class, 'store'])->name('task.store');
+    Route::delete('/task/{id}', [App\Http\Controllers\TaskController::class, 'destroy'])->name('task.destroy');
+    Route::put('/task/{id}', [App\Http\Controllers\TaskController::class, 'update'])->name('task.update');
+    Route::post('/task/{id}/update', [App\Http\Controllers\TaskController::class, 'update']); // Fallback for POST without spoofing if needed
+    
+    Route::post('/task/{id}/toggle-done', [App\Http\Controllers\TaskController::class, 'toggleDone'])->name('task.toggleDone');
+    Route::post('/task/{id}/poke', [App\Http\Controllers\TaskController::class, 'poke'])->name('task.poke');
+    Route::delete('/task/{id}/image/{imageId}', [App\Http\Controllers\TaskController::class, 'deleteImage'])->name('task.deleteImage');
+    Route::get('/task/{id}/image/{imageId}', [App\Http\Controllers\TaskController::class, 'serveImage'])->name('task.serveImage');
 });
 
 
