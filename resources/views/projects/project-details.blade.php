@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Project Details')
+@section('title', $project->project_name)
+@section('page_title', $project->project_name . ' (' . $project->customer->name . ')')
 
 @push('styles')
 <style>
@@ -167,37 +168,240 @@
       justify-content: flex-end;
       gap: 10px;
     }
+
+    /* Filters & Summary Cards from task.blade.php */
+    .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
+    .summary-card { background: #fff; border-radius: 10px; border: 1px solid #eceef3; padding: 0.4rem; box-shadow: 0px 4px 4px 0px #0000000A; transition: all 0.3s ease; width: 100%; min-height: 55px; height: 55px; display: flex; align-items: center; gap: 0.5rem; }
+    .summary-card:hover { transform: translateY(-2px); box-shadow: 0px 8px 8px 0px #0000000A; }
+    .summary-card-icon { width: 32px; height: 32px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .summary-card-icon img { width: 20px; height: 20px; object-fit: contain; }
+    .summary-card-content { display: flex; flex-direction: column; justify-content: center; flex-grow: 1; min-width: 0; }
+    .summary-card-label { font-size: 8px; font-weight: 700; text-transform: uppercase; margin-bottom: 0.15rem; color: #000; line-height: 1.1; font-family: Montserrat; }
+    .summary-card-value { font-size: 0.9rem; font-weight: 700; margin: 0; line-height: 1; color: #101828; font-family: Montserrat; }
+
+    .icon-sunrise { background: linear-gradient(135deg, #f97316, #fb923c); }
+    .icon-amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+    .icon-emerald { background: linear-gradient(135deg, #34d399, #10b981); }
+    .icon-rose { background: linear-gradient(135deg, #fb7185, #f43f5e); }
+    .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+
+    .filterBox {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.5rem;
+        background: #434AFA;
+        padding: 0.75rem;
+        color: #fff;
+        border-radius: 5px;
+        flex-wrap: wrap;
+        box-shadow: 0 2px 10px rgba(67, 74, 250, 0.3);
+        margin-bottom: 0.5rem;
+        border: 1px solid #434AFA;
+        font-family: Montserrat, sans-serif;
+    }
+    .filterBox .form-label-modern {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 10px;
+        font-family: Montserrat, sans-serif;
+    }
+    .filterBox .form-control-modern {
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 2px;
+        padding: 0.35rem 0.5rem;
+        background: rgba(255, 255, 255, 0.98);
+        color: #000;
+        transition: all 0.3s ease;
+        font-size: 10px;
+        font-family: Montserrat, sans-serif;
+        width: 100%;
+    }
+    .filterBox .form-control-modern:focus { outline: none; border-color: #fff; background: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4); transform: translateY(-1px); color: #000; }
+    
+    .table-search { width: 100%; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .table-search-field { flex: 1; display: inline-flex; align-items: center; gap: 0.35rem; background: #f4f5f7; border: 1px solid #e5e7eb; border-radius: 2px; padding: 0.35rem 0.9rem; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+    .table-search-field input { border: none; background: transparent; font-size: 0.85rem; width: 100%; outline: none; color: #111827; }
+    .table-search-btn { padding: 0.35rem 1rem; background: #434afa; color: white; border: none; border-radius: 2px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); display: inline-flex; align-items: center; }
+    .table-search-btn:hover { background: #3538d4; transform: translateY(-1px); color: white; }
+    
+    .action-btn { padding: 0.15rem 0.35rem; font-size: 0.7rem; border-radius: 4px; border: none; cursor: pointer; transition: all 0.2s ease; margin-right: 0.25rem; line-height: 1; }
+    .action-btn.btn-primary { background: #434afa; color: white; }
+    .action-btn.btn-secondary { background: #6c757d; color: white; }
+    .action-btn.btn-success { background: #198754; color: white; }
+    .action-btn.btn-warning { background: #ffc107; color: #000; }
+    .action-btn.btn-danger { background: #ef4444; color: white; }
+    
+    @media (max-width: 767px) {
+        .filterBox { grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; }
+    }
+
+    .row-overdue {
+        background-color: #fff5f5 !important;
+    }
+    .row-overdue td {
+        color: #dc3545;
+    }
+
+    .project-tabs {
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 1rem;
+    }
+    .project-tabs .nav-link {
+        color: #64748b;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: transparent;
+    }
+    .project-tabs .nav-link.active {
+        color: #434efa;
+        border-bottom: 2px solid #434efa;
+        background: transparent;
+    }
+    .project-tabs .nav-link:hover {
+        color: #434efa;
+        isolation: isolate;
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-2">
     
-    <div class="d-flex align-items-center mb-3">
-        <a href="{{ route('projects.index') }}" class="back-btn">
-            <i class="bi bi-arrow-left"></i> Back to Projects
-        </a>
-        <h5 class="mb-0 fw-bold" style="font-family: Montserrat;">{{ $project->project_name }} <span class="text-muted fs-6">({{ $project->customer->name }})</span></h5>
+
+    <ul class="nav project-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#tasks">Tasks</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#worklogs">Worklogs</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Tasks Tab -->
+        <div class="tab-pane fade show active" id="tasks">
+    <!-- Filters -->
+    <div class="filterBox mb-2">
+        <div class="mb-2">
+          <label for="filter_user" class="form-label-modern">
+            <i class="bi bi-person"></i> Assigned To
+          </label>
+          <select id="filter_user" class="form-control-modern">
+            <option value="">All Users</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label for="filter_status" class="form-label-modern">
+            <i class="bi bi-tag"></i> Status
+          </label>
+          <select id="filter_status" class="form-control-modern">
+            <option value="">All Statuses</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label for="filter_priority" class="form-label-modern">
+            <i class="bi bi-exclamation-circle"></i> Priority
+          </label>
+          <select id="filter_priority" class="form-control-modern">
+            <option value="">All Priorities</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label for="filter_type" class="form-label-modern">
+            <i class="bi bi-list-task"></i> Type
+          </label>
+          <select id="filter_type" class="form-control-modern">
+            <option value="">All Types</option>
+            <option value="task">Task</option>
+            <option value="qc">QC</option>
+            <option value="cp">Critical Path</option>
+          </select>
+        </div>
+    </div>
+
+    <!-- Static Project Info -->
+    <div class="data-table-card mb-2 p-3 bg-light border">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <label class="form-label-modern text-muted mb-1"><i class="bi bi-building me-1"></i> Customer</label>
+                <div class="fw-bold text-dark text-truncate" style="max-width: 200px;" title="{{ $project->customer->company_name ?? $project->customer->name }}">{{ $project->customer->company_name ?? $project->customer->name }}</div>
+            </div>
+            <div>
+                <label class="form-label-modern text-muted mb-1"><i class="bi bi-gear me-1"></i> Service</label>
+                <div class="fw-bold text-dark text-truncate" style="max-width: 200px;" title="{{ $project->service->name }}">{{ $project->service->name }}</div>
+            </div>
+            <div>
+                <label class="form-label-modern text-muted mb-1"><i class="bi bi-clock me-1"></i> Status</label>
+                <div>
+                    @if($project->project_status == 1)
+                        <span class="badge bg-primary">In Progress</span>
+                    @elseif($project->project_status == 2)
+                        <span class="badge bg-success">Completed</span>
+                    @else
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    @endif
+                </div>
+            </div>
+            <div>
+                <label class="form-label-modern text-muted mb-1"><i class="bi bi-calendar-event me-1"></i> Start Date</label>
+                <div class="fw-bold text-dark">{{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : 'N/A' }}</div>
+            </div>
+            <div>
+                <label class="form-label-modern text-muted mb-1"><i class="bi bi-calendar-check me-1"></i> End Date</label>
+                <div class="fw-bold text-dark">{{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d M Y') : 'N/A' }}</div>
+            </div>
+            <div style="min-width: 250px;">
+                <label class="form-label-modern text-muted mb-1"><i class="bi bi-pie-chart me-1"></i> Progress</label>
+                <div class="d-flex align-items-center" id="progress-wrapper">
+                     <div class="progress flex-grow-1" style="height: 6px;">
+                        <div id="details-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: {{ $project->completed_percentage ?? 0 }}%;" aria-valuenow="{{ $project->completed_percentage ?? 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <span class="ms-3 small fw-bold" id="details-progress-text">{{ $project->completed_percentage ?? 0 }}%</span>
+                     <i class="bi bi-pencil-square ms-2 text-primary cursor-pointer" data-bs-toggle="modal" data-bs-target="#updateProjectProgressModal" title="Update Progress" style="cursor: pointer;"></i>
+                </div>
+            </div>
+
+            @if($project->description)
+            <div class="w-100 mt-2 pt-2 border-top">
+                <label class="form-label-modern text-muted mb-1"><i class="bi bi-file-text me-1"></i> Description</label>
+                 <div class="small text-secondary">{{ $project->description }}</div>
+            </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Search & Add -->
+    <div class="table-search mb-2">
+        <div class="table-search-field">
+            <i class="bi bi-search"></i>
+            <input type="text" id="taskSearch" placeholder="Search tasks..." />
+        </div>
+        <button type="button" class="table-search-btn" id="addTaskBtn">
+            <i class="bi bi-plus me-1"></i>Add
+        </button>
     </div>
 
     <div class="data-table-card h-100">
-        <div class="p-3 bg-white d-flex justify-content-between align-items-center border-bottom sticky-top">
-            <h5 class="mb-0 text-primary fw-bold" style="font-family: Montserrat;" id="tasksTitle">Tasks</h5>
-            <div class="d-flex gap-2">
-                <input type="text" id="taskSearch" class="form-control form-control-sm" placeholder="Search tasks..." style="width: 200px;">
-                <button class="btn btn-sm btn-primary" id="addTaskBtn"><i class="bi bi-plus"></i> Add Task</button>
-            </div>
-        </div>
         <div class="table-responsive" style="max-height: calc(100vh - 200px); overflow-y: auto;">
             <table class="custom-table" id="projectTasksTable">
                 <thead>
                     <tr>
                         <th style="width: 15%;">Assigned To</th>
-                        <th style="width: 20%;">Task</th>
+                        <th style="width: 20%;">Task Name</th>
                         <th style="width: 5%;">Type</th>
                         <th style="width: 8%;">Priority</th>
                         <th style="width: 8%;">Status</th>
                         <th style="width: 10%;">Due Date</th>
+                        <th style="width: 10%;">Created By</th>
+                        <th style="width: 10%;">Created At</th>
                         <th class="text-end" style="width: 10%;">Actions</th>
                     </tr>
                 </thead>
@@ -207,7 +411,88 @@
             </table>
         </div>
     </div>
+    </div> <!-- Close Tasks Pane -->
 
+    <!-- Worklogs Tab -->
+    <div class="tab-pane fade" id="worklogs">
+        <!-- Worklog Filters -->
+        <div class="filterBox mb-2">
+            <div class="mb-2">
+                <label for="filter_worklog_user" class="form-label-modern">
+                    <i class="bi bi-person"></i> Create By
+                </label>
+                <select id="filter_worklog_user" class="form-control-modern">
+                    <option value="">All Users</option>
+                </select>
+            </div>
+            <div class="mb-2">
+                <label for="filter_worklog_module" class="form-label-modern">
+                    <i class="bi bi-box"></i> Module
+                </label>
+                <select id="filter_worklog_module" class="form-control-modern">
+                    <option value="">All Modules</option>
+                    @foreach($modules as $module)
+                        <option value="{{ $module->id }}">{{ $module->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-2">
+                <label for="filter_start_date" class="form-label-modern">
+                    <i class="bi bi-calendar"></i> From
+                </label>
+                <input type="date" id="filter_start_date" class="form-control-modern">
+            </div>
+            <div class="mb-2">
+                <label for="filter_end_date" class="form-label-modern">
+                    <i class="bi bi-calendar"></i> To
+                </label>
+                <input type="date" id="filter_end_date" class="form-control-modern">
+            </div>
+        </div>
+
+        <div class="data-table-card h-100">
+            <div class="table-responsive" style="max-height: calc(100vh - 250px); overflow-y: auto;">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Date</th>
+                            <th style="width: 20%;">User</th>
+                            <th style="width: 15%;">Entry Type</th>
+                            <th style="width: 15%;">Module</th>
+                            <th style="width: 25%;">Description</th>
+                            <th style="width: 10%; text-align: right;">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="worklogsTableBody">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    </div> <!-- Close Tab Content -->
+</div> <!-- Close Container -->
+
+<!-- Update Progress Modal -->
+<div class="modal fade" id="updateProjectProgressModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="border-radius:0;background-color:#434afa;">
+        <h5 class="modal-title" style="font-size: 1rem;">Update Progress</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="updateProjectProgressForm">
+             <div class="mb-3">
+                <label for="details_new_percentage" class="form-label">Completed (%)</label>
+                <input type="number" class="form-control" id="details_new_percentage" min="0" max="100" required value="{{ $project->completed_percentage ?? 0 }}">
+             </div>
+             <button type="submit" class="btn btn-primary w-100" style="background-color:#434afa;">Update</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Create Task Modal -->
@@ -651,6 +936,15 @@ $(document).ready(function() {
         $('#createTaskModal').modal('show');
     });
 
+    // Filter Listeners
+    $('#filter_user, #filter_status, #filter_priority, #filter_type').on('change', function() {
+        filterAndRenderTasks();
+    });
+
+    $('#taskSearch').on('keyup', function() {
+        filterAndRenderTasks();
+    });
+
     function loadTaskOptions() {
         if(taskOptionsLoaded) return;
         
@@ -658,15 +952,27 @@ $(document).ready(function() {
         $.get("{{ route('task.users') }}", function(data) {
             globalUsers = Array.isArray(data) ? data : [];
             renderUserCheckboxes();
+            
+            // Populate Filter
+            let filterOptions = '<option value="">All Users</option>';
+            globalUsers.forEach(u => {
+                filterOptions += `<option value="${u.id}">${u.name}</option>`;
+            });
+            $('#filter_user').html(filterOptions);
         });
 
         // Load Statuses
         $.get("{{ route('task.statuses') }}", function(data) {
             let options = '<option value="">Select Status</option>';
+            let filterOptions = '<option value="">All Statuses</option>';
+             filterOptions += '<option value="done">Done</option>';
+             
             data.forEach(s => {
                 options += `<option value="${s.id}">${s.name}</option>`;
+                filterOptions += `<option value="${s.id}">${s.name}</option>`;
             });
             $('#task_status_id, #edit_task_status_id').html(options);
+            $('#filter_status').html(filterOptions);
             
             // Default to Pending if found
             const pending = data.find(s => s.name.toLowerCase() === 'pending');
@@ -676,10 +982,13 @@ $(document).ready(function() {
         // Load Priorities
         $.get("{{ route('task.priorities') }}", function(data) {
             let options = '<option value="">Select Priority</option>';
+            let filterOptions = '<option value="">All Priorities</option>';
             data.forEach(p => {
                 options += `<option value="${p.id}">${p.name}</option>`;
+                filterOptions += `<option value="${p.id}">${p.name}</option>`;
             });
             $('#task_priority_id, #edit_task_priority_id').html(options);
+            $('#filter_priority').html(filterOptions);
         });
         
         taskOptionsLoaded = true;
@@ -800,25 +1109,66 @@ $(document).ready(function() {
     }
 
     function filterAndRenderTasks() {
-        const term = search;
+        // Values from UI
+        const term = $('#taskSearch').val().toLowerCase();
+        const fUser = $('#filter_user').val();
+        const fStatus = $('#filter_status').val();
+        const fPriority = $('#filter_priority').val();
+        const fType = $('#filter_type').val();
+
         const filtered = projectTasks.filter(task => {
-            if (!term) return true;
-            
-            const name = task.task_name ? task.task_name.toLowerCase() : '';
-            const desc = task.task ? task.task.toLowerCase() : '';
-            const status = (task.status && task.status.name) ? task.status.name.toLowerCase() : '';
-            const creator = (task.user && task.user.name) ? task.user.name.toLowerCase() : '';
-            
-            let assignees = '';
-            if(task.assigned_users && task.assigned_users.length) {
-                assignees = task.assigned_users.map(u => u.name ? u.name.toLowerCase() : '').join(' ');
+            // Search Text
+            if (term) {
+                const name = (task.task_name || '').toLowerCase();
+                const desc = (task.task || '').toLowerCase();
+                const creatorName = (task.creator && task.creator.name) ? task.creator.name.toLowerCase() : '';
+                const primaryAssignee = (task.user && task.user.name) ? task.user.name.toLowerCase() : '';
+                
+                let assignees = '';
+                if(task.assigned_users && task.assigned_users.length) {
+                    assignees = task.assigned_users.map(u => (u.name || '').toLowerCase()).join(' ');
+                }
+                
+                // Search in Name, Description, Creator, Assignees (Single + Multiple)
+                if (!name.includes(term) && 
+                    !desc.includes(term) && 
+                    !creatorName.includes(term) && 
+                    !primaryAssignee.includes(term) && 
+                    !assignees.includes(term)) {
+                    return false;
+                }
+            }
+
+            // Filter User (Assigned To)
+            if (fUser) {
+                // Check if fUser ID is in assigned_users array
+                const hasUser = task.assigned_users && task.assigned_users.some(u => u.id == fUser);
+                // Also check legacy single user field if needed
+                const isSingleUser = task.user_id == fUser;
+                if (!hasUser && !isSingleUser) return false;
+            }
+
+            // Filter Status
+            if (fStatus) {
+                if (fStatus === 'done') {
+                    if (!task.is_done && (!task.status || task.status.name.toLowerCase() !== 'done')) return false;
+                } else {
+                    if (task.task_status_id != fStatus) return false;
+                }
+            }
+
+            // Filter Priority
+            if (fPriority) {
+                if (task.task_priority_id != fPriority) return false;
+            }
+
+            // Filter Type
+            if (fType) {
+                const tType = task.task_type || 'task'; // default to task
+                if (tType !== fType) return false;
             }
             
-            return name.includes(term) || 
-                   desc.includes(term) || 
-                   status.includes(term) || 
-                   creator.includes(term) || 
-                   assignees.includes(term);
+            return true;
         });
         renderTasksTable(filtered);
     }
@@ -846,6 +1196,9 @@ $(document).ready(function() {
                 if (task.due_date && !isTaskCompleted && isDateOverdue(task.due_date)) {
                     isOverdue = true;
                 }
+
+                // Row Class for Overdue
+                let rowClass = isOverdue ? 'row-overdue' : '';
 
                 // Status HTML
                 let statusHtml = '';
@@ -876,32 +1229,40 @@ $(document).ready(function() {
                 let typeColor = '#0d6efd';
                 if (typeBadge === 'qc') typeColor = '#0dcaf0';
                 else if (typeBadge === 'cp') typeColor = '#dc3545';
-
+                
                 // Due Date
                 let dueDateRaw = task.due_date ? new Date(task.due_date).toLocaleDateString('en-GB') : 'N/A';
                 let dueDate = isOverdue ? `<span class="text-danger fw-bold" title="Overdue">${dueDateRaw}</span>` : dueDateRaw;
                 
+                // Created By
+                let createdBy = task.creator ? task.creator.name : (task.user ? task.user.name : 'System');
+                
+                // Created At
+                let createdAt = task.created_at ? new Date(task.created_at).toLocaleDateString('en-GB') : 'N/A';
+
                 // Done Button
                 let doneBtn = task.is_done 
                     ? `<button class="btn btn-sm btn-secondary action-btn" onclick="toggleDone(${task.id})" title="Mark as Pending"><i class="bi bi-x-circle"></i></button>`
                     : `<button class="btn btn-sm btn-success action-btn" onclick="toggleDone(${task.id})" title="Mark as Done"><i class="bi bi-check-circle"></i></button>`;
 
                 html += `
-                    <tr>
+                    <tr class="${rowClass}">
                         <td>
                             <div class="d-flex align-items-center">
-                                <span class="d-block text-truncate" style="max-width: 100px;" title="${assignedTo}">${assignedTo}</span>
+                                <span class="d-block text-truncate" style="max-width: 150px;" title="${assignedTo}">${assignedTo}</span>
                             </div>
                         </td>
                         <td>
                             <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-dark text-decoration-none fw-bold" title="${task.task_name || ''}">
-                                ${(task.task_name || 'N/A').length > 25 ? (task.task_name || 'N/A').substring(0, 25) + '...' : (task.task_name || 'N/A')}
+                                ${(task.task_name || 'N/A').length > 30 ? (task.task_name || 'N/A').substring(0, 30) + '...' : (task.task_name || 'N/A')}
                             </a>
                         </td>
                         <td><span class="badge" style="background-color: ${typeColor}">${typeBadge.toUpperCase()}</span></td>
                         <td>${priorityHtml}</td>
                         <td>${statusHtml}</td>
                         <td>${dueDate}</td>
+                        <td><small>${createdBy}</small></td>
+                        <td><small>${createdAt}</small></td>
                         <td class="text-end">
                             <button class="btn btn-sm btn-primary action-btn mb-1" onclick="editTask(${task.id})" title="Edit"><i class="bi bi-pencil"></i></button>
                             ${doneBtn}
@@ -1066,6 +1427,31 @@ $(document).ready(function() {
             error: function() { alert('Failed to delete image'); }
         });
     };
+    
+    // Update Progress Form (Project Details)
+    $('#updateProjectProgressForm').on('submit', function(e) {
+        e.preventDefault();
+        let percentage = $('#details_new_percentage').val();
+        
+        $.ajax({
+            url: `{{ route('projects.updateProgress', $project->id) }}`,
+            type: 'PATCH',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                completed_percentage: percentage
+            },
+            success: function(response) {
+                $('#updateProjectProgressModal').modal('hide');
+                // Update UI elements directly
+                $('#details-progress-bar').css('width', percentage + '%').attr('aria-valuenow', percentage);
+                $('#details-progress-text').text(percentage + '%');
+                
+                // Also update the input value for next time
+                $('#details_new_percentage').val(percentage);
+            },
+            error: function() { alert('Failed to update progress'); }
+        });
+    });
 
     window.viewTaskDetails = function(id) {
         const task = projectTasks.find(t => t.id === id);
@@ -1127,6 +1513,98 @@ $(document).ready(function() {
             });
         }
     });
+
+    // --- Worklog filtering logic ---
+    function fetchProjectWorklogs() {
+        let userId = $('#filter_worklog_user').val();
+        let moduleId = $('#filter_worklog_module').val();
+        let startDate = $('#filter_start_date').val();
+        let endDate = $('#filter_end_date').val();
+
+        $.ajax({
+            url: `{{ route('projects.worklogs', $project->id) }}`,
+            type: 'GET',
+            data: {
+                user_id: userId,
+                module_id: moduleId,
+                start_date: startDate,
+                end_date: endDate
+            },
+            success: function(response) {
+                renderWorklogs(response.worklogs);
+            },
+            error: function() {
+                console.error("Failed to fetch worklogs");
+            }
+        });
+    }
+
+    function renderWorklogs(worklogs) {
+        let html = '';
+        if(worklogs.length > 0) {
+            worklogs.forEach(log => {
+                let date = new Date(log.work_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                let userName = log.user ? log.user.name : 'N/A';
+                
+                let entryType = log.entry_type ? log.entry_type.name : 'N/A';
+                if(log.entryType && !log.entry_type) entryType = log.entryType.name; // Handle potential casing differences from backend
+                let moduleName = log.module ? log.module.name : 'N/A';
+                let time = String(log.hours).padStart(2, '0') + ':' + String(log.minutes).padStart(2, '0');
+
+                html += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span>${userName}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">${entryType}</span></td>
+                        <td><span class="badge bg-light text-dark border">${moduleName}</span></td>
+                        <td>
+                            <span class="text-truncate d-inline-block" style="max-width: 250px;" title="${log.description}">
+                                ${log.description || ''}
+                            </span>
+                        </td>
+                        <td class="text-end fw-bold">${time}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            html = `
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        <div class="d-flex flex-column align-items-center">
+                            <i class="bi bi-clock-history fs-1 mb-2"></i>
+                            <p class="mb-0">No worklogs found.</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+        $('#worklogsTableBody').html(html);
+    }
+
+    // Worklog Filter Listeners
+    $('#filter_worklog_user, #filter_worklog_module, #filter_start_date, #filter_end_date').on('change', function() {
+        fetchProjectWorklogs();
+    });
+
+    // Populate Worklog Users filter (reuse globalUsers)
+    // We wait for globalUsers to be populated by loadTaskOptions
+    let wLogUserCheckInterval = setInterval(function() {
+        if(globalUsers.length > 0) {
+            let options = '<option value="">All Users</option>';
+            globalUsers.forEach(u => {
+                options += `<option value="${u.id}">${u.name}</option>`;
+            });
+            $('#filter_worklog_user').html(options);
+            clearInterval(wLogUserCheckInterval);
+        }
+    }, 500);
+
+    // Initial Load
+    fetchProjectWorklogs();
 
 });
 </script>

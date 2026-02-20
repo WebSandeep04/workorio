@@ -15,9 +15,9 @@ class ProjectsController extends Controller
     {
         // Summary Stats
         $totalProjects = CustomerProject::count();
-        $activeProjects = CustomerProject::where('status', 'in_progress')->count();
-        $completedProjects = CustomerProject::where('status', 'completed')->count();
-        $pendingProjects = CustomerProject::where('status', 'pending')->count();
+        $activeProjects = CustomerProject::where('project_status', 1)->count();
+        $completedProjects = CustomerProject::where('project_status', 2)->count();
+        $pendingProjects = CustomerProject::where('project_status', 0)->count();
 
         return view('projects.project-tracking', compact('totalProjects', 'activeProjects', 'completedProjects', 'pendingProjects'));
     }
@@ -25,7 +25,14 @@ class ProjectsController extends Controller
     public function show($id)
     {
         $project = CustomerProject::with('customer', 'service')->findOrFail($id);
-        return view('projects.project-details', compact('project'));
+        $worklogs = \App\Models\Worklog::where('customer_project_id', $id)
+                    ->with(['user', 'entryType', 'module'])
+                    ->orderBy('work_date', 'desc')
+                    ->get();
+        // Since we are loading modules for filter, we need to know all possible modules for this service
+        $modules = $project->service ? $project->service->modules : collect();
+
+        return view('projects.project-details', compact('project', 'worklogs', 'modules'));
     }
 
     public function fetch(Request $request)
@@ -47,13 +54,18 @@ class ProjectsController extends Controller
         }
         
         // Filter by Status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if ($request->filled('project_status')) {
+            $query->where('project_status', $request->project_status);
         }
         
         // Filter by Customer
         if ($request->filled('customer_id')) {
             $query->where('customer_id', $request->customer_id);
+        }
+
+        // Filter by Service
+        if ($request->filled('service_id')) {
+            $query->where('service_id', $request->service_id);
         }
 
         $projects = $query->orderBy('updated_at', 'desc')->paginate(50);
@@ -66,7 +78,7 @@ class ProjectsController extends Controller
     {
         $projects = CustomerProject::where('customer_id', $customerId)
                                    ->orderBy('project_name')
-                                   ->get(['id', 'project_name', 'status']);
+                                   ->get(['id', 'project_name', 'project_status']);
         return response()->json($projects);
     }
 
@@ -104,7 +116,8 @@ class ProjectsController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'service_id' => 'required|exists:services,id',
             'project_name' => 'required|string|max:255',
-            'status' => 'required|in:pending,in_progress,completed,cancelled',
+            'project_status' => 'required|integer|in:0,1,2',
+            'completed_percentage' => 'nullable|integer|min:0|max:100',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string',
@@ -125,7 +138,8 @@ class ProjectsController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'service_id' => 'required|exists:services,id',
             'project_name' => 'required|string|max:255',
-            'status' => 'required|in:pending,in_progress,completed,cancelled',
+            'project_status' => 'required|integer|in:0,1,2',
+            'completed_percentage' => 'nullable|integer|min:0|max:100',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string',
@@ -141,6 +155,22 @@ class ProjectsController extends Controller
         ]);
     }
 
+    public function updateProgress(Request $request, $id)
+    {
+        $request->validate([
+            'completed_percentage' => 'required|integer|min:0|max:100',
+        ]);
+
+        $project = CustomerProject::findOrFail($id);
+        $project->update(['completed_percentage' => $request->completed_percentage]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Progress updated',
+            'data' => $project
+        ]);
+    }
+
     public function destroy($id)
     {
         $project = CustomerProject::findOrFail($id);
@@ -149,6 +179,49 @@ class ProjectsController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Project deleted successfully'
+        ]);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'project_status' => 'required|integer|in:0,1,2'
+        ]);
+
+        $project = CustomerProject::findOrFail($id);
+        $project->update(['project_status' => $request->project_status]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Project status updated successfully'
+        ]);
+    }
+
+    public function fetchWorklogs(Request $request, $projectId)
+    {
+        $query = \App\Models\Worklog::where('customer_project_id', $projectId)
+            ->with(['user', 'entryType', 'module']);
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->filled('module_id')) {
+            $query->where('module_id', $request->module_id);
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('work_date', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('work_date', '<=', $request->end_date);
+        }
+
+        $worklogs = $query->orderBy('work_date', 'desc')->get();
+
+        return response()->json([
+            'worklogs' => $worklogs
         ]);
     }
 }

@@ -1290,3 +1290,10 @@ Route::middleware(['auth.or.session'])->group(function () {
 Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/email-marketing', [\App\Http\Controllers\EmailMarketingController::class, 'index'])->name('emailmarketing.index');
 });
+
+// Project Status Update (using ProjectsController)
+Route::middleware(['auth.or.session'])->group(function () {
+    Route::put('/projects/{id}/update-status', [\App\Http\Controllers\ProjectsController::class, 'updateStatus'])->name('projects.updateStatus');
+    Route::patch('/projects/{id}/progress', [\App\Http\Controllers\ProjectsController::class, 'updateProgress'])->name('projects.updateProgress');
+    Route::get('/projects/{id}/worklogs', [\App\Http\Controllers\ProjectsController::class, 'fetchWorklogs'])->name('projects.worklogs');
+});

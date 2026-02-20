@@ -249,49 +249,97 @@
   .data-table-card .custom-table tbody tr { transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
   .data-table-card .custom-table tbody tr:hover { background: #f8f9ff; box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08); transform: translateY(-1px); }
   .data-table-card .custom-table tbody tr:last-child td { border-bottom: none; }
+
+    /* Filter Box Styles */
+    .filterBox {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.5rem;
+        background: #434AFA;
+        padding: 0.75rem;
+        color: #fff;
+        border-radius: 5px;
+        flex-wrap: wrap;
+        box-shadow: 0 2px 10px rgba(67, 74, 250, 0.3);
+        margin-bottom: 0.5rem;
+        border: 1px solid #434AFA;
+        font-family: Montserrat, sans-serif;
+    }
+    .filterBox .form-label-modern {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 10px;
+        font-family: Montserrat, sans-serif;
+    }
+    .filterBox .form-control-modern {
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 2px;
+        padding: 0.35rem 0.5rem;
+        background: rgba(255, 255, 255, 0.98);
+        color: #000;
+        transition: all 0.3s ease;
+        font-size: 10px;
+        font-family: Montserrat, sans-serif;
+        width: 100%;
+    }
+    .filterBox .form-control-modern:focus { outline: none; border-color: #fff; background: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4); transform: translateY(-1px); color: #000; }
+    
+    .status-select {
+        border-radius: 12px;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: none; 
+        cursor: pointer;
+        display: inline-block;
+        appearance: none; /* Hide default arrow in some browsers for custom look if needed, but keeping simple here */
+        text-align: center;
+    }
+    .status-select.pending { background: #ffeeda; color: #d048b6; }
+    .status-select.in_progress { background: #e0f2fe; color: #0ea5e9; }
+    .status-select.completed { background: #dcfce7; color: #10b981; }
+
+    @media (max-width: 767px) {
+        .filterBox { grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; }
+    }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
-  <!-- Global Stats -->
-  <div class="summary-cards">
-    <div class="summary-card card-1">
-      <div class="summary-card-icon icon-blue">
-        <i class="bi bi-folder-fill text-white" style="font-size: 1.1rem;"></i>
+  <!-- Filters -->
+  <div class="filterBox mb-2">
+      <div class="mb-2">
+        <label for="filter_customer" class="form-label-modern">
+          <i class="bi bi-people"></i> Customer
+        </label>
+        <select id="filter_customer" class="form-control-modern">
+          <option value="">All Customers</option>
+        </select>
       </div>
-      <div class="summary-card-content">
-        <div class="summary-card-label">Total Projects</div>
-        <div class="summary-card-value"><?php echo e($totalProjects ?? 0); ?></div>
+      <div class="mb-2">
+        <label for="filter_service" class="form-label-modern">
+          <i class="bi bi-gear-wide-connected"></i> Service
+        </label>
+        <select id="filter_service" class="form-control-modern">
+          <option value="">All Services</option>
+        </select>
       </div>
-    </div>
-    <div class="summary-card card-2">
-      <div class="summary-card-icon icon-green">
-        <i class="bi bi-check-circle-fill text-white" style="font-size: 1rem;"></i>
+      <div class="mb-2">
+        <label for="filter_status" class="form-label-modern">
+          <i class="bi bi-tag"></i> Status
+        </label>
+        <select id="filter_status" class="form-control-modern">
+          <option value="">All Statuses</option>
+          <option value="0">Pending</option>
+          <option value="1">In Progress</option>
+          <option value="2">Completed</option>
+        </select>
       </div>
-      <div class="summary-card-content">
-        <div class="summary-card-label">Active</div>
-        <div class="summary-card-value"><?php echo e($activeProjects ?? 0); ?></div>
-      </div>
-    </div>
-    <div class="summary-card card-3">
-      <div class="summary-card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-        <i class="bi bi-patch-check-fill text-white" style="font-size: 1rem;"></i>
-      </div>
-      <div class="summary-card-content">
-        <div class="summary-card-label">Completed</div>
-        <div class="summary-card-value"><?php echo e($completedProjects ?? 0); ?></div>
-      </div>
-    </div>
-    <div class="summary-card card-4">
-      <div class="summary-card-icon icon-orange">
-        <i class="bi bi-clock-fill text-white" style="font-size: 1rem;"></i>
-      </div>
-      <div class="summary-card-content">
-        <div class="summary-card-label">Pending</div>
-        <div class="summary-card-value"><?php echo e($pendingProjects ?? 0); ?></div>
-      </div>
-    </div>
   </div>
 
   <!-- Search & Actions -->
@@ -366,12 +414,11 @@
               </select>
             </div>
             <div class="col-md-6 mb-3">
-              <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
-              <select class="form-control" id="status" name="status" required>
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+              <label for="project_status" class="form-label">Status <span class="text-danger">*</span></label>
+              <select class="form-control" id="project_status" name="project_status" required>
+                <option value="0">Pending</option>
+                <option value="1">In Progress</option>
+                <option value="2">Completed</option>
               </select>
             </div>
             <div class="col-md-6 mb-3">
@@ -381,6 +428,10 @@
              <div class="col-md-6 mb-3">
               <label for="end_date" class="form-label">End Date</label>
               <input type="date" class="form-control" id="end_date" name="end_date">
+            </div>
+            <div class="col-md-12 mb-3">
+              <label for="completed_percentage" class="form-label">Progress (%)</label>
+              <input type="number" class="form-control" id="completed_percentage" name="completed_percentage" min="0" max="100" value="0">
             </div>
             <div class="col-md-12 mb-3">
               <label for="description" class="form-label">Description</label>
@@ -397,66 +448,30 @@
   </div>
 </div>
 
-<!-- Edit Project Modal -->
-<div class="modal fade" id="editProjectModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+
+
+<!-- Update Progress Modal -->
+<div class="modal fade" id="updateProgressModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
     <div class="modal-content">
       <div class="modal-header text-white" style="border-radius:0;background-color:#434afa;">
-        <h5 class="modal-title">Edit Project</h5>
+        <h5 class="modal-title" style="font-size: 1rem;">Update Progress</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form id="editProjectForm">
-          <?php echo csrf_field(); ?>
-          <input type="hidden" id="edit_project_id" name="project_id">
-          <div class="row">
-            <div class="col-md-12 mb-3">
-              <label for="edit_project_name" class="form-label">Project Name <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="edit_project_name" name="project_name" required>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="edit_customer_id" class="form-label">Customer <span class="text-danger">*</span></label>
-              <select class="form-control" id="edit_customer_id" name="customer_id" required>
-                  <option value="">Select Customer</option>
-              </select>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="edit_service_id" class="form-label">Service <span class="text-danger">*</span></label>
-              <select class="form-control" id="edit_service_id" name="service_id" required>
-                <option value="">Select Service</option>
-              </select>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="edit_status" class="form-label">Status <span class="text-danger">*</span></label>
-              <select class="form-control" id="edit_status" name="status" required>
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="edit_start_date" class="form-label">Start Date</label>
-              <input type="date" class="form-control" id="edit_start_date" name="start_date">
-            </div>
-             <div class="col-md-6 mb-3">
-              <label for="edit_end_date" class="form-label">End Date</label>
-              <input type="date" class="form-control" id="edit_end_date" name="end_date">
-            </div>
-            <div class="col-md-12 mb-3">
-              <label for="edit_description" class="form-label">Description</label>
-              <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
-            </div>
-          </div>
-          <div class="modal-footer border-0">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" style="background-color:#434afa;" id="updateProjectBtn">Update Project</button>
-          </div>
+        <form id="updateProgressForm">
+             <input type="hidden" id="progress_project_id">
+             <div class="mb-3">
+                <label for="new_percentage" class="form-label">Completed (%)</label>
+                <input type="number" class="form-control" id="new_percentage" min="0" max="100" required>
+             </div>
+             <button type="submit" class="btn btn-primary w-100" style="background-color:#434afa;">Update</button>
         </form>
       </div>
     </div>
   </div>
 </div>
+
 
 
 
@@ -484,6 +499,11 @@ $(document).ready(function() {
     $('#viewTitle').text('All Projects');
 
     // Event Listeners
+    $('#filter_customer, #filter_status, #filter_service').on('change', function() {
+        projectPage = 1; 
+        fetchProjects(null);
+    });
+
     $('#search').on('keyup', function() {
         search = $(this).val().toLowerCase();
         if(currentView === 'customers') {
@@ -588,14 +608,22 @@ $(document).ready(function() {
         });
     }
 
-    function fetchProjects(customerId) {
+    function fetchProjects(specificCustomerId) {
+        let cId = specificCustomerId;
+        if(cId === null) cId = $('#filter_customer').val();
+
+        let status = $('#filter_status').val();
+        let service = $('#filter_service').val();
+
         $.ajax({
             url: "<?php echo e(route('projects.fetch')); ?>",
             type: "GET",
             data: { 
                 page: projectPage, 
                 search: search, 
-                customer_id: customerId 
+                customer_id: cId,
+                project_status: status,
+                service_id: service
             },
             success: function(response) {
                 renderProjectGrid(response.data);
@@ -610,16 +638,22 @@ $(document).ready(function() {
             type: "GET",
             success: function(response) {
                 let customerOptions = '<option value="">Select Customer</option>';
+                let filterOptions = '<option value="">All Customers</option>';
                 response.customers.forEach(c => {
                     customerOptions += `<option value="${c.id}">${c.name}</option>`;
+                    filterOptions += `<option value="${c.id}">${c.name}</option>`;
                 });
                 $('#customer_id, #edit_customer_id').html(customerOptions);
+                $('#filter_customer').html(filterOptions);
 
                 let serviceOptions = '<option value="">Select Service</option>';
+                let serviceFilterOptions = '<option value="">All Services</option>';
                 response.services.forEach(s => {
                     serviceOptions += `<option value="${s.id}">${s.name}</option>`;
+                    serviceFilterOptions += `<option value="${s.id}">${s.name}</option>`;
                 });
                 $('#service_id, #edit_service_id').html(serviceOptions);
+                $('#filter_service').html(serviceFilterOptions);
             }
         });
     }
@@ -658,15 +692,26 @@ $(document).ready(function() {
         if(data.length > 0) {
             data.forEach(item => {
                 let statusClass = 'pending';
-                if(item.status === 'in_progress') statusClass = 'in_progress';
-                if(item.status === 'completed') statusClass = 'completed';
-                if(item.status === 'cancelled') statusClass = 'cancelled';
+                // let statusLabel = 'Pending'; // No longer needed for label text, used in select
+                
+                if(item.project_status == 1) { 
+                    statusClass = 'in_progress'; 
+                } else if(item.project_status == 2) { 
+                    statusClass = 'completed'; 
+                }
 
                 html += `
                     <div class="item-card project-card" data-id="${item.id}" data-name="${item.project_name}" data-customer="${item.customer_id}">
                         <div class="card-header-row">
                             <div class="card-title">${item.project_name}</div>
-                            <span class="status-pill ${statusClass}">${item.status.replace('_', ' ')}</span>
+                            <select class="status-select ${statusClass}" onchange="updateProjectStatus(${item.id}, this)">
+                                <option value="0" ${item.project_status == 0 ? 'selected' : ''}>Pending</option>
+                                <option value="1" ${item.project_status == 1 ? 'selected' : ''}>In Progress</option>
+                                <option value="2" ${item.project_status == 2 ? 'selected' : ''}>Completed</option>
+                            </select>
+                        </div>
+                        <div class="card-subtitle mb-1" style="font-weight:600; font-size: 0.8rem; color:#4b5563;">
+                            <i class="bi bi-building"></i> ${item.customer ? (item.customer.company_name || item.customer.name) : 'No Customer'}
                         </div>
                         <div class="card-subtitle mb-2">${item.service ? item.service.name : 'No Service'}</div>
                         <div class="small text-muted mb-2" style="font-size:0.75rem;">
@@ -675,11 +720,17 @@ $(document).ready(function() {
                         <div class="card-meta">
                             <i class="bi bi-calendar"></i> Starts: ${item.start_date || 'N/A'}
                         </div>
+                        <div class="d-flex align-items-center mb-2 px-3">
+                             <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: ${item.completed_percentage || 0}%;" aria-valuenow="${item.completed_percentage || 0}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <span class="ms-2 small text-muted">${item.completed_percentage || 0}%</span>
+                            <i class="bi bi-pencil-square ms-2 text-primary cursor-pointer" onclick="openProgressModal(${item.id}, ${item.completed_percentage || 0})" title="Update Progress" style="cursor: pointer; font-size: 0.8rem;"></i>
+                        </div>
                         <div class="card-footer-row">
                              <div class="text-muted small">ID: #${item.id}</div>
                              <div class="action-buttons">
-                                <button class="small-btn edit-btn" data-project='${JSON.stringify(item).replace(/'/g, "&apos;")}' title="Edit"><i class="bi bi-pencil"></i></button>
-                                <button class="small-btn delete-btn" data-id="${item.id}" title="Delete"><i class="bi bi-trash"></i></button>
+                                <!-- Edit/Delete removed -->
                              </div>
                         </div>
                     </div>
@@ -689,6 +740,35 @@ $(document).ready(function() {
             html = '<div class="no-data">No projects found for this customer.</div>';
         }
         $('#projectsGrid').html(html);
+    }
+
+    window.updateProjectStatus = function(id, selectElement) {
+        let newStatus = $(selectElement).val();
+        
+        // Optimistic UI update for color
+        $(selectElement).removeClass('pending in_progress completed');
+        if(newStatus == 0) $(selectElement).addClass('pending');
+        else if(newStatus == 1) $(selectElement).addClass('in_progress');
+        else if(newStatus == 2) $(selectElement).addClass('completed');
+
+        $.ajax({
+            url: `/projects/${id}/update-status`, 
+            type: 'PUT',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                project_status: newStatus
+            },
+            success: function(response) {
+                if(response.success) {
+                    // updated
+                } else {
+                    alert('Failed to update status');
+                }
+            },
+            error: function() {
+               alert('Error updating status');
+            }
+        });
     }
 
     function renderPagination(response, targetId) {
@@ -716,7 +796,8 @@ $(document).ready(function() {
             project_name: $('#project_name').val(),
             customer_id: $('#customer_id').val(),
             service_id: $('#service_id').val(),
-            status: $('#status').val(),
+            project_status: $('#project_status').val(),
+            completed_percentage: $('#completed_percentage').val(),
             start_date: $('#start_date').val(),
             end_date: $('#end_date').val(),
             description: $('#description').val(),
@@ -742,7 +823,8 @@ $(document).ready(function() {
             project_name: $('#edit_project_name').val(),
             customer_id: $('#edit_customer_id').val(),
             service_id: $('#edit_service_id').val(),
-            status: $('#edit_status').val(),
+            project_status: $('#edit_project_status').val(),
+            completed_percentage: $('#edit_completed_percentage').val(),
             start_date: $('#edit_start_date').val(),
             end_date: $('#edit_end_date').val(),
             description: $('#edit_description').val(),
@@ -781,12 +863,43 @@ $(document).ready(function() {
         $('#edit_project_name').val(project.project_name);
         $('#edit_customer_id').val(project.customer_id);
         $('#edit_service_id').val(project.service_id);
-        $('#edit_status').val(project.status);
+        $('#edit_project_status').val(project.project_status);
+        $('#edit_completed_percentage').val(project.completed_percentage || 0);
         $('#edit_start_date').val(project.start_date);
         $('#edit_end_date').val(project.end_date);
         $('#edit_description').val(project.description);
         $('#editProjectModal').modal('show');
     }
+
+    // --- Progress Update ---
+    window.openProgressModal = function(id, percentage) {
+        // Prevent card click
+        event.stopPropagation();
+        $('#progress_project_id').val(id);
+        $('#new_percentage').val(percentage);
+        $('#updateProgressModal').modal('show');
+    };
+
+    $('#updateProgressForm').on('submit', function(e) {
+        e.preventDefault();
+        let id = $('#progress_project_id').val();
+        let percentage = $('#new_percentage').val();
+        
+        $.ajax({
+            url: `/projects/${id}/progress`,
+            type: 'PATCH',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                completed_percentage: percentage
+            },
+            success: function(response) {
+                $('#updateProgressModal').modal('hide');
+                // Refresh list
+                fetchProjects(currentCustomerId);
+            },
+            error: function() { alert('Failed to update progress'); }
+        });
+    });
 
     // --- Task Assignment Logic ---
     
@@ -883,8 +996,8 @@ $(document).ready(function() {
 
     // --- Click Handler for Projects ---
     $(document).on('click', '.project-card', function(e) {
-        // Prevent if clicking action buttons (like Edit/Delete on the card)
-        if ($(e.target).closest('button').length) return;
+        // Prevent if clicking action buttons or selects (like Edit/Delete/Status)
+        if ($(e.target).closest('button, select, .status-select').length) return;
         
         const projectId = $(this).data('id');
         // Navigate to the dedicated project details page
