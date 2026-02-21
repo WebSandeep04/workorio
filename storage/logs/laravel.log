@@ -1783,3 +1783,13 @@
 #35 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #36 {main}
 "} 
+[2026-02-20 08:52:53] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-02-20 08:52:53] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-20 08:52:54] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-20 08:52:54] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-02-20 08:52:54] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-02-21 03:59:09] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-02-21 03:59:11] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-21 03:59:12] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-21 03:59:12] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-02-21 03:59:12] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

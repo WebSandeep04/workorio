@@ -171,7 +171,7 @@
 
     /* Filters & Summary Cards from task.blade.php */
     .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
-    .summary-card { background: #fff; border-radius: 10px; border: 1px solid #eceef3; padding: 0.4rem; box-shadow: 0px 4px 4px 0px #0000000A; transition: all 0.3s ease; width: 100%; min-height: 55px; height: 55px; display: flex; align-items: center; gap: 0.5rem; }
+    .summary-card { background: #fff; border-radius: 10px; border: 1px solid #eceef3; padding: 0.4rem; box-shadow: 0px 4px 4px 0px #0000000A; transition: all 0.3s ease; width: 100%; min-height: 55px; height: 65px; display: flex; align-items: center; gap: 0.5rem; }
     .summary-card:hover { transform: translateY(-2px); box-shadow: 0px 8px 8px 0px #0000000A; }
     .summary-card-icon { width: 32px; height: 32px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .summary-card-icon img { width: 20px; height: 20px; object-fit: contain; }
@@ -369,13 +369,77 @@
                 </div>
             </div>
 
-            <?php if($project->description): ?>
             <div class="w-100 mt-2 pt-2 border-top">
-                <label class="form-label-modern text-muted mb-1"><i class="bi bi-file-text me-1"></i> Description</label>
-                 <div class="small text-secondary"><?php echo e($project->description); ?></div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label-modern text-muted mb-0"><i class="bi bi-chat-left-text me-1"></i> Latest Remark</label>
+                    <div class="d-flex gap-3">
+                        <button type="button" class="btn btn-sm btn-link p-0 text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#viewRemarksHistoryModal" style="font-size: 0.75rem; text-decoration: none;">
+                            <i class="bi bi-clock-history me-1"></i> View History
+                        </button>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-success fw-bold" data-bs-toggle="modal" data-bs-target="#addRemarkModal" style="font-size: 0.75rem; text-decoration: none;">
+                            <i class="bi bi-plus-circle me-1"></i> Add New Remark
+                        </button>
+                    </div>
+                </div>
+                <div id="latest-remark-container">
+                    <?php if($project->latestRemark): ?>
+                        <div class="remark-item">
+                            <div class="d-flex justify-content-between x-small text-muted mb-0" style="font-size: 0.7rem;">
+                                <span class="fw-bold text-dark"><i class="bi bi-person me-1"></i> <?php echo e($project->latestRemark->user ? $project->latestRemark->user->name : 'System'); ?></span>
+                                <span><?php echo e($project->latestRemark->created_at->format('d M Y, h:i A')); ?></span>
+                            </div>
+                            <div class="small text-secondary fw-bold" style="font-size: 0.85rem; line-height: 1.3;"><?php echo e($project->latestRemark->remark); ?></div>
+                        </div>
+                    <?php else: ?>
+                        <div id="no-remarks-msg" class="small text-muted italic">No remarks recorded yet.</div>
+                    <?php endif; ?>
+                </div>
             </div>
-            <?php endif; ?>
         </div>
+    </div>
+
+    <?php
+        $userWorkTotalsTotal = [];
+        foreach($worklogs as $log) {
+            if (!isset($userWorkTotalsTotal[$log->user_id])) {
+                $userWorkTotalsTotal[$log->user_id] = 0;
+            }
+            $userWorkTotalsTotal[$log->user_id] += ($log->hours * 60) + $log->minutes;
+        }
+    ?>
+
+    <!-- Project Assigned Users Summary -->
+    <div class="summary-cards mb-3 mt-1">
+        <?php $__currentLoopData = $project->assignedUsers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $u): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php
+                $actualMin = $userWorkTotalsTotal[$u->id] ?? 0;
+                $hrsPart = floor($actualMin / 60);
+                $minPart = $actualMin % 60;
+                // Format as H.M or H:M? User asked for actual/estimated. 
+                // Let's show as hours with decimals for clarity or H:M. 
+                // Given the context of "8 hours", decimal is often used, but H:M is clearer for worklogs.
+                // User said "actuallyhours/estimated hours"
+                $actualDisplay = $hrsPart + ($minPart / 60);
+                $estimatedHours = ($u->pivot->days_allocated ?? 0) * 8;
+                $colors = ['sky', 'emerald', 'sunrise', 'rose', 'amber'];
+                $color = $colors[$index % count($colors)];
+                $borderColor = $actualDisplay > $estimatedHours ? '#ef4444' : '#10b981';
+            ?>
+            <div class="summary-card resource-card" style="border: 2px solid <?php echo e($borderColor); ?>; cursor: pointer;" data-user-id="<?php echo e($u->id); ?>">
+                <div class="summary-card-icon icon-<?php echo e($color); ?>">
+                    <i class="bi bi-person-badge text-white"></i>
+                </div>
+                <div class="summary-card-content">
+                    <div class="summary-card-label"><?php echo e($u->name); ?></div>
+                    <div class="summary-card-value text-nowrap">
+                        <span class="text-primary"><?php echo e(number_format(round($actualDisplay), 0)); ?></span> / <span class="text-dark"><?php echo e(number_format(round($estimatedHours), 0)); ?></span> <small style="font-size:0.65rem; font-weight:normal;">HRS</small>
+                    </div>
+                    <div class="text-muted" style="font-size: 0.65rem; margin-top: -2px;">
+                        <span><?php echo e(number_format(round($actualDisplay / 8), 0)); ?></span> / <span><?php echo e(number_format(round($estimatedHours / 8), 0)); ?></span> <small style="font-weight:normal;">DAYS</small>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 
     <!-- Search & Add -->
@@ -415,7 +479,6 @@
 
     <!-- Worklogs Tab -->
     <div class="tab-pane fade" id="worklogs">
-        <!-- Worklog Filters -->
         <div class="filterBox mb-2">
             <div class="mb-2">
                 <label for="filter_worklog_user" class="form-label-modern">
@@ -448,6 +511,11 @@
                 </label>
                 <input type="date" id="filter_end_date" class="form-control-modern">
             </div>
+        </div>
+
+        <!-- Worklog Summary Cards -->
+        <div id="worklogSummaryCards" class="summary-cards mb-2">
+            <!-- Cards will be injected here via JS -->
         </div>
 
         <div class="data-table-card h-100">
@@ -490,6 +558,57 @@
              </div>
              <button type="submit" class="btn btn-primary w-100" style="background-color:#434afa;">Update</button>
         </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Remark Modal -->
+<div class="modal fade" id="addRemarkModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="border-radius:0;background-color:#434afa;">
+        <h5 class="modal-title" style="font-size: 1rem;">Add New Remark</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addRemarkForm">
+             <div class="mb-3">
+                <label for="new_remark" class="form-label">Remark</label>
+                <textarea class="form-control" id="new_remark" rows="3" required placeholder="Enter new remark..."></textarea>
+             </div>
+             <button type="submit" class="btn btn-primary w-100" style="background-color:#434afa;">Save Remark</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Remarks History Modal -->
+<div class="modal fade" id="viewRemarksHistoryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="border-radius:0;background-color:#434afa;">
+        <h5 class="modal-title" style="font-size: 1rem;">Project Remarks History</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-remarks-history-container" style="max-height: 400px; overflow-y: auto;">
+            <?php $__empty_1 = true; $__currentLoopData = $project->remarks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $remark): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <div class="remark-item mb-3 pb-2 border-bottom">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span class="fw-bold text-dark"><i class="bi bi-person me-1"></i> <?php echo e($remark->user ? $remark->user->name : 'System'); ?></span>
+                        <span><?php echo e($remark->created_at->format('d M Y, h:i A')); ?></span>
+                    </div>
+                    <div class="text-secondary" style="line-height: 1.4;"><?php echo e($remark->remark); ?></div>
+                </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                <div class="text-center py-4 text-muted italic">No remarks recorded yet.</div>
+            <?php endif; ?>
+        </div>
+      </div>
+       <div class="modal-footer">
+        <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
       </div>
     </div>
   </div>
@@ -1539,15 +1658,32 @@ $(document).ready(function() {
         });
     }
 
+    function minutesToHHMM(totalMinutes) {
+        let hrs = Math.floor(totalMinutes / 60);
+        let mins = totalMinutes % 60;
+        return String(hrs).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
+    }
+
     function renderWorklogs(worklogs) {
         let html = '';
+        let userTotals = {}; // { userId: { name: '', minutes: 0 } }
+
         if(worklogs.length > 0) {
             worklogs.forEach(log => {
                 let date = new Date(log.work_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
                 let userName = log.user ? log.user.name : 'N/A';
+                let userId = log.user_id;
                 
+                // Track totals
+                if (userId && log.user) {
+                    if (!userTotals[userId]) {
+                        userTotals[userId] = { name: userName, minutes: 0 };
+                    }
+                    userTotals[userId].minutes += (parseInt(log.hours) * 60) + parseInt(log.minutes);
+                }
+
                 let entryType = log.entry_type ? log.entry_type.name : 'N/A';
-                if(log.entryType && !log.entry_type) entryType = log.entryType.name; // Handle potential casing differences from backend
+                if(log.entryType && !log.entry_type) entryType = log.entryType.name;
                 let moduleName = log.module ? log.module.name : 'N/A';
                 let time = String(log.hours).padStart(2, '0') + ':' + String(log.minutes).padStart(2, '0');
 
@@ -1583,6 +1719,28 @@ $(document).ready(function() {
             `;
         }
         $('#worklogsTableBody').html(html);
+
+        // Render Summary Cards
+        let cardsHtml = '';
+        let colors = ['sky', 'emerald', 'sunrise', 'rose', 'amber'];
+        let colorIdx = 0;
+
+        Object.values(userTotals).forEach(data => {
+            let color = colors[colorIdx % colors.length];
+            colorIdx++;
+            cardsHtml += `
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-${color}">
+                        <i class="bi bi-person-fill text-white"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">${data.name}</div>
+                        <div class="summary-card-value">${Math.round(data.minutes / 60)} <small style="font-size:0.6rem; font-weight:normal;">HRS</small></div>
+                    </div>
+                </div>
+            `;
+        });
+        $('#worklogSummaryCards').html(cardsHtml);
     }
 
     // Worklog Filter Listeners
@@ -1602,6 +1760,79 @@ $(document).ready(function() {
             clearInterval(wLogUserCheckInterval);
         }
     }, 500);
+
+    // Remark Management
+    $('#addRemarkForm').on('submit', function(e) {
+        e.preventDefault();
+        let $form = $(this);
+        let $submitBtn = $form.find('button[type="submit"]');
+        let remarkInput = $('#new_remark').val();
+        
+        $submitBtn.prop('disabled', true).text('Saving...');
+        
+        $.ajax({
+            url: "<?php echo e(route('projects.remarks.store')); ?>",
+            type: "POST",
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                customer_project_id: projectId,
+                remark: remarkInput
+            },
+            success: function(response) {
+                $submitBtn.prop('disabled', false).text('Save Remark');
+                $('#addRemarkModal').modal('hide');
+                $('#new_remark').val('');
+                
+                // Update latest remark on main page
+                let latestHtml = `
+                    <div class="remark-item">
+                        <div class="d-flex justify-content-between x-small text-muted mb-0" style="font-size: 0.7rem;">
+                            <span class="fw-bold text-dark"><i class="bi bi-person me-1"></i> ${response.data.user_name}</span>
+                            <span>${response.data.created_at}</span>
+                        </div>
+                        <div class="small text-secondary fw-bold" style="font-size: 0.85rem; line-height: 1.3;">${response.data.remark}</div>
+                    </div>
+                `;
+                $('#latest-remark-container').html(latestHtml);
+                
+                // Prepend to history modal
+                let historyHtml = `
+                    <div class="remark-item mb-3 pb-2 border-bottom">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span class="fw-bold text-dark"><i class="bi bi-person me-1"></i> ${response.data.user_name}</span>
+                            <span>${response.data.created_at}</span>
+                        </div>
+                        <div class="text-secondary" style="line-height: 1.4;">${response.data.remark}</div>
+                    </div>
+                `;
+                
+                // Check if "No remarks recorded yet" exists and remove it
+                if ($('#modal-remarks-history-container .italic').length) {
+                    $('#modal-remarks-history-container').empty();
+                }
+                
+                $('#modal-remarks-history-container').prepend(historyHtml);
+            },
+            error: function() {
+                $submitBtn.prop('disabled', false).text('Save Remark');
+                alert('Failed to save remark');
+            }
+        });
+    });
+
+    // Resource Card Click -> Jump to Worklogs
+    $('.resource-card').on('click', function() {
+        let userId = $(this).data('user-id');
+        
+        // 1. Set the filter in Worklogs tab
+        $('#filter_worklog_user').val(userId);
+        
+        // 2. Switch to Worklogs tab
+        $('.nav-link[href="#worklogs"]').tab('show');
+        
+        // 3. Trigger fetch
+        fetchProjectWorklogs();
+    });
 
     // Initial Load
     fetchProjectWorklogs();

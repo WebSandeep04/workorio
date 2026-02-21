@@ -1296,4 +1296,6 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::put('/projects/{id}/update-status', [\App\Http\Controllers\ProjectsController::class, 'updateStatus'])->name('projects.updateStatus');
     Route::patch('/projects/{id}/progress', [\App\Http\Controllers\ProjectsController::class, 'updateProgress'])->name('projects.updateProgress');
     Route::get('/projects/{id}/worklogs', [\App\Http\Controllers\ProjectsController::class, 'fetchWorklogs'])->name('projects.worklogs');
+    Route::post('/projects/remarks', [\App\Http\Controllers\CustomerProjectRemarkController::class, 'store'])->name('projects.remarks.store');
+    Route::get('/projects/{id}/remarks/latest', [\App\Http\Controllers\CustomerProjectRemarkController::class, 'latest'])->name('projects.remarks.latest');
 });

@@ -24,7 +24,11 @@ class ProjectsController extends Controller
 
     public function show($id)
     {
-        $project = CustomerProject::with('customer', 'service')->findOrFail($id);
+        $project = CustomerProject::with(['customer', 'service', 'assignedUsers', 'remarks' => function($q) {
+            $q->with('user')->latest();
+        }, 'latestRemark' => function($q) {
+            $q->with('user');
+        }])->findOrFail($id);
         $worklogs = \App\Models\Worklog::where('customer_project_id', $id)
                     ->with(['user', 'entryType', 'module'])
                     ->orderBy('work_date', 'desc')

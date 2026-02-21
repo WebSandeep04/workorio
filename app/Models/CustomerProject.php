@@ -60,5 +60,13 @@ class CustomerProject extends Model
             ->withTimestamps();
     }
 
-    // Removed tenant() relationship - no longer needed with separate databases
+    public function remarks()
+    {
+        return $this->hasMany(CustomerProjectRemark::class, 'customer_project_id');
+    }
+
+    public function latestRemark()
+    {
+        return $this->hasOne(CustomerProjectRemark::class, 'customer_project_id')->latestOfMany();
+    }
 }
