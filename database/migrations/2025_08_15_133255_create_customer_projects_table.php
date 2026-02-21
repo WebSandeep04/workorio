@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('service_id');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
-            $table->enum('status', ['pending', 'in_progress', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['Ongoing', 'Completed', 'Closed'])->default('Ongoing');
             $table->text('description')->nullable();
             $table->timestamps();
             

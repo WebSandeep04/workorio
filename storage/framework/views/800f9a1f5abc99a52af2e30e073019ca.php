@@ -495,10 +495,9 @@
                             <div class="col-md-6">
                                 <label for="status" class="form-label-modern">Status <span class="text-danger">*</span></label>
                                 <select class="form-select form-select-modern" id="status" name="status" required>
-                                    <option value="pending">Pending</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
+                                    <option value="Ongoing">Ongoing</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Closed">Closed</option>
                                 </select>
                             </div>
                             <div class="col-md-6 d-flex align-items-end">
@@ -642,10 +641,9 @@
                             <div class="col-md-6">
                                 <label for="edit_status" class="form-label-modern">Status <span class="text-danger">*</span></label>
                                 <select class="form-select form-select-modern" id="edit_status" name="status" required>
-                                    <option value="pending">Pending</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
+                                    <option value="Ongoing">Ongoing</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Closed">Closed</option>
                                 </select>
                             </div>
                             <div class="col-md-6 d-flex align-items-end">
@@ -874,9 +872,9 @@ $(function () {
             $.each(data.data, function (i, cp) {
                 let statusClass = '';
                 switch(cp.status) {
-                    case 'completed': statusClass = 'badge bg-success'; break;
-                    case 'in_progress': statusClass = 'badge bg-warning'; break;
-                    case 'cancelled': statusClass = 'badge bg-danger'; break;
+                    case 'Ongoing': statusClass = 'badge bg-success'; break;
+                    case 'Completed': statusClass = 'badge bg-warning'; break;
+                    case 'Closed': statusClass = 'badge bg-danger'; break;
                     default: statusClass = 'badge bg-secondary';
                 }
 
