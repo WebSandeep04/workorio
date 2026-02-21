@@ -12,16 +12,17 @@
   }
   
   /* Summary Cards */
-  .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
-  .summary-card { background: #fff; border-radius: 10px; border: 1px solid #eceef3; padding: 0.4rem; box-shadow: 0px 4px 4px 0px #0000000A; transition: all 0.3s ease; width: 100%; min-height: 55px; height: 55px; display: flex; align-items: center; gap: 0.5rem; }
+  .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+  @media (max-width: 600px) { .summary-cards { grid-template-columns: 1fr; } }
+  .summary-card { background: #fff; border-radius: 10px; border: 1px solid #eceef3; padding: 0.75rem; box-shadow: 0px 4px 4px 0px #0000000A; transition: all 0.3s ease; width: 100%; min-height: 55px; height: auto; display: flex; align-items: center; gap: 0.75rem; }
   .summary-card:hover { transform: translateY(-2px); box-shadow: 0px 8px 8px 0px #0000000A; }
-  .summary-card-icon { width: 32px; height: 32px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .summary-card-icon { width: 36px; height: 36px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .icon-blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
   .icon-green { background: linear-gradient(135deg, #10b981, #34d399); }
   .icon-orange { background: linear-gradient(135deg, #f97316, #fb923c); }
-  .summary-card-content { display: flex; flex-direction: column; justify-content: center; flex-grow: 1; min-width: 0; }
-  .summary-card-label { font-size: 8px; font-weight: 700; text-transform: uppercase; margin-bottom: 0.15rem; color: #000; line-height: 1.1; font-family: Montserrat; }
-  .summary-card-value { font-size: 0.9rem; font-weight: 700; margin: 0; line-height: 1; color: #101828; font-family: Montserrat; }
+  .summary-card-content { display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; overflow: hidden; }
+  .summary-card-label { font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 0.15rem; color: #000; line-height: 1.1; font-family: Montserrat; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .summary-card-value { font-size: 0.95rem; font-weight: 700; margin: 0; line-height: 1.2; color: #101828; font-family: Montserrat; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; white-space: normal !important; word-wrap: break-word; overflow-wrap: break-word; }
 
   /* Project/Customer Cards Grid */
   .cards-grid {
@@ -173,6 +174,20 @@
   }
   .favourite-btn:hover {
       transform: scale(1.2);
+  }
+  
+  /* Star Animation */
+  @keyframes star-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.6) rotate(15deg); }
+    100% { transform: scale(1.2) rotate(0deg); }
+  }
+  .favourite-btn.pop {
+    animation: star-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  
+  .favourite-btn.active i {
+     filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.4));
   }
 
   /* Status Tabs */
@@ -813,12 +828,17 @@ $(document).ready(function() {
             success: function(response) {
                 if(response.success) {
                     if(response.is_favourite) {
-                        $(btn).addClass('active');
+                        $(btn).addClass('active pop');
                         $(btn).find('i').removeClass('bi-star').addClass('bi-star-fill');
                     } else {
-                        $(btn).removeClass('active');
+                        $(btn).removeClass('active pop');
                         $(btn).find('i').removeClass('bi-star-fill').addClass('bi-star');
                     }
+                    
+                    // Remove animation class after finish
+                    setTimeout(() => {
+                        $(btn).removeClass('pop');
+                    }, 400);
                     
                     if((filterStarred && !response.is_favourite) || (!filterStarred && response.is_favourite)) {
                         fetchProjects(currentCustomerId);
