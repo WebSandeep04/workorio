@@ -26,7 +26,8 @@ class CustomerProjectController extends Controller
 
     public function fetchCustomerProjects(Request $request)
     {
-        $query = CustomerProject::with(['customer', 'service', 'customerProjectModules.module', 'assignedUsers', 'workflowTemplate']);
+        $query = CustomerProject::with(['customer', 'service', 'customerProjectModules.module', 'assignedUsers', 'workflowTemplate'])
+        ->where('status', '=', 'Ongoing');
         
         // Filter by customer_id if provided
         if ($request->has('customer_id') && $request->customer_id) {
