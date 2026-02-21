@@ -15,9 +15,9 @@ class ProjectsController extends Controller
     {
         // Summary Stats
         $totalProjects = CustomerProject::count();
-        $activeProjects = CustomerProject::where('project_status', 1)->count();
-        $completedProjects = CustomerProject::where('project_status', 2)->count();
-        $pendingProjects = CustomerProject::where('project_status', 0)->count();
+        $activeProjects = CustomerProject::where('status', 'Ongoing')->count();
+        $completedProjects = CustomerProject::where('status', 'Completed')->count();
+        $pendingProjects = CustomerProject::where('status', 'Closed')->count(); // Mapping to Closed for now as Pending is not in enum
 
         return view('projects.project-tracking', compact('totalProjects', 'activeProjects', 'completedProjects', 'pendingProjects'));
     }
@@ -59,7 +59,7 @@ class ProjectsController extends Controller
         
         // Filter by Status
         if ($request->filled('project_status')) {
-            $query->where('project_status', $request->project_status);
+            $query->where('status', $request->project_status);
         }
         
         // Filter by Customer
@@ -120,14 +120,19 @@ class ProjectsController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'service_id' => 'required|exists:services,id',
             'project_name' => 'required|string|max:255',
-            'project_status' => 'required|integer|in:0,1,2',
+            'status' => 'required|string|in:Ongoing,Completed,Closed',
             'completed_percentage' => 'nullable|integer|min:0|max:100',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string',
         ]);
 
-        $project = CustomerProject::create($validated);
+        // Map project_status to status if needed, but here we expect 'status' from request now
+        $data = $request->all();
+        if ($request->has('project_status') && !$request->has('status')) {
+            $data['status'] = $request->project_status;
+        }
+        $project = CustomerProject::create($data);
 
         return response()->json([
             'success' => true,
@@ -149,8 +154,12 @@ class ProjectsController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        $data = $request->all();
+        if ($request->has('project_status') && !$request->has('status')) {
+            $data['status'] = $request->project_status;
+        }
         $project = CustomerProject::findOrFail($id);
-        $project->update($validated);
+        $project->update($data);
 
         return response()->json([
             'success' => true,
@@ -189,11 +198,11 @@ class ProjectsController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'project_status' => 'required|integer|in:0,1,2'
+            'status' => 'required|string|in:Ongoing,Completed,Closed'
         ]);
 
         $project = CustomerProject::findOrFail($id);
-        $project->update(['project_status' => $request->project_status]);
+        $project->update(['status' => $request->project_status]);
 
         return response()->json([
             'success' => true,

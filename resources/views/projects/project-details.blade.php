@@ -341,12 +341,14 @@
             <div>
                 <label class="form-label-modern text-muted mb-1"><i class="bi bi-clock me-1"></i> Status</label>
                 <div>
-                    @if($project->project_status == 1)
-                        <span class="badge bg-primary">In Progress</span>
-                    @elseif($project->project_status == 2)
+                    @if($project->status == 'Ongoing')
+                        <span class="badge bg-primary">Ongoing</span>
+                    @elseif($project->status == 'Completed')
                         <span class="badge bg-success">Completed</span>
+                    @elseif($project->status == 'Closed')
+                        <span class="badge bg-danger">Closed</span>
                     @else
-                        <span class="badge bg-warning text-dark">Pending</span>
+                        <span class="badge bg-warning text-dark">{{ $project->status }}</span>
                     @endif
                 </div>
             </div>

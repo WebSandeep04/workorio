@@ -14,7 +14,7 @@ return new class extends Migration
         if (Schema::hasTable('customer_projects')) {
             Schema::table('customer_projects', function (Blueprint $table) {
                 if (!Schema::hasColumn('customer_projects', 'completed_percentage')) {
-                    $table->integer('completed_percentage')->default(0)->after('project_status');
+                    $table->integer('completed_percentage')->default(0)->after('status');
                 }
             });
         }

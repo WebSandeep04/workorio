@@ -335,9 +335,9 @@
         </label>
         <select id="filter_status" class="form-control-modern">
           <option value="">All Statuses</option>
-          <option value="0">Pending</option>
-          <option value="1">In Progress</option>
-          <option value="2">Completed</option>
+          <option value="Ongoing">Ongoing</option>
+          <option value="Completed">Completed</option>
+          <option value="Closed">Closed</option>
         </select>
       </div>
   </div>
@@ -416,9 +416,9 @@
             <div class="col-md-6 mb-3">
               <label for="project_status" class="form-label">Status <span class="text-danger">*</span></label>
               <select class="form-control" id="project_status" name="project_status" required>
-                <option value="0">Pending</option>
-                <option value="1">In Progress</option>
-                <option value="2">Completed</option>
+                <option value="Ongoing">Ongoing</option>
+                <option value="Completed">Completed</option>
+                <option value="Closed">Closed</option>
               </select>
             </div>
             <div class="col-md-6 mb-3">
@@ -694,10 +694,12 @@ $(document).ready(function() {
                 let statusClass = 'pending';
                 // let statusLabel = 'Pending'; // No longer needed for label text, used in select
                 
-                if(item.project_status == 1) { 
+                if(item.status == 'Ongoing') { 
                     statusClass = 'in_progress'; 
-                } else if(item.project_status == 2) { 
+                } else if(item.status == 'Completed') { 
                     statusClass = 'completed'; 
+                } else if(item.status == 'Closed') {
+                    statusClass = 'pending';
                 }
 
                 html += `
@@ -705,9 +707,9 @@ $(document).ready(function() {
                         <div class="card-header-row">
                             <div class="card-title">${item.project_name}</div>
                             <select class="status-select ${statusClass}" onchange="updateProjectStatus(${item.id}, this)">
-                                <option value="0" ${item.project_status == 0 ? 'selected' : ''}>Pending</option>
-                                <option value="1" ${item.project_status == 1 ? 'selected' : ''}>In Progress</option>
-                                <option value="2" ${item.project_status == 2 ? 'selected' : ''}>Completed</option>
+                                <option value="Ongoing" ${item.status == 'Ongoing' ? 'selected' : ''}>Ongoing</option>
+                                <option value="Completed" ${item.status == 'Completed' ? 'selected' : ''}>Completed</option>
+                                <option value="Closed" ${item.status == 'Closed' ? 'selected' : ''}>Closed</option>
                             </select>
                         </div>
                         <div class="card-subtitle mb-1" style="font-weight:600; font-size: 0.8rem; color:#4b5563;">
@@ -747,16 +749,16 @@ $(document).ready(function() {
         
         // Optimistic UI update for color
         $(selectElement).removeClass('pending in_progress completed');
-        if(newStatus == 0) $(selectElement).addClass('pending');
-        else if(newStatus == 1) $(selectElement).addClass('in_progress');
-        else if(newStatus == 2) $(selectElement).addClass('completed');
+        if(newStatus == 'Closed') $(selectElement).addClass('pending');
+        else if(newStatus == 'Ongoing') $(selectElement).addClass('in_progress');
+        else if(newStatus == 'Completed') $(selectElement).addClass('completed');
 
         $.ajax({
             url: `/projects/${id}/update-status`, 
             type: 'PUT',
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
-                project_status: newStatus
+                status: newStatus
             },
             success: function(response) {
                 if(response.success) {
@@ -796,7 +798,7 @@ $(document).ready(function() {
             project_name: $('#project_name').val(),
             customer_id: $('#customer_id').val(),
             service_id: $('#service_id').val(),
-            project_status: $('#project_status').val(),
+            status: $('#project_status').val(),
             completed_percentage: $('#completed_percentage').val(),
             start_date: $('#start_date').val(),
             end_date: $('#end_date').val(),
@@ -823,7 +825,7 @@ $(document).ready(function() {
             project_name: $('#edit_project_name').val(),
             customer_id: $('#edit_customer_id').val(),
             service_id: $('#edit_service_id').val(),
-            project_status: $('#edit_project_status').val(),
+            status: $('#edit_project_status').val(),
             completed_percentage: $('#edit_completed_percentage').val(),
             start_date: $('#edit_start_date').val(),
             end_date: $('#edit_end_date').val(),
@@ -863,7 +865,7 @@ $(document).ready(function() {
         $('#edit_project_name').val(project.project_name);
         $('#edit_customer_id').val(project.customer_id);
         $('#edit_service_id').val(project.service_id);
-        $('#edit_project_status').val(project.project_status);
+        $('#edit_project_status').val(project.status);
         $('#edit_completed_percentage').val(project.completed_percentage || 0);
         $('#edit_start_date').val(project.start_date);
         $('#edit_end_date').val(project.end_date);

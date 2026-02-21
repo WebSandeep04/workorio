@@ -17,9 +17,9 @@ return new class extends Migration
             return;
         }
 
-        Schema::table('customer_projects', function (Blueprint $table) {
-            $table->tinyInteger('project_status')->default(0)->comment('0=Pending, 1=In Progress, 2=Completed');
-        });
+//        Schema::table('customer_projects', function (Blueprint $table) {
+//            $table->tinyInteger('project_status')->default(0)->comment('0=Pending, 1=In Progress, 2=Completed');
+//        });
     }
 
     /**
@@ -32,8 +32,8 @@ return new class extends Migration
             return;
         }
 
-        Schema::table('customer_projects', function (Blueprint $table) {
-            $table->dropColumn('project_status');
-        });
+//        Schema::table('customer_projects', function (Blueprint $table) {
+//            $table->dropColumn('project_status');
+//        });
     }
 };

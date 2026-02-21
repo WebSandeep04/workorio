@@ -60,7 +60,7 @@ class CustomerProjectController extends Controller
             'project_name' => 'required|string|max:255',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => 'required|in:pending,in_progress,completed,cancelled',
+            'status' => 'required|in:Ongoing,Completed,Closed',
             'description' => 'nullable|string',
             'original_value' => 'nullable|numeric',
             'estimated_value' => 'nullable|numeric',
