@@ -23,12 +23,14 @@ class CustomerProject extends Model
         'critical_path_enabled',
         'workflow_template_id',
         'completed_percentage',
+        'is_favourite',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
         'critical_path_enabled' => 'boolean',
+        'is_favourite' => 'boolean',
     ];
 
     public function customer()

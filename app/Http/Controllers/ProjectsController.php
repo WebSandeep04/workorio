@@ -41,7 +41,7 @@ class ProjectsController extends Controller
 
     public function fetch(Request $request)
     {
-        $query = CustomerProject::with(['customer', 'service', 'assignedUsers']);
+        $query = CustomerProject::with(['customer', 'service', 'assignedUsers'])->where('status', 'Ongoing');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -72,17 +72,37 @@ class ProjectsController extends Controller
             $query->where('service_id', $request->service_id);
         }
 
+        // Filter by Starred
+        if ($request->boolean('is_starred')) {
+            $query->where('is_favourite', 1);
+        } else {
+            $query->where('is_favourite', 0);
+        }
+
         $projects = $query->orderBy('updated_at', 'desc')->paginate(50);
 
         return response()->json($projects);
     }
     
+    public function toggleFavourite($id)
+    {
+        $project = CustomerProject::findOrFail($id);
+        $project->is_favourite = !$project->is_favourite;
+        $project->save();
+
+        return response()->json([
+            'success' => true,
+            'is_favourite' => $project->is_favourite
+        ]);
+    }
+
     // Fetch projects for a specific customer (for dropdowns)
     public function fetchByCustomer($customerId)
     {
         $projects = CustomerProject::where('customer_id', $customerId)
+                                   ->where('status', 'Ongoing')
                                    ->orderBy('project_name')
-                                   ->get(['id', 'project_name', 'project_status']);
+                                   ->get(['id', 'project_name', 'status']);
         return response()->json($projects);
     }
 

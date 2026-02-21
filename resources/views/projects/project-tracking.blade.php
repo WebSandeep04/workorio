@@ -151,6 +151,52 @@
       margin-right: 0.5rem;
   }
   .back-btn:hover { background: #f3f4f6; }
+
+  /* Favourite Star */
+  .favourite-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent !important;
+      border: none !important;
+      font-size: 1.1rem;
+      color: #d1d5db; /* gray */
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 20; /* High z-index */
+      padding: 0;
+      line-height: 1;
+      box-shadow: none !important;
+  }
+  .favourite-btn.active {
+      color: #fbbf24; /* gold */
+  }
+  .favourite-btn:hover {
+      transform: scale(1.2);
+  }
+
+  /* Status Tabs */
+  .status-tabs {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .status-tab {
+    padding: 0.35rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    font-family: Montserrat;
+    background: #f3f4f6;
+  }
+  .status-tab.active {
+    color: white;
+    background: #434afa;
+  }
+  
+  .cursor-pointer { cursor: pointer; }
   
   .pagination { justify-content: center; margin-top: 1rem; }
   .pagination .page-link { color: #434afa; font-size: 0.8rem; }
@@ -216,9 +262,10 @@
   #projectsGrid .item-card {
       width: 100%; /* Full width of grid cell */
       max-width: none;
-      height: 100%; /* Uniform height */
+      min-height: auto; /* Remove forced min-height if any */
       display: flex;
       flex-direction: column;
+      padding-bottom: 1rem;
   }
   
   #projectsGrid .item-card .card-footer-row {
@@ -329,17 +376,7 @@
           <option value="">All Services</option>
         </select>
       </div>
-      <div class="mb-2">
-        <label for="filter_status" class="form-label-modern">
-          <i class="bi bi-tag"></i> Status
-        </label>
-        <select id="filter_status" class="form-control-modern">
-          <option value="">All Statuses</option>
-          <option value="Ongoing">Ongoing</option>
-          <option value="Completed">Completed</option>
-          <option value="Closed">Closed</option>
-        </select>
-      </div>
+
   </div>
 
   <!-- Search & Actions -->
@@ -359,7 +396,15 @@
         <div class="col-md-12" id="listColumn">
            
             <!-- Dynamic Title for Context -->
-            <h6 id="viewTitle" class="mb-3 fw-bold" style="font-family: Montserrat; color: #1f2937;">All Customers</h6>
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <h6 id="viewTitle" class="mb-0 fw-bold" style="font-family: Montserrat; color: #1f2937;">All Projects</h6>
+                    <div class="status-tabs">
+                        <div class="status-tab active" data-filter="all">All Projects</div>
+                        <div class="status-tab" data-filter="starred"><i class="bi bi-star-fill text-warning me-1"></i> Starred</div>
+                    </div>
+                </div>
+            </div>
 
             <!-- View 1: Customers Grid (Hidden/Removed) -->
             <div id="customersView" style="display:none;">
@@ -489,6 +534,7 @@ $(document).ready(function() {
     let projectPage = 1;
     let search = '';
     let projectTasks = [];
+    let filterStarred = false;
     
     // Initial Load
     // fetchCustomers(); // Removed customer fetch
@@ -498,8 +544,20 @@ $(document).ready(function() {
     // Set initial title
     $('#viewTitle').text('All Projects');
 
+    // Tab Filtering
+    $(document).on('click', '.status-tab', function() {
+        $('.status-tab').removeClass('active');
+        $(this).addClass('active');
+        
+        let filter = $(this).data('filter');
+        filterStarred = (filter === 'starred');
+        
+        projectPage = 1;
+        fetchProjects(null);
+    });
+
     // Event Listeners
-    $('#filter_customer, #filter_status, #filter_service').on('change', function() {
+    $('#filter_customer, #filter_service').on('change', function() {
         projectPage = 1; 
         fetchProjects(null);
     });
@@ -612,7 +670,7 @@ $(document).ready(function() {
         let cId = specificCustomerId;
         if(cId === null) cId = $('#filter_customer').val();
 
-        let status = $('#filter_status').val();
+
         let service = $('#filter_service').val();
 
         $.ajax({
@@ -622,8 +680,8 @@ $(document).ready(function() {
                 page: projectPage, 
                 search: search, 
                 customer_id: cId,
-                project_status: status,
-                service_id: service
+                service_id: service,
+                is_starred: filterStarred ? 1 : 0
             },
             success: function(response) {
                 renderProjectGrid(response.data);
@@ -702,11 +760,17 @@ $(document).ready(function() {
                     statusClass = 'pending';
                 }
 
+                let starIcon = item.is_favourite ? 'bi-star-fill' : 'bi-star';
+                let starActiveClass = item.is_favourite ? 'active' : '';
+
                 html += `
                     <div class="item-card project-card" data-id="${item.id}" data-name="${item.project_name}" data-customer="${item.customer_id}">
+                        <button class="favourite-btn ${starActiveClass}" onclick="toggleFavourite(${item.id}, this)" title="Toggle Favourite">
+                             <i class="bi ${starIcon}"></i>
+                        </button>
                         <div class="card-header-row">
                             <div class="card-title">${item.project_name}</div>
-                            <select class="status-select ${statusClass}" onchange="updateProjectStatus(${item.id}, this)">
+                            <select class="status-select ${statusClass} me-4" onchange="updateProjectStatus(${item.id}, this)">
                                 <option value="Ongoing" ${item.status == 'Ongoing' ? 'selected' : ''}>Ongoing</option>
                                 <option value="Completed" ${item.status == 'Completed' ? 'selected' : ''}>Completed</option>
                                 <option value="Closed" ${item.status == 'Closed' ? 'selected' : ''}>Closed</option>
@@ -729,12 +793,6 @@ $(document).ready(function() {
                             <span class="ms-2 small text-muted">${item.completed_percentage || 0}%</span>
                             <i class="bi bi-pencil-square ms-2 text-primary cursor-pointer" onclick="openProgressModal(${item.id}, ${item.completed_percentage || 0})" title="Update Progress" style="cursor: pointer; font-size: 0.8rem;"></i>
                         </div>
-                        <div class="card-footer-row">
-                             <div class="text-muted small">ID: #${item.id}</div>
-                             <div class="action-buttons">
-                                <!-- Edit/Delete removed -->
-                             </div>
-                        </div>
                     </div>
                 `;
             });
@@ -742,6 +800,32 @@ $(document).ready(function() {
             html = '<div class="no-data">No projects found for this customer.</div>';
         }
         $('#projectsGrid').html(html);
+    }
+
+    window.toggleFavourite = function(projectId, btn) {
+        event.stopPropagation();
+        $.ajax({
+            url: `/projects/${projectId}/toggle-favourite`,
+            type: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if(response.success) {
+                    if(response.is_favourite) {
+                        $(btn).addClass('active');
+                        $(btn).find('i').removeClass('bi-star').addClass('bi-star-fill');
+                    } else {
+                        $(btn).removeClass('active');
+                        $(btn).find('i').removeClass('bi-star-fill').addClass('bi-star');
+                    }
+                    
+                    if((filterStarred && !response.is_favourite) || (!filterStarred && response.is_favourite)) {
+                        fetchProjects(currentCustomerId);
+                    }
+                }
+            }
+        });
     }
 
     window.updateProjectStatus = function(id, selectElement) {

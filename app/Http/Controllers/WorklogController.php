@@ -112,6 +112,7 @@ class WorklogController extends Controller
     public function getProjectsByCustomerOnly($customerId)
     {
         $projects = CustomerProject::where('customer_id', $customerId)
+            ->where('status', 'Ongoing')
             ->select('project_name')
             ->whereNotNull('project_name')
             ->distinct()
@@ -127,6 +128,7 @@ class WorklogController extends Controller
     {
         $projectName = $request->query('project_name');
         $services = CustomerProject::where('customer_id', $customerId)
+            ->where('status', 'Ongoing')
             ->when($projectName, function($q) use ($projectName) {
                 $q->where('project_name', $projectName);
             })
@@ -142,6 +144,7 @@ class WorklogController extends Controller
     public function getProjectsByCustomer($customerId)
     {
         $projects = CustomerProject::where('customer_id', $customerId)
+            ->where('status', 'Ongoing')
             ->with('service')
             ->get()
             ->pluck('service')

@@ -630,6 +630,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/projects', [App\Http\Controllers\ProjectsController::class, 'store'])->name('projects.store');
     Route::get('/projects/options', [App\Http\Controllers\ProjectsController::class, 'getOptions'])->name('projects.options');
     Route::put('/projects/{id}', [App\Http\Controllers\ProjectsController::class, 'update'])->name('projects.update');
+    Route::post('/projects/{id}/toggle-favourite', [App\Http\Controllers\ProjectsController::class, 'toggleFavourite'])->name('projects.toggle-favourite');
     Route::delete('/projects/{id}', [App\Http\Controllers\ProjectsController::class, 'destroy'])->name('projects.destroy');
 
     // Subscription routes
