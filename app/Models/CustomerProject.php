@@ -24,6 +24,7 @@ class CustomerProject extends Model
         'workflow_template_id',
         'completed_percentage',
         'is_favourite',
+        'sow_path',
     ];
 
     protected $casts = [

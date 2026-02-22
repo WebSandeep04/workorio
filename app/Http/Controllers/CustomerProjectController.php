@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CustomerProjectController extends Controller
 {
@@ -73,6 +74,7 @@ class CustomerProjectController extends Controller
             'module_ids.*' => 'exists:modules,id',
             'critical_path_enabled' => 'nullable|boolean',
             'workflow_template_id' => 'nullable|exists:workflow_templates,id',
+            'sow_document' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ]);
 
         if ($request->boolean('critical_path_enabled') && !$request->workflow_template_id) {
@@ -87,6 +89,11 @@ class CustomerProjectController extends Controller
 
         DB::beginTransaction();
         try {
+            $sowPath = null;
+            if ($request->hasFile('sow_document')) {
+                $sowPath = $request->file('sow_document')->store('customer-projects/sow', 'public');
+            }
+
             $customerProject = CustomerProject::create([
                 'customer_id' => $validated['customer_id'],
                 'service_id' => $validated['service_id'],
@@ -100,6 +107,7 @@ class CustomerProjectController extends Controller
                 'profit_value' => $validated['profit_value'] ?? null,
                 'critical_path_enabled' => $request->boolean('critical_path_enabled'),
                 'workflow_template_id' => $validated['workflow_template_id'] ?? null,
+                'sow_path' => $sowPath,
             ]);
             // Save assigned users
             $assignedUsers = $validated['assigned_user_ids'] ?? [];
@@ -157,6 +165,7 @@ class CustomerProjectController extends Controller
             'assigned_user_ids.*.days' => 'nullable|numeric|min:0',
             'critical_path_enabled' => 'nullable|boolean',
             'workflow_template_id' => 'nullable|exists:workflow_templates,id',
+            'sow_document' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ]);
 
         if ($request->boolean('critical_path_enabled') && !$request->workflow_template_id) {
@@ -186,6 +195,14 @@ class CustomerProjectController extends Controller
             'critical_path_enabled' => $request->boolean('critical_path_enabled'),
             'workflow_template_id' => $validated['workflow_template_id'] ?? null,
         ]);
+
+        if ($request->hasFile('sow_document')) {
+            if ($customerProject->sow_path && Storage::disk('public')->exists($customerProject->sow_path)) {
+                Storage::disk('public')->delete($customerProject->sow_path);
+            }
+            $sowPath = $request->file('sow_document')->store('customer-projects/sow', 'public');
+            $customerProject->update(['sow_path' => $sowPath]);
+        }
 
         // Sync assigned users
         DB::table('customer_project_users')

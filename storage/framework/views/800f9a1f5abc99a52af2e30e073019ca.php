@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Customer Project Services')
-@section('page_title', 'Customer Project Services')
 
-@push('styles')
+<?php $__env->startSection('title', 'Customer Project Services'); ?>
+<?php $__env->startSection('page_title', 'Customer Project Services'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -377,9 +377,9 @@
     background-color: #f0f0f0;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
@@ -443,7 +443,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body pt-4 pb-4">
-                    @csrf
+                    <?php echo csrf_field(); ?>
                     <div class="modal-section">
                         <div class="section-heading">
                             <span class="badge rounded-pill bg-primary-subtle text-primary"><i class="bi bi-info-circle"></i></span>
@@ -593,7 +593,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body pt-4 pb-4">
-                    @csrf
+                    <?php echo csrf_field(); ?>
                     <input type="hidden" id="edit_customer_project_id">
                     <div class="modal-section">
                         <div class="section-heading">
@@ -772,9 +772,9 @@
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 function showAlert(type, message) {
     const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -864,7 +864,7 @@ $(function () {
           </tr>
         `);
         
-        $.get(`{{ route('customer-project.fetch') }}?page=${page}&search=${search}`, function (data) {
+        $.get(`<?php echo e(route('customer-project.fetch')); ?>?page=${page}&search=${search}`, function (data) {
             if (!data.data || data.data.length === 0) {
                 $('#customerProjectTable tbody').html(`
                   <tr>
@@ -984,7 +984,7 @@ $(function () {
     });
 
     function loadCustomers() {
-        $.get("{{ route('customer-project.customers') }}", function (data) {
+        $.get("<?php echo e(route('customer-project.customers')); ?>", function (data) {
             let options = '<option value="">Select Customer</option>';
             $.each(data, function (i, customer) {
                 options += `<option value="${customer.id}">${customer.name}</option>`;
@@ -994,7 +994,7 @@ $(function () {
     }
 
     function loadServices() {
-        $.get("{{ route('customer-project.services') }}")
+        $.get("<?php echo e(route('customer-project.services')); ?>")
             .done(function (data) {
                 let options = '<option value="">Select Service</option>';
                 if (data && data.length > 0) {
@@ -1026,7 +1026,7 @@ $(function () {
     }
 
     function loadWorkflowTemplates() {
-        $.get("{{ route('workflow-templates.fetch') }}")
+        $.get("<?php echo e(route('workflow-templates.fetch')); ?>")
             .done(function(response){
                 if (response.success) {
                     workflowTemplates = response.data || [];
@@ -1082,8 +1082,8 @@ $(function () {
 
     // Load users for assignment
     function loadUsers() {
-        console.log('Fetching users from:', "{{ route('fetchUsersForManager') }}");
-        $.get("{{ route('fetchUsersForManager') }}", function (users) {
+        console.log('Fetching users from:', "<?php echo e(route('fetchUsersForManager')); ?>");
+        $.get("<?php echo e(route('fetchUsersForManager')); ?>", function (users) {
             console.log('Users fetched:', users);
             if (!users || users.length === 0) {
                  console.warn('No users returned from API');
@@ -1225,7 +1225,7 @@ $(function () {
         let formData = new FormData(this);
 
         $.ajax({
-            url: "{{ route('customer-project.store') }}",
+            url: "<?php echo e(route('customer-project.store')); ?>",
             type: 'POST',
             data: formData,
             processData: false,
@@ -1358,7 +1358,7 @@ $(function () {
         $.ajax({
             url: `/customer-project/${id}`,
             type: 'DELETE',
-            data: { _token: '{{ csrf_token() }}' },
+            data: { _token: '<?php echo e(csrf_token()); ?>' },
             success: function (response) {
                 if (response.success) {
                     $('#deleteProjectModal').modal('hide');
@@ -1385,4 +1385,6 @@ $(function () {
     to { transform: rotate(360deg); }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/customer-project/index.blade.php ENDPATH**/ ?>

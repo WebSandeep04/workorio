@@ -497,6 +497,11 @@
               <label for="description" class="form-label">Description</label>
               <textarea class="form-control" id="description" name="description" rows="3"></textarea>
             </div>
+            <div class="col-md-12 mb-3">
+              <label for="sow_document" class="form-label">SOW Document</label>
+              <input type="file" class="form-control" id="sow_document" name="sow_document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+              <small class="text-muted">Upload Statement of Work (PDF, Doc, Images)</small>
+            </div>
           </div>
           <div class="modal-footer border-0">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -898,28 +903,29 @@ $(document).ready(function() {
     // --- CRUD ---
 
     function saveProject() {
-        let formData = {
-            project_name: $('#project_name').val(),
-            customer_id: $('#customer_id').val(),
-            service_id: $('#service_id').val(),
-            status: $('#project_status').val(),
-            completed_percentage: $('#completed_percentage').val(),
-            start_date: $('#start_date').val(),
-            end_date: $('#end_date').val(),
-            description: $('#description').val(),
-            _token: $('meta[name="csrf-token"]').attr('content')
-        };
+        let form = document.getElementById('projectForm');
+        let formData = new FormData(form);
+        
         $.ajax({
             url: "{{ route('projects.store') }}",
             type: "POST",
             data: formData,
+            processData: false,
+            contentType: false,
             success: function(response) {
                 $('#addProjectModal').modal('hide');
-                $('#projectForm')[0].reset();
+                form.reset();
                 // Refresh projects list regardless of customer
                 fetchProjects(currentCustomerId);
             },
-            error: function(xhr) { alert('Error processing request'); }
+            error: function(xhr) { 
+                if (xhr.status === 422) {
+                    let errors = Object.values(xhr.responseJSON.errors).join("\n");
+                    alert(errors);
+                } else {
+                    alert('Error processing request'); 
+                }
+            }
         });
     }
     

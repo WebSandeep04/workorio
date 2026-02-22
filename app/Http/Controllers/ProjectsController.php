@@ -8,6 +8,7 @@ use App\Models\CustomerProject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ProjectsController extends Controller
 {
@@ -145,10 +146,14 @@ class ProjectsController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string',
+            'sow_document' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ]);
 
-        // Map project_status to status if needed, but here we expect 'status' from request now
         $data = $request->all();
+        
+        if ($request->hasFile('sow_document')) {
+            $data['sow_path'] = $request->file('sow_document')->store('customer-projects/sow', 'public');
+        }
         if ($request->has('project_status') && !$request->has('status')) {
             $data['status'] = $request->project_status;
         }
@@ -172,6 +177,7 @@ class ProjectsController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string',
+            'sow_document' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ]);
 
         $data = $request->all();
@@ -179,6 +185,14 @@ class ProjectsController extends Controller
             $data['status'] = $request->project_status;
         }
         $project = CustomerProject::findOrFail($id);
+        
+        if ($request->hasFile('sow_document')) {
+            if ($project->sow_path && Storage::disk('public')->exists($project->sow_path)) {
+                Storage::disk('public')->delete($project->sow_path);
+            }
+            $data['sow_path'] = $request->file('sow_document')->store('customer-projects/sow', 'public');
+        }
+
         $project->update($data);
 
         return response()->json([

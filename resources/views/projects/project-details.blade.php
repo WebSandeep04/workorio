@@ -380,6 +380,18 @@
                      <i class="bi bi-pencil-square ms-2 text-primary cursor-pointer" data-bs-toggle="modal" data-bs-target="#updateProjectProgressModal" title="Update Progress" style="cursor: pointer;"></i>
                 </div>
             </div>
+            <div>
+                <label class="form-label-modern text-muted mb-1"><i class="bi bi-file-earmark-text me-1"></i> SOW</label>
+                <div>
+                    @if($project->sow_path)
+                        <a href="{{ asset('storage/' . $project->sow_path) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0" style="font-size: 0.75rem;">
+                            <i class="bi bi-download me-1"></i> View SOW
+                        </a>
+                    @else
+                        <span class="text-muted small">No SOW Document</span>
+                    @endif
+                </div>
+            </div>
 
             <div class="w-100 mt-2 pt-2 border-top">
                 <div class="d-flex justify-content-between align-items-center mb-1">
