@@ -12,16 +12,19 @@
     }
     $headerInitial = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $headerName), 0, 1) ?: 'U');
     
-    // Determine logout route based on user type
-    $isSuperAdmin = $headerUser && $headerUser->role_id == 3 && \Illuminate\Support\Facades\DB::getDefaultConnection() === 'mysql';
-    $isTenantUser = session()->has('tenant_id');
+    // Determine logout route and master connection status
+    $isMasterConnection = \Illuminate\Support\Facades\DB::getDefaultConnection() === 'mysql';
+    $isSuperAdmin = $headerUser && $headerUser->role_id == 3 && $isMasterConnection;
     $logoutRoute = $isSuperAdmin ? 'superadmin.logout' : 'logout';
 
-    // Find Employee for Profile Picture
-    $headerEmployee = $headerUser ? $headerUser->employee : null;
-    if (!$headerEmployee && $headerUser) {
-        $headerEmployee = \App\Models\Employee::where('user_id', $headerUser->id)->first() ?? 
-                         \App\Models\Employee::where('email', $headerUser->email)->first();
+    // Find Employee for Profile Picture - only if not on master connection
+    $headerEmployee = null;
+    if (!$isMasterConnection && $headerUser) {
+        $headerEmployee = $headerUser->employee;
+        if (!$headerEmployee) {
+            $headerEmployee = \App\Models\Employee::where('user_id', $headerUser->id)->first() ?? 
+                             \App\Models\Employee::where('email', $headerUser->email)->first();
+        }
     }
 ?>
 <div class="app-header d-none d-md-flex align-items-center justify-content-between">
