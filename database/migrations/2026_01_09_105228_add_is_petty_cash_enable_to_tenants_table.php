@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up()
     {
+        // Skip this migration if running on a tenant connection
+        if (Schema::getConnection()->getName() !== 'mysql') {
+            return;
+        }
+
         Schema::table('tenants', function (Blueprint $table) {
             $table->boolean('is_petty_cash_enable')->default(false)->after('is_document_management_enabled');
         });

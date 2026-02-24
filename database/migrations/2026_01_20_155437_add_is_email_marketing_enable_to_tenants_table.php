@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on a tenant connection
+        if (Schema::getConnection()->getName() !== 'mysql') {
+            return;
+        }
+
         Schema::table('tenants', function (Blueprint $table) {
             $table->boolean('is_email_marketing_enable')->default(1);
         });

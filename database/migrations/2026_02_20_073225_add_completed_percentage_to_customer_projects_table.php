@@ -11,6 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        
+          // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
+        
         if (Schema::hasTable('customer_projects')) {
             Schema::table('customer_projects', function (Blueprint $table) {
                 if (!Schema::hasColumn('customer_projects', 'completed_percentage')) {

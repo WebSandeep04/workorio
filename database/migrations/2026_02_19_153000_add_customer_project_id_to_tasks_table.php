@@ -17,8 +17,10 @@ return new class extends Migration
         }
 
         Schema::table('tasks', function (Blueprint $table) {
-            $table->unsignedBigInteger('customer_project_id')->nullable()->after('customer_id');
-            $table->foreign('customer_project_id')->references('id')->on('customer_projects')->onDelete('set null');
+            if (!Schema::hasColumn('tasks', 'customer_project_id')) {
+                $table->unsignedBigInteger('customer_project_id')->nullable()->after('customer_id');
+                $table->foreign('customer_project_id')->references('id')->on('customer_projects')->onDelete('set null');
+            }
         });
     }
 
