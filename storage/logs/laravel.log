@@ -8,3 +8,10 @@
 [2026-02-24 12:09:32] local.ERROR: Failed to create tenant database for unique: SQLSTATE[42S21]: Column already exists: 1060 Duplicate column name 'customer_project_id' (Connection: tenant_2, SQL: alter table `tasks` add `customer_project_id` bigint unsigned null after `customer_id`)  
 [2026-02-24 12:10:34] local.INFO: Successfully dropped database for tenant: unique  
 [2026-02-24 12:10:50] local.INFO: Successfully created database for tenant: unique (ID: 2)  
+[2026-02-24 12:14:26] local.INFO: Successfully dropped database for tenant: unique  
+[2026-02-24 12:14:45] local.INFO: Successfully created database for tenant: unique (ID: 2)  
+[2026-02-25 06:54:01] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-02-25 06:54:03] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-02-25 06:54:05] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-02-25 06:54:05] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-02-25 06:54:05] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
