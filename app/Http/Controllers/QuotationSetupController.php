@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class QuotationSetupController extends Controller
 {
@@ -69,11 +70,22 @@ class QuotationSetupController extends Controller
             'gstin' => 'nullable|string|max:50',
             'pan' => 'nullable|string|max:50',
             'bank_details' => 'nullable|string',
-            'logo_path' => 'nullable|string|max:500',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'template_name' => 'nullable|string|max:50',
             'primary_color' => 'nullable|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
         ]);
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $existing = DB::table('quotation_settings')->first();
+            if ($existing && $existing->logo_path) {
+                Storage::disk('public')->delete($existing->logo_path);
+            }
+            $path = $request->file('logo')->store('quotation/logos', 'public');
+            $data['logo_path'] = $path;
+        }
+        unset($data['logo']);
 
         // Convert services array to JSON
         if (isset($data['services']) && is_array($data['services'])) {
@@ -87,11 +99,17 @@ class QuotationSetupController extends Controller
                 ->where('id', $existing->id)
                 ->update($data);
             
-            return response()->json(['message' => 'Quotation settings updated successfully']);
+            return response()->json([
+                'message' => 'Quotation settings updated successfully',
+                'logo_path' => $data['logo_path'] ?? ($existing->logo_path ?? null)
+            ]);
         } else {
             DB::table('quotation_settings')->insert($data);
             
-            return response()->json(['message' => 'Quotation settings saved successfully']);
+            return response()->json([
+                'message' => 'Quotation settings saved successfully',
+                'logo_path' => $data['logo_path'] ?? null
+            ]);
         }
     }
 

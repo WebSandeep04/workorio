@@ -562,8 +562,19 @@ class QuotationController extends Controller
         $quote->customer_id = $data['customer_id'];
         $quote->total_amount = $data['total_amount'] ?? 0;
         $quote->created_at = now();
+        // Fetch product names for display
+        $products = $data['products'] ?? [];
+        foreach ($products as &$p) {
+            if (!isset($p['product_name']) && isset($p['product_id'])) {
+                $product = DB::table('sales_products')->where('id', $p['product_id'])->first();
+                if ($product) {
+                    $p['product_name'] = $product->product_name;
+                }
+            }
+        }
+
         $quote->data = [
-            'products' => $data['products'] ?? [],
+            'products' => $products,
             'discount' => $data['discount'] ?? 0,
             'project_timeline' => $data['project_timeline'] ?? ''
         ];

@@ -283,6 +283,22 @@
                             <textarea class="form-control-modern" id="company_description" name="company_description" rows="4" placeholder="Brief description of the company"></textarea>
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label-modern">Company Logo</label>
+                            <input type="file" class="form-control-modern" id="logo" name="logo" accept="image/*" onchange="previewLogo(this)">
+                            <small class="text-muted mt-1 d-block">Recommended size: 200x200px. Max 2MB.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label-modern">Logo Preview</label>
+                            <div id="logoPreviewContainer" style="width: 120px; height: 120px; border: 2px dashed #e0e0e0; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fafafa;">
+                                <span class="text-muted small" id="noLogoText">No Logo</span>
+                                <img id="logoPreview" src="" alt="Logo Preview" style="max-width: 100%; max-height: 100%; display: none;">
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
@@ -502,6 +518,15 @@ function loadSettings() {
                 $('#pan').val(data.pan || '');
                 $('#bank_details').val(data.bank_details || '');
                 
+                // Logo Preview
+                if (data.logo_path) {
+                    $('#logoPreview').attr('src', '/storage/' + data.logo_path).show();
+                    $('#noLogoText').hide();
+                } else {
+                    $('#logoPreview').hide();
+                    $('#noLogoText').show();
+                }
+                
                 // New Pattern fields
                 $('#template_name').val(data.template_name || 'modern');
                 $('#primary_color').val(data.primary_color || '#434AFA');
@@ -545,45 +570,49 @@ function addServiceField(value = '') {
     $('#servicesContainer').append(serviceHtml);
 }
 
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            $('#logoPreview').attr('src', e.target.result).show();
+            $('#noLogoText').hide();
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 function saveSettings() {
     const $btn = $('#saveBtn');
     $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Saving...');
 
-    const formData = {
-        company_name: $('#company_name').val(),
-        company_description: $('#company_description').val(),
-        mission: $('#mission').val(),
-        vision: $('#vision').val(),
-        core_values: $('#core_values').val(),
-        services: $('input[name="services[]"]').map(function() {
-            return $(this).val();
-        }).get().filter(v => v.trim() !== ''),
-        office_name: $('#office_name').val(),
-        office_address: $('#office_address').val(),
-        office_city: $('#office_city').val(),
-        office_state: $('#office_state').val(),
-        office_pincode: $('#office_pincode').val(),
-        office_country: $('#office_country').val(),
-        phone: $('#phone').val(),
-        email: $('#email').val(),
-        website: $('#website').val(),
-        gstin: $('#gstin').val(),
-        pan: $('#pan').val(),
-        bank_details: $('#bank_details').val(),
-        template_name: $('#template_name').val(),
-        primary_color: $('#primary_color').val(),
-        secondary_color: $('#secondary_color').val()
-    };
+    const form = document.getElementById('quotationSetupForm');
+    const formData = new FormData(form);
+    
+    // Add services manually if needed (actually FormData handles it if names are correct)
+    // But we need to filter empty services like before
+    formData.delete('services[]'); // Remove all
+    $('input[name="services[]"]').each(function() {
+        const val = $(this).val().trim();
+        if (val !== '') {
+            formData.append('services[]', val);
+        }
+    });
 
     $.ajax({
         url: "{{ route('quotation.setup.store') }}",
         type: 'POST',
         data: formData,
+        processData: false,
+        contentType: false,
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function(response) {
             showAlert('success', response.message || 'Settings saved successfully');
+            // Update preview if new logo uploaded
+            if (response.logo_path) {
+                $('#logoPreview').attr('src', '/storage/' + response.logo_path);
+            }
         },
         error: function(xhr) {
             const message = xhr.responseJSON?.message || 'Failed to save settings';
