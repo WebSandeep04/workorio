@@ -149,7 +149,9 @@
         <tr>
             <td class="logo-section">
                 <div style="text-align: left; padding-left: 10px;">
-                    @if($settings->logo_path && file_exists(public_path('storage/'.$settings->logo_path)))
+                    @if(isset($logo_base64) && $logo_base64)
+                        <img src="{{ $logo_base64 }}" alt="Logo">
+                    @elseif($settings->logo_path && file_exists(public_path('storage/'.$settings->logo_path)))
                         <img src="{{ public_path('storage/'.$settings->logo_path) }}" alt="Logo">
                     @else
                         {{-- Dummy Logo to match image --}}

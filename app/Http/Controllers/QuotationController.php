@@ -368,9 +368,13 @@ class QuotationController extends Controller
 
         // Generate PDF Binary using the selected template
         $binary = $this->generatePdfBinary($data, $quoteNo);
-        if (!$binary) {
-            Log::error('Quotation store: Failed to generate PDF binary');
-            return response()->json(['message' => 'PDF generation failed'], 500);
+        if (!$binary || (is_array($binary) && isset($binary['error']))) {
+            $errMsg = is_array($binary) ? $binary['error'] : 'Unknown error';
+            Log::error('Quotation store: Failed to generate PDF binary', ['error' => $errMsg]);
+            return response()->json([
+                'message' => 'PDF generation failed',
+                'details' => $errMsg
+            ], 500);
         }
 
         Log::info('Starting quotation save transaction', ['quote_no' => $quoteNo]);
@@ -593,16 +597,46 @@ class QuotationController extends Controller
             $viewPath = 'quotation.templates.modern';
         }
 
+        // Prepare logo as base64 for better compatibility in PDFs
+        $logoBase64 = null;
+        if (isset($settings->logo_path) && $settings->logo_path) {
+            try {
+                if (Storage::disk('public')->exists($settings->logo_path)) {
+                    $logoData = Storage::disk('public')->get($settings->logo_path);
+                    $logoType = Storage::disk('public')->mimeType($settings->logo_path);
+                    $logoBase64 = 'data:' . $logoType . ';base64,' . base64_encode($logoData);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Failed to convert logo to base64: ' . $e->getMessage());
+            }
+        }
+
         try {
+            // Increase memory limit for PDF generation
+            ini_set('memory_limit', '512M');
+            
+            // Ensure font cache directory exists
+            $fontDir = storage_path('fonts');
+            if (!file_exists($fontDir)) {
+                @mkdir($fontDir, 0755, true);
+            }
+
             $pdf = Pdf::loadView($viewPath, [
                 'quote' => $quote,
-                'settings' => $settings
+                'settings' => $settings,
+                'logo_base64' => $logoBase64
             ]);
 
             return $pdf->output();
         } catch (\Exception $e) {
-            Log::error('PDF generation error: ' . $e->getMessage());
-            return null;
+            Log::error('PDF generation error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            // Re-throw if we want the outer store method to catch more details, 
+            // but for now let's just make sure the message is logged.
+            return ['error' => $e->getMessage()];
         }
     }
 }

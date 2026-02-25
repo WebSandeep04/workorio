@@ -88,7 +88,7 @@
                         {{ $quote->customer->company_name ?? '' }}
                     @else
                         @php $prospect = \App\Models\Prospectus::find($quote->customer_id); @endphp
-                        <strong>{{ $prospect->prospectus_name ?? 'N/A' }}</strong><br>
+                        <strong>{{ optional($prospect)->prospectus_name ?? 'N/A' }}</strong><br>
                         {{ $prospect->contact_person ?? '' }}
                     @endif
                 </div>
@@ -124,7 +124,7 @@
                         @endphp
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ \App\Models\SalesProduct::find($item['product_id'])->product_name ?? $item['product_id'] }}</td>
+                            <td>{{ optional(\App\Models\SalesProduct::find($item['product_id']))->product_name ?? $item['product_id'] }}</td>
                             <td>{{ $item['remark'] ?? '' }}</td>
                             <td style="text-align: right;">₹{{ number_format($price, 2) }}</td>
                             <td style="text-align: right;">₹{{ number_format($tax, 2) }}</td>
