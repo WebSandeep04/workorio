@@ -10,7 +10,17 @@
             <div style="max-width: 600px; margin: 0 auto;">
                 <p style="font-size: 14px; color: #374151;"><?php echo e($settings->company_description ?? ''); ?></p>
                 
-            
+                <?php if($settings->mission || $settings->vision): ?>
+                    <div style="margin-top: 50px;">
+                        <h2 style="color: <?php echo e($settings->primary_color ?? '#434AFA'); ?>; font-size: 20px;">Mission & Vision</h2>
+                        <?php if($settings->mission): ?>
+                            <p><strong>Mission:</strong> <?php echo e($settings->mission); ?></p>
+                        <?php endif; ?>
+                        <?php if($settings->vision): ?>
+                            <p><strong>Vision:</strong> <?php echo e($settings->vision); ?></p>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
                 
                 <?php if($settings->core_values): ?>
                     <div style="margin-top: 40px;">
