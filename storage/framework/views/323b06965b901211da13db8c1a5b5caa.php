@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Create Quotation')
-@section('page_title', 'Create Quotation')
 
-@push('styles')
+<?php $__env->startSection('title', 'Create Quotation'); ?>
+<?php $__env->startSection('page_title', 'Create Quotation'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
     body {
         background: #f3f4f6;
@@ -205,9 +205,9 @@
     }
 
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="page-wrapper">
 
     <div class="page-header">Create Quotation</div>
@@ -215,7 +215,7 @@
     <div class="card-box">
         <form id="createQuotationForm">
 
-            {{-- Quotation Details --}}
+            
             <div class="section-title">Quotation Details</div>
 
             <div class="row main-row mb-4 py-3">
@@ -243,7 +243,7 @@
                 </div>
             </div>
 
-            {{-- Products --}}
+            
             <div class="products-header">
                 <div class="section-title">Products</div>
                 <button type="button" class="btn-add" onclick="addProductRow()">+ Add Product</button>
@@ -251,7 +251,7 @@
 
             <div id="productsContainer"></div>
 
-            {{-- Discount --}}
+            
             <div class="section-title mt-3">% Discount</div>
             <div class="discount-wrapper">
                 <input type="number" id="discount" class="form-control" value="0">
@@ -261,7 +261,7 @@
                 </div>
             </div>
 
-            {{-- Footer --}}
+            
             <div class="footer-actions">
                 <button type="button" class="btn-save" onclick="saveQuotation()">Save Quotation</button>
             </div>
@@ -269,9 +269,9 @@
         </form>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <!-- jsPDF for client-side PDF generation -->
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
@@ -482,7 +482,7 @@ function loadCustomerData(selectedId) {
 function prefillFromQuotation(quotationNumber){
     // mark header
     try { $('.card-title-modern').append('<span class="badge bg-warning ms-2" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important; border: none;">Revision</span>'); } catch(e){}
-    return $.get(`{{ url('/quotation/show') }}/${encodeURIComponent(quotationNumber)}`)
+    return $.get(`<?php echo e(url('/quotation/show')); ?>/${encodeURIComponent(quotationNumber)}`)
         .done(function(resp){
             if(!resp || !resp.quotation){ return; }
             const q = resp.quotation;
@@ -597,7 +597,7 @@ function saveQuotation() {
     }
 
     // Otherwise ask backend to generate a fresh number
-    $.get("{{ route('quotation.generate-number') }}")
+    $.get("<?php echo e(route('quotation.generate-number')); ?>")
         .done(function(resp){
             const qno = (resp && resp.quotation_number) ? resp.quotation_number : null;
             if (!qno) { showAlert('error','Failed to get quotation number'); return; }
@@ -639,7 +639,7 @@ let quotationSettings = null;
 
 // Fetch quotation settings
 function loadQuotationSettings() {
-    return $.get("{{ route('quotation.setup.get') }}")
+    return $.get("<?php echo e(route('quotation.setup.get')); ?>")
         .done(function(response) {
             if (response.data) {
                 quotationSettings = response.data;
@@ -676,7 +676,7 @@ function generatePDF(data) {
     $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Saving...');
 
     $.ajax({
-        url: "{{ route('quotation.store') }}",
+        url: "<?php echo e(route('quotation.store')); ?>",
         type: 'POST',
         data: JSON.stringify(payload),
         contentType: 'application/json',
@@ -690,7 +690,7 @@ function generatePDF(data) {
                 window.open(r.data.file_url, '_blank');
                 // Redirect back to list
                 setTimeout(() => {
-                    window.location.href = "{{ route('quotation') }}";
+                    window.location.href = "<?php echo e(route('quotation')); ?>";
                 }, 1500);
             }
         },
@@ -793,4 +793,6 @@ function getPaymentTermsDetails(paymentTermId) {
     return term || null;
 }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/quotation/create.blade.php ENDPATH**/ ?>

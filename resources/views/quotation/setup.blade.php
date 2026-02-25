@@ -260,6 +260,9 @@
             <button class="tab-btn" data-tab="legal">
                 <i class="bi bi-file-earmark-text"></i> Legal & Financial
             </button>
+            <button class="tab-btn" data-tab="pattern">
+                <i class="bi bi-palette"></i> Quotes Pattern
+            </button>
         </div>
 
         <form id="quotationSetupForm">
@@ -399,6 +402,45 @@
                 </div>
             </div>
 
+            <!-- Quotes Pattern Tab -->
+            <div class="tab-content" id="tab-pattern">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label-modern">Quotation Template</label>
+                            <select class="form-control-modern" id="template_name" name="template_name">
+                                <option value="modern">Modern Pattern (Recommended)</option>
+                                <option value="classic">Classic Pattern</option>
+                                <option value="compact">Compact Pattern</option>
+                            </select>
+                            <small class="text-muted mt-1 d-block">Choose the layout pattern for your quotation PDFs.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label-modern">Primary Branding Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" class="form-control-modern p-1" id="primary_color" name="primary_color" value="#434AFA" style="width: 50px; height: 45px;">
+                                <input type="text" class="form-control-modern" id="primary_color_text" value="#434AFA" onkeyup="$('#primary_color').val(this.value)">
+                            </div>
+                            <small class="text-muted mt-1 d-block">Used for headers, banners, and primary accents.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label-modern">Secondary Branding Color</label>
+                            <div class="d-flex gap-2">
+                                <input type="color" class="form-control-modern p-1" id="secondary_color" name="secondary_color" value="#FF8C00" style="width: 50px; height: 45px;">
+                                <input type="text" class="form-control-modern" id="secondary_color_text" value="#FF8C00" onkeyup="$('#secondary_color').val(this.value)">
+                            </div>
+                            <small class="text-muted mt-1 d-block">Used for dividers, icons, and highlights.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="save-container">
                 <button type="submit" class="btn-modern btn-modern-primary" id="saveBtn">
                     <i class="bi bi-check-circle"></i> Save Settings
@@ -458,6 +500,13 @@ function loadSettings() {
                 $('#gstin').val(data.gstin || '');
                 $('#pan').val(data.pan || '');
                 $('#bank_details').val(data.bank_details || '');
+                
+                // New Pattern fields
+                $('#template_name').val(data.template_name || 'modern');
+                $('#primary_color').val(data.primary_color || '#434AFA');
+                $('#primary_color_text').val(data.primary_color || '#434AFA');
+                $('#secondary_color').val(data.secondary_color || '#FF8C00');
+                $('#secondary_color_text').val(data.secondary_color || '#FF8C00');
                 
                 // Load services
                 if (data.services && Array.isArray(data.services)) {
@@ -519,7 +568,10 @@ function saveSettings() {
         website: $('#website').val(),
         gstin: $('#gstin').val(),
         pan: $('#pan').val(),
-        bank_details: $('#bank_details').val()
+        bank_details: $('#bank_details').val(),
+        template_name: $('#template_name').val(),
+        primary_color: $('#primary_color').val(),
+        secondary_color: $('#secondary_color').val()
     };
 
     $.ajax({

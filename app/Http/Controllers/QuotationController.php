@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
 use App\Models\Quotation;
 use App\Models\QuotationRevision;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class QuotationController extends Controller
 {
@@ -308,8 +309,8 @@ class QuotationController extends Controller
      *  - project_timeline (nullable)
      *  - products: array
      *  - total_amount (number)
-     *  - pdf_base64: base64 string (with or without data URI prefix)
- */
+     *  - pdf_base64 (obsolete/ignored)
+     */
     public function store(Request $request)
     {
         Log::info('Quotation store called', [
@@ -340,7 +341,6 @@ class QuotationController extends Controller
             'discount'           => 'nullable|numeric|min:0',
             'total_amount'       => 'nullable|numeric',
             'status'             => 'nullable|string|max:100',
-            'pdf_base64'         => 'required|string',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Quotation validation failed', ['errors' => $e->errors()]);
@@ -364,16 +364,11 @@ class QuotationController extends Controller
             }
         }
 
-        // Normalize base64
-        $base64 = $data['pdf_base64'];
-        if (str_starts_with($base64, 'data:')) {
-            $parts = explode(',', $base64, 2);
-            $base64 = $parts[1] ?? '';
-        }
-        $binary = base64_decode($base64, true);
-        if ($binary === false) {
-            Log::error('Quotation store: Invalid PDF base64');
-            return response()->json(['message' => 'Invalid PDF base64'], 422);
+        // Generate PDF Binary using the selected template
+        $binary = $this->generatePdfBinary($data, $quoteNo);
+        if (!$binary) {
+            Log::error('Quotation store: Failed to generate PDF binary');
+            return response()->json(['message' => 'PDF generation failed'], 500);
         }
 
         Log::info('Starting quotation save transaction', ['quote_no' => $quoteNo]);
@@ -544,5 +539,57 @@ class QuotationController extends Controller
 
         // Use direct storage URL to avoid route model binding issues with tenant databases
         return Storage::disk('public')->url($quote->file_path);
+    }
+
+    /**
+     * Generate PDF binary using chosen template
+     */
+    private function generatePdfBinary($data, $quoteNumber)
+    {
+        $settings = DB::table('quotation_settings')->first();
+        if (!$settings) {
+            $settings = (object) [
+                'template_name' => 'modern',
+                'primary_color' => '#434AFA',
+                'secondary_color' => '#FF8C00'
+            ];
+        }
+
+        // Create a temporary quotation object for the view
+        $quote = new Quotation();
+        $quote->quotation_number = $quoteNumber;
+        $quote->customer_type = $data['customer_type'];
+        $quote->customer_id = $data['customer_id'];
+        $quote->total_amount = $data['total_amount'] ?? 0;
+        $quote->created_at = now();
+        $quote->data = [
+            'products' => $data['products'] ?? [],
+            'discount' => $data['discount'] ?? 0,
+            'project_timeline' => $data['project_timeline'] ?? ''
+        ];
+
+        // Eager load customer if exists
+        if ($quote->customer_type == 'customer') {
+            $quote->setRelation('customer', Customer::find($quote->customer_id));
+        }
+
+        $template = $settings->template_name ?? 'modern';
+        $viewPath = "quotation.templates.{$template}";
+
+        if (!view()->exists($viewPath)) {
+            $viewPath = 'quotation.templates.modern';
+        }
+
+        try {
+            $pdf = Pdf::loadView($viewPath, [
+                'quote' => $quote,
+                'settings' => $settings
+            ]);
+
+            return $pdf->output();
+        } catch (\Exception $e) {
+            Log::error('PDF generation error: ' . $e->getMessage());
+            return null;
+        }
     }
 }

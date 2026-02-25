@@ -70,6 +70,9 @@ class QuotationSetupController extends Controller
             'pan' => 'nullable|string|max:50',
             'bank_details' => 'nullable|string',
             'logo_path' => 'nullable|string|max:500',
+            'template_name' => 'nullable|string|max:50',
+            'primary_color' => 'nullable|string|max:20',
+            'secondary_color' => 'nullable|string|max:20',
         ]);
 
         // Convert services array to JSON
