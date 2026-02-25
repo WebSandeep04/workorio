@@ -229,7 +229,7 @@
                         @endif
                     </td>
                     <td>{{ $p['quantity'] ?? 1 }}</td>
-                    <td>Nos</td>
+                    <td>{{ $p['unit'] ?? 'Nos' }}</td>
                     <td>{{ number_format($p['price'] ?? 0, 2) }}</td>
                     <td>{{ number_format(($p['quantity'] ?? 1) * ($p['price'] ?? 0), 2) }}</td>
                 </tr>
@@ -238,20 +238,42 @@
                 <tr><td colspan="6" style="padding: 20px; color: #999;">No products listed</td></tr>
             @endif
 
+            @php
+                $gross_subtotal = 0;
+                foreach(($quote->data['products'] ?? []) as $p) {
+                    $gross_subtotal += ($p['quantity'] ?? 1) * ($p['price'] ?? 0);
+                }
+                $net_taxable = $quote->total_amount ?? 0;
+                $discount_val = $gross_subtotal - $net_taxable;
+            @endphp
+
+            @if($discount_val > 0)
+            <tr>
+                <td colspan="4" style="border: none;"></td>
+                <td class="total-label-cell">Gross Total</td>
+                <td>{{ number_format($gross_subtotal, 2) }}</td>
+            </tr>
+            <tr>
+                <td colspan="4" style="border: none;"></td>
+                <td class="total-label-cell">Discount</td>
+                <td>{{ number_format($discount_val, 2) }}</td>
+            </tr>
+            @endif
+
             <tr>
                 <td colspan="4" style="border: none;"></td>
                 <td class="total-label-cell">Basic</td>
-                <td>{{ isset($quote->total_amount) ? number_format($quote->total_amount, 2) : '0.00' }}</td>
+                <td>{{ number_format($net_taxable, 2) }}</td>
             </tr>
             <tr>
                 <td colspan="4" style="border: none;"></td>
                 <td class="total-label-cell">GST 18%</td>
-                <td>{{ isset($quote->total_amount) ? number_format($quote->total_amount * 0.18, 2) : '0.00' }}</td>
+                <td>{{ number_format($net_taxable * 0.18, 2) }}</td>
             </tr>
             <tr>
                 <td colspan="4" style="border: none;"></td>
                 <td class="total-label-cell">Total</td>
-                <td>{{ isset($quote->total_amount) ? number_format($quote->total_amount * 1.18, 2) : '0.00' }}</td>
+                <td>{{ number_format($net_taxable * 1.18, 2) }}</td>
             </tr>
             
             {{-- Section B (To be made dynamic later) --}}

@@ -860,3 +860,36 @@
 [2026-02-25 10:40:13] local.INFO: Quotation version check {"existing":"no","next_version":1} 
 [2026-02-25 10:40:13] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260225-003/quote-20260225-003_v1.pdf"} 
 [2026-02-25 10:40:13] local.INFO: Quotation created successfully {"id":20,"quotation_number":"quote-20260225-003"} 
+[2026-02-25 10:47:34] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-02-25 10:47:34] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-02-25 10:47:34] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","payment_term_id","project_timeline","discount","total_amount","status","products"]} 
+[2026-02-25 10:47:44] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260225-004"} 
+[2026-02-25 10:47:44] local.INFO: Quotation transaction started {"quotation_number":"quote-20260225-004","database":"test","user_id":13} 
+[2026-02-25 10:47:44] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-02-25 10:47:44] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260225-004/quote-20260225-004_v1.pdf"} 
+[2026-02-25 10:47:44] local.INFO: Quotation created successfully {"id":21,"quotation_number":"quote-20260225-004"} 
+[2026-02-25 10:54:26] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-02-25 10:54:26] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-02-25 10:54:26] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","payment_term_id","project_timeline","discount","total_amount","status","products"]} 
+[2026-02-25 10:54:35] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260225-005"} 
+[2026-02-25 10:54:35] local.INFO: Quotation transaction started {"quotation_number":"quote-20260225-005","database":"test","user_id":13} 
+[2026-02-25 10:54:35] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-02-25 10:54:35] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260225-005/quote-20260225-005_v1.pdf"} 
+[2026-02-25 10:54:35] local.INFO: Quotation created successfully {"id":22,"quotation_number":"quote-20260225-005"} 
+[2026-02-25 11:02:02] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-02-25 11:02:02] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-02-25 11:02:02] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","payment_term_id","project_timeline","discount","total_amount","status","products"]} 
+[2026-02-25 11:02:13] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260225-006"} 
+[2026-02-25 11:02:13] local.INFO: Quotation transaction started {"quotation_number":"quote-20260225-006","database":"test","user_id":13} 
+[2026-02-25 11:02:13] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-02-25 11:02:13] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260225-006/quote-20260225-006_v1.pdf"} 
+[2026-02-25 11:02:13] local.INFO: Quotation created successfully {"id":23,"quotation_number":"quote-20260225-006"} 
+[2026-02-25 11:05:29] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-02-25 11:05:29] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-02-25 11:05:29] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","payment_term_id","project_timeline","discount","total_amount","status","products"]} 
+[2026-02-25 11:05:35] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260225-006"} 
+[2026-02-25 11:05:35] local.INFO: Quotation transaction started {"quotation_number":"quote-20260225-006","database":"test","user_id":13} 
+[2026-02-25 11:05:35] local.INFO: Quotation version check {"existing":"yes","next_version":2} 
+[2026-02-25 11:05:36] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260225-006/quote-20260225-006_v2.pdf"} 
+[2026-02-25 11:05:36] local.INFO: Quotation revision created successfully {"quotation_id":23,"version":1} 
+[2026-02-25 11:05:36] local.INFO: Quotation updated successfully {"id":23,"quotation_number":"quote-20260225-006","version":2} 

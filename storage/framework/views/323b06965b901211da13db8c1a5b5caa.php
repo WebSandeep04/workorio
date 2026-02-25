@@ -115,14 +115,50 @@
         margin-top: 45px;
     }
 
+    .totals-preview {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 20px;
+        margin-top: 20px;
+        max-width: 400px;
+        margin-left: auto;
+    }
 
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 15px;
+    }
+
+    .total-row.grand-total {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 2px solid #434AFA;
+        font-weight: 800;
+        font-size: 18px;
+        color: #434AFA;
+    }
 
     .btn-save {
         background: #434AFA;
         color: #fff;
         border: none;
-        padding: 6px 16px;
+        padding: 10px 24px;
         border-radius: 4px;
+        font-weight: 600;
+        width: 100%;
+    }
+
+    .spin {
+        animation: spin 1s linear infinite;
+        display: inline-block;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 
     .main-row{
@@ -252,12 +288,40 @@
             <div id="productsContainer"></div>
 
             
-            <div class="section-title mt-3">% Discount</div>
-            <div class="discount-wrapper">
-                <input type="number" id="discount" class="form-control" value="0">
-                <div class="discount-toggle">
-                    <button type="button" class="active">%</button>
-                    <button type="button">₹</button>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="section-title">Discount</div>
+                    <div class="discount-wrapper mb-3">
+                        <input type="number" id="discount" class="form-control" value="0" oninput="updateLiveTotals()">
+                        <div class="discount-toggle">
+                            <button type="button" class="active" onclick="updateLiveTotals()">%</button>
+                            <button type="button" onclick="updateLiveTotals()">₹</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="totals-preview">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <span id="preview-subtotal">₹ 0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Discount:</span>
+                            <span id="preview-discount">₹ 0.00</span>
+                        </div>
+                        <div class="total-row" style="font-weight: 600;">
+                            <span>Taxable Amount (Basic):</span>
+                            <span id="preview-taxable">₹ 0.00</span>
+                        </div>
+                        <div class="total-row">
+                            <span>GST (18%):</span>
+                            <span id="preview-gst">₹ 0.00</span>
+                        </div>
+                        <div class="total-row grand-total">
+                            <span>Grand Total:</span>
+                            <span id="preview-total">₹ 0.00</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -308,6 +372,16 @@ $(document).ready(function() {
     $('#customer_type').on('change', function() {
         loadCustomerData();
     });
+
+    // Handle discount toggle
+    $('.discount-toggle button').on('click', function() {
+        $('.discount-toggle button').removeClass('active');
+        $(this).addClass('active');
+        updateLiveTotals();
+    });
+
+    // Initial calculation
+    updateLiveTotals();
 });
 
 // Global variables to store data
@@ -379,7 +453,7 @@ function addProductRow() {
     const productRow = `
         <div class="product-card" id="${rowId}">
             <div class="row product-row">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label-modern">
                             <i class="bi bi-box"></i>
@@ -390,22 +464,38 @@ function addProductRow() {
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="mb-3">
                         <label class="form-label-modern">
                             <i class="bi bi-currency-rupee"></i>
                             Price
                         </label>
-                        <input type="number" class="form-control form-control-modern" name="products[${rowId}][price]" step="0.01" placeholder="Enter price" required>
+                        <input type="number" class="form-control form-control-modern" name="products[${rowId}][price]" step="0.01" placeholder="Price" required>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-1">
+                    <div class="mb-3">
+                        <label class="form-label-modern">
+                            Qty
+                        </label>
+                        <input type="number" class="form-control form-control-modern" name="products[${rowId}][quantity]" step="0.01" value="1" placeholder="Qty">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label-modern">
+                            Unit
+                        </label>
+                        <input type="text" class="form-control form-control-modern" name="products[${rowId}][unit]" value="Nos" placeholder="Unit">
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label-modern">
                             <i class="bi bi-chat-left-text"></i>
                             Remark
                         </label>
-                        <input type="text" class="form-control form-control-modern" name="products[${rowId}][remark]" placeholder="Enter remark">
+                        <input type="text" class="form-control form-control-modern" name="products[${rowId}][remark]" placeholder="Remark">
                     </div>
                 </div>
                 <div class="col-md-1">
@@ -435,6 +525,7 @@ function addProductRow() {
 // Remove product row
 function removeProductRow(rowId) {
     $(`#${rowId}`).remove();
+    updateLiveTotals();
 }
 
 // Load customer data based on type
@@ -502,6 +593,8 @@ function prefillFromQuotation(quotationNumber){
                     const last = $('#productsContainer .product-card').last();
                     last.find('.product-select').val(String(p.product_id));
                     last.find('input[name*="[price]"]').val(p.price || '');
+                    last.find('input[name*="[quantity]"]').val(p.quantity || 1);
+                    last.find('input[name*="[unit]"]').val(p.unit || 'Nos');
                     last.find('input[name*="[remark]"]').val(p.remark || '');
                 });
             }
@@ -537,12 +630,16 @@ function saveQuotation() {
         const row = $(this).closest('.product-card');
         const productId = $(this).val();
         const price = row.find('input[name*="[price]"]').val();
+        const quantity = row.find('input[name*="[quantity]"]').val();
+        const unit = row.find('input[name*="[unit]"]').val();
         const remark = row.find('input[name*="[remark]"]').val();
         
         if (productId && price) {
             products.push({
                 product_id: productId,
                 price: parseFloat(price),
+                quantity: parseFloat(quantity) || 1,
+                unit: unit || 'Nos',
                 remark: remark || ''
             });
         }
@@ -559,24 +656,37 @@ function saveQuotation() {
     
     console.log('Saving quotation:', formData);
     
+    // UI Loading state
+    const $btn = $('#saveQuotationBtn');
+    const originalText = $btn.html();
+    $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Saving...');
+
+    const restoreBtn = () => {
+        $btn.prop('disabled', false).html(originalText);
+    };
+
     // Validate required fields
     if (!formData.customer_type || !formData.customer_id) {
         showAlert('error', 'Please select customer type and customer/prospect.');
+        restoreBtn();
         return;
     }
     
     if (!formData.project_timeline) {
         showAlert('error', 'Please enter project timeline.');
+        restoreBtn();
         return;
     }
     
     if (!formData.payment_term_id) {
         showAlert('error', 'Please select payment terms.');
+        restoreBtn();
         return;
     }
     
     if (products.length === 0) {
         showAlert('error', 'Please add at least one product.');
+        restoreBtn();
         return;
     }
     
@@ -584,6 +694,7 @@ function saveQuotation() {
     const invalidProducts = products.filter(p => !p.product_id || !p.price);
     if (invalidProducts.length > 0) {
         showAlert('error', 'Please fill in all product details (product and price are required).');
+        restoreBtn();
         return;
     }
     
@@ -600,11 +711,18 @@ function saveQuotation() {
     $.get("<?php echo e(route('quotation.generate-number')); ?>")
         .done(function(resp){
             const qno = (resp && resp.quotation_number) ? resp.quotation_number : null;
-            if (!qno) { showAlert('error','Failed to get quotation number'); return; }
+            if (!qno) { 
+                showAlert('error','Failed to get quotation number'); 
+                restoreBtn();
+                return; 
+            }
             formData.quotation_number = qno;
             generateQuotationPdfAndUpload(formData);
         })
-        .fail(function(){ showAlert('error','Failed to generate quotation number'); });
+        .fail(function(){ 
+            showAlert('error','Failed to generate quotation number'); 
+            restoreBtn();
+        });
 }
 
 // Show alert function
@@ -672,7 +790,9 @@ function generatePDF(data) {
     };
 
     const $btn = $('#saveQuotationBtn');
-    const originalText = $btn.html();
+    const originalText = $btn.data('original-text') || $btn.html();
+    if(!$btn.data('original-text')) $btn.data('original-text', originalText);
+    
     $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Saving...');
 
     $.ajax({
@@ -697,23 +817,77 @@ function generatePDF(data) {
         error: function(xhr){
             console.error('Save quotation failed', xhr.responseText);
             showAlert('error','Failed to save quotation');
-            $btn.prop('disabled', false).html(originalText);
+            $btn.prop('disabled', false).html($btn.data('original-text') || 'Save Quotation');
         }
     });
 }
 
 function calculateTotalAmount(products, discount = 0){
-    let total = 0;
+    let subtotal = 0;
     products.forEach(p => {
         const price = Number(p.price || 0);
-        const cgst = round2(price * 0.09);
-        const sgst = round2(price * 0.09);
-        total += round2(price + cgst + sgst);
+        const qty = Number(p.quantity || 1);
+        subtotal += round2(price * qty);
     });
-    // Subtract discount
-    const discountAmount = Number(discount || 0);
-    return Math.max(0, round2(total - discountAmount));
+    
+    let discountAmount = 0;
+    const isPercentage = $('.discount-toggle button:first-child').hasClass('active');
+    
+    if (isPercentage) {
+        discountAmount = round2(subtotal * (Number(discount) / 100));
+    } else {
+        discountAmount = Number(discount || 0);
+    }
+
+    return Math.max(0, round2(subtotal - discountAmount));
 }
+
+function updateLiveTotals() {
+    const products = [];
+    $('.product-card').each(function() {
+        const row = $(this);
+        const price = row.find('input[name*="[price]"]').val();
+        const quantity = row.find('input[name*="[quantity]"]').val();
+        
+        if (price) {
+            products.push({
+                price: parseFloat(price),
+                quantity: parseFloat(quantity) || 1
+            });
+        }
+    });
+
+    let subtotal = 0;
+    products.forEach(p => {
+        subtotal += round2(p.price * p.quantity);
+    });
+
+    const discountVal = parseFloat($('#discount').val() || 0);
+    const isPercentage = $('.discount-toggle button:first-child').hasClass('active');
+    let discountAmount = 0;
+
+    if (isPercentage) {
+        discountAmount = round2(subtotal * (discountVal / 100));
+    } else {
+        discountAmount = round2(discountVal);
+    }
+
+    const taxable = Math.max(0, round2(subtotal - discountAmount));
+    const gst = round2(taxable * 0.18);
+    const total = round2(taxable + gst);
+
+    $('#preview-subtotal').text('₹ ' + formatAmount(subtotal, 2));
+    $('#preview-discount').text('₹ ' + formatAmount(discountAmount, 2));
+    $('#preview-taxable').text('₹ ' + formatAmount(taxable, 2));
+    $('#preview-gst').text('₹ ' + formatAmount(gst, 2));
+    $('#preview-total').text('₹ ' + formatAmount(total, 2));
+}
+
+// Add event listeners for inputs
+$(document).on('input', 'input[name*="[price]"], input[name*="[quantity]"]', updateLiveTotals);
+$(document).on('click', '.btn-add', function() {
+    setTimeout(updateLiveTotals, 50);
+});
 
 function formatCurrency(value) {
     const num = Math.round(Number(value || 0));

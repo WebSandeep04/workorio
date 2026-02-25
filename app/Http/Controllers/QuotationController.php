@@ -337,6 +337,8 @@ class QuotationController extends Controller
             'products'           => 'array',
             'products.*.product_id' => 'required',
             'products.*.price'      => 'required|numeric',
+            'products.*.quantity'   => 'nullable|numeric|min:0.01',
+            'products.*.unit'       => 'nullable|string|max:50',
             'products.*.remark'     => 'nullable|string',
             'discount'           => 'nullable|numeric|min:0',
             'total_amount'       => 'nullable|numeric',

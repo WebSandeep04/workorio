@@ -233,7 +233,7 @@
                         <?php endif; ?>
                     </td>
                     <td><?php echo e($p['quantity'] ?? 1); ?></td>
-                    <td>Nos</td>
+                    <td><?php echo e($p['unit'] ?? 'Nos'); ?></td>
                     <td><?php echo e(number_format($p['price'] ?? 0, 2)); ?></td>
                     <td><?php echo e(number_format(($p['quantity'] ?? 1) * ($p['price'] ?? 0), 2)); ?></td>
                 </tr>
@@ -242,20 +242,42 @@
                 <tr><td colspan="6" style="padding: 20px; color: #999;">No products listed</td></tr>
             <?php endif; ?>
 
+            <?php
+                $gross_subtotal = 0;
+                foreach(($quote->data['products'] ?? []) as $p) {
+                    $gross_subtotal += ($p['quantity'] ?? 1) * ($p['price'] ?? 0);
+                }
+                $net_taxable = $quote->total_amount ?? 0;
+                $discount_val = $gross_subtotal - $net_taxable;
+            ?>
+
+            <?php if($discount_val > 0): ?>
+            <tr>
+                <td colspan="4" style="border: none;"></td>
+                <td class="total-label-cell">Gross Total</td>
+                <td><?php echo e(number_format($gross_subtotal, 2)); ?></td>
+            </tr>
+            <tr>
+                <td colspan="4" style="border: none;"></td>
+                <td class="total-label-cell">Discount</td>
+                <td><?php echo e(number_format($discount_val, 2)); ?></td>
+            </tr>
+            <?php endif; ?>
+
             <tr>
                 <td colspan="4" style="border: none;"></td>
                 <td class="total-label-cell">Basic</td>
-                <td><?php echo e(isset($quote->total_amount) ? number_format($quote->total_amount, 2) : '0.00'); ?></td>
+                <td><?php echo e(number_format($net_taxable, 2)); ?></td>
             </tr>
             <tr>
                 <td colspan="4" style="border: none;"></td>
                 <td class="total-label-cell">GST 18%</td>
-                <td><?php echo e(isset($quote->total_amount) ? number_format($quote->total_amount * 0.18, 2) : '0.00'); ?></td>
+                <td><?php echo e(number_format($net_taxable * 0.18, 2)); ?></td>
             </tr>
             <tr>
                 <td colspan="4" style="border: none;"></td>
                 <td class="total-label-cell">Total</td>
-                <td><?php echo e(isset($quote->total_amount) ? number_format($quote->total_amount * 1.18, 2) : '0.00'); ?></td>
+                <td><?php echo e(number_format($net_taxable * 1.18, 2)); ?></td>
             </tr>
             
             
