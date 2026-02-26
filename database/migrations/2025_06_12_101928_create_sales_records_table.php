@@ -20,13 +20,13 @@ return new class extends Migration
             $table->bigIncrements('id'); // Primary key as BIGINT UNSIGNED
 
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->string('leads_name');
-            $table->string('contact_person');
-            $table->string('contact_number', 50);
-            $table->text('address');
+            $table->string('leads_name')->nullable();
+            $table->string('contact_person')->nullable();
+            $table->string('contact_number', 50)->nullable();
+            $table->text('address')->nullable();
             $table->unsignedBigInteger('state_id')->nullable();
             $table->unsignedBigInteger('city_id')->nullable();
-            $table->string('email');
+            $table->string('email')->nullable();
             $table->unsignedBigInteger('business_type_id')->nullable();
             $table->unsignedBigInteger('lead_source_id')->nullable();
             $table->unsignedBigInteger('status_id')->nullable();
@@ -40,6 +40,7 @@ return new class extends Migration
             $table->dateTime('status_updatedat')->nullable();
             $table->date('createdat')->nullable();
             $table->bigInteger('ticket_value')->nullable();
+            $table->string('website_link')->nullable();
             $table->timestamps();
 
             // Foreign Key Constraints
