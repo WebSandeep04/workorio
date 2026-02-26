@@ -58,11 +58,18 @@ class EmployeeController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $this->validateEmployee($request);
-        if (empty($data['employee_code'])) {
+        $autoGenerate = empty($data['employee_code']);
+        
+        if ($autoGenerate) {
             $data['employee_code'] = $this->generateTempCode('emp');
         }
 
         $employee = Employee::create($data);
+
+        if ($autoGenerate) {
+            $employee->employee_code = $this->formatEmployeeCode($employee->id);
+            $employee->save();
+        }
         if (isset($data['is_place_allowed']) && $data['is_place_allowed']) {
             if (isset($data['places'])) {
                 $employee->places()->sync($data['places']);
@@ -86,9 +93,20 @@ class EmployeeController extends Controller
     public function update(Request $request, $employeeId): JsonResponse
     {
         $employee = Employee::findOrFail($employeeId);
-        $request->merge(['employee_code' => $employee->employee_code]);
+        
+        // If employee_code is not provided or empty in request, keep the current one
+        if (!$request->filled('employee_code')) {
+            $request->merge(['employee_code' => $employee->employee_code]);
+        }
+
         $data = $this->validateEmployee($request, $employee->id);
         $employee->update($data);
+
+        // Fix existing temp codes to the formal 'Emp-{id}' format
+        if (str_starts_with($employee->employee_code, 'emp-temp-')) {
+            $employee->employee_code = $this->formatEmployeeCode($employee->id);
+            $employee->save();
+        }
 
         if (isset($data['is_place_allowed']) && $data['is_place_allowed']) {
             if (isset($data['places'])) {
