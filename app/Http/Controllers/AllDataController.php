@@ -94,13 +94,13 @@ class AllDataController extends Controller
     public function fetchalldata()
 {
     $records = DB::table('sales_records')
-        ->join('sales_status', 'sales_records.status_id', '=', 'sales_status.id')
-        ->join('prospectuses', 'sales_records.prospectus_id', '=', 'prospectuses.id')
-        ->join('sales_business_types', 'sales_records.business_type_id', '=', 'sales_business_types.id')
-        ->join('sales_lead_sources', 'sales_records.lead_source_id', '=', 'sales_lead_sources.id')
-        ->join('sales_products', 'sales_records.products_id', '=', 'sales_products.id')
-        ->join('states', 'sales_records.state_id', '=', 'states.id')
-        ->join('cities', 'sales_records.city_id', '=', 'cities.id')
+        ->leftJoin('sales_status', 'sales_records.status_id', '=', 'sales_status.id')
+        ->leftJoin('prospectuses', 'sales_records.prospectus_id', '=', 'prospectuses.id')
+        ->leftJoin('sales_business_types', 'sales_records.business_type_id', '=', 'sales_business_types.id')
+        ->leftJoin('sales_lead_sources', 'sales_records.lead_source_id', '=', 'sales_lead_sources.id')
+        ->leftJoin('sales_products', 'sales_records.products_id', '=', 'sales_products.id')
+        ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
+        ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
         ->leftJoin(DB::raw('(
             SELECT r1.id, r1.sales_remark_id, r1.remark
             FROM remarks r1
