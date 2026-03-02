@@ -168,10 +168,11 @@
             </td>
             <td class="address-section">
                 <div class="address-block">
-                    <strong><?php echo e($settings->company_name ?? 'Triserv Solutions'); ?> - <?php echo e($settings->office_name ?? 'Head Office'); ?> :</strong> <?php echo e($settings->office_address ?? 'Krishna Tower Green Park Extension'); ?><br>
-                    <?php echo e($settings->office_city ?? 'New Delhi'); ?>, <?php echo e($settings->office_state ?? 'Delhi'); ?> - <?php echo e($settings->office_pincode ?? '110016'); ?><br>
-                    <?php if($settings->email): ?> Email: <?php echo e($settings->email); ?> <?php else: ?> Email: info@triserv360.com <?php endif; ?> <br>
-                    <?php if($settings->phone): ?> Mobile: <?php echo e($settings->phone); ?> <?php else: ?> Mobile: +91-9839353494 <?php endif; ?>
+                    <strong style="color: <?php echo e($settings->primary_color ?? '#6f42c1'); ?>;"><?php echo e(strtoupper($settings->office_name ?? 'CORPORATE OFFICE')); ?> :</strong> 
+                    <?php echo e($settings->office_address ?? 'OFFICE NO 102 1ST FLOOR, H & M ROYAL WING 4, KONDHWA KATRAJ ROAD, SURVEY NUMBER :18/19 OPP TALAB FACTORY'); ?><br>
+                    <?php echo e(strtoupper($settings->office_city ?? 'PUNE')); ?>, <?php echo e(strtoupper($settings->office_state ?? 'MAHARASHTRA')); ?> - <?php echo e($settings->office_pincode ?? '411048'); ?><br>
+                    <strong>Email:</strong> <?php echo e($settings->email ?? 'sales@airoshelt.com / uniqueacprojects@gmail.com'); ?><br>
+                    <strong>Mobile:</strong> <?php echo e($settings->phone ?? '8448441066'); ?> &nbsp;&nbsp;&nbsp;&nbsp; <strong>Tel:</strong> 020-46740006
                 </div>
             </td>
         </tr>
@@ -324,12 +325,12 @@
         </ol>
     </div>
 
-    <div class="footer-section">
-        <strong>THANKS & REGARDS</strong>
-    </div>
-
-    <div class="footer-brand">
-        AIROSHELT A Venture by UNIQUE AIR CONDITIONING
+    <div style="margin-top: 30px; font-size: 11px; text-align: center; border-top: 1px dashed #000; padding-top: 10px; line-height: 1.5;">
+        <strong>Thank you for connecting with Unique Air Conditioning!</strong><br>
+        We are specialized in HVAC, Chillers, VRF, Cold Room, Ductable, Tower, Cassette & Split AC's.<br>
+        Also get Tower and Ductable AC on Rental Basis for Events & Corporates<br>
+        Please Call us on <strong>8448441066</strong> or <a href="https://g.page/UniqueAC/review?gm" style="color: #000; text-decoration: none;">https://g.page/UniqueAC/review?gm</a><br>
+        Website - <a href="http://www.uniqueacprojects.com" style="color: #000; text-decoration: none;">www.uniqueacprojects.com</a>
     </div>
 </div>
 <?php $__env->stopSection(); ?>

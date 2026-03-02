@@ -2979,3 +2979,24 @@ Did you mean one of these?
 [2026-03-02 04:32:40] local.INFO: Quotation version check {"existing":"no","next_version":1} 
 [2026-03-02 04:32:40] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260302-004/quote-20260302-004_v1.pdf"} 
 [2026-03-02 04:32:40] local.INFO: Quotation created successfully {"id":6,"quotation_number":"quote-20260302-004"} 
+[2026-03-02 04:47:20] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-02 04:47:20] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-02 04:47:20] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","payment_term_id","project_timeline","discount","total_amount","status","products"]} 
+[2026-03-02 04:47:30] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260302-005"} 
+[2026-03-02 04:47:30] local.INFO: Quotation transaction started {"quotation_number":"quote-20260302-005","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-02 04:47:30] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-02 04:47:30] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260302-005/quote-20260302-005_v1.pdf"} 
+[2026-03-02 04:47:30] local.INFO: Quotation created successfully {"id":7,"quotation_number":"quote-20260302-005"} 
+[2026-03-02 04:56:51] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-02 04:56:51] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-02 04:56:51] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","payment_term_id","project_timeline","discount","total_amount","status","products"]} 
+[2026-03-02 04:57:01] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260302-006"} 
+[2026-03-02 04:57:01] local.INFO: Quotation transaction started {"quotation_number":"quote-20260302-006","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-02 04:57:01] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-02 04:57:01] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260302-006/quote-20260302-006_v1.pdf"} 
+[2026-03-02 04:57:01] local.INFO: Quotation created successfully {"id":8,"quotation_number":"quote-20260302-006"} 
+[2026-03-02 05:24:49] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-03-02 05:24:49] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-03-02 05:24:50] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-03-02 05:24:50] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-03-02 05:24:50] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

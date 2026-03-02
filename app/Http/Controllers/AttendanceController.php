@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AttendanceController extends Controller
 {
@@ -1606,6 +1607,25 @@ class AttendanceController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportMonthlyReportPdf(Request $request)
+    {
+        $request->validate([
+            'month' => 'required|date_format:Y-m'
+        ]);
+
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return back()->with('error', 'Cannot generate report for future months.');
+        }
+
+        $month = $request->month;
+        $data = $this->_fetchMonthlyReportData($month);
+        
+        $pdf = Pdf::loadView('attendance.monthly-report-pdf', compact('data', 'month'))
+                ->setPaper('a2', 'landscape');
+                
+        return $pdf->download("attendance_report_{$month}.pdf");
     }
 
     private function _fetchMonthlyReportData($month)
