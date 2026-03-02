@@ -3000,3 +3000,41 @@ Did you mean one of these?
 [2026-03-02 05:24:50] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-03-02 05:24:50] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
 [2026-03-02 05:24:50] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-03-02 07:24:58] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-03-02 07:25:02] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-03-02 07:25:03] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-03-02 07:25:03] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-03-02 07:25:03] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-02","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-03","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-04","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-05","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-06","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-07","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-16","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-17","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-18","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-19","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:47:37] local.INFO: Report descriptions found {"date":"2026-02-20","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-02","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-03","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-04","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-05","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-06","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-07","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-16","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-17","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-18","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-19","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:48:56] local.INFO: Report descriptions found {"date":"2026-02-20","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-02","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-03","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-04","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-05","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-06","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-07","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-16","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-17","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-18","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-19","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-20","descriptions":["Late punch-in: Family emergency (unplanned)"]} 

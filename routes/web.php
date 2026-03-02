@@ -908,6 +908,8 @@ Route::get('/worklog-missing-summary', function() {
                 Route::post('/attendance/date-report-data', [AttendanceController::class, 'getDateReportData'])->name('attendance.date-report-data');
                 Route::get('/attendance/export-monthly-report', [AttendanceController::class, 'exportMonthlyReport'])->name('attendance.export-monthly-report');
                 Route::get('/attendance/export-monthly-report-pdf', [AttendanceController::class, 'exportMonthlyReportPdf'])->name('attendance.export-monthly-report-pdf');
+                Route::get('/attendance/export-user-report-pdf', [AttendanceController::class, 'exportUserReportPdf'])->name('attendance.export-user-report-pdf');
+                Route::get('/attendance/export-date-report-pdf', [AttendanceController::class, 'exportDateReportPdf'])->name('attendance.export-date-report-pdf');
                 Route::get('/attendance/check-worklog-validation', [AttendanceController::class, 'checkWorklogValidation'])->name('attendance.check-worklog-validation');
                 // Worklog report
                 Route::get('/reports/worklog', [\App\Http\Controllers\WorklogReportController::class, 'index'])->name('reports.worklog');

@@ -280,6 +280,9 @@
                 <button type="button" id="loadReport" class="btn-load">
                     <i class="bi bi-play-circle me-1"></i> Load Report
                 </button>
+                <button type="button" id="exportUserReportPdf" class="btn-load" style="background-color: #434afa; color: white;">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                </button>
             </div>
 
             <!-- Summary Cards -->
@@ -393,7 +396,7 @@
                 <button type="button" id="exportMonthlyReport" class="btn-load" style="background-color: #434afa; color: white;">
                     <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
                 </button>
-                <button type="button" id="exportMonthlyReportPdf" class="btn-load" style="background-color: #ef4444; color: white;">
+                <button type="button" id="exportMonthlyReportPdf" class="btn-load" style="background-color: #434afa; color: white;">
                     <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
                 </button>
             </div>
@@ -436,6 +439,9 @@
                 </div>
                 <button type="button" id="loadDateReport" class="btn-load">
                     <i class="bi bi-play-circle me-1"></i> Load Report
+                </button>
+                <button type="button" id="exportDateReportPdf" class="btn-load" style="background-color: #434afa; color: white;">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
                 </button>
             </div>
 
@@ -531,10 +537,12 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loadReport').addEventListener('click', loadReport);
+    document.getElementById('exportUserReportPdf').addEventListener('click', exportUserReportPdf);
     document.getElementById('loadMonthlyReport').addEventListener('click', loadMonthlySummary);
     document.getElementById('exportMonthlyReport').addEventListener('click', exportMonthlyReport);
     document.getElementById('exportMonthlyReportPdf').addEventListener('click', exportMonthlyReportPdf);
     document.getElementById('loadDateReport').addEventListener('click', loadDateReport);
+    document.getElementById('exportDateReportPdf').addEventListener('click', exportDateReportPdf);
 });
 
 function exportMonthlyReport() {
@@ -557,6 +565,36 @@ function exportMonthlyReportPdf() {
         return;
     }
     window.location.href = `/attendance/export-monthly-report-pdf?month=${month}`;
+}
+
+function exportUserReportPdf() {
+    const userId = document.getElementById('user_id').value;
+    const month = document.getElementById('month').value;
+    
+    if(!userId || !month) return;
+    
+    if (isFutureMonth(month)) {
+        showToast('Cannot generate report for future months.', 'error');
+        return;
+    }
+    window.location.href = `/attendance/export-user-report-pdf?user_id=${userId}&month=${month}`;
+}
+
+function exportDateReportPdf() {
+    const date = document.getElementById('report_date').value;
+    
+    if(!date) return;
+    
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    if (selectedDate > today) {
+        showToast('Cannot generate report for future dates.', 'error');
+        return;
+    }
+    
+    window.location.href = `/attendance/export-date-report-pdf?date=${date}`;
 }
 
 function loadReport(){

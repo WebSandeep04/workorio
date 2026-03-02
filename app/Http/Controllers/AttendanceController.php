@@ -1283,30 +1283,13 @@ class AttendanceController extends Controller
         return view('attendance.report', compact('users'));
     }
 
-    public function getReportData(Request $request): JsonResponse
+    private function _fetchUserReportData($userId, $month)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'month' => 'required|date_format:Y-m'
-        ]);
-
-        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
-            return response()->json([
-                'message' => 'Cannot generate report for future months.'
-            ], 422);
-        }
-
-        $userId = $request->user_id;
-        $month = $request->month;
-        
-        // Parse the month to get start and end dates
         $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
         
-        // Get user information
         $user = User::find($userId);
         
-        // Get all attendance records for the month
         $attendances = Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
             }])
@@ -1315,7 +1298,6 @@ class AttendanceController extends Controller
             ->orderBy('date')
             ->get();
 
-        // Get holidays for the month
         $holidaysData = Holiday::whereBetween('holiday_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->get()
             ->keyBy(function($holiday) {
@@ -1324,7 +1306,6 @@ class AttendanceController extends Controller
         
         $holidays = $holidaysData->keys()->toArray();
 
-        // Get leaves for the month
         $leaves = Leave::where('user_id', $userId)
             ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->get()
@@ -1332,17 +1313,15 @@ class AttendanceController extends Controller
             ->map(function($date) {
                 return $date->format('Y-m-d');
             })
-            ->unique() // Remove duplicate dates
-            ->values() // Re-index array
+            ->unique()
+            ->values()
             ->toArray();
 
-        // Calculate summary statistics
         $summary = $this->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData, $user);
         
-        // Generate daily breakdown
         $dailyBreakdown = $this->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData);
         
-        return response()->json([
+        return [
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -1363,7 +1342,24 @@ class AttendanceController extends Controller
                 'holidays_list' => $holidays,
                 'leaves_list' => $leaves
             ]
+        ];
+    }
+
+    public function getReportData(Request $request): JsonResponse
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'month' => 'required|date_format:Y-m'
         ]);
+
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return response()->json([
+                'message' => 'Cannot generate report for future months.'
+            ], 422);
+        }
+
+        $data = $this->_fetchUserReportData($request->user_id, $request->month);
+        return response()->json($data);
     }
 
     public function getMonthlyReportData(Request $request): JsonResponse
@@ -1383,22 +1379,10 @@ class AttendanceController extends Controller
         return response()->json($data);
     }
 
-    public function getDateReportData(Request $request): JsonResponse
+    private function _fetchDateReportData($date)
     {
-        $request->validate([
-            'date' => 'required|date'
-        ]);
-
-        $date = $request->date;
         $carbonDate = Carbon::parse($date);
         
-        if ($carbonDate->isFuture()) {
-            return response()->json([
-                'message' => 'Cannot generate report for future dates.'
-            ], 422);
-        }
-
-        // Get all users who are active employees AND not admin (role_id != 1)
         $users = User::where('role_id', '!=', 1)
             ->whereHas('employee', function($query) {
                 $query->where('status', 'active');
@@ -1406,7 +1390,6 @@ class AttendanceController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Get all attendance for the selected date
         $attendances = Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
             }])
@@ -1414,11 +1397,9 @@ class AttendanceController extends Controller
             ->get()
             ->keyBy('user_id');
 
-        // Check if it's a holiday
         $holiday = Holiday::where('holiday_date', $date)->first();
         $isSunday = $carbonDate->dayOfWeek === Carbon::SUNDAY;
 
-        // Get leaves for the selected date
         $leaves = Leave::where('date', $date)->get()->groupBy('user_id');
 
         $reportData = [];
@@ -1535,11 +1516,30 @@ class AttendanceController extends Controller
             }
         }
 
-        return response()->json([
+        return [
             'date' => $carbonDate->format('M j, Y'),
             'summary' => $summary,
-            'data' => $reportData
+            'data' => $reportData,
+            'carbonDate' => $carbonDate
+        ];
+    }
+
+    public function getDateReportData(Request $request): JsonResponse
+    {
+        $request->validate([
+            'date' => 'required|date'
         ]);
+
+        if (Carbon::parse($request->date)->isFuture()) {
+            return response()->json([
+                'message' => 'Cannot generate report for future dates.'
+            ], 422);
+        }
+
+        $data = $this->_fetchDateReportData($request->date);
+        unset($data['carbonDate']);
+
+        return response()->json($data);
     }
 
     public function exportMonthlyReport(Request $request)
@@ -1626,6 +1626,43 @@ class AttendanceController extends Controller
                 ->setPaper('a2', 'landscape');
                 
         return $pdf->download("attendance_report_{$month}.pdf");
+    }
+
+    public function exportUserReportPdf(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'month' => 'required|date_format:Y-m'
+        ]);
+
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return back()->with('error', 'Cannot generate report for future months.');
+        }
+
+        $data = $this->_fetchUserReportData($request->user_id, $request->month);
+        
+        $pdf = Pdf::loadView('attendance.user-report-pdf', compact('data'))
+                ->setPaper('a4', 'landscape');
+                
+        return $pdf->download("user_attendance_report_{$request->month}.pdf");
+    }
+
+    public function exportDateReportPdf(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date'
+        ]);
+
+        if (Carbon::parse($request->date)->isFuture()) {
+            return back()->with('error', 'Cannot generate report for future dates.');
+        }
+
+        $data = $this->_fetchDateReportData($request->date);
+        
+        $pdf = Pdf::loadView('attendance.date-report-pdf', compact('data'))
+                ->setPaper('a4', 'landscape');
+                
+        return $pdf->download("date_attendance_report_{$request->date}.pdf");
     }
 
     private function _fetchMonthlyReportData($month)
