@@ -191,6 +191,22 @@
                     {!! nl2br(e($quote->customer->address ?? '')) !!}<br>
                     @if($quote->customer->gst_number) GSTIN :- &nbsp; {{ $quote->customer->gst_number }}<br> @endif
                     CONTACT : {{ $quote->customer->phone ?? '--' }}
+                @elseif($quote->customer_type == 'prospect')
+                    @php $prospect = \App\Models\Prospectus::find($quote->customer_id); @endphp
+                    @if($prospect)
+                        <strong>{{ $prospect->prospectus_name ?? 'N/A' }}</strong><br>
+                        @if($prospect->address || $prospect->city || $prospect->state)
+                            {{ $prospect->address ?? '' }}
+                            @if($prospect->city || $prospect->state)
+                                <br>{{ trim(implode(', ', array_filter([$prospect->city, $prospect->state]))) }}
+                            @endif
+                            <br>
+                        @endif
+                        CONTACT : {{ $prospect->contact_person ?? '--' }}
+                        @if($prospect->contact_number)
+                            ({{ $prospect->contact_number }})
+                        @endif
+                    @endif
                 @else
                     <div style="min-height: 80px;"></div>
                 @endif

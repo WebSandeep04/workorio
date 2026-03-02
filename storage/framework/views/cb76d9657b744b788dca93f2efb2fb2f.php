@@ -149,7 +149,9 @@
         <tr>
             <td class="logo-section">
                 <div style="text-align: left; padding-left: 10px;">
-                    <?php if($settings->logo_path && file_exists(public_path('storage/'.$settings->logo_path))): ?>
+                    <?php if(isset($logo_base64) && $logo_base64): ?>
+                        <img src="<?php echo e($logo_base64); ?>" alt="Logo">
+                    <?php elseif($settings->logo_path && file_exists(public_path('storage/'.$settings->logo_path))): ?>
                         <img src="<?php echo e(public_path('storage/'.$settings->logo_path)); ?>" alt="Logo">
                     <?php else: ?>
                         
@@ -190,6 +192,25 @@
                     <?php if($quote->customer->gst_number): ?> GSTIN :- &nbsp; <?php echo e($quote->customer->gst_number); ?><br> <?php endif; ?>
                     CONTACT : <?php echo e($quote->customer->phone ?? '--'); ?>
 
+                <?php elseif($quote->customer_type == 'prospect'): ?>
+                    <?php $prospect = \App\Models\Prospectus::find($quote->customer_id); ?>
+                    <?php if($prospect): ?>
+                        <strong><?php echo e($prospect->prospectus_name ?? 'N/A'); ?></strong><br>
+                        <?php if($prospect->address || $prospect->city || $prospect->state): ?>
+                            <?php echo e($prospect->address ?? ''); ?>
+
+                            <?php if($prospect->city || $prospect->state): ?>
+                                <br><?php echo e(trim(implode(', ', array_filter([$prospect->city, $prospect->state])))); ?>
+
+                            <?php endif; ?>
+                            <br>
+                        <?php endif; ?>
+                        CONTACT : <?php echo e($prospect->contact_person ?? '--'); ?>
+
+                        <?php if($prospect->contact_number): ?>
+                            (<?php echo e($prospect->contact_number); ?>)
+                        <?php endif; ?>
+                    <?php endif; ?>
                 <?php else: ?>
                     <div style="min-height: 80px;"></div>
                 <?php endif; ?>

@@ -325,9 +325,8 @@
                 </div>
             </div>
 
-            {{-- Footer --}}
             <div class="footer-actions">
-                <button type="button" class="btn-save" onclick="saveQuotation()">Save Quotation</button>
+                <button type="button" id="saveQuotationBtn" class="btn-save" onclick="saveQuotation()">Save Quotation</button>
             </div>
 
         </form>
@@ -668,18 +667,6 @@ function saveQuotation() {
     // Validate required fields
     if (!formData.customer_type || !formData.customer_id) {
         showAlert('error', 'Please select customer type and customer/prospect.');
-        restoreBtn();
-        return;
-    }
-    
-    if (!formData.project_timeline) {
-        showAlert('error', 'Please enter project timeline.');
-        restoreBtn();
-        return;
-    }
-    
-    if (!formData.payment_term_id) {
-        showAlert('error', 'Please select payment terms.');
         restoreBtn();
         return;
     }
