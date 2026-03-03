@@ -414,7 +414,7 @@ function addProductRow() {
     const productRow = `
         <div class="product-card" id="${rowId}">
             <div class="row product-row">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="mb-3">
                         <label class="form-label-modern">
                             <i class="bi bi-box"></i>
@@ -428,21 +428,12 @@ function addProductRow() {
                 <div class="col-md-2">
                     <div class="mb-3">
                         <label class="form-label-modern">
-                            <i class="bi bi-currency-rupee"></i>
-                            Price
-                        </label>
-                        <input type="number" class="form-control form-control-modern" name="products[${rowId}][price]" step="0.01" placeholder="Price" required>
-                    </div>
-                </div>
-                <div class="col-md-1">
-                    <div class="mb-3">
-                        <label class="form-label-modern">
                             Qty
                         </label>
                         <input type="number" class="form-control form-control-modern" name="products[${rowId}][quantity]" step="0.01" value="1" placeholder="Qty">
                     </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <div class="mb-3">
                         <label class="form-label-modern">
                             Unit
@@ -450,7 +441,25 @@ function addProductRow() {
                         <input type="text" class="form-control form-control-modern" name="products[${rowId}][unit]" value="Nos" placeholder="Unit">
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label-modern">
+                            <i class="bi bi-currency-rupee"></i>
+                            Price
+                        </label>
+                        <input type="number" class="form-control form-control-modern" name="products[${rowId}][price]" step="0.01" placeholder="Price" required>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label-modern">
+                            <i class="bi bi-calculator"></i>
+                            Amount
+                        </label>
+                        <input type="text" class="form-control form-control-modern row-amount" name="products[${rowId}][amount]" placeholder="0.00" readonly>
+                    </div>
+                </div>
+                <div class="col-md-2">
                     <div class="mb-3">
                         <label class="form-label-modern">
                             <i class="bi bi-chat-left-text"></i>
@@ -552,10 +561,14 @@ function prefillFromQuotation(quotationNumber){
                     addProductRow();
                     const last = $('#productsContainer .product-card').last();
                     last.find('.product-select').val(String(p.product_id));
-                    last.find('input[name*="[price]"]').val(p.price || '');
                     last.find('input[name*="[quantity]"]').val(p.quantity || 1);
                     last.find('input[name*="[unit]"]').val(p.unit || 'Nos');
+                    last.find('input[name*="[price]"]').val(p.price || '');
                     last.find('input[name*="[remark]"]').val(p.remark || '');
+                    
+                    if(p.price) {
+                        last.find('.row-amount').val(round2(parseFloat(p.price) * (parseFloat(p.quantity) || 1)).toFixed(2));
+                    }
                 });
             }
             
@@ -795,11 +808,18 @@ function updateLiveTotals() {
         const price = row.find('input[name*="[price]"]').val();
         const quantity = row.find('input[name*="[quantity]"]').val();
         
+        const rowAmountInput = row.find('.row-amount');
         if (price) {
+            const parsedPrice = parseFloat(price);
+            const parsedQuantity = parseFloat(quantity) || 1;
+            rowAmountInput.val(round2(parsedPrice * parsedQuantity).toFixed(2));
+            
             products.push({
-                price: parseFloat(price),
-                quantity: parseFloat(quantity) || 1
+                price: parsedPrice,
+                quantity: parsedQuantity
             });
+        } else {
+            rowAmountInput.val('0.00');
         }
     });
 

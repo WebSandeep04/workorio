@@ -3165,3 +3165,19 @@ Did you mean one of these?
 [2026-03-03 08:23:14] local.INFO: Quotation version check {"existing":"no","next_version":1} 
 [2026-03-03 08:23:14] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-015/quote-20260303-015_v1.pdf"} 
 [2026-03-03 08:23:14] local.INFO: Quotation created successfully {"id":23,"quotation_number":"quote-20260303-015"} 
+[2026-03-03 09:13:19] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 09:13:19] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 09:13:19] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 09:13:21] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-016"} 
+[2026-03-03 09:13:21] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-016","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 09:13:21] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 09:13:21] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-016/quote-20260303-016_v1.pdf"} 
+[2026-03-03 09:13:21] local.INFO: Quotation created successfully {"id":24,"quotation_number":"quote-20260303-016"} 
+[2026-03-03 09:58:07] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 09:58:07] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 09:58:07] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 09:58:09] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-017"} 
+[2026-03-03 09:58:09] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-017","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 09:58:09] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 09:58:09] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-017/quote-20260303-017_v1.pdf"} 
+[2026-03-03 09:58:09] local.INFO: Quotation created successfully {"id":25,"quotation_number":"quote-20260303-017"} 
