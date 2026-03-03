@@ -50,6 +50,12 @@ Schedule::command('sales:send-follow-up-report')
     ->timezone('Asia/Kolkata')
     ->description('Send follow-up due reports to sales users');
 
+Schedule::command('sales:send-admin-follow-up-report')
+    ->daily()
+    ->at('08:15')
+    ->timezone('Asia/Kolkata')
+    ->description('Send consolidated daily follow-up reports to tenant admins/managers');
+
 // Dummy command to test cron job
 // use Illuminate\Support\Facades\Log;
 
