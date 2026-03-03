@@ -74,6 +74,7 @@ class QuotationSetupController extends Controller
             'template_name' => 'nullable|string|max:50',
             'primary_color' => 'nullable|string|max:20',
             'secondary_color' => 'nullable|string|max:20',
+            'payment_terms' => 'nullable|string',
         ]);
 
         // Handle logo upload

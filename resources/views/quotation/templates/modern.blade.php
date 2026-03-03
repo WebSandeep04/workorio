@@ -94,7 +94,7 @@
                 </div>
                 <div style="float: right; width: 50%; text-align: right;">
                     <strong style="color: #6b7280; font-size: 11px; text-transform: uppercase;">Project Details:</strong><br>
-                    Timeline: {{ $quote->data['project_timeline'] ?? 'N/A' }}
+                    Subject: {{ $quote->data['subject'] ?? 'N/A' }}
                 </div>
                 <div style="clear: both;"></div>
             </div>

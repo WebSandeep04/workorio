@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Quotation Setup')
-@section('page_title', 'Quotation Setup')
 
-@push('styles')
+<?php $__env->startSection('title', 'Quotation Setup'); ?>
+<?php $__env->startSection('page_title', 'Quotation Setup'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem 1rem;
@@ -230,9 +230,9 @@
     }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid">
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
@@ -266,7 +266,7 @@
         </div>
 
         <form id="quotationSetupForm">
-            @csrf
+            <?php echo csrf_field(); ?>
             
             <!-- Company Info Tab -->
             <div class="tab-content active" id="tab-company">
@@ -471,9 +471,9 @@
         </form>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
     // Tab switching with animation reset
@@ -499,7 +499,7 @@ $(document).ready(function() {
 });
 
 function loadSettings() {
-    $.get("{{ route('quotation.setup.fetch') }}")
+    $.get("<?php echo e(route('quotation.setup.fetch')); ?>")
         .done(function(response) {
             if (response.data) {
                 const data = response.data;
@@ -605,7 +605,7 @@ function saveSettings() {
     });
 
     $.ajax({
-        url: "{{ route('quotation.setup.store') }}",
+        url: "<?php echo e(route('quotation.setup.store')); ?>",
         type: 'POST',
         data: formData,
         processData: false,
@@ -662,4 +662,6 @@ function showAlert(type, message) {
     to { transform: rotate(360deg); }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/quotation/setup.blade.php ENDPATH**/ ?>

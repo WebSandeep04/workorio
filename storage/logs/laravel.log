@@ -3038,3 +3038,130 @@ Did you mean one of these?
 [2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-18","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
 [2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-19","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
 [2026-03-02 07:49:03] local.INFO: Report descriptions found {"date":"2026-02-20","descriptions":["Late punch-in: Family emergency (unplanned)"]} 
+[2026-03-03 06:09:49] local.ERROR: AuthController@login start {"email":"uniqueacprojects@gmail.com"} 
+[2026-03-03 06:09:51] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-03-03 06:09:51] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":false,"password_ok":false,"is_login":0} 
+[2026-03-03 06:09:51] local.ERROR: AuthController@login checking tenant {"tenant_id":2} 
+[2026-03-03 06:09:52] local.ERROR: AuthController@login user check {"tenant_id":2,"exists":true,"password_ok":true,"is_login":1} 
+[2026-03-03 06:09:52] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":1,"name":"Unique AC","email":"uniqueacprojects@gmail.com","role_id":1,"tenant_id":2}} 
+[2026-03-03 06:09:52] local.ERROR: AuthController@login resolved tenant {"tenant_id":2} 
+[2026-03-03 06:38:02] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 06:38:02] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 06:38:02] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 06:38:17] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-001"} 
+[2026-03-03 06:38:17] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-001","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 06:38:17] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 06:38:17] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-001/quote-20260303-001_v1.pdf"} 
+[2026-03-03 06:38:17] local.INFO: Quotation created successfully {"id":9,"quotation_number":"quote-20260303-001"} 
+[2026-03-03 07:13:16] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 07:13:16] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 07:13:16] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 07:13:26] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-002"} 
+[2026-03-03 07:13:26] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-002","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 07:13:26] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 07:13:26] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-002/quote-20260303-002_v1.pdf"} 
+[2026-03-03 07:13:26] local.INFO: Quotation created successfully {"id":10,"quotation_number":"quote-20260303-002"} 
+[2026-03-03 07:28:59] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 07:28:59] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 07:28:59] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 07:29:08] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-003"} 
+[2026-03-03 07:29:08] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-003","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 07:29:08] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 07:29:08] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-003/quote-20260303-003_v1.pdf"} 
+[2026-03-03 07:29:08] local.INFO: Quotation created successfully {"id":11,"quotation_number":"quote-20260303-003"} 
+[2026-03-03 07:37:35] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 07:37:35] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 07:37:35] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 07:37:45] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-004"} 
+[2026-03-03 07:37:45] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-004","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 07:37:45] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 07:37:45] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-004/quote-20260303-004_v1.pdf"} 
+[2026-03-03 07:37:45] local.INFO: Quotation created successfully {"id":12,"quotation_number":"quote-20260303-004"} 
+[2026-03-03 07:38:37] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 07:38:37] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 07:38:37] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 07:38:47] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-005"} 
+[2026-03-03 07:38:47] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-005","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 07:38:47] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 07:38:47] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-005/quote-20260303-005_v1.pdf"} 
+[2026-03-03 07:38:47] local.INFO: Quotation created successfully {"id":13,"quotation_number":"quote-20260303-005"} 
+[2026-03-03 07:41:37] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 07:41:37] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 07:41:37] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 07:41:47] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-006"} 
+[2026-03-03 07:41:47] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-006","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 07:41:47] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 07:41:47] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-006/quote-20260303-006_v1.pdf"} 
+[2026-03-03 07:41:47] local.INFO: Quotation created successfully {"id":14,"quotation_number":"quote-20260303-006"} 
+[2026-03-03 07:42:45] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 07:42:45] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 07:42:46] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 07:42:55] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-007"} 
+[2026-03-03 07:42:55] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-007","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 07:42:55] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 07:42:55] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-007/quote-20260303-007_v1.pdf"} 
+[2026-03-03 07:42:55] local.INFO: Quotation created successfully {"id":15,"quotation_number":"quote-20260303-007"} 
+[2026-03-03 07:46:17] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 07:46:17] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 07:46:17] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 07:46:22] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-008"} 
+[2026-03-03 07:46:22] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-008","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 07:46:22] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 07:46:22] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-008/quote-20260303-008_v1.pdf"} 
+[2026-03-03 07:46:22] local.INFO: Quotation created successfully {"id":16,"quotation_number":"quote-20260303-008"} 
+[2026-03-03 07:47:13] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 07:47:13] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 07:47:13] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 07:47:18] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-009"} 
+[2026-03-03 07:47:18] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-009","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 07:47:18] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 07:47:18] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-009/quote-20260303-009_v1.pdf"} 
+[2026-03-03 07:47:18] local.INFO: Quotation created successfully {"id":17,"quotation_number":"quote-20260303-009"} 
+[2026-03-03 07:51:27] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 07:51:27] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 07:51:27] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 07:51:28] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-010"} 
+[2026-03-03 07:51:28] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-010","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 07:51:28] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 07:51:28] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-010/quote-20260303-010_v1.pdf"} 
+[2026-03-03 07:51:28] local.INFO: Quotation created successfully {"id":18,"quotation_number":"quote-20260303-010"} 
+[2026-03-03 08:19:12] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 08:19:12] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 08:19:12] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 08:19:13] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-011"} 
+[2026-03-03 08:19:13] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-011","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 08:19:13] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 08:19:13] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-011/quote-20260303-011_v1.pdf"} 
+[2026-03-03 08:19:13] local.INFO: Quotation created successfully {"id":19,"quotation_number":"quote-20260303-011"} 
+[2026-03-03 08:20:10] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 08:20:10] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 08:20:10] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 08:20:11] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-012"} 
+[2026-03-03 08:20:11] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-012","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 08:20:11] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 08:20:11] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-012/quote-20260303-012_v1.pdf"} 
+[2026-03-03 08:20:11] local.INFO: Quotation created successfully {"id":20,"quotation_number":"quote-20260303-012"} 
+[2026-03-03 08:21:03] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 08:21:03] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 08:21:03] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 08:21:03] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-013"} 
+[2026-03-03 08:21:03] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-013","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 08:21:03] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 08:21:03] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-013/quote-20260303-013_v1.pdf"} 
+[2026-03-03 08:21:03] local.INFO: Quotation created successfully {"id":21,"quotation_number":"quote-20260303-013"} 
+[2026-03-03 08:22:10] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 08:22:10] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 08:22:10] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 08:22:11] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-014"} 
+[2026-03-03 08:22:11] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-014","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 08:22:11] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 08:22:11] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-014/quote-20260303-014_v1.pdf"} 
+[2026-03-03 08:22:11] local.INFO: Quotation created successfully {"id":22,"quotation_number":"quote-20260303-014"} 
+[2026-03-03 08:23:14] local.INFO: Quotation store called {"connection":"tenant_ten_vodjvo","has_session":true,"session_tenant":2} 
+[2026-03-03 08:23:14] local.INFO: Quotation store: User ID found {"user_id":1} 
+[2026-03-03 08:23:14] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-03 08:23:14] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260303-015"} 
+[2026-03-03 08:23:14] local.INFO: Quotation transaction started {"quotation_number":"quote-20260303-015","database":"tenant_ten_vodjvo","user_id":1} 
+[2026-03-03 08:23:14] local.INFO: Quotation version check {"existing":"no","next_version":1} 
+[2026-03-03 08:23:14] local.INFO: PDF file saved successfully {"path":"quotations/quote-20260303-015/quote-20260303-015_v1.pdf"} 
+[2026-03-03 08:23:14] local.INFO: Quotation created successfully {"id":23,"quotation_number":"quote-20260303-015"} 

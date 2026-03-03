@@ -332,8 +332,7 @@ class QuotationController extends Controller
             'quotation_number'   => 'nullable|string|max:190',
             'customer_type'      => 'required|in:customer,prospect',
             'customer_id'        => 'nullable|integer',
-            'payment_term_id'    => 'nullable|integer',
-            'project_timeline'   => 'nullable|string|max:255',
+            'subject'            => 'nullable|string|max:255',
             'products'           => 'array',
             'products.*.product_id' => 'required',
             'products.*.price'      => 'required|numeric',
@@ -441,6 +440,7 @@ class QuotationController extends Controller
                     'data'             => [
                         'products' => $data['products'] ?? [],
                         'discount' => $data['discount'] ?? 0,
+                        'subject'  => $data['subject'] ?? null,
                     ],
                     'updated_by'       => $userId,
                 ])->save();
@@ -471,6 +471,7 @@ class QuotationController extends Controller
                 'data'               => [
                     'products' => $data['products'] ?? [],
                     'discount' => $data['discount'] ?? 0,
+                    'subject'  => $data['subject'] ?? null,
                 ],
                 'created_by'         => $userId,
                 'updated_by'         => $userId,
@@ -582,7 +583,7 @@ class QuotationController extends Controller
         $quote->data = [
             'products' => $products,
             'discount' => $data['discount'] ?? 0,
-            'project_timeline' => $data['project_timeline'] ?? ''
+            'subject'  => $data['subject'] ?? ''
         ];
 
         // Eager load customer if exists
