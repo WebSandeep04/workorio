@@ -44,6 +44,12 @@ Schedule::command('subscriptions:generate-recurring')
     ->timezone('Asia/Kolkata')
     ->description('Generate new billing cycles for recurring subscriptions across all tenants');
 
+Schedule::command('sales:send-follow-up-report')
+    ->daily()
+    ->at('08:00')
+    ->timezone('Asia/Kolkata')
+    ->description('Send follow-up due reports to sales users');
+
 // Dummy command to test cron job
 // use Illuminate\Support\Facades\Log;
 
