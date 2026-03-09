@@ -194,14 +194,19 @@
                     CONTACT : <?php echo e($quote->customer->phone ?? '--'); ?>
 
                 <?php elseif($quote->customer_type == 'prospect'): ?>
-                    <?php $prospect = \App\Models\Prospectus::find($quote->customer_id); ?>
+                    <?php 
+                        $prospect = $quote->prospect ?? \App\Models\Prospectus::find($quote->prospect_id); 
+                        $loc = [];
+                        if ($prospect && $prospect->city) $loc[] = $prospect->city->city_name;
+                        if ($prospect && $prospect->state) $loc[] = $prospect->state->state_name;
+                    ?>
                     <?php if($prospect): ?>
                         <strong><?php echo e($prospect->prospectus_name ?? 'N/A'); ?></strong><br>
-                        <?php if($prospect->address || $prospect->city || $prospect->state): ?>
+                        <?php if($prospect->address || !empty($loc)): ?>
                             <?php echo e($prospect->address ?? ''); ?>
 
-                            <?php if($prospect->city || $prospect->state): ?>
-                                <br><?php echo e(trim(implode(', ', array_filter([$prospect->city, $prospect->state])))); ?>
+                            <?php if(!empty($loc)): ?>
+                                <br><?php echo e(implode(', ', $loc)); ?>
 
                             <?php endif; ?>
                             <br>

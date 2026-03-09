@@ -87,9 +87,15 @@
                         <strong>{{ $quote->customer->name ?? 'N/A' }}</strong><br>
                         {{ $quote->customer->company_name ?? '' }}
                     @else
-                        @php $prospect = \App\Models\Prospectus::find($quote->customer_id); @endphp
+                        @php 
+                            $prospect = $quote->prospect ?? \App\Models\Prospectus::find($quote->prospect_id); 
+                            $loc = [];
+                            if ($prospect && $prospect->city) $loc[] = $prospect->city->city_name;
+                            if ($prospect && $prospect->state) $loc[] = $prospect->state->state_name;
+                        @endphp
                         <strong>{{ optional($prospect)->prospectus_name ?? 'N/A' }}</strong><br>
-                        {{ $prospect->contact_person ?? '' }}
+                        {{ optional($prospect)->address ?? '' }} @if(!empty($loc)) <br> {{ implode(', ', $loc) }} @endif <br>
+                        {{ optional($prospect)->contact_person ?? '' }}
                     @endif
                 </div>
                 <div style="float: right; width: 50%; text-align: right;">

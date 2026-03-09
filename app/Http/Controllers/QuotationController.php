@@ -47,7 +47,7 @@ class QuotationController extends Controller
                     )
                     WHEN q.customer_type = 'prospect' THEN (
                         SELECT CONCAT_WS(' ', p.prospectus_name, CASE WHEN p.contact_person IS NULL OR p.contact_person = '' THEN '' ELSE CONCAT('(', p.contact_person, ')') END)
-                        FROM prospectuses p WHERE p.id = q.customer_id
+                        FROM prospectuses p WHERE p.id = COALESCE(q.prospect_id, q.customer_id)
                     )
                     ELSE NULL END as customer_display_raw")
             )
@@ -55,11 +55,31 @@ class QuotationController extends Controller
             ->limit(200)
             ->get();
 
-        // Post-process to include manual name fallback from JSON data and file URL
+        // Post-process to include names and file URL
         $rows = $rows->map(function ($r) {
             $display = $r->customer_display_raw;
-            $r->customer_display = $display;
+
+            // Fallback if raw display is empty but we have IDs
+            if (empty($display)) {
+                if ($r->customer_type == 'customer' && !empty($r->customer_id)) {
+                    $c = DB::table('customers')->find($r->customer_id);
+                    if ($c) {
+                        $display = $c->name . ($c->company_name ? " ({$c->company_name})" : "");
+                    }
+                } elseif ($r->customer_type == 'prospect') {
+                    $pId = $r->prospect_id ?? $r->customer_id;
+                    if (!empty($pId)) {
+                        $p = DB::table('prospectuses')->find($pId);
+                        if ($p) {
+                            $display = $p->prospectus_name . ($p->contact_person ? " ({$p->contact_person})" : "");
+                        }
+                    }
+                }
+            }
+
+            $r->customer_display = $display ?: '-';
             unset($r->customer_display_raw);
+            
             // Add file URL for download
             $r->file_url = $this->quoteFileUrl($r);
             return $r;
@@ -245,6 +265,9 @@ class QuotationController extends Controller
                 ->get();
         }
 
+        // Load related customer or prospect relationship
+        $q->loadMissing(['customer', 'prospect']);
+
         return response()->json([
             'quotation' => $q,
             'revisions' => $revisions,
@@ -336,7 +359,7 @@ class QuotationController extends Controller
             'products'           => 'array',
             'products.*.product_id' => 'required',
             'products.*.price'      => 'required|numeric',
-            'products.*.quantity'   => 'nullable|numeric|min:0.01',
+            'products.*.quantity'   => 'nullable|numeric|min:0',
             'products.*.unit'       => 'nullable|string|max:50',
             'products.*.remark'     => 'nullable|string',
             'discount'           => 'nullable|numeric|min:0',
@@ -430,7 +453,8 @@ class QuotationController extends Controller
 
                 $existing->fill([
                     'customer_type'    => $data['customer_type'],
-                    'customer_id'      => $data['customer_id'] ?? null,
+                    'customer_id'      => ($data['customer_type'] === 'customer') ? $data['customer_id'] : null,
+                    'prospect_id'      => ($data['customer_type'] === 'prospect') ? $data['customer_id'] : null,
                     'payment_term_id'  => $data['payment_term_id'] ?? null,
                     'project_timeline' => $data['project_timeline'] ?? null,
                     'total_amount'     => $data['total_amount'] ?? 0,
@@ -461,7 +485,8 @@ class QuotationController extends Controller
                 $quote = Quotation::create([
                 'quotation_number'   => $quoteNo,
                 'customer_type'      => $data['customer_type'],
-                'customer_id'        => $data['customer_id'] ?? null,
+                'customer_id'        => ($data['customer_type'] === 'customer') ? $data['customer_id'] : null,
+                'prospect_id'        => ($data['customer_type'] === 'prospect') ? $data['customer_id'] : null,
                 'payment_term_id'    => $data['payment_term_id'] ?? null,
                 'project_timeline'   => $data['project_timeline'] ?? null,
                 'total_amount'       => $data['total_amount'] ?? 0,
@@ -566,7 +591,8 @@ class QuotationController extends Controller
         $quote = new Quotation();
         $quote->quotation_number = $quoteNumber;
         $quote->customer_type = $data['customer_type'];
-        $quote->customer_id = $data['customer_id'];
+        $quote->customer_id = ($data['customer_type'] === 'customer') ? $data['customer_id'] : null;
+        $quote->prospect_id = ($data['customer_type'] === 'prospect') ? $data['customer_id'] : null;
         $quote->total_amount = $data['total_amount'] ?? 0;
         $quote->created_at = now();
         // Fetch product names for display
@@ -587,8 +613,13 @@ class QuotationController extends Controller
         ];
 
         // Eager load customer if exists
-        if ($quote->customer_type == 'customer') {
-            $quote->setRelation('customer', Customer::find($quote->customer_id));
+        if ($quote->customer_type == 'customer' && $quote->customer_id) {
+            $quote->setRelation('customer', \App\Models\Customer::find($quote->customer_id));
+        }
+
+        // Add prospect reference if needed for PDF templates
+        if ($quote->customer_type == 'prospect' && $quote->prospect_id) {
+            $quote->setRelation('prospect', \App\Models\Prospectus::find($quote->prospect_id));
         }
 
         $template = $settings->template_name ?? 'modern';

@@ -193,13 +193,18 @@
                     @if($quote->customer->gst_number) GSTIN :- &nbsp; {{ $quote->customer->gst_number }}<br> @endif
                     CONTACT : {{ $quote->customer->phone ?? '--' }}
                 @elseif($quote->customer_type == 'prospect')
-                    @php $prospect = \App\Models\Prospectus::find($quote->customer_id); @endphp
+                    @php 
+                        $prospect = $quote->prospect ?? \App\Models\Prospectus::find($quote->prospect_id); 
+                        $loc = [];
+                        if ($prospect && $prospect->city) $loc[] = $prospect->city->city_name;
+                        if ($prospect && $prospect->state) $loc[] = $prospect->state->state_name;
+                    @endphp
                     @if($prospect)
                         <strong>{{ $prospect->prospectus_name ?? 'N/A' }}</strong><br>
-                        @if($prospect->address || $prospect->city || $prospect->state)
+                        @if($prospect->address || !empty($loc))
                             {{ $prospect->address ?? '' }}
-                            @if($prospect->city || $prospect->state)
-                                <br>{{ trim(implode(', ', array_filter([$prospect->city, $prospect->state]))) }}
+                            @if(!empty($loc))
+                                <br>{{ implode(', ', $loc) }}
                             @endif
                             <br>
                         @endif
