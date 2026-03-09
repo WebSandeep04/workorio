@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Module Management')
-@section('page_title', 'Module Management')
 
-@push('styles')
+<?php $__env->startSection('title', 'Project Services Management'); ?>
+<?php $__env->startSection('page_title', 'Project Services Management'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -312,21 +312,6 @@
     box-shadow: 0 0 0 4px rgba(67, 74, 250, 0.1);
     outline: none;
   }
-
-  .form-select-modern {
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    padding: 0.75rem 1rem;
-    transition: all 0.3s ease;
-    font-size: 0.95rem;
-    background-color: #fff;
-  }
-  
-  .form-select-modern:focus {
-    border-color: #434AFA;
-    box-shadow: 0 0 0 4px rgba(67, 74, 250, 0.1);
-    outline: none;
-  }
   
   .btn-modern {
     padding: 0.6rem 1.5rem;
@@ -371,29 +356,29 @@
     border-radius: 4px;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
       <i class="bi bi-search"></i>
-      <input type="text" id="search" placeholder="Search modules..." />
+      <input type="text" id="search" placeholder="Search project services..." />
     </div>
-    <button class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createModuleModal">
-      <i class="bi bi-plus me-1"></i>Create Module
+    <button class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createProjectModal">
+      <i class="bi bi-plus me-1"></i>Create Project Service
     </button>
   </div>
 
   <div class="modern-card data-table-card">
     <div class="modern-card-body">
       <div class="table-responsive">
-        <table class="table custom-table" id="moduleTable">
+        <table class="table custom-table" id="projectTable">
           <thead>
             <tr>
-              <th>Module Name</th>
-              <th>Service</th>
+              <th>Project Service Name</th>
               <th>Description</th>
+              <th>Modules Count</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -401,7 +386,7 @@
             <tr>
               <td colspan="4" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
-                <p class="mt-2 mb-0">Loading modules...</p>
+                <p class="mt-2 mb-0">Loading project services...</p>
               </td>
             </tr>
           </tbody>
@@ -410,7 +395,7 @@
     </div>
   </div>
   
-  <div class="table-range-meta" id="moduleRangeInfo">
+  <div class="table-range-meta" id="projectRangeInfo">
     Showing 0-0 from 0 data
   </div>
   
@@ -419,29 +404,23 @@
   </div>
 </div>
 
-<!-- Create Module Modal -->
-<div class="modal fade modal-modern" id="createModuleModal" tabindex="-1" aria-labelledby="createModuleModalLabel" aria-hidden="true" data-bs-backdrop="static">
+<!-- Create Project Modal -->
+<div class="modal fade modal-modern" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" style ="font-size: 1.1rem; font-weight: 600;" id="createModuleModalLabel">
+        <h5 class="modal-title" style ="font-size: 1.1rem; font-weight: 600;" id="createProjectModalLabel">
           <i class="bi bi-plus-circle text-white"></i>
-          Create Module
+          Create Project Service
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form id="createModuleForm">
+      <form id="createProjectForm">
         <div class="modal-body pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <div class="mb-3">
-            <label for="name" class="form-label-modern">Module Name <span class="text-danger">*</span></label>
-            <input type="text" class="form-control form-control-modern" id="name" name="name" required placeholder="Enter module name">
-          </div>
-          <div class="mb-3">
-            <label for="service_id" class="form-label-modern">Service <span class="text-danger">*</span></label>
-            <select class="form-select form-select-modern" id="service_id" name="service_id" required>
-              <option value="">Select Service</option>
-            </select>
+            <label for="name" class="form-label-modern">Project Service Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-modern" id="name" name="name" required placeholder="Enter project name">
           </div>
           <div class="mb-3">
             <label for="description" class="form-label-modern">Description</label>
@@ -451,7 +430,7 @@
         <div class="modal-footer">
           <button type="submit" class="btn-modern btn-modern-primary w-100 justify-content-center" style="background: #434AFA; color: white;">
             <i class="bi bi-check-circle"></i>
-            Create Module
+            Create Project Service
           </button>
         </div>
       </form>
@@ -459,30 +438,24 @@
   </div>
 </div>
 
-<!-- Edit Module Modal -->
-<div class="modal fade modal-modern" id="editModuleModal" tabindex="-1" aria-labelledby="editModuleModalLabel" aria-hidden="true" data-bs-backdrop="static">
+<!-- Edit Project Modal -->
+<div class="modal fade modal-modern" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" style ="font-size: 1.1rem; font-weight: 600;" id="editModuleModalLabel">
+        <h5 class="modal-title" style ="font-size: 1.1rem; font-weight: 600;" id="editProjectModalLabel">
           <i class="bi bi-pencil-square text-white"></i>
-          Edit Module
+          Edit Project Service
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form id="editModuleForm">
+      <form id="editProjectForm">
         <div class="modal-body pt-4 pb-4">
-          @csrf
-          <input type="hidden" id="edit_module_id">
+          <?php echo csrf_field(); ?>
+          <input type="hidden" id="edit_project_id">
           <div class="mb-3">
-            <label for="edit_name" class="form-label-modern">Module Name <span class="text-danger">*</span></label>
+            <label for="edit_name" class="form-label-modern">Project Service Name <span class="text-danger">*</span></label>
             <input type="text" class="form-control form-control-modern" id="edit_name" required>
-          </div>
-          <div class="mb-3">
-            <label for="edit_service_id" class="form-label-modern">Service <span class="text-danger">*</span></label>
-            <select class="form-select form-select-modern" id="edit_service_id" required>
-              <option value="">Select Service</option>
-            </select>
           </div>
           <div class="mb-3">
             <label for="edit_description" class="form-label-modern">Description</label>
@@ -492,7 +465,7 @@
         <div class="modal-footer">
           <button type="submit" class="btn-modern btn-modern-primary w-100 justify-content-center" style="background: #434AFA; color: white;">
             <i class="bi bi-check-circle"></i>
-            Update Module
+            Update Project Service
           </button>
         </div>
       </form>
@@ -501,18 +474,18 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal fade modal-modern" id="deleteModuleModal" tabindex="-1" aria-labelledby="deleteModuleModalLabel" aria-hidden="true" data-bs-backdrop="static">
+<div class="modal fade modal-modern" id="deleteProjectModal" tabindex="-1" aria-labelledby="deleteProjectModalLabel" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" style ="font-size: 1.1rem; font-weight: 600;" id="deleteModuleModalLabel">
+        <h5 class="modal-title" style ="font-size: 1.1rem; font-weight: 600;" id="deleteProjectModalLabel">
           <i class="bi bi-exclamation-triangle text-white"></i>
           Confirm Delete
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body pt-4 pb-4">
-        <p class="mb-0 text-center fs-6">Are you sure you want to delete this module?</p>
+        <p class="mb-0 text-center fs-6">Are you sure you want to delete this project service?</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -524,9 +497,9 @@
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -568,7 +541,7 @@ function buildSimplePagination($container, current, last) {
 }
 
 function updateRangeInfo(from, to, total) {
-    const $info = $('#moduleRangeInfo');
+    const $info = $('#projectRangeInfo');
     if (!$info.length) return;
 
     const totalValue = Number(total);
@@ -589,29 +562,28 @@ function updateRangeInfo(from, to, total) {
 
 $(function () {
   let searchTimeout;
-  loadModules();
   loadProjects();
 
-  function loadModules(page = 1) {
+  function loadProjects(page = 1) {
     let search = $('#search').val();
 
-    $('#moduleTable tbody').html(`
+    $('#projectTable tbody').html(`
       <tr>
         <td colspan="4" class="loading-state">
           <i class="bi bi-arrow-repeat spin"></i>
-          <p class="mt-2 mb-0">Loading modules...</p>
+          <p class="mt-2 mb-0">Loading project services...</p>
         </td>
       </tr>
     `);
     
-    $.get(`{{ route('module.fetch') }}?page=${page}&search=${search}`, function (data) {
+    $.get(`<?php echo e(route('service.fetch')); ?>?page=${page}&search=${search}`, function (data) {
       if (!data.data || data.data.length === 0) {
-        $('#moduleTable tbody').html(`
+        $('#projectTable tbody').html(`
           <tr>
             <td colspan="4" class="empty-state">
               <i class="bi bi-inbox"></i>
-              <h5>No Modules Found</h5>
-              <p>Get started by creating your first module.</p>
+              <h5>No Project Services Found</h5>
+              <p>Get started by creating your first project service.</p>
             </td>
           </tr>
         `);
@@ -621,20 +593,19 @@ $(function () {
       }
       
       let rows = '';
-      $.each(data.data, function (i, module) {
+      $.each(data.data, function (i, project) {
         rows += `
           <tr style="animation-delay: ${i * 0.1}s;">
-            <td><strong>${module.name}</strong></td>
-            <td>${module.service ? module.service.name : '-'}</td>
-            <td>${module.description || '-'}</td>
+            <td><strong>${project.name}</strong></td>
+            <td>${project.description || '-'}</td>
+            <td>${project.modules ? project.modules.length : 0}</td>
             <td>
               <div class="d-flex gap-2 justify-content-center">
-                <button class="btn-action btn-action-edit editBtn" data-id="${module.id}" 
-                        data-name="${module.name}" data-project-id="${module.service_id}" 
-                        data-description="${module.description || ''}" title="Edit">
+                <button class="btn-action btn-action-edit editBtn" data-id="${project.id}" 
+                        data-name="${project.name}" data-description="${project.description || ''}" title="Edit">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn-action btn-action-delete deleteBtn" data-id="${module.id}" title="Delete">
+                <button class="btn-action btn-action-delete deleteBtn" data-id="${project.id}" title="Delete">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
@@ -642,33 +613,21 @@ $(function () {
           </tr>
         `;
       });
-      $('#moduleTable tbody').html(rows);
+      $('#projectTable tbody').html(rows);
 
       // Simple pagination
       buildSimplePagination($('#paginationLinks'), data.current_page || 1, data.last_page || 1);
       updateRangeInfo(data.from, data.to, data.total);
 
     }).fail(function() {
-      $('#moduleTable tbody').html(`
+      $('#projectTable tbody').html(`
         <tr>
           <td colspan="4" class="text-danger text-center py-4">
             <i class="bi bi-exclamation-triangle"></i>
-            Failed to load modules. Please try again.
+            Failed to load project services. Please try again.
           </td>
         </tr>
       `);
-    });
-  }
-
-  function loadProjects() {
-    $.get("{{ route('customer-project.services') }}", function (data) {
-      let options = '<option value="">Select Service</option>';
-      let projects = data.data ? data.data : data; // Handle both paginated and non-paginated
-
-      $.each(projects, function (i, project) {
-        options += `<option value="${project.id}">${project.name}</option>`;
-      });
-      $('#service_id, #edit_service_id').html(options);
     });
   }
 
@@ -677,7 +636,7 @@ $(function () {
     e.preventDefault();
     const page = $(this).data('page');
     if (page) {
-      loadModules(page);
+      loadProjects(page);
     }
   });
 
@@ -685,7 +644,7 @@ $(function () {
   $('#search').on('keyup', function() {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(function() {
-          loadModules(1);
+          loadProjects(1);
       }, 300);
   });
 
@@ -696,63 +655,60 @@ $(function () {
       }
   });
 
-  $('#createModuleForm').submit(function (e) {
+  $('#createProjectForm').submit(function (e) {
     e.preventDefault();
     const $btn = $(this).find('button[type="submit"]');
     $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Creating...');
     
-    $.post("{{ route('module.store') }}", {
+    $.post("<?php echo e(route('service.store')); ?>", {
       name: $('#name').val(),
-      service_id: $('#service_id').val(),
       description: $('#description').val(),
-      _token: '{{ csrf_token() }}'
+      _token: '<?php echo e(csrf_token()); ?>'
     }, function (response) {
       if (response.success) {
-        $('#createModuleModal').modal('hide');
-        $('#createModuleForm')[0].reset();
-        loadModules();
-        showAlert('success', 'Module created successfully.');
+        $('#createProjectModal').modal('hide');
+        $('#createProjectForm')[0].reset();
+        loadProjects();
+        showAlert('success', 'Project created successfully.');
       }
     }).fail(function (xhr) {
       if (xhr.responseJSON && xhr.responseJSON.errors) {
         const errors = Object.values(xhr.responseJSON.errors).join("\n");
         showAlert('error', errors);
       } else {
-        showAlert('error', 'Error creating module.');
+        showAlert('error', 'Error creating project.');
       }
     }).always(function() {
-      $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Create Module');
+      $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Create Project Service');
     });
   });
 
   $(document).on('click', '.editBtn', function () {
-    $('#edit_module_id').val($(this).data('id'));
+    $('#edit_project_id').val($(this).data('id'));
     $('#edit_name').val($(this).data('name'));
-    $('#edit_service_id').val($(this).data('project-id'));
     $('#edit_description').val($(this).data('description'));
-    $('#editModuleModal').modal('show');
+    $('#editProjectModal').modal('show');
   });
 
-  $('#editModuleForm').submit(function (e) {
+  $('#editProjectForm').submit(function (e) {
     e.preventDefault();
     const $btn = $(this).find('button[type="submit"]');
     $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Updating...');
     
-    let id = $('#edit_module_id').val();
+    let id = $('#edit_project_id').val();
     $.ajax({
-      url: `/module/${id}`,
+      url: `/service/${id}`,
       type: 'PUT',
       data: {
         name: $('#edit_name').val(),
-        service_id: $('#edit_service_id').val(),
         description: $('#edit_description').val(),
-        _token: '{{ csrf_token() }}'
+        _token: '<?php echo e(csrf_token()); ?>'
       },
       success: function (response) {
         if (response.success) {
-          $('#editModuleModal').modal('hide');
-          loadModules();
-          showAlert('success', 'Module updated successfully.');
+          $('#editProjectModal').modal('hide');
+          loadProjects();
+          showAlert('success', 'Project updated successfully.');
         }
       },
       error: function (xhr) {
@@ -760,18 +716,18 @@ $(function () {
           const errors = Object.values(xhr.responseJSON.errors).join("\n");
           showAlert('error', errors);
         } else {
-          showAlert('error', 'Error updating module.');
+          showAlert('error', 'Error updating project.');
         }
       },
       always: function() {
-        $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Update Module');
+        $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Update Project Service');
       }
     });
   });
 
   $(document).on('click', '.deleteBtn', function () {
     $('#confirmDelete').data('id', $(this).data('id'));
-    $('#deleteModuleModal').modal('show');
+    $('#deleteProjectModal').modal('show');
   });
 
   $('#confirmDelete').click(function() {
@@ -780,18 +736,18 @@ $(function () {
       $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Deleting...');
 
       $.ajax({
-        url: `/module/${id}`,
+        url: `/service/${id}`,
         type: 'DELETE',
-        data: { _token: '{{ csrf_token() }}' },
+        data: { _token: '<?php echo e(csrf_token()); ?>' },
         success: function (response) {
           if (response.success) {
-            $('#deleteModuleModal').modal('hide');
-            loadModules();
-            showAlert('success', 'Module deleted successfully.');
+            $('#deleteProjectModal').modal('hide');
+            loadProjects();
+            showAlert('success', 'Project deleted successfully.');
           }
         },
         error: function () {
-          showAlert('error', 'Error deleting module.');
+          showAlert('error', 'Error deleting project.');
         },
         always: function() {
           $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Delete');
@@ -809,4 +765,6 @@ $(function () {
     to { transform: rotate(360deg); }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/project/index.blade.php ENDPATH**/ ?>

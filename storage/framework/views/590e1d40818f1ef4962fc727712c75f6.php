@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Module Management')
-@section('page_title', 'Module Management')
 
-@push('styles')
+<?php $__env->startSection('title', 'Module Management'); ?>
+<?php $__env->startSection('page_title', 'Module Management'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -371,9 +371,9 @@
     border-radius: 4px;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
@@ -432,7 +432,7 @@
       </div>
       <form id="createModuleForm">
         <div class="modal-body pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <div class="mb-3">
             <label for="name" class="form-label-modern">Module Name <span class="text-danger">*</span></label>
             <input type="text" class="form-control form-control-modern" id="name" name="name" required placeholder="Enter module name">
@@ -472,7 +472,7 @@
       </div>
       <form id="editModuleForm">
         <div class="modal-body pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <input type="hidden" id="edit_module_id">
           <div class="mb-3">
             <label for="edit_name" class="form-label-modern">Module Name <span class="text-danger">*</span></label>
@@ -524,9 +524,9 @@
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -604,7 +604,7 @@ $(function () {
       </tr>
     `);
     
-    $.get(`{{ route('module.fetch') }}?page=${page}&search=${search}`, function (data) {
+    $.get(`<?php echo e(route('module.fetch')); ?>?page=${page}&search=${search}`, function (data) {
       if (!data.data || data.data.length === 0) {
         $('#moduleTable tbody').html(`
           <tr>
@@ -661,7 +661,7 @@ $(function () {
   }
 
   function loadProjects() {
-    $.get("{{ route('customer-project.services') }}", function (data) {
+    $.get("<?php echo e(route('customer-project.services')); ?>", function (data) {
       let options = '<option value="">Select Service</option>';
       let projects = data.data ? data.data : data; // Handle both paginated and non-paginated
 
@@ -701,11 +701,11 @@ $(function () {
     const $btn = $(this).find('button[type="submit"]');
     $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Creating...');
     
-    $.post("{{ route('module.store') }}", {
+    $.post("<?php echo e(route('module.store')); ?>", {
       name: $('#name').val(),
       service_id: $('#service_id').val(),
       description: $('#description').val(),
-      _token: '{{ csrf_token() }}'
+      _token: '<?php echo e(csrf_token()); ?>'
     }, function (response) {
       if (response.success) {
         $('#createModuleModal').modal('hide');
@@ -746,7 +746,7 @@ $(function () {
         name: $('#edit_name').val(),
         service_id: $('#edit_service_id').val(),
         description: $('#edit_description').val(),
-        _token: '{{ csrf_token() }}'
+        _token: '<?php echo e(csrf_token()); ?>'
       },
       success: function (response) {
         if (response.success) {
@@ -782,7 +782,7 @@ $(function () {
       $.ajax({
         url: `/module/${id}`,
         type: 'DELETE',
-        data: { _token: '{{ csrf_token() }}' },
+        data: { _token: '<?php echo e(csrf_token()); ?>' },
         success: function (response) {
           if (response.success) {
             $('#deleteModuleModal').modal('hide');
@@ -809,4 +809,6 @@ $(function () {
     to { transform: rotate(360deg); }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/module/index.blade.php ENDPATH**/ ?>
