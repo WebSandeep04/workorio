@@ -293,7 +293,7 @@ class QuotationController extends Controller
         $rows[] = [
             'version'    => $q->version,
             'file_path'  => $q->file_path,
-            'file_url'   => $this->quoteFileUrl($q),
+            'file_url'   => $this->quoteFileUrl($q, 'current'),
             'created_at' => optional($q->updated_at ?? $q->created_at)->toDateTimeString(),
             'label'      => 'Current',
         ];
@@ -304,9 +304,10 @@ class QuotationController extends Controller
                 ->get()
                 ->map(function ($r) {
                     return [
+                        'id'         => $r->id,
                         'version'    => $r->version,
                         'file_path'  => $r->file_path,
-                        'file_url'   => $this->quoteFileUrl($r),
+                        'file_url'   => $this->quoteFileUrl($r, 'revision'),
                         'created_at' => optional($r->created_at)->toDateTimeString(),
                         'label'      => 'Revision',
                     ];
@@ -365,6 +366,8 @@ class QuotationController extends Controller
             'discount'           => 'nullable|numeric|min:0',
             'total_amount'       => 'nullable|numeric',
             'status'             => 'nullable|string|max:100',
+            'payment_term_id'    => 'nullable|integer',
+            'project_timeline'   => 'nullable|string|max:255',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Quotation validation failed', ['errors' => $e->errors()]);
@@ -388,68 +391,22 @@ class QuotationController extends Controller
             }
         }
 
-        // Generate PDF Binary using the selected template
-        $binary = $this->generatePdfBinary($data, $quoteNo);
-        if (!$binary || (is_array($binary) && isset($binary['error']))) {
-            $errMsg = is_array($binary) ? $binary['error'] : 'Unknown error';
-            Log::error('Quotation store: Failed to generate PDF binary', ['error' => $errMsg]);
-            return response()->json([
-                'message' => 'PDF generation failed',
-                'details' => $errMsg
-            ], 500);
-        }
-
         Log::info('Starting quotation save transaction', ['quote_no' => $quoteNo]);
-        Log::info('Quotation transaction started', [
-            'quotation_number' => $quoteNo,
-            'database' => DB::connection()->getDatabaseName(),
-            'user_id' => $userId
-        ]);
 
         try {
-            return DB::transaction(function () use ($data, $binary, $quoteNo, $userId) {
+            return DB::transaction(function () use ($data, $quoteNo, $userId) {
             $existing = Quotation::where('quotation_number', $quoteNo)->lockForUpdate()->first();
             $nextVersion = $existing ? ($existing->version + 1) : 1;
 
-            Log::info('Quotation version check', [
-                'existing' => $existing ? 'yes' : 'no',
-                'next_version' => $nextVersion
-            ]);
-
-            // Compute file path
-            $dir = 'quotations/' . $quoteNo;
-            $filename = $quoteNo . '_v' . $nextVersion . '.pdf';
-            $path = $dir . '/' . $filename;
-            
-            try {
-                Storage::disk('public')->put($path, $binary);
-                Log::info('PDF file saved successfully', ['path' => $path]);
-            } catch (\Exception $e) {
-                Log::error('Failed to save PDF file', ['error' => $e->getMessage()]);
-                throw $e;
-            }
-
             if ($existing) {
                 // Save previous as revision
-                try {
-                    QuotationRevision::create([
-                        'quotation_id' => $existing->id,
-                        'version'      => $existing->version,
-                        'file_path'    => $existing->file_path ?? '',
-                        'data'         => $existing->data,
-                        'created_by'   => $userId,
-                    ]);
-                    Log::info('Quotation revision created successfully', [
-                        'quotation_id' => $existing->id,
-                        'version' => $existing->version
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('Failed to create quotation revision', [
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString()
-                    ]);
-                    throw $e;
-                }
+                QuotationRevision::create([
+                    'quotation_id' => $existing->id,
+                    'version'      => $existing->version,
+                    'file_path'    => $existing->file_path ?? '',
+                    'data'         => array_merge($existing->data ?? [], ['total_amount' => $existing->total_amount]),
+                    'created_by'   => $userId,
+                ]);
 
                 $existing->fill([
                     'customer_type'    => $data['customer_type'],
@@ -460,7 +417,7 @@ class QuotationController extends Controller
                     'total_amount'     => $data['total_amount'] ?? 0,
                     'status'           => $data['status'] ?? 'Draft',
                     'version'          => $nextVersion,
-                    'file_path'        => $path,
+                    'file_path'        => '', // Reset file path as we generate on-the-fly
                     'data'             => [
                         'products' => $data['products'] ?? [],
                         'discount' => $data['discount'] ?? 0,
@@ -469,20 +426,13 @@ class QuotationController extends Controller
                     'updated_by'       => $userId,
                 ])->save();
 
-                Log::info('Quotation updated successfully', [
-                    'id' => $existing->id,
-                    'quotation_number' => $existing->quotation_number,
-                    'version' => $nextVersion
-                ]);
-
                 $payload = $existing->fresh()->toArray();
-                $payload['file_url'] = $this->quoteFileUrl($existing);
+                $payload['file_url'] = $this->quoteFileUrl($existing, 'current');
                 $payload['revised']   = true;
                 return response()->json(['message' => 'Quotation revised', 'data' => $payload]);
             }
 
-            try {
-                $quote = Quotation::create([
+            $quote = Quotation::create([
                 'quotation_number'   => $quoteNo,
                 'customer_type'      => $data['customer_type'],
                 'customer_id'        => ($data['customer_type'] === 'customer') ? $data['customer_id'] : null,
@@ -492,7 +442,7 @@ class QuotationController extends Controller
                 'total_amount'       => $data['total_amount'] ?? 0,
                 'status'             => $data['status'] ?? 'Draft',
                 'version'            => $nextVersion,
-                'file_path'          => $path,
+                'file_path'          => '',
                 'data'               => [
                     'products' => $data['products'] ?? [],
                     'discount' => $data['discount'] ?? 0,
@@ -500,24 +450,12 @@ class QuotationController extends Controller
                 ],
                 'created_by'         => $userId,
                 'updated_by'         => $userId,
-                ]);
+            ]);
 
-                Log::info('Quotation created successfully', [
-                    'id' => $quote->id,
-                    'quotation_number' => $quote->quotation_number
-                ]);
-
-                $payload = $quote->toArray();
-                $payload['file_url'] = $this->quoteFileUrl($quote);
-                $payload['revised']   = false;
-                return response()->json(['message' => 'Quotation saved', 'data' => $payload]);
-            } catch (\Exception $e) {
-                Log::error('Failed to create quotation', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ]);
-                throw $e;
-            }
+            $payload = $quote->toArray();
+            $payload['file_url'] = $this->quoteFileUrl($quote, 'current');
+            $payload['revised']   = false;
+            return response()->json(['message' => 'Quotation saved', 'data' => $payload]);
         });
         } catch (\Exception $e) {
             Log::error('Quotation store transaction failed', [
@@ -529,17 +467,66 @@ class QuotationController extends Controller
         }
     }
 
-    /**
-     * Download a stored quotation PDF securely.
-     */
-    public function download(Quotation $quotation)
+    public function download($id)
     {
-        if (!$quotation->file_path || !Storage::disk('public')->exists($quotation->file_path)) {
-            abort(404, 'Quotation PDF not found');
+        $quotation = Quotation::findOrFail($id);
+        $data = [
+            'customer_type' => $quotation->customer_type,
+            'customer_id'   => $quotation->customer_id ?? $quotation->prospect_id,
+            'total_amount'  => $quotation->total_amount,
+            'products'      => $quotation->data['products'] ?? [],
+            'discount'      => $quotation->data['discount'] ?? 0,
+            'subject'       => $quotation->data['subject'] ?? '',
+        ];
+
+        $binary = $this->generatePdfBinary($data, $quotation->quotation_number);
+
+        if (is_array($binary) && isset($binary['error'])) {
+            abort(500, 'PDF generation failed: ' . $binary['error']);
         }
 
-        $downloadName = basename($quotation->file_path);
-        return Storage::disk('public')->download($quotation->file_path, $downloadName);
+        return response($binary)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $quotation->quotation_number . '.pdf"');
+    }
+
+    /**
+     * View a specific revision PDF generated on-the-fly.
+     */
+    public function previewRevision(int $id)
+    {
+        $revision = QuotationRevision::with('quotation')->findOrFail($id);
+        $quotation = $revision->quotation;
+
+        $data = [
+            'customer_type' => $quotation->customer_type,
+            'customer_id'   => $quotation->customer_id ?? $quotation->prospect_id,
+            'total_amount'  => $revision->data['total_amount'] ?? 0,
+            'products'      => $revision->data['products'] ?? [],
+            'discount'      => $revision->data['discount'] ?? 0,
+            'subject'       => $revision->data['subject'] ?? '',
+        ];
+        
+        // If total_amount wasn't stored in data (for very old revisions), fallback to re-calculating subtotal
+        if ($data['total_amount'] == 0) {
+            $total = 0;
+            foreach($data['products'] as $p) {
+                $price = (float)($p['price'] ?? 0);
+                $tax = round($price * 0.18, 2);
+                $total += ($price + $tax);
+            }
+            $data['total_amount'] = $total - (float)$data['discount'];
+        }
+
+        $binary = $this->generatePdfBinary($data, $quotation->quotation_number . '_v' . $revision->version);
+
+        if (is_array($binary) && isset($binary['error'])) {
+            abort(500, 'PDF generation failed: ' . $binary['error']);
+        }
+
+        return response($binary)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $quotation->quotation_number . '_v' . $revision->version . '.pdf"');
     }
 
     /**
@@ -563,14 +550,18 @@ class QuotationController extends Controller
     /**
      * Build a secure download URL for a quotation's stored PDF.
      */
-    private function quoteFileUrl($quote)
+    private function quoteFileUrl($quote, $type = 'current')
     {
-        if (!$quote || empty($quote->file_path)) {
+        if (!$quote) {
             return null;
         }
 
-        // Use direct storage URL to avoid route model binding issues with tenant databases
-        return Storage::disk('public')->url($quote->file_path);
+        if ($type === 'current') {
+            return route('quotation.download', ['id' => $quote->id]);
+        } else {
+            // For revisions, we use a custom route we'll add
+            return route('quotation.revision.preview', ['id' => $quote->id]);
+        }
     }
 
     /**

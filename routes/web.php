@@ -413,7 +413,8 @@ Route::get('/quotation/show/{number}', [\App\Http\Controllers\QuotationControlle
 Route::get('/quotation/latest', [\App\Http\Controllers\QuotationController::class, 'latestForEntity'])->name('quotation.latest');
 Route::get('/quotation/{id}/revisions', [\App\Http\Controllers\QuotationController::class, 'revisions'])->name('quotation.revisions');
 Route::get('/quotation/payment-terms', [\App\Http\Controllers\QuotationController::class, 'getPaymentTerms'])->name('quotation.payment-terms');
-Route::get('/quotation/{quotation}/download', [\App\Http\Controllers\QuotationController::class, 'download'])->name('quotation.download');
+Route::get('/quotation/{id}/download', [\App\Http\Controllers\QuotationController::class, 'download'])->name('quotation.download');
+Route::get('/quotation/revision/{id}/preview', [\App\Http\Controllers\QuotationController::class, 'previewRevision'])->name('quotation.revision.preview');
 Route::get('/quotation/setup', [\App\Http\Controllers\QuotationSetupController::class, 'index'])->name('quotation.setup');
 Route::get('/quotation/setup/fetch', [\App\Http\Controllers\QuotationSetupController::class, 'fetch'])->name('quotation.setup.fetch');
 Route::post('/quotation/setup/store', [\App\Http\Controllers\QuotationSetupController::class, 'store'])->name('quotation.setup.store');
