@@ -2061,17 +2061,8 @@ class AttendanceController extends Controller
                 'movements' => []
             ];
             
-            // Determine status
-            if ($currentDate->dayOfWeek === Carbon::SUNDAY) {
-                $dayData['status'] = 'sunday';
-            } elseif (in_array($dateStr, $holidays)) {
-                $dayData['status'] = 'holiday';
-                if ($holidaysData && isset($holidaysData[$dateStr])) {
-                    $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
-                }
-            } elseif (in_array($dateStr, $leaves)) {
-                $dayData['status'] = 'leave';
-            } elseif (isset($attendanceByDate[$dateStr])) {
+            // First check if user has attendance for this date (takes priority for data)
+            if (isset($attendanceByDate[$dateStr])) {
                 $attendance = $attendanceByDate[$dateStr];
                 $dayData['hours'] = $this->calculateHours($attendance->movements);
                 $dayData['office_hours'] = $this->calculateTypeHours($attendance->movements, 'office');
@@ -2080,16 +2071,7 @@ class AttendanceController extends Controller
                 $dayData['cycles'] = $this->calculateDayCycles($attendance->movements);
                 $dayData['is_wfh'] = $attendance->is_wfh;
                 
-                // Determine status based on total hours (not applicable for holidays and Sundays)
-                if ($dayData['hours'] >= 7) {
-                    $dayData['status'] = 'present';
-                } elseif ($dayData['hours'] >= 4) {
-                    $dayData['status'] = 'halfday';
-                } else {
-                    $dayData['status'] = 'absent by less hr';
-                }
-                
-                // Format movements for display - convert UTC to IST for display only
+                // Format movements for display
                 $dayData['movements'] = $attendance->movements->map(function($movement) {
                     return [
                         'time' => Carbon::parse($movement->time)->setTimezone('Asia/Kolkata')->format('H:i'),
@@ -2099,7 +2081,7 @@ class AttendanceController extends Controller
                     ];
                 })->toArray();
                 
-                // Aggregate descriptions - using robust mapping and filtering
+                // Aggregate descriptions
                 $descriptions = $attendance->movements
                     ->map(function($m) { 
                         return $m->description ? trim($m->description) : null; 
@@ -2111,15 +2093,39 @@ class AttendanceController extends Controller
                     ->values()
                     ->toArray();
                 
-                // Log found descriptions for debugging
-                if (!empty($descriptions)) {
-                    \Illuminate\Support\Facades\Log::info('Report descriptions found', [
-                        'date' => $d->display_date ?? $dateStr,
-                        'descriptions' => $descriptions
-                    ]);
-                }
-                
                 $dayData['description'] = !empty($descriptions) ? implode('<br>', $descriptions) : null;
+
+                // Set status - handle specific labeling for Sundays/Holidays vs Regular days
+                if ($dayData['is_sunday']) {
+                    $dayData['status'] = 'sunday';
+                } elseif ($dayData['is_holiday']) {
+                    $dayData['status'] = 'holiday';
+                    if ($holidaysData && isset($holidaysData[$dateStr])) {
+                        $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
+                    }
+                } else {
+                    if ($dayData['hours'] >= 7) {
+                        $dayData['status'] = 'present';
+                    } elseif ($dayData['hours'] >= 4) {
+                        $dayData['status'] = 'halfday';
+                    } else {
+                        $dayData['status'] = 'absent by less hr';
+                    }
+                }
+            } else {
+                // NO attendance found, determine fallback status
+                if ($currentDate->dayOfWeek === Carbon::SUNDAY) {
+                    $dayData['status'] = 'sunday';
+                } elseif (in_array($dateStr, $holidays)) {
+                    $dayData['status'] = 'holiday';
+                    if ($holidaysData && isset($holidaysData[$dateStr])) {
+                        $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
+                    }
+                } elseif (in_array($dateStr, $leaves)) {
+                    $dayData['status'] = 'leave';
+                } else {
+                    $dayData['status'] = 'absent';
+                }
             }
             
             $dailyData[] = $dayData;
