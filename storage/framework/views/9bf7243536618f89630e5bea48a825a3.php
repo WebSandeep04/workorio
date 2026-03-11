@@ -585,11 +585,10 @@ function exportDateReportPdf() {
     
     if(!date) return;
     
-    const selectedDate = new Date(date);
-    const today = new Date();
-    today.setHours(0,0,0,0);
+    const now = new Date();
+    const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     
-    if (selectedDate > today) {
+    if (date > today) {
         showToast('Cannot generate report for future dates.', 'error');
         return;
     }
@@ -921,11 +920,10 @@ function loadDateReport() {
     
     if(!date) return;
 
-    const selectedDate = new Date(date);
-    const today = new Date();
-    today.setHours(0,0,0,0);
+    const now = new Date();
+    const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     
-    if (selectedDate > today) {
+    if (date > today) {
         showToast('Cannot generate report for future dates.', 'error');
         return;
     }

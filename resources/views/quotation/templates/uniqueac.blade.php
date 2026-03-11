@@ -310,26 +310,23 @@
         {!! $settings->bank_details ?? 'Bank Details: &nbsp;&nbsp; Bank Name: Bank Of India &nbsp;&nbsp; Account Number: 051630150000037 &nbsp;&nbsp; IFSC Code: BKID0000516' !!}
     </div>
 
+    @if(!empty($quote->data['show_payment_terms']))
     <div class="payment-terms">
         <h4>PAYMENT TERMS :</h4>
-        @if(!empty($settings->payment_terms))
+        @php 
+            $pTerms = !empty($quote->data['payment_terms']) ? $quote->data['payment_terms'] : ($settings->payment_terms ?? '');
+        @endphp
+        @if(!empty($pTerms))
             <ol>
-                @foreach(explode("\n", str_replace("\r", "", $settings->payment_terms)) as $index => $term)
+                @foreach(explode("\n", str_replace("\r", "", $pTerms)) as $index => $term)
                     @if(trim($term) !== '')
                         <li @if($index === 0) style="color: red;" @endif>{{ trim($term) }}</li>
                     @endif
                 @endforeach
             </ol>
-        @else
-            <ol>
-                <li style="color: red;">HIGH SITE 100% PAYMENT IN ADVANCE</li>
-                <li>POWER SUPPLY FOR THE AIR CONDITIONING UNIT SHALL BE ARRANGED AND PROVIDED BY THE CLIENT.</li>
-                <li>WE ENSURE CONSISTENT HIGH-QUALITY STANDARDS IN ALL OUR PRODUCTS AND SERVICES, FROM THE FIRST INSTALLATION AND EVERY TIME THEREAFTER.</li>
-                <li>THIS QUOTATION IS VALID FOR A PERIOD OF 7 DAYS FROM THE DATE OF ISSUE.</li>
-                <li>MATHADI (LABOUR HANDLING) CHARGES, IF APPLICABLE, SHALL BE BORNE BY THE CUSTOMER.</li>
-            </ol>
         @endif
     </div>
+    @endif
 
     <div style="margin-top: 30px; font-size: 11px; text-align: center; border-top: 1px dashed #000; padding-top: 10px; line-height: 1.5;">
         <strong>Thank you for connecting with Unique Air Conditioning!</strong><br>

@@ -2409,3 +2409,8 @@ Did you mean one of these?
 [2026-03-09 12:18:29] local.INFO: Quotation store: User ID found {"user_id":13} 
 [2026-03-09 12:18:29] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
 [2026-03-09 12:18:29] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260309-001"} 
+[2026-03-11 06:10:22] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-03-11 06:10:25] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-03-11 06:10:26] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-03-11 06:10:26] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-03-11 06:10:26] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

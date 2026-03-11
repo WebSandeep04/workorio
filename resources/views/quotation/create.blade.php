@@ -321,6 +321,28 @@
                 </div>
             </div>
 
+            {{-- Payment Terms --}}
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="show_payment_terms" name="show_payment_terms" onchange="togglePaymentTerms()">
+                        <label class="form-check-label" for="show_payment_terms" style="cursor: pointer; color: #434AFA;">
+                            Show Payment Terms
+                        </label>
+                    </div>
+                    <div id="payment_terms_section" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="section-title mb-0">Payment Terms</div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" style="font-size: 12px; border-color: #434AFA; color: #434AFA;" onclick="saveAsDefaultPaymentTerms(this)">
+                                <i class="bi bi-save"></i> Set as Default
+                            </button>
+                        </div>
+                        <textarea class="form-control form-control-modern" id="payment_terms" name="payment_terms" rows="6" placeholder="Enter terms separated by new lines..."></textarea>
+                        <small class="text-muted">Edits here apply only to this quote. Click "Set as Default" to update your template.</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="footer-actions">
                 <button type="button" id="saveQuotationBtn" class="btn-save" onclick="saveQuotation()">Save Quotation</button>
             </div>
@@ -374,7 +396,52 @@ $(document).ready(function() {
 
     // Initial calculation
     updateLiveTotals();
+
+    // Load settings early for pre-filling payment terms
+    loadQuotationSettings().done(function() {
+        if (quotationSettings && quotationSettings.payment_terms) {
+            $('#payment_terms').val(quotationSettings.payment_terms);
+        }
+    });
 });
+
+function togglePaymentTerms() {
+    if ($('#show_payment_terms').is(':checked')) {
+        $('#payment_terms_section').slideDown();
+    } else {
+        $('#payment_terms_section').slideUp();
+    }
+}
+
+function saveAsDefaultPaymentTerms(btn) {
+    const terms = $('#payment_terms').val();
+    const $btn = $(btn);
+    const originalContent = $btn.html();
+    
+    $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i>');
+    
+    $.ajax({
+        url: "{{ route('quotation.setup.store') }}",
+        type: 'POST',
+        data: {
+            payment_terms: terms
+        },
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            showAlert('success', 'Payment terms updated as default');
+            // Refresh local quotationSettings
+            loadQuotationSettings();
+        },
+        error: function(xhr) {
+            showAlert('error', 'Failed to save default terms');
+        },
+        complete: function() {
+            $btn.prop('disabled', false).html(originalContent);
+        }
+    });
+}
 
 // Global variables to store data
 let productsData = [];
@@ -578,6 +645,18 @@ function prefillFromQuotation(quotationNumber){
                 const discount = (q.data && q.data.discount) ? q.data.discount : 0;
                 $('#discount').val(discount || 0);
             } catch(e){}
+
+            // Payment Terms
+            if (q.data && q.data.payment_terms) {
+                $('#payment_terms').val(q.data.payment_terms);
+            }
+            if (q.data && q.data.show_payment_terms) {
+                $('#show_payment_terms').prop('checked', true);
+                $('#payment_terms_section').show();
+            } else {
+                $('#show_payment_terms').prop('checked', false);
+                $('#payment_terms_section').hide();
+            }
         });
 }
 
@@ -624,7 +703,9 @@ function saveQuotation() {
         customer_id: $('#customer_id').val(),
         subject: $('#subject').val(),
         products: products,
-        discount: parseFloat($('#discount').val() || 0)
+        discount: parseFloat($('#discount').val() || 0),
+        payment_terms: $('#payment_terms').val(),
+        show_payment_terms: $('#show_payment_terms').is(':checked')
     };
     
     console.log('Saving quotation:', formData);

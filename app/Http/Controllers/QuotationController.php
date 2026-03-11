@@ -368,6 +368,8 @@ class QuotationController extends Controller
             'status'             => 'nullable|string|max:100',
             'payment_term_id'    => 'nullable|integer',
             'project_timeline'   => 'nullable|string|max:255',
+            'payment_terms'      => 'nullable|string',
+            'show_payment_terms' => 'nullable|boolean|string', // frontend might send "true"/"false" as strings occasionally
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Quotation validation failed', ['errors' => $e->errors()]);
@@ -422,6 +424,8 @@ class QuotationController extends Controller
                         'products' => $data['products'] ?? [],
                         'discount' => $data['discount'] ?? 0,
                         'subject'  => $data['subject'] ?? null,
+                        'payment_terms' => $data['payment_terms'] ?? null,
+                        'show_payment_terms' => filter_var($data['show_payment_terms'] ?? false, FILTER_VALIDATE_BOOLEAN),
                     ],
                     'updated_by'       => $userId,
                 ])->save();
@@ -447,6 +451,8 @@ class QuotationController extends Controller
                     'products' => $data['products'] ?? [],
                     'discount' => $data['discount'] ?? 0,
                     'subject'  => $data['subject'] ?? null,
+                    'payment_terms' => $data['payment_terms'] ?? null,
+                    'show_payment_terms' => filter_var($data['show_payment_terms'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 ],
                 'created_by'         => $userId,
                 'updated_by'         => $userId,

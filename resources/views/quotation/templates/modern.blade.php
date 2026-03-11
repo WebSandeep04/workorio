@@ -162,6 +162,13 @@
                 <div class="section-header">Bank Details</div>
                 <div style="white-space: pre-line; font-size: 11px;">{{ $settings->bank_details }}</div>
             </div>
+
+            @if(!empty($quote->data['show_payment_terms']))
+                <div style="margin-top: 30px;">
+                    <div class="section-header">Payment Terms</div>
+                    <div style="white-space: pre-line; font-size: 11px;">{!! nl2br(e($quote->data['payment_terms'] ?? ($settings->payment_terms ?? ''))) !!}</div>
+                </div>
+            @endif
         </div>
     </div>
 @endsection

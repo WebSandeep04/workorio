@@ -1530,7 +1530,7 @@ class AttendanceController extends Controller
             'date' => 'required|date'
         ]);
 
-        if (Carbon::parse($request->date)->isFuture()) {
+        if (Carbon::parse($request->date)->startOfDay()->gt(Carbon::today())) {
             return response()->json([
                 'message' => 'Cannot generate report for future dates.'
             ], 422);
