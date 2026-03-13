@@ -183,6 +183,13 @@ class MenuBuilder
                 }
                 $filteredSection = static::filterItems($section, $user);
                 
+                // Sort items for Software Setup section if requested
+                if ($section['key'] === 'software_setup' && !empty($filteredSection['items'])) {
+                    usort($filteredSection['items'], function($a, $b) {
+                        return strcasecmp($a['title'], $b['title']);
+                    });
+                }
+                
                 // Only add section if it has items after filtering or it's a standalone section
                 if (!empty($filteredSection['items']) || (!empty($filteredSection) && isset($filteredSection['route']))) {
                     $sections[] = $filteredSection;
@@ -201,6 +208,13 @@ class MenuBuilder
                 // For custom roles, ignore the 'roles' restriction and check permissions instead
                 // Filter section items based on user permissions
                 $filteredSection = static::filterItems($section, $user);
+                
+                // Sort items for Software Setup section if requested
+                if ($section['key'] === 'software_setup' && !empty($filteredSection['items'])) {
+                    usort($filteredSection['items'], function($a, $b) {
+                        return strcasecmp($a['title'], $b['title']);
+                    });
+                }
                 
                 // Only add section if user has permissions for any items or it's a standalone section
                 if (!empty($filteredSection['items']) || (!empty($filteredSection) && isset($filteredSection['route']))) {
