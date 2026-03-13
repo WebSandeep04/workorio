@@ -51,7 +51,9 @@ class MenuBuilder
                     // Load subordinates from database for tenant users
                     try {
                         // Ensure we're using the correct database connection
-                        $subordinates = \App\Models\User::where('is_manager', $this->id)->get();
+                        $subordinates = \App\Models\User::whereHas('managers', function($q) {
+                            $q->where('manager_id', $this->id);
+                        })->get();
                         return $subordinates;
                     } catch (\Exception $e) {
                         // Log the error for debugging
@@ -152,15 +154,13 @@ class MenuBuilder
             }
         }
         
-        // Load user's is_manager field for session users
+        // Load user's manager status for session users
         if ($user->is_manager === null && $user->id) {
             try {
-                $userData = \Illuminate\Support\Facades\DB::table('users')->where('id', $user->id)->first();
-                if ($userData) {
-                    $user->is_manager = $userData->is_manager ?? 0;
-                }
+                $hasSubordinates = \Illuminate\Support\Facades\DB::table('user_managers')->where('manager_id', $user->id)->exists();
+                $user->is_manager = $hasSubordinates ? 1 : 0;
             } catch (\Exception $e) {
-                // If user not found, set default
+                // If table not found or error, set default
                 $user->is_manager = 0;
             }
         }

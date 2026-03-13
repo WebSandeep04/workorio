@@ -21,8 +21,10 @@ class TeamAnalyticsController extends Controller
     {
         $userId = Auth::id();
 
-        $teamMembers = User::where('is_manager', $userId)
-            ->where('id', '!=', $userId) // Exclude self
+        $teamMembers = User::whereHas('managers', function($q) use ($userId) {
+                $q->where('manager_id', $userId);
+            })
+            ->where('users.id', '!=', $userId) // Exclude self
             ->select('id', 'name')
             ->get();
 
@@ -37,7 +39,9 @@ class TeamAnalyticsController extends Controller
 
         // Verify the member is a subordinate of the current user
         $isSubordinate = User::where('id', $memberId)
-            ->where('is_manager', $userId)
+            ->whereHas('managers', function($q) use ($userId) {
+                $q->where('manager_id', $userId);
+            })
             ->exists();
 
         if (!$isSubordinate) {
@@ -163,8 +167,10 @@ class TeamAnalyticsController extends Controller
         $userId = Auth::id();
 
         // Get all subordinates
-        $subordinateIds = User::where('is_manager', $userId)
-            ->pluck('id');
+        $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
+                $q->where('manager_id', $userId);
+            })
+            ->pluck('users.id');
 
         if ($subordinateIds->isEmpty()) {
             return response()->json(['error' => 'No team members found'], 404);

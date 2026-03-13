@@ -393,7 +393,7 @@ class WorklogController extends Controller
 
                 // Determine status based on whether user has a manager
                 // If user has no manager, worklog goes to admin for approval
-                $status = isset($user->is_manager) && $user->is_manager ? 'pending' : 'pending';
+                $status = $user->managers()->exists() ? 'pending' : 'pending';
                 
                 
                 Worklog::create([
@@ -863,7 +863,7 @@ class WorklogController extends Controller
             // Admin: Can approve worklogs from users without managers
             $worklog = Worklog::where('id', $id)
                 ->whereHas('user', function($query) {
-                    $query->whereNull('is_manager')
+                    $query->whereDoesntHave('managers')
                           ->where('is_worklog', 1);
                 })
                 ->firstOrFail();
@@ -871,7 +871,9 @@ class WorklogController extends Controller
             // Manager: Can approve worklogs from their subordinates
             $worklog = Worklog::where('id', $id)
                 ->whereHas('user', function($query) use ($user) {
-                    $query->where('is_manager', $user->id);
+                    $query->whereHas('managers', function($q) use ($user) {
+                        $q->where('manager_id', $user->id);
+                    });
                 })
                 ->firstOrFail();
         }
@@ -902,7 +904,7 @@ class WorklogController extends Controller
             // Admin: Can reject worklogs from users without managers
             $worklog = Worklog::where('id', $id)
                 ->whereHas('user', function($query) {
-                    $query->whereNull('is_manager')
+                    $query->whereDoesntHave('managers')
                           ->where('is_worklog', 1);
                 })
                 ->firstOrFail();
@@ -910,7 +912,9 @@ class WorklogController extends Controller
             // Manager: Can reject worklogs from their subordinates
             $worklog = Worklog::where('id', $id)
                 ->whereHas('user', function($query) use ($user) {
-                    $query->where('is_manager', $user->id);
+                    $query->whereHas('managers', function($q) use ($user) {
+                        $q->where('manager_id', $user->id);
+                    });
                 })
                 ->firstOrFail();
         }
@@ -942,7 +946,7 @@ class WorklogController extends Controller
             // Admin: Show worklogs from users who have no manager
             $pendingWorklogs = Worklog::where('status', 'pending')
                 ->whereHas('user', function($query) {
-                    $query->whereNull('is_manager')
+                    $query->whereDoesntHave('managers')
                           ->where('is_worklog', 1);
                 })
                 
@@ -955,7 +959,9 @@ class WorklogController extends Controller
             // Manager: Show worklogs from their subordinates
             $pendingWorklogs = Worklog::where('status', 'pending')
                 ->whereHas('user', function($query) use ($user) {
-                    $query->where('is_manager', $user->id);
+                    $query->whereHas('managers', function($q) use ($user) {
+                        $q->where('manager_id', $user->id);
+                    });
                 })
                 
                 ->with(['user', 'entryType', 'customer', 'project', 'module'])
@@ -994,7 +1000,7 @@ class WorklogController extends Controller
             $worklogs = Worklog::where('status', 'pending')
                 ->whereHas('user', function($query) use ($request) {
                     $query->where('name', $request->user_name)
-                          ->whereNull('is_manager')
+                          ->whereDoesntHave('managers')
                           ->where('is_worklog', 1);
                 })
                 ->where('work_date', $request->work_date)
@@ -1004,7 +1010,9 @@ class WorklogController extends Controller
             $worklogs = Worklog::where('status', 'pending')
                 ->whereHas('user', function($query) use ($request, $user) {
                     $query->where('name', $request->user_name)
-                          ->where('is_manager', $user->id);
+                          ->whereHas('managers', function($q) use ($user) {
+                              $q->where('manager_id', $user->id);
+                          });
                 })
                 ->where('work_date', $request->work_date)
                 ->get();
@@ -1042,7 +1050,7 @@ class WorklogController extends Controller
             $worklogs = Worklog::where('status', 'pending')
                 ->whereHas('user', function($query) use ($request) {
                     $query->where('name', $request->user_name)
-                          ->whereNull('is_manager')
+                          ->whereDoesntHave('managers')
                           ->where('is_worklog', 1);
                 })
                 ->where('work_date', $request->work_date)
@@ -1052,7 +1060,9 @@ class WorklogController extends Controller
             $worklogs = Worklog::where('status', 'pending')
                 ->whereHas('user', function($query) use ($request, $user) {
                     $query->where('name', $request->user_name)
-                          ->where('is_manager', $user->id);
+                          ->whereHas('managers', function($q) use ($user) {
+                              $q->where('manager_id', $user->id);
+                          });
                 })
                 ->where('work_date', $request->work_date)
                 ->get();

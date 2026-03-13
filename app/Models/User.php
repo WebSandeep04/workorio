@@ -81,14 +81,14 @@ public function worklogs()
     return $this->hasMany(Worklog::class);
 }
 
-public function manager()
+public function managers()
 {
-    return $this->belongsTo(User::class, 'is_manager');
+    return $this->belongsToMany(User::class, 'user_managers', 'user_id', 'manager_id')->withTimestamps();
 }
 
 public function subordinates()
 {
-    return $this->hasMany(User::class, 'is_manager');
+    return $this->belongsToMany(User::class, 'user_managers', 'manager_id', 'user_id')->withTimestamps();
 }
 
     public function attendances()

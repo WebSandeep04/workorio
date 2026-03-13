@@ -380,7 +380,44 @@
       font-weight: 600;
       font-size: 0.75rem;
   }
+  /* Select2 Customization */
+  .select2-container--bootstrap-5 {
+      width: 100% !important;
+  }
+  .select2-container--bootstrap-5 .select2-selection {
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 0.35rem 0.5rem;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+  }
+  .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 0;
+  }
+  .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+      background-color: #434AFA;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 2px 8px;
+      margin: 0;
+      font-size: 0.85rem;
+  }
+  .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove {
+      color: white;
+      margin-right: 5px;
+      border: none;
+  }
+  .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove:hover {
+      background: rgba(255,255,255,0.2);
+  }
 </style>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 @endpush
 
 @section('content')
@@ -469,9 +506,8 @@
                     </select>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="edit_manager" class="form-label-modern">Manager</label>
-                    <select class="form-select form-select-modern" id="edit_manager" name="is_manager">
-                        <option value="">Select Manager (Optional)</option>
+                    <label for="edit_managers" class="form-label-modern">Managers</label>
+                    <select class="form-select form-select-modern select2-multiple" id="edit_managers" name="manager_ids[]" multiple>
                         <!-- Load users via JS -->
                     </select>
                 </div>
@@ -562,9 +598,8 @@
                     </select>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="create_manager" class="form-label-modern">Manager</label>
-                    <select class="form-select form-select-modern" id="create_manager" name="is_manager">
-                        <option value="">Select Manager (Optional)</option>
+                    <label for="create_managers" class="form-label-modern">Managers</label>
+                    <select class="form-select form-select-modern select2-multiple" id="create_managers" name="manager_ids[]" multiple>
                         <!-- Load users via JS -->
                     </select>
                 </div>
@@ -617,7 +652,16 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+function initSelect2() {
+    $('.select2-multiple').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select Managers',
+        allowClear: true,
+        width: '100%'
+    });
+}
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
   const alertHtml = `
@@ -711,7 +755,9 @@ $(function () {
 
       let rows = '';
       $.each(data.data, function (i, user) {
-          const managerName = user.manager ? user.manager.name : 'None';
+          const managerNames = user.managers && user.managers.length > 0 
+              ? user.managers.map(m => m.name).join(', ') 
+              : 'None';
           const worklogStatus = user.is_worklog ? '<span class="badge badge-modern-success">Yes</span>' : '<span class="badge badge-modern-secondary">No</span>';
           
           rows += `
@@ -720,7 +766,7 @@ $(function () {
               <td><strong>${user.name}</strong></td>
               <td><span class="badge badge-modern-info">${user.role ? user.role.role_name : '-'}</span></td>
               <td>${user.email}</td>
-              <td>${managerName}</td>
+              <td style="max-width: 200px; white-space: normal;">${managerNames}</td>
               <td>${worklogStatus}</td>
               <td>
                 <div class="d-flex gap-2 justify-content-center">
@@ -848,16 +894,19 @@ function openEditModal(user) {
         url: '{{ route("fetchUsersForManager") }}',
         method: 'GET',
         success: function (users) {
-          let managerSelect = $('#edit_manager');
+          let managerSelect = $('#edit_managers');
           managerSelect.empty();
-          managerSelect.append('<option value="">Select Manager (Optional)</option>');
+
+          const currentManagerIds = user.managers ? user.managers.map(m => m.id) : [];
 
           users.forEach(managerUser => {
             if (managerUser.id != user.id) { // Don't allow self as manager
-              managerSelect.append(`<option value="${managerUser.id}" ${user.is_manager == managerUser.id ? 'selected' : ''}>${managerUser.name}</option>`);
+              const isSelected = currentManagerIds.includes(managerUser.id);
+              managerSelect.append(`<option value="${managerUser.id}" ${isSelected ? 'selected' : ''}>${managerUser.name}</option>`);
             }
           });
 
+          initSelect2();
           $('#editUserModal').modal('show');
         }
       });
@@ -883,7 +932,7 @@ $('#editUserForm').submit(function (e) {
       email: $('#edit_email').val(),
       role_id: $('#edit_role').val(),
       employee_id: $('#edit_employee').val() || null,
-      is_manager: $('#edit_manager').val() || null,
+      manager_ids: $('#edit_managers').val() || [],
       is_worklog: $('#edit_is_worklog').is(':checked') ? 1 : 0,
       is_sales: $('#edit_is_sales').is(':checked') ? 1 : 0,
       is_task: $('#edit_is_task').is(':checked') ? 1 : 0,
@@ -956,13 +1005,13 @@ $('#createUserModal').on('show.bs.modal', function () {
     url: '{{ route("fetchUsersForManager") }}',
     method: 'GET',
     success: function (users) {
-      let managerSelect = $('#create_manager');
+      let managerSelect = $('#create_managers');
       managerSelect.empty();
-      managerSelect.append('<option value="">Select Manager (Optional)</option>');
 
       users.forEach(user => {
         managerSelect.append(`<option value="${user.id}">${user.name}</option>`);
       });
+      initSelect2();
     }
   });
 });
@@ -985,7 +1034,7 @@ $('#createUserForm').submit(function (e) {
       password: $('#create_password').val(),
       role_id: $('#create_role').val(),
       employee_id: $('#create_employee').val() || null,
-      is_manager: $('#create_manager').val() || null,
+      manager_ids: $('#create_managers').val() || [],
       is_worklog: $('#create_is_worklog').is(':checked') ? 1 : 0,
       is_sales: $('#create_is_sales').is(':checked') ? 1 : 0,
       is_task: $('#create_is_task').is(':checked') ? 1 : 0,

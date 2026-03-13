@@ -368,9 +368,11 @@ class MyLeadsController extends Controller
     {
         $userId = $this->getCurrentUserId();
 
-        $teamMembers = User::where('is_manager', $userId)
-            ->where('id', '!=', $userId) // Exclude self
-            ->select('id', 'name')
+        $teamMembers = User::whereHas('managers', function($q) use ($userId) {
+                $q->where('manager_id', $userId);
+            })
+            ->where('users.id', '!=', $userId) // Exclude self
+            ->select('users.id', 'users.name')
             ->get();
 
         return response()->json($teamMembers);

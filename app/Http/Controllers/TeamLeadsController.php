@@ -41,8 +41,8 @@ class TeamLeadsController extends Controller
             'latestRemark',
             'user'
         ])
-        ->whereHas('user', function($query) use ($userId) {
-            $query->where('is_manager', $userId); // Only leads created by subordinates
+        ->whereHas('user.managers', function($query) use ($userId) {
+            $query->where('manager_id', $userId); // Only leads created by subordinates
         })
         ->orderBy('createdat', 'desc')
         ->paginate($perPage);
@@ -68,8 +68,8 @@ class TeamLeadsController extends Controller
             'latestRemark',
             'user'
         ])
-        ->whereHas('user', function($q) use ($userId) {
-            $q->where('is_manager', $userId); // Only leads created by subordinates
+        ->whereHas('user.managers', function($q) use ($userId) {
+            $q->where('manager_id', $userId); // Only leads created by subordinates
         });
 
         // Apply filters
@@ -145,8 +145,8 @@ class TeamLeadsController extends Controller
         $userId = $this->getCurrentUserId();
 
         // Simple query: Get only subordinates' leads stats
-        $subordinateQuery = SalesRecord::whereHas('user', function($q) use ($userId) {
-            $q->where('is_manager', $userId); // Only leads created by subordinates
+        $subordinateQuery = SalesRecord::whereHas('user.managers', function($q) use ($userId) {
+            $q->where('manager_id', $userId); // Only leads created by subordinates
         });
 
         $stats = [
@@ -181,7 +181,9 @@ class TeamLeadsController extends Controller
                 ])
                 ->count(),
 
-            'team_members' => User::where('is_manager', $userId)->count()
+            'team_members' => User::whereHas('managers', function($q) use ($userId) {
+                $q->where('manager_id', $userId);
+            })->count()
         ];
 
         return response()->json($stats);
@@ -193,8 +195,9 @@ class TeamLeadsController extends Controller
         $userId = $this->getCurrentUserId();
 
         // Get all subordinates (team members) of the current user
-        $subordinateIds = User::where('is_manager', $userId)
-            ->pluck('id');
+        $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
+            $q->where('manager_id', $userId);
+        })->pluck('users.id');
 
         // If no subordinates, return empty result
         if ($subordinateIds->isEmpty()) {
@@ -242,8 +245,9 @@ class TeamLeadsController extends Controller
         $newUserId = $request->new_user_id;
 
         // Verify the current user is a manager
-        $subordinateIds = User::where('is_manager', $userId)
-            ->pluck('id');
+        $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
+            $q->where('manager_id', $userId);
+        })->pluck('users.id');
 
         if ($subordinateIds->isEmpty()) {
             return response()->json(['error' => 'You are not authorized to reassign leads'], 403);
@@ -283,9 +287,11 @@ class TeamLeadsController extends Controller
     {
         $userId = $this->getCurrentUserId();
 
-        $teamMembers = User::where('is_manager', $userId)
-            ->where('id', '!=', $userId) // Exclude self
-            ->select('id', 'name')
+        $teamMembers = User::whereHas('managers', function($q) use ($userId) {
+                $q->where('manager_id', $userId);
+            })
+            ->where('users.id', '!=', $userId) // Exclude self
+            ->select('users.id', 'users.name')
             ->get();
 
         return response()->json($teamMembers);

@@ -21,7 +21,7 @@ class UserController extends Controller
             return response()->json([]);
         }
 
-        $query = User::with(['role', 'manager']);
+        $query = User::with(['role', 'managers']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -94,7 +94,7 @@ public function update(Request $request, $id)
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'role_id' => 'required|exists:roles,id',
-            'is_manager' => 'nullable',
+            'manager_ids' => 'nullable|array',
             'is_worklog' => 'nullable',
             'employee_id' => 'nullable',
             'is_sales' => 'nullable',
@@ -111,20 +111,20 @@ public function update(Request $request, $id)
         
         $request->validate($validationRules);
 
-    // Additional validation for manager - ensure manager exists and is not self
-    if ($request->is_manager) {
-        if ($request->is_manager == $id) {
-            return response()->json([
-                'message' => 'A user cannot be assigned as their own manager.'
-            ], 422);
+    // Multiple managers validation
+    if ($request->has('manager_ids') && is_array($request->manager_ids)) {
+        foreach ($request->manager_ids as $mId) {
+            if ($mId == $id) {
+                return response()->json([
+                    'message' => 'A user cannot be assigned as their own manager.'
+                ], 422);
+            }
         }
-        
-        $managerExists = User::where('id', $request->is_manager)
-            ->exists();
-        
-        if (!$managerExists) {
+
+        $validManagersCount = User::whereIn('id', $request->manager_ids)->count();
+        if ($validManagersCount !== count($request->manager_ids)) {
             return response()->json([
-                'message' => 'Selected manager does not exist.'
+                'message' => 'One or more selected managers do not exist.'
             ], 422);
         }
     }
@@ -134,7 +134,6 @@ public function update(Request $request, $id)
         'name' => $request->name,
         'email' => $request->email,
         'role_id' => $request->role_id,
-        'is_manager' => $request->is_manager ?: null,
         'is_worklog' => $request->is_worklog,
         'employee_id' => $request->employee_id ?: null,
         'is_sales' => $request->is_sales,
@@ -142,6 +141,11 @@ public function update(Request $request, $id)
         'is_indiaMart' => $request->is_indiaMart,
         'is_calander' => $request->is_calander,
         'is_login' => $request->is_login]);
+
+    // Sync managers
+    if ($request->has('manager_ids')) {
+        $user->managers()->sync($request->manager_ids);
+    }
 
     return response()->json(['message' => 'User updated successfully']);
 }
@@ -157,7 +161,7 @@ public function store(Request $request)
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
             'role_id' => 'required|exists:roles,id',
-            'is_manager' => 'nullable',
+            'manager_ids' => 'nullable|array',
             'is_worklog' => 'nullable',
             'employee_id' => 'nullable',
             'is_sales' => 'nullable',
@@ -174,14 +178,12 @@ public function store(Request $request)
         
         $request->validate($validationRules);
 
-        // Additional validation for manager - ensure manager exists
-        if ($request->is_manager) {
-            $managerExists = User::where('id', $request->is_manager)
-                ->exists();
-            
-            if (!$managerExists) {
+        // Multiple managers validation
+        if ($request->has('manager_ids') && is_array($request->manager_ids)) {
+            $validManagersCount = User::whereIn('id', $request->manager_ids)->count();
+            if ($validManagersCount !== count($request->manager_ids)) {
                 return response()->json([
-                    'message' => 'Selected manager does not exist.'
+                    'message' => 'One or more selected managers do not exist.'
                 ], 422);
             }
         }
@@ -191,7 +193,6 @@ public function store(Request $request)
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'role_id' => $request->role_id,
-            'is_manager' => $request->is_manager ?: null,
             'is_worklog' => $request->is_worklog,
             'employee_id' => $request->employee_id ?: null,
             'is_sales' => $request->is_sales ?? 0,
@@ -200,7 +201,12 @@ public function store(Request $request)
             'is_calander' => $request->is_calander ?? 0,
             'is_login' => $request->is_login ?? 1];
 
-        User::create($userData);
+        $user = User::create($userData);
+
+        // Sync managers
+        if ($request->has('manager_ids')) {
+            $user->managers()->sync($request->manager_ids);
+        }
 
         return response()->json(['message' => 'User created successfully']);
     } catch (\Exception $e) {

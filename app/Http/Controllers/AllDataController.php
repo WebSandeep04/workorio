@@ -363,8 +363,10 @@ public function alldatafilterdate(Request $request)
             }
         } else {
             // For managers, check if they have subordinates and if the lead belongs to them
-            $subordinateIds = User::where('is_manager', $userId)
-                ->pluck('id');
+            $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
+                $q->where('manager_id', $userId);
+            })
+            ->pluck('users.id');
 
             if ($subordinateIds->isEmpty()) {
                 return response()->json(['error' => 'You are not authorized to reassign leads'], 403);
@@ -411,10 +413,12 @@ public function alldatafilterdate(Request $request)
                 ->get();
         } else {
             // Managers can only assign to their subordinates
-            $teamMembers = User::where('is_manager', $userId)
-                ->where('id', '!=', $userId) // Exclude self
-                ->select('id', 'name')
-                ->orderBy('name')
+            $teamMembers = User::whereHas('managers', function($q) use ($userId) {
+                    $q->where('manager_id', $userId);
+                })
+                ->where('users.id', '!=', $userId) // Exclude self
+                ->select('users.id', 'users.name')
+                ->orderBy('users.name')
                 ->get();
         }
 

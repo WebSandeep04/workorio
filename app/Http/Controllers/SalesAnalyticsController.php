@@ -41,7 +41,7 @@ class SalesAnalyticsController extends Controller
             return response()->json(['error' => 'User ID is required'], 400);
         }
 
-        $user = User::with(['role', 'manager'])
+        $user = User::with(['role', 'managers'])
             ->find($userId);
         
         if (!$user) {
@@ -54,8 +54,8 @@ class SalesAnalyticsController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role->role_name ?? 'N/A',
-                'manager' => $user->manager->name ?? 'No Manager',
-                'is_manager' => $user->is_manager ? 'Yes' : 'No',
+                'manager' => $user->managers->isNotEmpty() ? $user->managers->pluck('name')->implode(', ') : 'No Manager',
+                'is_manager' => $user->subordinates()->exists() ? 'Yes' : 'No',
                 'subordinates_count' => $user->subordinates()->count()
             ],
             'lead_statistics' => $this->getUserLeadStatistics($userId),
@@ -404,7 +404,7 @@ class SalesAnalyticsController extends Controller
     // Get all users for filter dropdown
     public function getUsers()
     {
-        $users = User::with(['role', 'manager'])
+        $users = User::with(['role', 'managers'])
             ->orderBy('name')
             ->get()
             ->map(function($user) {
@@ -413,7 +413,7 @@ class SalesAnalyticsController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'role' => $user->role->role_name ?? 'N/A',
-                    'manager' => $user->manager->name ?? 'No Manager',
+                    'manager' => $user->managers->isNotEmpty() ? $user->managers->pluck('name')->implode(', ') : 'No Manager',
                     'leads_count' => $user->salesRecords()->count()
                 ];
             });
