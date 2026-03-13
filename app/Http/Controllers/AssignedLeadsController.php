@@ -39,12 +39,10 @@ class AssignedLeadsController extends Controller
             'latestRemark',
             'user'
         ])
-        ->where(function($q) use ($userId) {
-            $q->where('user_id', $userId)
-              ->orWhereHas('assignmentLogs', function($aq) use ($userId) {
-                  $aq->where('assigned_by', $userId);
-              });
+        ->whereHas('assignmentLogs', function($aq) use ($userId) {
+            $aq->where('assigned_by', $userId);
         })
+        ->where('user_id', '!=', $userId)
         ->orderBy('createdat', 'desc')
         ->paginate($perPage);
 
@@ -68,12 +66,10 @@ class AssignedLeadsController extends Controller
             'latestRemark',
             'user'
         ])
-        ->where(function($q) use ($userId) {
-            $q->where('user_id', $userId)
-              ->orWhereHas('assignmentLogs', function($aq) use ($userId) {
-                  $aq->where('assigned_by', $userId);
-              });
-        });
+        ->whereHas('assignmentLogs', function($aq) use ($userId) {
+            $aq->where('assigned_by', $userId);
+        })
+        ->where('user_id', '!=', $userId);
 
         // Apply filters
         if ($request->filled('status_id')) {
@@ -146,12 +142,10 @@ class AssignedLeadsController extends Controller
         $userId = $this->getCurrentUserId();
         $today = Carbon::today()->toDateString();
 
-        $baseQuery = SalesRecord::where(function($q) use ($userId) {
-                $q->where('user_id', $userId)
-                  ->orWhereHas('assignmentLogs', function($aq) use ($userId) {
-                      $aq->where('assigned_by', $userId);
-                  });
+        $baseQuery = SalesRecord::whereHas('assignmentLogs', function($aq) use ($userId) {
+                $aq->where('assigned_by', $userId);
             })
+            ->where('user_id', '!=', $userId)
             ->whereNotIn('status_id', [1, 2, 15, 20]);
 
         $todayFollowups = (clone $baseQuery)
@@ -201,15 +195,12 @@ class AssignedLeadsController extends Controller
         $statusCounts = DB::table('sales_status')
             ->leftJoin('sales_records', function ($join) use ($userId) {
                 $join->on('sales_status.id', '=', 'sales_records.status_id')
-                     ->where(function($q) use ($userId) {
-                         $q->where('sales_records.user_id', '=', $userId)
-                           ->orWhereExists(function ($query) use ($userId) {
-                               $query->select(DB::raw(1))
-                                     ->from('lead_assignment_logs')
-                                     ->whereColumn('lead_assignment_logs.sales_record_id', 'sales_records.id')
-                                     ->where('lead_assignment_logs.assigned_by', $userId);
-                           });
-                     });
+                     ->whereIn('sales_records.id', function($q) use ($userId) {
+                         $q->select('sales_record_id')
+                           ->from('lead_assignment_logs')
+                           ->where('assigned_by', $userId);
+                     })
+                     ->where('sales_records.user_id', '!=', $userId);
             })
             ->select(
                 'sales_status.id',
