@@ -115,35 +115,37 @@
     <div class="modern-card data-table-card">
         <div class="modern-card-body">
             <div class="table-scroll">
-                <table class="table custom-table" id="sales_table">
-                    <thead>
-                        <tr>
-                            <th>Status</th>
-                            <th>Prospect</th>
-                            <th>Lead</th>
-                            <th>Contact Person</th>
-                            <th>Contact No.</th>
-                            <th>Next Follow</th>
-                            <th>Remark</th>
-                            <th>State</th>
-                            <th>City</th>
-                            <th>Email</th>
-                            <th>Business</th>
-                            <th>Source</th>
-                            <th>Product</th>
-                            <th>Ticket</th>
-                            <th>Assign To</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td colspan="15" class="loading-state">
-                                <i class="bi bi-arrow-repeat"></i>
-                                <p class="mt-2 mb-0">Loading team leads...</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table custom-table" id="sales_table">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 80px;">Status</th>
+                                <th style="min-width: 120px;">Prospect</th>
+                                <th style="min-width: 150px;">Lead</th>
+                                <th style="min-width: 130px;">Contact Person</th>
+                                <th style="min-width: 110px;">Contact No.</th>
+                                <th style="min-width: 110px;">Next Follow</th>
+                                <th style="min-width: 160px;">Remark</th>
+                                <th style="min-width: 110px;">State</th>
+                                <th style="min-width: 110px;">City</th>
+                                <th style="min-width: 160px;">Email</th>
+                                <th style="min-width: 110px;">Business</th>
+                                <th style="min-width: 110px;">Source</th>
+                                <th style="min-width: 110px;">Product</th>
+                                <th style="min-width: 90px;">Ticket</th>
+                                <th style="min-width: 150px;">Assign To</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="15" class="loading-state">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                    <p class="mt-2 mb-0">Loading team leads...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -152,6 +154,8 @@
         Showing 0-0 from 0 data
     </div>
 </div>
+
+<?php echo $__env->make('partials.remarks-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <div class="mt-2 d-flex justify-content-center">
     <ul class="pagination" id="paginationLinks"></ul>
@@ -162,8 +166,10 @@
 <style>
     .container-fluid {
         padding: 0.5rem;
+        padding-right: 0.5rem;
+        margin-right: 0;
     }
-
+    
     .summary-cards {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -209,7 +215,9 @@
     }
 
     .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+    .icon-amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
     .icon-emerald { background: linear-gradient(135deg, #34d399, #10b981); }
+    .icon-rose { background: linear-gradient(135deg, #fb7185, #f43f5e); }
 
     .summary-card-content {
         display: flex;
@@ -221,7 +229,7 @@
 
     .summary-card-label {
         font-size: 8px;
-        font-weight: 700;
+        font-weight: 600;
         text-transform: uppercase;
         margin-bottom: 0.15rem;
         color: #000;
@@ -233,7 +241,8 @@
         font-weight: 700;
         margin: 0;
         color: #101828;
-         font-family: Montserrat;
+        font-family: Montserrat;
+
     }
 
     .filterBox {
@@ -242,59 +251,76 @@
         gap: 0.5rem;
         background: #434AFA;
         padding: 0.75rem;
-        color: white;
+        color: #fff;
+        border: 1px solid #434AFA;
         border-radius: 5px;
         flex-wrap: wrap;
-        box-shadow: 0 2px 10px rgba(67, 74, 250, 0.3);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
         margin-bottom: 0.5rem;
-        border: 1px solid #434AFA;
         font-family: Montserrat, sans-serif;
     }
 
     .form-label-modern {
-        color: white;
+        color: #fff;
         font-weight: 600;
         margin-bottom: 0.25rem;
         display: flex;
         align-items: center;
         gap: 0.25rem;
         font-size: 10px;
+        text-shadow: none;
         font-family: Montserrat, sans-serif;
     }
 
     .form-control-modern {
-        border: 2px solid rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.4);
         border-radius: 2px;
         padding: 0.35rem 0.5rem;
-        background: rgba(255, 255, 255, 0.98);
+        background: #fff;
         color: #000;
         transition: all 0.3s ease;
         font-size: 10px;
         font-family: Montserrat, sans-serif;
     }
 
-    .form-control-modern option {
+    .filterBox .form-control-modern option {
         color: #000;
         background: #fff;
         font-family: Montserrat, sans-serif;
     }
 
-    .form-control-modern:focus {
+    .filterBox .form-control-modern:focus {
         outline: none;
         border-color: #fff;
-        background: white;
+        background: #fff;
+        color: #000;
         box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
         transform: translateY(-1px);
+    }
+
+    .filterBox .form-control-modern:hover {
+        border-color: rgba(255, 255, 255, 0.6);
+        background: #fff;
         color: #000;
+    }
+
+    .table-range-meta {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin: 0.35rem 0 0.75rem;
+        font-family: 'Montserrat', sans-serif;
     }
 
     .table-search {
         width: 100%;
         margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .table-search-field {
-        width: 100%;
+        flex: 1;
         display: inline-flex;
         align-items: center;
         gap: 0.35rem;
@@ -319,87 +345,138 @@
         color: #111827;
     }
 
-    .table-range-meta {
-        font-size: 0.75rem;
-        color: #6b7280;
-        margin: 0.35rem 0 0.75rem;
+    .data-table-card {
+        border-radius: 5px;
+        border: 1px solid #f2f4f7;
+        background: #fff;
+        box-shadow: #0000000;
+        margin-bottom: 1rem;
+    }
+
+    .data-table-card .modern-card-body {
+        padding: 0.5rem;
+    }
+
+    .table-scroll {
+        width: 100%;
+        overflow-x: auto;
+        margin-bottom: 0;
+        padding-bottom: 8px;
+    }
+
+    .table-scroll::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .table-scroll::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 999px;
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb {
+        background: #434AFA;
+        border-radius: 999px;
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb:hover {
+        background: #3538d4;
+    }
+
+    .data-table-card .table-responsive::-webkit-scrollbar-thumb {
+        background: #434AFA;
+    }
+
+    .data-table-card .table-responsive {
+        scrollbar-color: #434AFA #e4e7ec;
+    }
+
+    .data-table-card .table-responsive {
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .data-table-card .custom-table {
+        width: 100%;
+        table-layout: auto;
+        white-space: nowrap;
+        font-size: 9px;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #fff;
+    }
+
+    .data-table-card .custom-table th,
+    .data-table-card .custom-table td {
+        padding: 0;
+        font-size: 9px;
+        text-align: left;
+        vertical-align: middle;
+        border-bottom: 1px solid #eef0f6;
+    }
+
+    .data-table-card .custom-table th {
+        padding: 0.5rem 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #000;
+        background: #f8f8fb;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        font-family: Montserrat;
+    }
+
+    .data-table-card .custom-table tbody td {
+        padding: 0.4rem 0.75rem;
+        color: #000;
+        font-family: Montserrat;
+    }
+
+    .data-table-card .custom-table tbody tr:hover {
+        background: #f2f4f7;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transform: translateY(-1px);
+    }
+
+    .data-table-card .custom-table tbody tr:nth-child(even) {
+        background-color: #fcfcfd;
     }
 
     .modern-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
         padding: 0;
     }
 
     .modern-card-body {
-        padding: 0.5rem;
-    }
-
-    .custom-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    .custom-table th {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        padding: 0.45rem;
-        border: none;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-    }
-
-    .custom-table td {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.45rem;
-        vertical-align: middle;
-        border-bottom: 1px solid #eef2ff;
-        text-align: center;
-    }
-
-    .custom-table tbody tr:hover {
-        background: rgba(102, 126, 234, 0.08);
+        padding: 0;
     }
 
     .status-badge {
         display: inline-block;
-        padding: 0.2rem 0.55rem;
-        border-radius: 999px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        background: linear-gradient(135deg, #52c234 0%, #061700 100%);
-        color: white;
-        text-transform: uppercase;
+        color: #000;
+        font-size: 0.85rem;
+        font-weight: normal;
+        font-family: Montserrat, sans-serif;
     }
 
     .assign-select {
-        font-size: 0.8rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 8px;
+        font-size: 9px;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
         border: 1px solid #d1d5db;
         background: #fff;
-        width: 140px;
-    }
-
-    .assign-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
+        width: 100%;
+        font-family: Montserrat;
     }
 
     .remark-link {
-        color: #667eea;
+        color: #434AFA;
         text-decoration: none;
-        font-weight: 600;
-        font-size: 0.85rem;
+        font-weight: 500;
     }
 
     .remark-link:hover {
@@ -447,123 +524,32 @@
         border-color: #434afa;
         transform: translateY(-1px);
     }
-    .data-table-card {
-        border-radius: 5px;
-        border: 1px solid #f2f4f7;
-        background: #fff;
-        box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08);
-        overflow: hidden;
-    }
 
-    .data-table-card .modern-card-body {
-        padding: 0;
-    }
+    @media (max-width: 767px){
+        .container-fluid{
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+            margin-left: 0;
+        }
 
-    .data-table-card .table-scroll {
-        width: 100%;
-        overflow-x: auto;
-        padding: 0.5rem 0.75rem 1rem;
-        margin-bottom: 0;
-        background: transparent;
-    }
+        .summary-cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
 
-    .data-table-card .table-scroll::-webkit-scrollbar {
-        height: 8px;
-    }
+        .table-search {
+            flex-direction: row;
+            gap: 0.5rem;
+        }
+        
+        .table-search-btn {
+            width: auto;
+            padding: 0.35rem 0.75rem;
+        }
 
-    .data-table-card .table-scroll::-webkit-scrollbar-track {
-        background: #e4e7ec;
-        border-radius: 999px;
+        .table-search-field {
+            width: 100%;
+        }
     }
-
-    .data-table-card .table-scroll::-webkit-scrollbar-thumb {
-        background: #434AFA;
-        border-radius: 999px;
-    }
-
-    .data-table-card .table-scroll {
-        scrollbar-color: #434AFA #e4e7ec;
-    }
-
-    .data-table-card .custom-table {
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-        min-width: 1100px;
-        background: transparent;
-        font-size: 0.85rem;
-        table-layout: auto;
-    }
-
-    .data-table-card .custom-table thead th {
-        background: #fff;
-        color: #000;
-        font-size: 0.65rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        font-weight: 700;
-        padding: 0.6rem 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #f1f3f5;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-        white-space: nowrap;
-        font-family: Montserrat;
-    }
-
-    .data-table-card .custom-table tbody td {
-        font-size: 0.85rem;
-        padding: 0.65rem 0.75rem;
-        color: #000;
-        border-bottom: 1px solid #f4f4f6;
-        text-align: left;
-        background: transparent;
-        white-space: nowrap;
-        font-family: Montserrat;
-    }
-
-    .data-table-card .custom-table tbody td:first-child,
-    .data-table-card .custom-table tbody td:nth-child(2) {
-        font-weight: 600;
-        color: #111827;
-    }
-
-    .data-table-card .custom-table tbody tr {
-        transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-    }
-
-    .data-table-card .custom-table tbody tr:hover {
-        background: #f8f9ff;
-        box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08);
-        transform: translateY(-1px);
-    }
-
-    .data-table-card .custom-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .data-table-card .custom-table tbody td:nth-child(1) { min-width: 120px; }
-    .data-table-card .custom-table tbody td:nth-child(2) { min-width: 150px; }
-    .data-table-card .custom-table tbody td:nth-child(3) { min-width: 150px; }
-    .data-table-card .custom-table tbody td:nth-child(4) { min-width: 150px; }
-    .data-table-card .custom-table tbody td:nth-child(5) { min-width: 140px; }
-    .data-table-card .custom-table tbody td:nth-child(6) { min-width: 140px; }
-    .data-table-card .custom-table tbody td:nth-child(7) { min-width: 130px; }
-    .data-table-card .custom-table tbody td:nth-child(8) { min-width: 130px; }
-    .data-table-card .custom-table tbody td:nth-child(9) { min-width: 150px; }
-    .data-table-card .custom-table tbody td:nth-child(10) { min-width: 130px; }
-    .data-table-card .custom-table tbody td:nth-child(11) { min-width: 130px; }
-    .data-table-card .custom-table tbody td:nth-child(12) { min-width: 140px; }
-    .data-table-card .custom-table tbody td:nth-child(13) { min-width: 120px; }
-    .data-table-card .custom-table tbody td:nth-child(14) { min-width: 160px; }
-    .data-table-card .custom-table tbody td:nth-child(15) { min-width: 200px; }
-
-     @media (max-width: 767px){
-    .container-fluid{
-      /* margin-left: 20px; */
-    }
-}
 </style>
 <?php $__env->stopPush(); ?>
 
@@ -621,67 +607,68 @@ function loadTeamLeads(page = 1) {
             per_page: 10
         },
         success: function (response) {
-            if (response.success) {
                 let html = '';
                 const uniqueMembers = new Set();
+                const data = response.data || [];
 
-                response.data.forEach(function (record) {
-                    // Create dropdown options for team members
-                    let dropdownOptions = '<option value="">Select Member</option>';
-                    if (window.teamMembers && window.teamMembers.length > 0) {
-                        window.teamMembers.forEach(function (member) {
-                            const selected = member.id == record.user?.id ? 'selected' : '';
-                            dropdownOptions += `<option value="${member.id}" ${selected}>${member.name}</option>`;
-                        });
-                    }
+                if (data.length === 0) {
+                    html = '<tr><td colspan="15" class="text-center empty-state"><i class="bi bi-inbox"></i><p class="mt-2 mb-0">No records found.</p></td></tr>';
+                } else {
+                    data.forEach(function (record) {
+                        // Create dropdown options for team members
+                        let dropdownOptions = '<option value="">Select Member</option>';
+                        if (window.teamMembers && window.teamMembers.length > 0) {
+                            window.teamMembers.forEach(function (member) {
+                                const selected = member.id == record.user?.id ? 'selected' : '';
+                                dropdownOptions += `<option value="${member.id}" ${selected}>${member.name}</option>`;
+                            });
+                        }
 
-                    if (record.user && record.user.id) {
-                        uniqueMembers.add(record.user.id);
-                    }
+                        if (record.user && record.user.id) {
+                            uniqueMembers.add(record.user.id);
+                        }
 
-                    let remark = '-';
-                    if (record.latest_remark) {
-                        const fullRemark = record.latest_remark.remark || '';
-                        const shortRemark = fullRemark.length > 15 ? fullRemark.substring(0, 15) + '...' : fullRemark;
-                        remark = `<a class="remark-link" href="/remark?sales_record_id=${record.id}" title="${fullRemark.replace(/"/g, '&quot;')}">${shortRemark}</a>`;
-                    }
+                        let remark = '-';
+                        if (record.latest_remark) {
+                            const fullRemark = record.latest_remark.remark || '';
+                            const shortRemark = fullRemark.length > 15 ? fullRemark.substring(0, 15) + '...' : fullRemark;
+                            remark = `<a href="#" class="remark-link" onclick="showRemarksModal(${record.id})" title="${fullRemark.replace(/"/g, '&quot;')}">${shortRemark}</a>`;
+                        }
 
-                    const statusName = record.status?.status_name ?? 'N/A';
-                    const statusBadge = `<span class="status-badge">${statusName}</span>`;
+                        const statusName = record.status?.status_name ?? 'N/A';
+                        const statusBadge = `<span class="status-badge">${statusName}</span>`;
 
-                    html += `
-                        <tr>
-                            <td>${statusBadge}</td>
-                            <td>${record.prospectus?.prospectus_name ?? 'N/A'}</td>
-                            <td>${record.leads_name ?? ''}</td>
-                            <td>${record.contact_person ?? ''}</td>
-                            <td>${record.contact_number ?? ''}</td>
-                            <td>${formatDateOnly(record.next_follow_up_date)}</td>
-                            <td>${remark}</td>
-                            <td>${record.state?.state_name ?? 'N/A'}</td>
-                            <td>${record.city?.city_name ?? 'N/A'}</td>
-                            <td>${record.email ?? ''}</td>
-                            <td>${record.business_type?.business_name ?? 'N/A'}</td>
-                            <td>${record.lead_source?.source_name ?? 'N/A'}</td>
-                            <td>${record.product?.product_name ?? 'N/A'}</td>
-                            <td>${record.ticket_value ?? 'N/A'}</td>
-                            <td>
-                                <select class="assign-select" data-lead-id="${record.id}" onchange="reassignLead(${record.id}, this.value)">
-                                    ${dropdownOptions}
-                                </select>
-                            </td>
-                        </tr>
-                    `;
-                });
+                        html += `
+                            <tr>
+                                <td>${statusBadge}</td>
+                                <td>${record.prospectus?.prospectus_name ?? 'N/A'}</td>
+                                <td>${record.leads_name ?? ''}</td>
+                                <td>${record.contact_person ?? ''}</td>
+                                <td>${record.contact_number ?? ''}</td>
+                                <td>${formatDateOnly(record.next_follow_up_date)}</td>
+                                <td>${remark}</td>
+                                <td>${record.state?.state_name ?? 'N/A'}</td>
+                                <td>${record.city?.city_name ?? 'N/A'}</td>
+                                <td>${record.email ?? ''}</td>
+                                <td>${record.business_type?.business_name ?? 'N/A'}</td>
+                                <td>${record.lead_source?.source_name ?? 'N/A'}</td>
+                                <td>${record.product?.product_name ?? 'N/A'}</td>
+                                <td>${record.ticket_value ?? 'N/A'}</td>
+                                <td>
+                                    <select class="assign-select" data-lead-id="${record.id}" onchange="reassignLead(${record.id}, this.value)">
+                                        ${dropdownOptions}
+                                    </select>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
 
                 $('#sales_table tbody').html(html);
-                $('#teamLeadsTotal').text(response.total ?? response.data.length);
+                $('#teamLeadsTotal').text(response.total ?? 0);
                 $('#teamMembersActive').text(uniqueMembers.size);
                 updatePagination(response.current_page, response.last_page, response.total);
                 updateRangeInfo(response.from, response.to, response.total);
-            } else {
-                console.error('Error loading team leads:', response.message);
-            }
         },
         error: function (xhr, status, error) {
             console.error("Failed to load team leads:", xhr.responseText);
@@ -840,7 +827,33 @@ $(document).ready(function() {
     });
 });
 
-// Helper functions
+// Build compact pagination: "Previous [current / last] Next"
+function buildSimplePagination($container, current, last) {
+    $container.empty();
+    // Prev
+    $container.append(`
+        <li class="page-item ${current === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${Math.max(1, current - 1)}">
+              <i class="bi bi-chevron-left"></i> Previous
+            </a>
+        </li>
+    `);
+    // Current (disabled as display only)
+    $container.append(`
+        <li class="page-item active">
+            <span class="page-link">${current} / ${last}</span>
+        </li>
+    `);
+    // Next
+    $container.append(`
+        <li class="page-item ${current === last ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${Math.min(last, current + 1)}">
+              Next <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    `);
+}
+
 function formatDateOnly(dateString) {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -852,28 +865,12 @@ function formatDateOnly(dateString) {
 }
 
 function updatePagination(currentPage, lastPage, total) {
+    const $pagination = $('#paginationLinks');
+    buildSimplePagination($pagination, currentPage, lastPage);
     if (lastPage > 1) {
-        let paginationHtml = '';
-        
-        // Previous button
-        if (currentPage > 1) {
-            paginationHtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadTeamLeads(${currentPage - 1})">Previous</a></li>`;
-        }
-        
-        // Page numbers
-        for (let i = 1; i <= lastPage; i++) {
-            const activeClass = i === currentPage ? 'active' : '';
-            paginationHtml += `<li class="page-item ${activeClass}"><a class="page-link" href="#" onclick="loadTeamLeads(${i})">${i}</a></li>`;
-        }
-        
-        // Next button
-        if (currentPage < lastPage) {
-            paginationHtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadTeamLeads(${currentPage + 1})">Next</a></li>`;
-        }
-        
-        $('#paginationLinks').html(paginationHtml).show();
+        $pagination.show();
     } else {
-        $('#paginationLinks').hide();
+        $pagination.hide();
     }
 }
 
@@ -900,6 +897,15 @@ function updateRangeInfo(from, to, total) {
 // Filter functionality - same as My Leads
 $(document).on('change', '#sales_status, #city, #state, #business_type, #lead_source, #product_type', function () {
     loadTeamLeads(1);
+});
+
+// Pagination click handler
+$(document).on('click', '#paginationLinks .page-link', function (e) {
+    e.preventDefault();
+    let page = $(this).data('page');
+    if (page) {
+        loadTeamLeads(page);
+    }
 });
 
 // Search functionality

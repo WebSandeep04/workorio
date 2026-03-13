@@ -190,6 +190,15 @@
 <div class="mt-2 d-flex justify-content-center">
     <ul class="pagination" id="paginationLinks"></ul>
 </div>
+<div class="mt-2 d-flex justify-content-center">
+    <ul class="pagination" id="paginationfilterLinks"></ul>
+</div>
+<div class="mt-2 d-flex justify-content-center">
+    <ul class="pagination" id="paginationsearchLinks"></ul>
+</div>
+<div class="mt-2 d-flex justify-content-center">
+    <ul class="pagination" id="paginationdateLinks"></ul>
+</div>
 @endsection
 
 @push('styles')
@@ -338,6 +347,7 @@
         font-size: 0.75rem;
         color: #6b7280;
         margin: 0.35rem 0 0.75rem;
+        font-family: 'Montserrat', sans-serif;
     }
 
     .table-search {
@@ -516,13 +526,10 @@
 
     .status-badge {
         display: inline-block;
-        padding: 0.2rem 0.55rem;
-        border-radius: 999px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        background: linear-gradient(135deg, #52c234 0%, #061700 100%);
-        color: white;
-        text-transform: uppercase;
+        color: #000;
+        font-size: 0.85rem;
+        font-weight: normal;
+        font-family: Montserrat, sans-serif;
     }
 
     .remark-link {
@@ -554,18 +561,27 @@
     }
 
     .pagination .page-link {
-        color: #667eea;
-        border: 2px solid #e4e8ff;
-        border-radius: 10px;
-        font-size: 0.8rem;
-        padding: 0.3rem 0.6rem;
-        margin: 0 0.2rem;
+        color: #434afa;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 0.25rem 0.5rem;
+        margin: 0 2px;
+        font-size: 10px;
+        transition: all 0.3s ease;
+        font-weight: 500;
     }
 
     .pagination .page-item.active .page-link {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #434afa;
+        border-color: #434afa;
         color: white;
-        border-color: transparent;
+        box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+    }
+
+    .pagination .page-link:hover {
+        background: rgba(67, 74, 250, 0.15);
+        border-color: #434afa;
+        transform: translateY(-1px);
     }
 
     @media (max-width: 767px){
@@ -619,25 +635,29 @@ function formatDateOnly(value) {
     return str.length >= 10 ? str.slice(0, 10) : str;
 }
 
-// Build compact pagination: "pre [current] next"
+// Build compact pagination: "Previous [current / last] Next"
 function buildSimplePagination($container, current, last) {
     $container.empty();
     // Prev
     $container.append(`
         <li class="page-item ${current === 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${Math.max(1, current - 1)}">pre</a>
+            <a class="page-link" href="#" data-page="${Math.max(1, current - 1)}">
+              <i class="bi bi-chevron-left"></i> Previous
+            </a>
         </li>
     `);
     // Current (disabled as display only)
     $container.append(`
         <li class="page-item active">
-            <span class="page-link">${current}</span>
+            <span class="page-link">${current} / ${last}</span>
         </li>
     `);
     // Next
     $container.append(`
         <li class="page-item ${current === last ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${Math.min(last, current + 1)}">next</a>
+            <a class="page-link" href="#" data-page="${Math.min(last, current + 1)}">
+              Next <i class="bi bi-chevron-right"></i>
+            </a>
         </li>
     `);
 }
@@ -668,7 +688,7 @@ function loadAssignedLeads(page = 1) {
         type: 'POST',
         data: {
             _token: '{{ csrf_token() }}',
-            per_page: 7
+            per_page: 10
         },
         success: function (data) {
             let html = '';
@@ -686,7 +706,7 @@ function loadAssignedLeads(page = 1) {
 
                     html += `
                         <tr>
-                            <td>${record.status?.status_name ?? 'N/A'}</td>
+                            <td><span class="status-badge">${record.status?.status_name ?? 'N/A'}</span></td>
                             <td>${record.user?.name ?? 'N/A'}</td>
                             <td>${record.prospectus?.prospectus_name ?? 'N/A'}</td>
                             <td>${record.leads_name ?? ''}</td>
@@ -833,7 +853,7 @@ function loadFilteredAssignedLeads(page = 1) {
             business_type_id: $('#business_type').val(),
             lead_source_id: $('#lead_source').val(),
             products_id: $('#product_type').val(),
-            per_page: 7
+            per_page: 10
         },
         success: function (data) {
             let html = '';
@@ -851,7 +871,7 @@ function loadFilteredAssignedLeads(page = 1) {
 
                     html += `
                         <tr>
-                            <td>${record.status?.status_name ?? 'N/A'}</td>
+                            <td><span class="status-badge">${record.status?.status_name ?? 'N/A'}</span></td>
                             <td>${record.user?.name ?? 'N/A'}</td>
                             <td>${record.prospectus?.prospectus_name ?? 'N/A'}</td>
                             <td>${record.leads_name ?? ''}</td>
@@ -942,7 +962,7 @@ function loadSearchResults(searchTerm, page = 1) {
         data: {
             _token: '{{ csrf_token() }}',
             search: searchTerm,
-            per_page: 7
+            per_page: 10
         },
         success: function (data) {
             let html = '';
@@ -960,7 +980,7 @@ function loadSearchResults(searchTerm, page = 1) {
 
                     html += `
                         <tr>
-                            <td>${record.status?.status_name ?? 'N/A'}</td>
+                            <td><span class="status-badge">${record.status?.status_name ?? 'N/A'}</span></td>
                             <td>${record.user?.name ?? 'N/A'}</td>
                             <td>${record.prospectus?.prospectus_name ?? 'N/A'}</td>
                             <td>${record.leads_name ?? ''}</td>
@@ -1024,7 +1044,7 @@ function loadDateFilteredAssignedLeads(fromDate, toDate, page = 1) {
             _token: '{{ csrf_token() }}',
             date_from: fromDate,
             date_to: toDate,
-            per_page: 7
+            per_page: 10
         },
         success: function (data) {
             let html = '';
@@ -1042,7 +1062,7 @@ function loadDateFilteredAssignedLeads(fromDate, toDate, page = 1) {
 
                     html += `
                         <tr>
-                            <td>${record.status?.status_name ?? 'N/A'}</td>
+                            <td><span class="status-badge">${record.status?.status_name ?? 'N/A'}</span></td>
                             <td>${record.user?.name ?? 'N/A'}</td>
                             <td>${record.prospectus?.prospectus_name ?? 'N/A'}</td>
                             <td>${record.leads_name ?? ''}</td>

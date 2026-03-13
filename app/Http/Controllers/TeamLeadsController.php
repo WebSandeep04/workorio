@@ -47,14 +47,7 @@ class TeamLeadsController extends Controller
         ->orderBy('createdat', 'desc')
         ->paginate($perPage);
 
-        return response()->json([
-            'success' => true,
-            'data' => $records->items(),
-            'current_page' => $records->currentPage(),
-            'last_page' => $records->lastPage(),
-            'per_page' => $records->perPage(),
-            'total' => $records->total()
-        ]);
+        return response()->json($records);
     }
 
     // Get filtered team leads
@@ -141,14 +134,7 @@ class TeamLeadsController extends Controller
 
         $records = $query->orderBy('createdat', 'desc')->paginate($perPage);
 
-        return response()->json([
-            'success' => true,
-            'data' => $records->items(),
-            'current_page' => $records->currentPage(),
-            'last_page' => $records->lastPage(),
-            'per_page' => $records->perPage(),
-            'total' => $records->total()
-        ]);
+        return response()->json($records);
     }
 
 
