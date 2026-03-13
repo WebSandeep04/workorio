@@ -1,22 +1,22 @@
-@extends('layouts.app')
 
-@section('title', 'Assigned Leads')
-@section('page_title', 'Assigned Leads')
-@push('styles')
+
+<?php $__env->startSection('title', 'Assigned Leads'); ?>
+<?php $__env->startSection('page_title', 'Assigned Leads'); ?>
+<?php $__env->startPush('styles'); ?>
 <style>
 .data-table-card .custom-table thead th {  
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
    
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
     <div class="summary-cards">
         <div class="summary-card card-1">
             <div class="summary-card-icon icon-sky">
-                <img src="{{ asset('img/icons/call.png') }}" alt="Today's Follow Ups">
+                <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Today's Follow Ups">
             </div>
             <div class="summary-card-content">
                 <div class="summary-card-label">Today's Follow Ups</div>
@@ -25,7 +25,7 @@
         </div>
         <div class="summary-card card-2">
             <div class="summary-card-icon icon-amber">
-                <img src="{{ asset('img/icons/underprocess.png') }}" alt="Under Process">
+                <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Under Process">
             </div>
             <div class="summary-card-content">
                 <div class="summary-card-label">Under Process</div>
@@ -34,7 +34,7 @@
         </div>
         <div class="summary-card card-3">
             <div class="summary-card-icon icon-emerald">
-                <img src="{{ asset('img/icons/tick.png') }}" alt="Today Completed">
+                <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Today Completed">
             </div>
             <div class="summary-card-content">
                 <div class="summary-card-label">Today Completed</div>
@@ -43,7 +43,7 @@
         </div>
         <div class="summary-card card-4">
             <div class="summary-card-icon icon-rose">
-                <img src="{{ asset('img/icons/pending.png') }}" alt="Today Pending">
+                <img src="<?php echo e(asset('img/icons/pending.png')); ?>" alt="Today Pending">
             </div>
             <div class="summary-card-content">
                 <div class="summary-card-label">Today Pending</div>
@@ -52,7 +52,7 @@
         </div>
         <div class="summary-card card-5">
             <div class="summary-card-icon icon-sky">
-                <img src="{{ asset('img/icons/new.png') }}" alt="Today New">
+                <img src="<?php echo e(asset('img/icons/new.png')); ?>" alt="Today New">
             </div>
             <div class="summary-card-content">
                 <div class="summary-card-label">Today New</div>
@@ -136,7 +136,7 @@
             <i class="bi bi-search"></i>
             <input type="text" id="search" placeholder="Search leads, contacts, emails..." />
         </div>
-        <!-- <a href="{{ route('lead') }}" class="table-search-btn" id="addBtn">
+        <!-- <a href="<?php echo e(route('lead')); ?>" class="table-search-btn" id="addBtn">
             <i class="bi bi-plus me-1"></i>Add
         </a> -->
     </div>
@@ -185,14 +185,14 @@
     </div>
 </div>
 
-@include('partials.remarks-modal')
+<?php echo $__env->make('partials.remarks-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <div class="mt-2 d-flex justify-content-center">
     <ul class="pagination" id="paginationLinks"></ul>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     .container-fluid {
         padding: 0.5rem;
@@ -594,9 +594,9 @@
         }
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 
 <script>
 
@@ -664,10 +664,10 @@ function updateRangeInfo(from, to, total) {
 
 function loadAssignedLeads(page = 1) {
     $.ajax({
-        url: '{{ route("assignedleads.filter") }}?page=' + page,
+        url: '<?php echo e(route("assignedleads.filter")); ?>?page=' + page,
         type: 'POST',
         data: {
-            _token: '{{ csrf_token() }}',
+            _token: '<?php echo e(csrf_token()); ?>',
             per_page: 7
         },
         success: function (data) {
@@ -740,7 +740,7 @@ $(document).ready(function () {
 // Load filter options
 function loadFilterOptions() {
     $.ajax({
-        url: '{{ route("assignedleads.filter-options") }}',
+        url: '<?php echo e(route("assignedleads.filter-options")); ?>',
         type: 'GET',
         success: function (response) {
             // Populate status dropdown
@@ -823,10 +823,10 @@ $.ajaxSetup({
 
 function loadFilteredAssignedLeads(page = 1) {
     $.ajax({
-        url: '{{ route("assignedleads.filter") }}?page=' + page,
+        url: '<?php echo e(route("assignedleads.filter")); ?>?page=' + page,
         type: 'POST',
         data: {
-            _token: '{{ csrf_token() }}',
+            _token: '<?php echo e(csrf_token()); ?>',
             status_id: $('#sales_status').val(),
             state_id: $('#state').val(),
             city_id: $('#city').val(),
@@ -937,10 +937,10 @@ $(document).on('input', '#search', function () {
 
 function loadSearchResults(searchTerm, page = 1) {
     $.ajax({
-        url: '{{ route("assignedleads.filter") }}?page=' + page,
+        url: '<?php echo e(route("assignedleads.filter")); ?>?page=' + page,
         type: 'POST',
         data: {
-            _token: '{{ csrf_token() }}',
+            _token: '<?php echo e(csrf_token()); ?>',
             search: searchTerm,
             per_page: 7
         },
@@ -1018,10 +1018,10 @@ $(document).on('click', '#paginationsearchLinks .page-link', function (e) {
 // Date filter functionality
 function loadDateFilteredAssignedLeads(fromDate, toDate, page = 1) {
     $.ajax({
-        url: '{{ route("assignedleads.filter") }}?page=' + page,
+        url: '<?php echo e(route("assignedleads.filter")); ?>?page=' + page,
         type: 'POST',
         data: {
-            _token: '{{ csrf_token() }}',
+            _token: '<?php echo e(csrf_token()); ?>',
             date_from: fromDate,
             date_to: toDate,
             per_page: 7
@@ -1126,4 +1126,6 @@ $(document).on('click', '#paginationdateLinks .page-link', function (e) {
   });
 
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/assignedleads.blade.php ENDPATH**/ ?>

@@ -36,9 +36,15 @@ class AssignedLeadsController extends Controller
             'businessType',
             'leadSource',
             'product',
-            'latestRemark'
+            'latestRemark',
+            'user'
         ])
-        ->where('user_id', $userId)
+        ->where(function($q) use ($userId) {
+            $q->where('user_id', $userId)
+              ->orWhereHas('assignmentLogs', function($aq) use ($userId) {
+                  $aq->where('assigned_by', $userId);
+              });
+        })
         ->orderBy('createdat', 'desc')
         ->paginate($perPage);
 
@@ -59,9 +65,15 @@ class AssignedLeadsController extends Controller
             'businessType',
             'leadSource',
             'product',
-            'latestRemark'
+            'latestRemark',
+            'user'
         ])
-        ->where('user_id', $userId);
+        ->where(function($q) use ($userId) {
+            $q->where('user_id', $userId)
+              ->orWhereHas('assignmentLogs', function($aq) use ($userId) {
+                  $aq->where('assigned_by', $userId);
+              });
+        });
 
         // Apply filters
         if ($request->filled('status_id')) {
@@ -134,8 +146,15 @@ class AssignedLeadsController extends Controller
         $userId = $this->getCurrentUserId();
         $today = Carbon::today()->toDateString();
 
-        $todayFollowups = SalesRecord::where('user_id', $userId)
-            ->whereNotIn('status_id', [1, 2, 15, 20])
+        $baseQuery = SalesRecord::where(function($q) use ($userId) {
+                $q->where('user_id', $userId)
+                  ->orWhereHas('assignmentLogs', function($aq) use ($userId) {
+                      $aq->where('assigned_by', $userId);
+                  });
+            })
+            ->whereNotIn('status_id', [1, 2, 15, 20]);
+
+        $todayFollowups = (clone $baseQuery)
             ->where(function ($query) use ($today) {
                 $query->whereDate('next_follow_up_date', '<=', $today)
                       ->orWhere(function ($q) use ($today) {
@@ -145,28 +164,24 @@ class AssignedLeadsController extends Controller
             })
             ->count();
 
-        $underProcess = SalesRecord::where('user_id', $userId)
-            ->whereNotIn('status_id', [1, 2, 15, 20])
+        $underProcess = (clone $baseQuery)
             ->whereDate('updatedat', $today)
             ->whereDate('next_follow_up_date', $today)
             ->count();
 
-        $todayCompleted = SalesRecord::where('user_id', $userId)
-            ->whereNotIn('status_id', [1, 2, 15, 20])
+        $todayCompleted = (clone $baseQuery)
             ->whereDate('updatedat', $today)
             ->whereDate('next_follow_up_date', '>', $today)
             ->count();
 
-        $todayPending = SalesRecord::where('user_id', $userId)
-            ->whereNotIn('status_id', [1, 2, 15, 20])
+        $todayPending = (clone $baseQuery)
             ->where(function ($query) use ($today) {
                 $query->whereDate('next_follow_up_date', '<=', $today)
                       ->orWhereNull('next_follow_up_date');
             })
             ->count();
 
-        $todayNew = SalesRecord::where('user_id', $userId)
-            ->whereNotIn('status_id', [1, 2, 15, 20])
+        $todayNew = (clone $baseQuery)
             ->whereDate('createdat', $today)
             ->count();
 
@@ -186,7 +201,15 @@ class AssignedLeadsController extends Controller
         $statusCounts = DB::table('sales_status')
             ->leftJoin('sales_records', function ($join) use ($userId) {
                 $join->on('sales_status.id', '=', 'sales_records.status_id')
-                     ->where('sales_records.user_id', '=', $userId);
+                     ->where(function($q) use ($userId) {
+                         $q->where('sales_records.user_id', '=', $userId)
+                           ->orWhereExists(function ($query) use ($userId) {
+                               $query->select(DB::raw(1))
+                                     ->from('lead_assignment_logs')
+                                     ->whereColumn('lead_assignment_logs.sales_record_id', 'sales_records.id')
+                                     ->where('lead_assignment_logs.assigned_by', $userId);
+                           });
+                     });
             })
             ->select(
                 'sales_status.id',
