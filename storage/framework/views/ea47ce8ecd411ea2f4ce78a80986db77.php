@@ -391,29 +391,47 @@
       min-height: 48px;
       display: flex;
       align-items: center;
+      font-family: 'Montserrat', sans-serif;
   }
   .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
-      padding: 0;
+      gap: 6px;
+      padding: 4px 0;
   }
   .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
-      background-color: #434AFA;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 2px 8px;
-      margin: 0;
-      font-size: 0.85rem;
+      background-color: #434AFA !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: 4px !important;
+      padding: 4px 12px !important;
+      margin: 0 !important;
+      font-size: 0.85rem !important;
+      font-weight: 600 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      box-shadow: 0 2px 4px rgba(67, 74, 250, 0.2);
   }
   .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove {
-      color: white;
-      margin-right: 5px;
-      border: none;
+      color: #ffffff !important;
+      margin-right: 0 !important;
+      border: none !important;
+      font-weight: bold !important;
+      font-size: 1.1rem !important;
+      opacity: 0.8;
+      transition: all 0.2s;
   }
   .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove:hover {
-      background: rgba(255,255,255,0.2);
+      background: transparent !important;
+      opacity: 1;
+      transform: scale(1.2);
+  }
+  
+  /* Selection chip text color override */
+  .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__display {
+      color: #ffffff !important;
+      padding-left: 0 !important;
   }
 </style>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -505,7 +523,7 @@
                         <!-- Load employees via JS -->
                     </select>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-12 mb-3">
                     <label for="edit_managers" class="form-label-modern">Managers</label>
                     <select class="form-select form-select-modern select2-multiple" id="edit_managers" name="manager_ids[]" multiple>
                         <!-- Load users via JS -->
@@ -597,7 +615,7 @@
                         <!-- Load employees via JS -->
                     </select>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-12 mb-3">
                     <label for="create_managers" class="form-label-modern">Managers</label>
                     <select class="form-select form-select-modern select2-multiple" id="create_managers" name="manager_ids[]" multiple>
                         <!-- Load users via JS -->
@@ -649,6 +667,26 @@
     </div>
   </div>
 </div>
+
+<!-- Managers List Modal -->
+<div class="modal fade modal-modern" id="managersListModal" tabindex="-1" aria-labelledby="managersListModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" style="font-size: 1.1rem; font-weight: 600;" id="managersListModalLabel">
+          <i class="bi bi-people text-white"></i>
+          Assigned Managers
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4 text-center">
+        <div id="managersListContent" class="d-flex flex-wrap gap-2 justify-content-center">
+          <!-- Managers will be listed here as chips -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
@@ -661,6 +699,16 @@ function initSelect2() {
         allowClear: true,
         width: '100%'
     });
+}
+
+function showManagersList(managersJson) {
+    const managers = JSON.parse(decodeURIComponent(managersJson));
+    let html = '';
+    managers.forEach(m => {
+        html += `<span class="badge" style="background: #434AFA; color: white; padding: 8px 15px; font-size: 0.9rem;">${m.name}</span>`;
+    });
+    $('#managersListContent').html(html);
+    $('#managersListModal').modal('show');
 }
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -755,9 +803,24 @@ $(function () {
 
       let rows = '';
       $.each(data.data, function (i, user) {
-          const managerNames = user.managers && user.managers.length > 0 
-              ? user.managers.map(m => m.name).join(', ') 
-              : 'None';
+          let managerDisplay = 'None';
+          if (user.managers && user.managers.length > 0) {
+              if (user.managers.length === 1) {
+                  managerDisplay = user.managers[0].name;
+              } else {
+                  const firstManager = user.managers[0].name;
+                  const managersJson = encodeURIComponent(JSON.stringify(user.managers));
+                  managerDisplay = `
+                    <div class="d-flex align-items-center gap-2">
+                        <span>${firstManager}</span>
+                        <button class="btn p-0 border-0" onclick="showManagersList('${managersJson}')" title="Show all managers">
+                            <i class="bi bi-info-circle-fill text-primary" style="font-size: 1.1rem; cursor: pointer;"></i>
+                        </button>
+                    </div>
+                  `;
+              }
+          }
+          
           const worklogStatus = user.is_worklog ? '<span class="badge badge-modern-success">Yes</span>' : '<span class="badge badge-modern-secondary">No</span>';
           
           rows += `
@@ -766,7 +829,7 @@ $(function () {
               <td><strong>${user.name}</strong></td>
               <td><span class="badge badge-modern-info">${user.role ? user.role.role_name : '-'}</span></td>
               <td>${user.email}</td>
-              <td style="max-width: 200px; white-space: normal;">${managerNames}</td>
+              <td style="max-width: 200px; white-space: normal;">${managerDisplay}</td>
               <td>${worklogStatus}</td>
               <td>
                 <div class="d-flex gap-2 justify-content-center">
