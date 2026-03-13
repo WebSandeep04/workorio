@@ -6,9 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Employee;
+use App\Traits\TenantAwareStorage;
 
 class ProfileController extends Controller
 {
+    use TenantAwareStorage;
     /**
      * Show the profile edit page.
      */
@@ -61,7 +63,8 @@ class ProfileController extends Controller
             'file' => 'required|file|max:5120|mimes:pdf,jpg,jpeg,png,doc,docx',
         ]);
 
-        $path = $request->file('file')->store('employee-documents/' . $employee->id, 'public');
+        // Use tenant-aware storage with isolation
+        $path = $this->storeTenantFile($request->file('file'), 'employee-documents/' . $employee->id);
 
         $document = $employee->documents()->create([
             'document_type' => $validated['document_type'] ?? null,
@@ -97,8 +100,8 @@ class ProfileController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
-            Storage::disk('public')->delete($document->file_path);
+        if ($document->file_path) {
+            $this->deleteTenantFile($document->file_path);
         }
 
         $document->delete();
@@ -189,11 +192,12 @@ class ProfileController extends Controller
         try {
             if ($request->hasFile('profile_picture')) {
                 $image = $request->file('profile_picture');
-                $path = $image->store('employee-profiles', 'public');
+                // Use tenant-aware storage with isolation
+                $path = $this->storeTenantFile($image, 'employee-profiles');
                 
                 // Delete old profile picture if it exists
                 if ($employee->profile_picture) {
-                    Storage::disk('public')->delete($employee->profile_picture);
+                    $this->deleteTenantFile($employee->profile_picture);
                 }
                 
                 $validated['profile_picture'] = $path;

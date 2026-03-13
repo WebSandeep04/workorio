@@ -16,9 +16,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Traits\TenantAwareStorage;
 
 class EmployeeController extends Controller
 {
+    use TenantAwareStorage;
     public function index()
     {
         $branches = Branch::orderBy('name')->get();
@@ -194,7 +196,8 @@ class EmployeeController extends Controller
             'file' => 'required|file|max:5120|mimes:pdf,jpg,jpeg,png,doc,docx',
         ]);
 
-        $path = $request->file('file')->store('employee-documents/' . $employee->id, 'public');
+        // Use tenant-aware storage with isolation
+        $path = $this->storeTenantFile($request->file('file'), 'employee-documents/' . $employee->id);
 
         $document = $employee->documents()->create([
             'document_type' => $validated['document_type'] ?? null,

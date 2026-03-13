@@ -6,9 +6,11 @@ use Illuminate\Http\Request;
 use App\Models\PettyCashData;
 use App\Models\Expense;
 use Illuminate\Support\Facades\DB;
+use App\Traits\TenantAwareStorage;
 
 class PettyCashController extends Controller
 {
+    use TenantAwareStorage;
     public function index()
     {
         $departments = \App\Models\Department::all();
@@ -109,7 +111,8 @@ class PettyCashController extends Controller
 
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('petty_cash_attachments', 'public');
+            // Use tenant-aware storage with isolation
+            $attachmentPath = $this->storeTenantFile($request->file('attachment'), 'petty_cash_attachments');
         }
 
         PettyCashData::create([

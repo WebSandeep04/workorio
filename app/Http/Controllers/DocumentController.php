@@ -13,8 +13,11 @@ use App\Models\CategoryUserAccess;
 use App\Models\SubcategoryUserAccess;
 use App\Models\DocumentUserAccess;
 
+use App\Traits\TenantAwareStorage;
+
 class DocumentController extends Controller
 {
+    use TenantAwareStorage;
     /**
      * Check if current user has document management permission
      */
@@ -220,22 +223,23 @@ class DocumentController extends Controller
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $originalFilename = $file->getClientOriginalName();
-                $filename = time() . '_' . $originalFilename;
-                $path = $file->storeAs('documents', $filename, 'public');
                 
+                // Use tenant-aware storage with isolation
+                $path = $this->storeTenantFile($file, 'documents');
+
                 // Create document record
                 $document = Document::create([
                     'category_id' => $request->category,
                     'subcategory_id' => $request->subcategory,
                     'title' => $request->title,
                     'description' => $request->description,
-                    'filename' => $filename,
+                    'filename' => basename($path),
                     'original_filename' => $originalFilename,
                     'file_path' => $path,
                     'file_extension' => $file->getClientOriginalExtension(),
                     'file_size' => $file->getSize(),
                     'mime_type' => $file->getMimeType(),
-                    'uploaded_by' => 1,
+                    'uploaded_by' => session('user_id') ?? auth()->id() ?? 1,
                     'is_active' => true
                 ]);
                 

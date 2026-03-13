@@ -17,9 +17,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use App\Traits\TenantAwareStorage;
 
 class TaskController extends Controller
 {
+    use TenantAwareStorage;
     /**
      * Display the task management page (created by current user)
      */
@@ -342,7 +344,8 @@ class TaskController extends Controller
         // Handle image uploads
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $path = $image->store('task_images', 'public');
+                // Use tenant-aware storage with isolation
+                $path = $this->storeTenantFile($image, 'task_images');
                 TaskImage::create([
                     'task_id' => $task->id,
                     'image_path' => $path,
@@ -608,8 +611,8 @@ class TaskController extends Controller
             ->firstOrFail();
 
         // Delete file from storage
-        if ($image->image_path && Storage::disk('public')->exists($image->image_path)) {
-            Storage::disk('public')->delete($image->image_path);
+        if ($image->image_path) {
+            $this->deleteTenantFile($image->image_path);
         }
 
         // Delete record from database

@@ -9,9 +9,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\TenantAwareStorage;
 
 class ProjectsController extends Controller
 {
+    use TenantAwareStorage;
     public function index()
     {
         // Summary Stats
@@ -152,7 +154,8 @@ class ProjectsController extends Controller
         $data = $request->all();
         
         if ($request->hasFile('sow_document')) {
-            $data['sow_path'] = $request->file('sow_document')->store('customer-projects/sow', 'public');
+            // Use tenant-aware storage with isolation
+            $data['sow_path'] = $this->storeTenantFile($request->file('sow_document'), 'customer-projects/sow');
         }
         if ($request->has('project_status') && !$request->has('status')) {
             $data['status'] = $request->project_status;

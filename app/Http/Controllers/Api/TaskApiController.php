@@ -18,9 +18,11 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Traits\TenantAwareStorage;
 
 class TaskApiController extends Controller
 {
+    use TenantAwareStorage;
     /**
      * Get Form Data (Customers, Users, Statutes, Priorities)
      * optimized for mobile app to reduce network calls
@@ -180,7 +182,8 @@ class TaskApiController extends Controller
 
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
-                    $path = $image->store('task_images', 'public');
+                    // Use tenant-aware storage with isolation
+                    $path = $this->storeTenantFile($image, 'task_images');
                     TaskImage::create([
                         'task_id' => $task->id,
                         'image_path' => $path,
@@ -255,7 +258,8 @@ class TaskApiController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $path = $image->store('task_images', 'public');
+                // Use tenant-aware storage with isolation
+                $path = $this->storeTenantFile($image, 'task_images');
                 TaskImage::create([
                     'task_id' => $task->id,
                     'image_path' => $path,
@@ -388,8 +392,8 @@ class TaskApiController extends Controller
              return response()->json(['success' => false, 'message' => 'Image not found'], 404);
         }
 
-        if ($image->image_path && Storage::disk('public')->exists($image->image_path)) {
-            Storage::disk('public')->delete($image->image_path);
+        if ($image->image_path) {
+            $this->deleteTenantFile($image->image_path);
         }
         $image->delete();
 

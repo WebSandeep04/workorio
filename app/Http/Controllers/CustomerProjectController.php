@@ -17,9 +17,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\TenantAwareStorage;
 
 class CustomerProjectController extends Controller
 {
+    use TenantAwareStorage;
     public function index()
     {
         return view('customer-project.index');
@@ -91,7 +93,8 @@ class CustomerProjectController extends Controller
         try {
             $sowPath = null;
             if ($request->hasFile('sow_document')) {
-                $sowPath = $request->file('sow_document')->store('customer-projects/sow', 'public');
+                // Use tenant-aware storage with isolation
+                $sowPath = $this->storeTenantFile($request->file('sow_document'), 'customer-projects/sow');
             }
 
             $customerProject = CustomerProject::create([
@@ -197,10 +200,11 @@ class CustomerProjectController extends Controller
         ]);
 
         if ($request->hasFile('sow_document')) {
-            if ($customerProject->sow_path && Storage::disk('public')->exists($customerProject->sow_path)) {
-                Storage::disk('public')->delete($customerProject->sow_path);
+            if ($customerProject->sow_path) {
+                $this->deleteTenantFile($customerProject->sow_path);
             }
-            $sowPath = $request->file('sow_document')->store('customer-projects/sow', 'public');
+            // Use tenant-aware storage with isolation
+            $sowPath = $this->storeTenantFile($request->file('sow_document'), 'customer-projects/sow');
             $customerProject->update(['sow_path' => $sowPath]);
         }
 

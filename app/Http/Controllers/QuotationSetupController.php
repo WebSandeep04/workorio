@@ -6,9 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\TenantAwareStorage;
 
 class QuotationSetupController extends Controller
 {
+    use TenantAwareStorage;
     /**
      * Display the quotation setup page
      */
@@ -81,9 +83,10 @@ class QuotationSetupController extends Controller
         if ($request->hasFile('logo')) {
             $existing = DB::table('quotation_settings')->first();
             if ($existing && $existing->logo_path) {
-                Storage::disk('public')->delete($existing->logo_path);
+                $this->deleteTenantFile($existing->logo_path);
             }
-            $path = $request->file('logo')->store('quotation/logos', 'public');
+            // Use tenant-aware storage with isolation
+            $path = $this->storeTenantFile($request->file('logo'), 'quotation/logos');
             $data['logo_path'] = $path;
         }
         unset($data['logo']);
