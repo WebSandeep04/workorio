@@ -22,8 +22,7 @@
     if (!$isMasterConnection && $headerUser) {
         $headerEmployee = $headerUser->employee;
         if (!$headerEmployee) {
-            $headerEmployee = \App\Models\Employee::where('user_id', $headerUser->id)->first() ?? 
-                             \App\Models\Employee::where('email', $headerUser->email)->first();
+            $headerEmployee = \App\Models\Employee::where('email', $headerUser->email)->first();
         }
     }
 @endphp

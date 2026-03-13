@@ -2869,3 +2869,8 @@ Did you mean one of these?
 #88 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\DontDelete\\\\l...')
 #89 {main}
 "} 
+[2026-03-13 11:12:52] local.ERROR: AuthController@login start {"email":"test@test.com"} 
+[2026-03-13 11:12:52] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-03-13 11:12:53] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-03-13 11:12:53] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":19,"name":"Test","email":"test@test.com","role_id":1,"tenant_id":1}} 
+[2026-03-13 11:12:53] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

@@ -25,8 +25,7 @@ class ProfileController extends Controller
         $employee = $user->employee;
         
         if (!$employee) {
-             $employee = Employee::where('user_id', $user->id)->first() ?? 
-                        Employee::where('email', $user->email)->first();
+            $employee = Employee::where('email', $user->email)->first();
         }
 
         if (!$employee) {
@@ -49,8 +48,7 @@ class ProfileController extends Controller
 
         $employee = $user->employee;
         if (!$employee) {
-             $employee = Employee::where('user_id', $user->id)->first() ?? 
-                        Employee::where('email', $user->email)->first();
+            $employee = Employee::where('email', $user->email)->first();
         }
         if (!$employee) return response()->json(['success' => false, 'message' => 'Employee profile not found.'], 404);
 
@@ -89,8 +87,7 @@ class ProfileController extends Controller
 
         $employee = $user->employee;
         if (!$employee) {
-             $employee = Employee::where('user_id', $user->id)->first() ?? 
-                        Employee::where('email', $user->email)->first();
+            $employee = Employee::where('email', $user->email)->first();
         }
         if (!$employee) return response()->json(['success' => false, 'message' => 'Employee profile not found.'], 404);
 
@@ -126,8 +123,7 @@ class ProfileController extends Controller
         $employee = $user->employee;
         
         if (!$employee) {
-             $employee = Employee::where('user_id', $user->id)->first() ?? 
-                        Employee::where('email', $user->email)->first();
+            $employee = Employee::where('email', $user->email)->first();
         }
 
         if (!$employee) {
