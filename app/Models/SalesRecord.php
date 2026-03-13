@@ -118,4 +118,9 @@ class SalesRecord extends Model
     {
         return $this->hasMany(Advance::class);
     }
+
+    public function assignmentLogs()
+    {
+        return $this->hasMany(LeadAssignmentLog::class, 'sales_record_id')->latest();
+    }
 }
