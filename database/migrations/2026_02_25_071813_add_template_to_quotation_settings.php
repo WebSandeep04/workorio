@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('quotation_settings', function (Blueprint $table) {
             $table->string('template_name')->default('modern')->after('logo_path');
             $table->string('primary_color')->default('#434AFA')->after('template_name');

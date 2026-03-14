@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::create('user_managers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
@@ -27,6 +31,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::dropIfExists('user_managers');
     }
 };
