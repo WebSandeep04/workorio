@@ -37,6 +37,8 @@ return [
             'items' => [
                 ['route' => 'calling', 'title' => 'Calling Board', 'icon' => 'bi bi-telephone', 'permission' => 'sales.calling'],
                 ['route' => 'calling.my', 'title' => 'My Calls', 'icon' => 'bi bi-person', 'permission' => 'sales.calling.my'],
+                ['route' => 'calling.team', 'title' => 'Team Calls', 'icon' => 'bi bi-people', 'condition' => 'has_subordinates', 'permission' => 'sales.calling.team'],
+                ['route' => 'calling.assigned', 'title' => 'Assigned Calls', 'icon' => 'bi bi-person-check', 'condition' => 'is_manager', 'permission' => 'sales.calling.assigned'],
                 ['route' => 'calling.todays', 'title' => 'Today\'s Calls', 'icon' => 'bi bi-calendar-date', 'permission' => 'sales.calling.todays'],
                 ['route' => 'calling.junk', 'title' => 'Junk Calls', 'icon' => 'bi bi-trash', 'permission' => 'sales.calling.junk'],
             ],

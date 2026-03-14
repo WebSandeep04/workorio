@@ -138,6 +138,63 @@ class MyCallingController extends Controller
             ], 500);
         }
     }
+    public function getTeamMembers()
+    {
+        $userId = $this->getCurrentUserId();
+
+        $teamMembers = \App\Models\User::whereHas('managers', function($q) use ($userId) {
+                $q->where('manager_id', $userId);
+            })
+            ->where('users.id', '!=', $userId) // Exclude self
+            ->select('users.id', 'users.name')
+            ->get();
+
+        return response()->json($teamMembers);
+    }
+
+    public function reassignCalling(Request $request)
+    {
+        $userId = $this->getCurrentUserId();
+        $callingId = $request->calling_id;
+        $newUserId = $request->new_user_id;
+
+        // Find and update the calling (must belong to current user)
+        $query = Calling::where('id', $callingId);
+        if ($userId && Schema::hasColumn('callings', 'user_id')) {
+            $query->where('user_id', $userId);
+        }
+
+        $calling = $query->first();
+
+        if (!$calling) {
+            return response()->json(['error' => 'Calling not found or not accessible'], 404);
+        }
+
+        $fromUserId = $calling->user_id;
+
+        // Update the calling assignment
+        $calling->user_id = $newUserId;
+        $calling->updated_at = now();
+        $calling->save();
+
+        // Log the assignment
+        \App\Models\CallingAssignmentLog::create([
+            'calling_id' => $calling->id,
+            'from_user_id' => $fromUserId,
+            'to_user_id' => $newUserId,
+            'assigned_by' => $userId,
+            'remark' => 'Calling reassigned by user'
+        ]);
+
+        // Get the new user's name for response
+        $newUser = \App\Models\User::find($newUserId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Calling reassigned successfully to ' . ($newUser ? $newUser->name : 'Unknown User'),
+            'new_user_name' => $newUser ? $newUser->name : 'Unknown User'
+        ]);
+    }
 }
 
 

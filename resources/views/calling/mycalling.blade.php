@@ -545,6 +545,7 @@
                             <th>City</th>
                             <th>Address</th>
                             <th>Phone</th>
+                            <th style="width: 150px;">Assign To</th>
                             <th style="width: 180px;">Remarks</th>
                         </tr>
                     </thead>
@@ -642,6 +643,16 @@
                     }
                     const callingTypeDropdown = '<select class="form-select form-select-sm calling-type-select" data-calling-id="' + r.id + '" style="min-width: 120px;">' + callingTypeOptions + '</select>';
 
+                    let dropdownOptions = '<option value="">Select Member</option>';
+                    if (window.teamMembers && window.teamMembers.length > 0) {
+                        window.teamMembers.forEach(function (member) {
+                            // in my calling, the current user is owner, so we want someone else to assign to. 
+                            // It starts unassigned to others
+                            dropdownOptions += `<option value="${member.id}">${member.name}</option>`;
+                        });
+                    }
+                    const assignDropdown = `<select class="form-select form-select-sm assign-select" data-calling-id="${r.id}" onchange="reassignCalling(${r.id}, this.value)">${dropdownOptions}</select>`;
+
                     html += `
                         <tr>
                             <td>${r.name || '-'}</td>
@@ -651,11 +662,12 @@
                             <td>${cityName}</td>
                             <td>${r.address || '-'}</td>
                             <td>${phone}</td>
+                            <td>${assignDropdown}</td>
                             <td>${remarkLink}</td>
                         </tr>`;
                 });
             } else {
-                html = '<tr><td colspan="8" class="text-center">No records found.</td></tr>';
+                html = '<tr><td colspan="9" class="text-center">No records found.</td></tr>';
             }
             $tbody.html(html);
         }
@@ -692,6 +704,13 @@
 
         function loadMyCallings(page = 1) {
             currentPage = page;
+            if (!window.teamMembers) {
+                loadTeamMembers().then(function() {
+                    loadMyCallings(page);
+                });
+                return;
+            }
+
             $.get('{{ route("calling.my.data") }}?page=' + page, function (data) {
                 const rows = Array.isArray(data) ? data : (data.data || []);
                 renderRows(rows);
@@ -856,9 +875,51 @@
             }, 4000);
         }
 
+        window.reassignCalling = function(callingId, newUserId) {
+            if (!newUserId) return;
+            $.ajax({
+                url: '{{ route("calling.my.reassign") }}',
+                type: 'POST',
+                data: {
+                    calling_id: callingId,
+                    new_user_id: newUserId,
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert('success', 'Calling reassigned successfully!');
+                        loadMyCallings(currentPage);
+                    } else {
+                        showAlert('error', response.message || 'Failed to reassign calling.');
+                    }
+                },
+                error: function() {
+                    showAlert('error', 'Failed to reassign calling. Please try again.');
+                }
+            });
+        };
+
+        function loadTeamMembers() {
+            return new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: '{{ route("calling.my.team-members") }}',
+                    type: 'GET',
+                    success: function (response) {
+                        window.teamMembers = response;
+                        resolve();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Failed to load team members.");
+                        resolve(); // still resolve so it doesn't get stuck
+                    }
+                });
+            });
+        }
+
         // initial load
         loadStates();
-        loadMyCallings();
+        loadTeamMembers().then(function() {
+            loadMyCallings(1);
+        });
     });
 </script>
 @endpush

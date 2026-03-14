@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         SalesRecord::observe(SalesRecordObserver::class);
+        \App\Models\Calling::observe(\App\Observers\CallingObserver::class);
         Blade::component('form-builder', FormBuilderEmbed::class);
     }
 }

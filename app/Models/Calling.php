@@ -48,4 +48,10 @@ class Calling extends Model
     {
         return $this->belongsTo(SalesStatus::class, 'status_id');
     }
+
+    public function assignmentLogs()
+    {
+        return $this->hasMany(CallingAssignmentLog::class, 'calling_id')->latest();
+    }
 }
+

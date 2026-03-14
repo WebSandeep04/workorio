@@ -42,6 +42,8 @@ use App\Http\Controllers\AssignedLeadsController;
 use App\Http\Controllers\SalesAnalyticsController;
 use App\Http\Controllers\CallingController;
 use App\Http\Controllers\MyCallingController;
+use App\Http\Controllers\AssignedCallingController;
+use App\Http\Controllers\TeamCallingController;
 use App\Http\Controllers\JunkCallingController;
 use App\Http\Controllers\TodaysCallingController;
 use App\Http\Controllers\CallingTypeController;
@@ -955,6 +957,29 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::get('/calling/my/filter-options', [MyCallingController::class, 'getFilterOptions'])->name('calling.my.filter-options');
     Route::get('/calling/my/cities/{stateId}', [MyCallingController::class, 'getCitiesByState'])->name('calling.my.cities');
     Route::post('/calling/my/update-type', [MyCallingController::class, 'updateCallingType'])->name('calling.my.update-type');
+    Route::post('/calling/my/reassign', [MyCallingController::class, 'reassignCalling'])->name('calling.my.reassign');
+    Route::get('/calling/my/team-members', [MyCallingController::class, 'getTeamMembers'])->name('calling.my.team-members');
+
+    // calling remarks (tenant DB - needed for modal)
+    Route::get('/calling/remarks', [AssignedCallingController::class, 'getRemarks'])->name('calling.remarks');
+
+    // assigned calling routes
+    Route::get('/calling/assigned', [AssignedCallingController::class, 'index'])->name('calling.assigned');
+    Route::get('/calling/assigned/data', [AssignedCallingController::class, 'getAssignedCallings'])->name('calling.assigned.data');
+    Route::post('/calling/assigned/filter', [AssignedCallingController::class, 'filterAssignedCallings'])->name('calling.assigned.filter');
+    Route::get('/calling/assigned/filter-options', [AssignedCallingController::class, 'getFilterOptions'])->name('calling.assigned.filter-options');
+    Route::get('/calling/assigned/cities/{stateId}', [AssignedCallingController::class, 'getCitiesByState'])->name('calling.assigned.cities');
+    Route::post('/calling/assigned/update-type', [AssignedCallingController::class, 'updateCallingType'])->name('calling.assigned.update-type');
+
+    // team calling routes
+    Route::get('/calling/team', [TeamCallingController::class, 'index'])->name('calling.team');
+    Route::get('/calling/team/data', [TeamCallingController::class, 'getTeamCallings'])->name('calling.team.data');
+    Route::post('/calling/team/filter', [TeamCallingController::class, 'filterTeamCallings'])->name('calling.team.filter');
+    Route::get('/calling/team/filter-options', [TeamCallingController::class, 'getFilterOptions'])->name('calling.team.filter-options');
+    Route::post('/calling/team/reassign', [TeamCallingController::class, 'reassignCalling'])->name('calling.team.reassign');
+    Route::get('/calling/team/team-members', [TeamCallingController::class, 'getTeamMembers'])->name('calling.team.team-members');
+    Route::get('/calling/team/cities/{stateId}', [TeamCallingController::class, 'getCitiesByState'])->name('calling.team.cities');
+    Route::post('/calling/team/update-type', [TeamCallingController::class, 'updateCallingType'])->name('calling.team.update-type');
 
     Route::get('/calling/junk', [JunkCallingController::class, 'index'])->name('calling.junk');
     Route::get('/calling/junk/data', [JunkCallingController::class, 'getCallings'])->name('calling.junk.data');

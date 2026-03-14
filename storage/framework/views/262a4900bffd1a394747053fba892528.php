@@ -1,7 +1,7 @@
 
 
-<?php $__env->startSection('title', 'My Calling'); ?>
-<?php $__env->startSection('page_title', 'My Calling'); ?>
+<?php $__env->startSection('title', 'Team Calling'); ?>
+<?php $__env->startSection('page_title', 'Team Calling'); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>
@@ -459,9 +459,9 @@
 <div class="container-fluid px-2 calling-page">
     <div class="calling-hero-card">
         <div>
-            <p class="eyebrow-text">My queue</p>
-            <h2 class="hero-title">Assigned callings</h2>
-            <p class="mb-0">Review your locked prospects, update calling types inline, and keep remarks at your fingertips.</p>
+            <p class="eyebrow-text">Team queue</p>
+            <h2 class="hero-title">Team callings</h2>
+            <p class="mb-0">Review your team's callings, update calling types inline, and manage assignments.</p>
         </div>
         <div class="hero-metrics">
             <div class="hero-metric-card">
@@ -555,7 +555,7 @@
         </div>
     </div>
 
-    <div class="table-range-meta" id="myCallingRangeInfo">
+    <div class="table-range-meta" id="teamCallingRangeInfo">
         Showing 0-0 from 0 data
     </div>
 
@@ -566,6 +566,9 @@
         <ul class="pagination" id="paginationFilterLinks"></ul>
     </div>
 </div>
+
+<?php echo $__env->make('partials.remarks-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
@@ -599,7 +602,7 @@
         }
 
         function loadStates() {
-            $.get('<?php echo e(route("calling.my.filter-options")); ?>', function (resp) {
+            $.get('<?php echo e(route("calling.team.filter-options")); ?>', function (resp) {
                 const $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
                 (resp.states || []).forEach(function (s) { $state.append('<option value="' + s.id + '">' + s.name + '</option>'); });
@@ -615,7 +618,7 @@
 
         function loadCitiesByState(stateId) {
             if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
-            const url = '<?php echo e(route("calling.my.cities", ["stateId" => 0])); ?>'.replace(/0$/, String(stateId));
+            const url = '<?php echo e(route("calling.team.cities", ["stateId" => 0])); ?>'.replace(/0$/, String(stateId));
             $.get(url, function (cities) {
                 const $city = $('#filter_city');
                 $city.empty().append('<option value="">All Cities</option>');
@@ -632,23 +635,15 @@
                     const phone = r.phone || r.mobile || '';
                     const full = (r.latest_remark && r.latest_remark.remark) ? r.latest_remark.remark : '';
                     const short = full ? (full.length > 12 ? full.substring(0, 12) + '...' : full) : '-';
-                    const remarkLink = '<a href="/calling/' + r.id + '/remarks" class="remark-link" title="' + (full || '') + '">' + short + '</a>';
+                    const remarkLink = '<a href="javascript:void(0)" class="remark-link-modal" data-id="' + r.id + '" data-full="' + (full || '') + '">' + short + '</a>';
 
-                    let callingTypeOptions = '';
-                    if (window.callingTypes && window.callingTypes.length > 0) {
-                        window.callingTypes.forEach(function (ct) {
-                            const selected = ct.id === r.calling_type_id ? 'selected' : '';
-                            callingTypeOptions += '<option value="' + ct.id + '" ' + selected + '>' + ct.name + '</option>';
-                        });
-                    }
-                    const callingTypeDropdown = '<select class="form-select form-select-sm calling-type-select" data-calling-id="' + r.id + '" style="min-width: 120px;">' + callingTypeOptions + '</select>';
+                    const callingTypeName = (r.calling_type && r.calling_type.name) ? r.calling_type.name : (r.calling_type_name || '-');
 
                     let dropdownOptions = '<option value="">Select Member</option>';
                     if (window.teamMembers && window.teamMembers.length > 0) {
                         window.teamMembers.forEach(function (member) {
-                            // in my calling, the current user is owner, so we want someone else to assign to. 
-                            // It starts unassigned to others
-                            dropdownOptions += `<option value="${member.id}">${member.name}</option>`;
+                            const selected = member.id == r.user_id ? 'selected' : '';
+                            dropdownOptions += `<option value="${member.id}" ${selected}>${member.name}</option>`;
                         });
                     }
                     const assignDropdown = `<select class="form-select form-select-sm assign-select" data-calling-id="${r.id}" onchange="reassignCalling(${r.id}, this.value)">${dropdownOptions}</select>`;
@@ -657,7 +652,7 @@
                         <tr>
                             <td>${r.name || '-'}</td>
                             <td>${r.email || '-'}</td>
-                            <td>${callingTypeDropdown}</td>
+                            <td><span class="badge" style="background:#e8eaff;color:#434afa;font-weight:600;padding:4px 10px;border-radius:20px;font-size:12px;">${callingTypeName}</span></td>
                             <td>${stateName}</td>
                             <td>${cityName}</td>
                             <td>${r.address || '-'}</td>
@@ -702,16 +697,16 @@
             `);
         }
 
-        function loadMyCallings(page = 1) {
+        function loadTeamCallings(page = 1) {
             currentPage = page;
             if (!window.teamMembers) {
                 loadTeamMembers().then(function() {
-                    loadMyCallings(page);
+                    loadTeamCallings(page);
                 });
                 return;
             }
 
-            $.get('<?php echo e(route("calling.my.data")); ?>?page=' + page, function (data) {
+            $.get('<?php echo e(route("calling.team.data")); ?>?page=' + page, function (data) {
                 const rows = Array.isArray(data) ? data : (data.data || []);
                 renderRows(rows);
                 renderPagination(data);
@@ -738,12 +733,12 @@
 
             if (!appliedCount) {
                 setActiveFiltersCount(0);
-                loadMyCallings(1);
+                loadTeamCallings(1);
                 return;
             }
 
             setActiveFiltersCount(appliedCount);
-            $.post('<?php echo e(route("calling.my.filter")); ?>?page=' + page, { name, state_id: stateId, city_id: cityId, calling_type_id: callingTypeId })
+            $.post('<?php echo e(route("calling.team.filter")); ?>?page=' + page, { name, state_id: stateId, city_id: cityId, calling_type_id: callingTypeId })
                 .done(function (data) {
                     const rows = Array.isArray(data) ? data : (data.data || []);
                     renderRows(rows);
@@ -761,7 +756,7 @@
         }
 
         function updateRangeInfo(from, to, total) {
-            const $info = $('#myCallingRangeInfo');
+            const $info = $('#teamCallingRangeInfo');
             if (!$info.length) return;
 
             const totalValue = Number(total);
@@ -803,14 +798,14 @@
             $('#filter_city').html('<option value="">All Cities</option>');
             $('#filter_calling_type').val('');
             setActiveFiltersCount(0);
-            loadMyCallings(1);
+            loadTeamCallings(1);
         });
 
         $(document).on('click', '#paginationLinks .page-link', function (e) {
             e.preventDefault();
             const page = $(this).data('page');
             if (page && page !== currentPage) {
-                loadMyCallings(page);
+                loadTeamCallings(page);
             }
         });
 
@@ -829,7 +824,7 @@
             $select.prop('disabled', true);
 
             $.ajax({
-                url: '<?php echo e(route("calling.my.update-type")); ?>',
+                url: '<?php echo e(route("calling.team.update-type")); ?>',
                 type: 'POST',
                 data: {
                     calling_id: callingId,
@@ -847,17 +842,61 @@
                         }
                     } else {
                         showAlert('error', response.message || 'Failed to update calling type.');
-                        loadMyCallings(currentPage);
+                        loadTeamCallings(currentPage);
                     }
                 },
                 error: function () {
                     showAlert('error', 'Failed to update calling type.');
-                    loadMyCallings(currentPage);
+                    loadTeamCallings(currentPage);
                 },
                 complete: function () {
                     $select.prop('disabled', false);
                 }
             });
+        });
+
+        // Override showRemarksModal to use the calling-specific remarks endpoint (tenant DB)
+        window.showRemarksModal = function(callingId) {
+            $('#remarksList').html('<div class="text-center">Loading...</div>');
+            $('#remarksModal').modal('show');
+            $.ajax({
+                url: '<?php echo e(route("calling.remarks")); ?>',
+                type: 'GET',
+                data: { sales_record_id: callingId },
+                success: function(response) {
+                    $('#modalLeadName').text(response.sales_record.leads_name || '-');
+                    $('#modalContactPerson').text(response.sales_record.contact_person || '-');
+                    $('#modalContactNumber').text(response.sales_record.contact_number || '-');
+                    $('#modalEmail').text(response.sales_record.email || '-');
+                    $('#modalState').text(response.sales_record.state_name || '-');
+                    $('#modalCity').text(response.sales_record.city_name || '-');
+                    $('#modalProduct').text(response.sales_record.product_name || '-');
+                    $('#modalBusiness').text(response.sales_record.business_name || '-');
+                    $('#modalStatus').text(response.sales_record.status_name || '-');
+                    $('#modalTicketValue').text(response.sales_record.ticket_value || '-');
+                    $('#modalNextFollowUp').text(response.sales_record.next_follow_up_date || '-');
+                    let remarksHtml = '';
+                    if (response.remarks && response.remarks.length > 0) {
+                        response.remarks.forEach(function(remark) {
+                            remarksHtml += '<div class="remark-item"><div class="remark-date">' + remark.date + '</div><div class="remark-text">' + remark.remark + '</div></div>';
+                        });
+                    } else {
+                        remarksHtml = '<div class="text-center text-muted">No remarks found</div>';
+                    }
+                    $('#remarksList').html(remarksHtml);
+                },
+                error: function() {
+                    $('#remarksList').html('<div class="text-danger text-center">Failed to load remarks</div>');
+                }
+            });
+        };
+
+        $(document).on('click', '.remark-link-modal', function (e) {
+            e.preventDefault();
+            const callingId = $(this).data('id');
+            if (callingId) {
+                showRemarksModal(callingId);
+            }
         });
 
         function showAlert(type, message) {
@@ -878,7 +917,7 @@
         window.reassignCalling = function(callingId, newUserId) {
             if (!newUserId) return;
             $.ajax({
-                url: '<?php echo e(route("calling.my.reassign")); ?>',
+                url: '<?php echo e(route("calling.team.reassign")); ?>',
                 type: 'POST',
                 data: {
                     calling_id: callingId,
@@ -887,7 +926,7 @@
                 success: function(response) {
                     if (response.success) {
                         showAlert('success', 'Calling reassigned successfully!');
-                        loadMyCallings(currentPage);
+                        loadTeamCallings(currentPage);
                     } else {
                         showAlert('error', response.message || 'Failed to reassign calling.');
                     }
@@ -901,7 +940,7 @@
         function loadTeamMembers() {
             return new Promise(function(resolve, reject) {
                 $.ajax({
-                    url: '<?php echo e(route("calling.my.team-members")); ?>',
+                    url: '<?php echo e(route("calling.team.team-members")); ?>',
                     type: 'GET',
                     success: function (response) {
                         window.teamMembers = response;
@@ -918,10 +957,10 @@
         // initial load
         loadStates();
         loadTeamMembers().then(function() {
-            loadMyCallings(1);
+            loadTeamCallings(1);
         });
     });
 </script>
 <?php $__env->stopPush(); ?>
 
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/calling/mycalling.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/calling/team.blade.php ENDPATH**/ ?>
