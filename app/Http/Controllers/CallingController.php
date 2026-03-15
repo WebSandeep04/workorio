@@ -224,4 +224,48 @@ class CallingController extends Controller
             ], 500);
         }
     }
+
+    public function allCallings()
+    {
+        return view('calling.all');
+    }
+
+    public function getAllCallingsData(Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        
+        $query = Calling::with(['state:id,state_name', 'city:id,city_name', 'latestRemark', 'callingType:id,name', 'status:id,status_name']);
+        
+        $callings = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        return response()->json($callings);
+    }
+
+    public function filterAllCallings(Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        
+        $query = Calling::with(['state:id,state_name', 'city:id,city_name', 'latestRemark', 'callingType:id,name', 'status:id,status_name']);
+            
+        if ($request->filled('name')) {
+            $term = trim((string) $request->name);
+            $query->where(function ($q) use ($term) {
+                $like = '%' . $term . '%';
+                $q->where('name', 'like', $like)
+                  ->orWhere('email', 'like', $like)
+                  ->orWhere('phone', 'like', $like)
+                  ->orWhere('address', 'like', $like);
+            });
+        }
+        if ($request->filled('state_id')) {
+            $query->where('state_id', $request->state_id);
+        }
+        if ($request->filled('city_id')) {
+            $query->where('city_id', $request->city_id);
+        }
+        if ($request->filled('calling_type_id')) {
+            $query->where('calling_type_id', $request->calling_type_id);
+        }
+        return response()->json($query->orderBy('created_at', 'desc')->paginate($perPage));
+    }
 }
+

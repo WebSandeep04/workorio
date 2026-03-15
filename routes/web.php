@@ -983,6 +983,13 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
 
     Route::get('/calling/junk', [JunkCallingController::class, 'index'])->name('calling.junk');
     Route::get('/calling/junk/data', [JunkCallingController::class, 'getCallings'])->name('calling.junk.data');
+
+    // all calling
+    Route::get('/calling/all', [CallingController::class, 'allCallings'])->name('calling.all');
+    Route::get('/calling/all/data', [CallingController::class, 'getAllCallingsData'])->name('calling.all.data');
+    Route::post('/calling/all/filter', [CallingController::class, 'filterAllCallings'])->name('calling.all.filter');
+    Route::get('/calling/all/filter-options', [CallingController::class, 'getFilterOptions'])->name('calling.all.filter-options');
+    Route::get('/calling/all/cities/{stateId}', [CallingController::class, 'getCitiesByState'])->name('calling.all.cities');
     Route::post('/calling/junk/filter', [JunkCallingController::class, 'filterCallings'])->name('calling.junk.filter');
     Route::get('/calling/junk/filter-options', [JunkCallingController::class, 'getFilterOptions'])->name('calling.junk.filter-options');
     Route::get('/calling/junk/cities/{stateId}', [JunkCallingController::class, 'getCitiesByState'])->name('calling.junk.cities');

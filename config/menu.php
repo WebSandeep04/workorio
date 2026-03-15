@@ -35,6 +35,7 @@ return [
             'feature_flag' => 'is_sales_enabled',
             'roles' => ['admin'],
             'items' => [
+                ['route' => 'calling.all', 'title' => 'All Calls', 'icon' => 'bi bi-collection', 'permission' => 'sales.calling.all'],
                 ['route' => 'calling', 'title' => 'Calling Board', 'icon' => 'bi bi-telephone', 'permission' => 'sales.calling'],
                 ['route' => 'calling.my', 'title' => 'My Calls', 'icon' => 'bi bi-person', 'permission' => 'sales.calling.my'],
                 ['route' => 'calling.team', 'title' => 'Team Calls', 'icon' => 'bi bi-people', 'condition' => 'has_subordinates', 'permission' => 'sales.calling.team'],
