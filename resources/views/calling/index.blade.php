@@ -629,6 +629,9 @@
                 <ul class="pagination" id="paginationFilterLinks"></ul>
     </div>
 </div>
+
+@include('partials.remarks-modal')
+
 @endsection     
 
 @push('scripts')
@@ -708,23 +711,16 @@
                     var phone = r.phone || r.mobile || '';
                     var full = (r.latest_remark && r.latest_remark.remark) ? r.latest_remark.remark : '';
                     var short = full ? (full.length > 10 ? full.substring(0,10) + '...' : full) : '-';
-                    var remarkLink = '<a href="/calling/'+ r.id +'/remarks" title="'+ (full || '') +'">' + short + '</a>';
+                    var remarkLink = '<a href="javascript:void(0)" class="remark-link-modal" data-id="' + r.id + '" data-full="' + (full || '') + '">' + short + '</a>';
 
-                    // Create calling type dropdown
-                    var callingTypeOptions = '';
-                    if (window.callingTypes && window.callingTypes.length > 0) {
-                        window.callingTypes.forEach(function(ct) {
-                            var selected = ct.id === r.calling_type_id ? 'selected' : '';
-                            callingTypeOptions += '<option value="' + ct.id + '" ' + selected + '>' + ct.name + '</option>';
-                        });
-                    }
-                    var callingTypeDropdown = '<select class="form-select form-select-sm calling-type-select" data-calling-id="' + r.id + '" style="min-width: 100px;">' + callingTypeOptions + '</select>';
+                    const callingTypeName = (r.calling_type && r.calling_type.name) ? r.calling_type.name : (r.calling_type_name || '-');
+                    const callingTypeElement = '<span class="badge" style="background:#e8eaff;color:#434afa;font-weight:600;padding:4px 10px;border-radius:20px;font-size:12px;">' + callingTypeName + '</span>';
 
                     html += '\n<tr>' +
                         '<td><input type="checkbox" class="form-check-input row-checkbox" value="' + r.id + '" data-calling-id="' + r.id + '"></td>' +
                         '<td>' + (r.name || '-') + '</td>' +
                         '<td>' + (r.email || '-') + '</td>' +
-                        '<td>' + callingTypeDropdown + '</td>' +
+                        '<td>' + callingTypeElement + '</td>' +
                         '<td>' + stateName + '</td>' +
                         '<td>' + cityName + '</td>' +
                         '<td>' + (r.address || '-') + '</td>' +
@@ -890,53 +886,49 @@
             }
         });
 
-        // Handle calling type dropdown changes
-        $(document).on('change', '.calling-type-select', function() {
-            var callingId = $(this).data('calling-id');
-            var newCallingType = $(this).val();
-            var $select = $(this);
-            
-            // Show loading state
-            $select.prop('disabled', true);
-            
+        // Override showRemarksModal to use the calling-specific remarks endpoint (tenant DB)
+        window.showRemarksModal = function(callingId) {
+            $('#remarksList').html('<div class="text-center">Loading...</div>');
+            $('#remarksModal').modal('show');
             $.ajax({
-                url: '{{ route("calling.update-type") }}',
-                type: 'POST',
-                data: {
-                    calling_id: callingId,
-                    calling_type_id: newCallingType,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                url: '{{ route("calling.remarks") }}',
+                type: 'GET',
+                data: { sales_record_id: callingId },
                 success: function(response) {
-                    if (response.success) {
-                        // Show success message
-                        showAlert('success', 'Calling type updated successfully!');
-                        
-                        // If changed to Junk, remove from current view
-                        var junkTypeId = window.callingTypes.find(ct => ct.name === 'Junk')?.id;
-                        if (newCallingType == junkTypeId) {
-                            $select.closest('tr').fadeOut(function() {
-                                $(this).remove();
-                            });
-                        }
+                    $('#modalLeadName').text(response.sales_record.leads_name || '-');
+                    $('#modalContactPerson').text(response.sales_record.contact_person || '-');
+                    $('#modalContactNumber').text(response.sales_record.contact_number || '-');
+                    $('#modalEmail').text(response.sales_record.email || '-');
+                    $('#modalState').text(response.sales_record.state_name || '-');
+                    $('#modalCity').text(response.sales_record.city_name || '-');
+                    $('#modalProduct').text(response.sales_record.product_name || '-');
+                    $('#modalBusiness').text(response.sales_record.business_name || '-');
+                    $('#modalStatus').text(response.sales_record.status_name || '-');
+                    $('#modalTicketValue').text(response.sales_record.ticket_value || '-');
+                    $('#modalNextFollowUp').text(response.sales_record.next_follow_up_date || '-');
+                    let remarksHtml = '';
+                    if (response.remarks && response.remarks.length > 0) {
+                        response.remarks.forEach(function(remark) {
+                            remarksHtml += '<div class="remark-item"><div class="remark-date">' + remark.date + '</div><div class="remark-text">' + remark.remark + '</div></div>';
+                        });
                     } else {
-                        showAlert('error', 'Failed to update calling type.');
-                        // Revert the dropdown
-                        reloadAll();
+                        remarksHtml = '<div class="text-center text-muted">No remarks found</div>';
                     }
+                    $('#remarksList').html(remarksHtml);
                 },
-                error: function(xhr) {
-                    console.error('Update failed:', xhr.responseText);
-                    showAlert('error', 'Failed to update calling type.');
-                    // Revert the dropdown
-                    reloadAll();
-                },
-                complete: function() {
-                    $select.prop('disabled', false);
+                error: function() {
+                    $('#remarksList').html('<div class="text-danger text-center">Failed to load remarks</div>');
                 }
             });
-        });
+        };
 
+        $(document).on('click', '.remark-link-modal', function (e) {
+            e.preventDefault();
+            const callingId = $(this).data('id');
+            if (callingId) {
+                showRemarksModal(callingId);
+            }
+        });
 
         // Show alert function
         function showAlert(type, message) {
