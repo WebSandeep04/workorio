@@ -105,6 +105,43 @@ class JunkCallingController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Restore a junk calling to a non-junk status and reset status
+     */
+    public function restore($id)
+    {
+        try {
+            $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+            $calling = Calling::where('calling_type_id', $junkTypeId)->findOrFail($id);
+            
+            // Find a valid non-junk calling type to assign to
+            $defaultType = CallingType::where('name', '!=', 'Junk')->first();
+            if ($defaultType) {
+                $calling->calling_type_id = $defaultType->id;
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No alternative calling type available to restore to.'
+                ], 400);
+            }
+            
+            // Make status id 1 again
+            $calling->status_id = 1;
+            $calling->save();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Junk call restored successfully!'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to restore junk call: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
 
 

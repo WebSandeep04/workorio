@@ -75,19 +75,16 @@ class MyCallingController extends Controller
         return response()->json($query->orderBy('created_at', 'desc')->paginate($perPage));
     }
 
-    public function getFilterOptions()
-    {
-        return response()->json([
-            'states' => State::orderBy('state_name')->get([
-                'id', \DB::raw('state_name as name')
-            ]),
-            'calling_types' => CallingType::where('name', '!=', 'Junk')
-                ->orderBy('name')->get([
-                    'id',
-                    'name'
-                ]),
-        ]);
-    }
+  public function getFilterOptions()
+{
+    return response()->json([
+        'states' => State::orderBy('state_name')
+            ->get(['id', 'state_name']),
+
+        'calling_types' => CallingType::orderBy('name')
+            ->get(['id', 'name']),
+    ]);
+}
 
     public function getCitiesByState($stateId)
     {

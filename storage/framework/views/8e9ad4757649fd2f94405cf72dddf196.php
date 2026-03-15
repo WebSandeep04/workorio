@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Junk Calling')
-@section('page_title', 'Junk Calling')
 
-@push('styles')
+<?php $__env->startSection('title', 'Junk Calling'); ?>
+<?php $__env->startSection('page_title', 'Junk Calling'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
     .calling-page {
         padding: 0.5rem;
@@ -473,9 +473,9 @@
     }
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 calling-page">
     <div class="calling-hero-card">
         <div>
@@ -486,7 +486,7 @@
         <div class="hero-metrics">
             <div class="hero-metric-card">
                 <div class="hero-metric-icon icon-rose">
-                    <img src="{{ asset('img/icons/pending.png') }}" alt="Total Junk">
+                    <img src="<?php echo e(asset('img/icons/pending.png')); ?>" alt="Total Junk">
                 </div>
                 <div class="hero-metric-content">
                     <span class="metric-label">Total junk</span>
@@ -495,7 +495,7 @@
             </div>
             <div class="hero-metric-card">
                 <div class="hero-metric-icon icon-amber">
-                    <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
+                    <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
                 </div>
                 <div class="hero-metric-content">
                     <span class="metric-label">Active filters</span>
@@ -504,7 +504,7 @@
             </div>
             <div class="hero-metric-card">
                 <div class="hero-metric-icon icon-emerald">
-                    <img src="{{ asset('img/icons/tick.png') }}" alt="Last Purge">
+                    <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Last Purge">
                 </div>
                 <div class="hero-metric-content">
                     <span class="metric-label">Last purge</span>
@@ -600,9 +600,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     $(document).ready(function () {
         const $tbody = $('#callingTable tbody');
@@ -614,7 +614,7 @@
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         });
 
-        const remarksUrlTemplate = '{{ route("calling.remarks.show", ["calling" => "__ID__"]) }}';
+        const remarksUrlTemplate = '<?php echo e(route("calling.remarks.show", ["calling" => "__ID__"])); ?>';
 
         const formatNumber = (value) => Number(value || 0).toLocaleString('en-IN');
 
@@ -648,7 +648,7 @@
         }
 
         function loadStates() {
-            $.get('{{ route("calling.junk.filter-options") }}', function (resp) {
+            $.get('<?php echo e(route("calling.junk.filter-options")); ?>', function (resp) {
                 const $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
                 (resp.states || []).forEach(function (st) {
@@ -662,7 +662,7 @@
                 $('#filter_city').html('<option value="">All Cities</option>');
                 return;
             }
-            $.get('{{ route("calling.junk.cities", ":stateId") }}'.replace(':stateId', stateId), function (resp) {
+            $.get('<?php echo e(route("calling.junk.cities", ":stateId")); ?>'.replace(':stateId', stateId), function (resp) {
                 const $city = $('#filter_city');
                 $city.empty().append('<option value="">All Cities</option>');
                 (resp || []).forEach(function (ct) {
@@ -736,7 +736,7 @@
 
         function loadCallings(page = 1) {
             currentPage = page;
-            $.get('{{ route("calling.junk.data") }}?page=' + page, function (data) {
+            $.get('<?php echo e(route("calling.junk.data")); ?>?page=' + page, function (data) {
                 const rows = Array.isArray(data) ? data : (data.data || []);
                 renderRows(rows);
                 renderPagination(data);
@@ -795,7 +795,7 @@
                 return;
             }
             setActiveFiltersCount(applied);
-            $.post('{{ route("calling.junk.filter") }}?page=' + page, filters, function (data) {
+            $.post('<?php echo e(route("calling.junk.filter")); ?>?page=' + page, filters, function (data) {
                 const rows = Array.isArray(data) ? data : (data.data || []);
                 renderRows(rows);
                 renderFilterPagination(data);
@@ -845,7 +845,7 @@
         $('#confirmDelete').on('click', function () {
             if (!deleteId) return;
             $.ajax({
-                url: '{{ route("calling.junk.destroy", ":id") }}'.replace(':id', deleteId),
+                url: '<?php echo e(route("calling.junk.destroy", ":id")); ?>'.replace(':id', deleteId),
                 type: 'DELETE',
                 data: { _token: $('meta[name="csrf-token"]').attr('content') },
                 success: function (response) {
@@ -869,7 +869,7 @@
             const id = $(this).data('id');
             if (!confirm('Are you sure you want to restore this junk call?')) return;
             $.ajax({
-                url: '{{ route("calling.junk.restore", ":id") }}'.replace(':id', id),
+                url: '<?php echo e(route("calling.junk.restore", ":id")); ?>'.replace(':id', id),
                 type: 'POST',
                 data: { _token: $('meta[name="csrf-token"]').attr('content') },
                 success: function (response) {
@@ -890,4 +890,6 @@
         loadCallings();
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/calling/junk.blade.php ENDPATH**/ ?>

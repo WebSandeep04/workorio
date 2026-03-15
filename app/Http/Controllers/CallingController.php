@@ -234,7 +234,7 @@ class CallingController extends Controller
     {
         $perPage = $request->get('per_page', 10);
         
-        $query = Calling::with(['state:id,state_name', 'city:id,city_name', 'latestRemark', 'callingType:id,name', 'status:id,status_name']);
+        $query = Calling::with(['state:id,state_name', 'city:id,city_name', 'latestRemark', 'callingType:id,name', 'status:id,status_name'])->whereNotNull('user_id');
         
         $callings = $query->orderBy('created_at', 'desc')->paginate($perPage);
         return response()->json($callings);
@@ -244,7 +244,7 @@ class CallingController extends Controller
     {
         $perPage = $request->get('per_page', 10);
         
-        $query = Calling::with(['state:id,state_name', 'city:id,city_name', 'latestRemark', 'callingType:id,name', 'status:id,status_name']);
+        $query = Calling::with(['state:id,state_name', 'city:id,city_name', 'latestRemark', 'callingType:id,name', 'status:id,status_name'])->whereNotNull('user_id');
             
         if ($request->filled('name')) {
             $term = trim((string) $request->name);

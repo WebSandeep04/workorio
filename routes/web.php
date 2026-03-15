@@ -993,6 +993,7 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::post('/calling/junk/filter', [JunkCallingController::class, 'filterCallings'])->name('calling.junk.filter');
     Route::get('/calling/junk/filter-options', [JunkCallingController::class, 'getFilterOptions'])->name('calling.junk.filter-options');
     Route::get('/calling/junk/cities/{stateId}', [JunkCallingController::class, 'getCitiesByState'])->name('calling.junk.cities');
+    Route::post('/calling/junk/{id}/restore', [JunkCallingController::class, 'restore'])->name('calling.junk.restore');
     Route::delete('/calling/junk/{id}', [JunkCallingController::class, 'destroy'])->name('calling.junk.destroy');
 
     // removed my-calling and junk-calling routes

@@ -1,21 +1,21 @@
-@extends('layouts.app')
 
-@section('title', 'Junk Calling')
-@section('page_title', 'Junk Calling')
 
-@push('styles')
+<?php $__env->startSection('title', 'My Calling'); ?>
+<?php $__env->startSection('page_title', 'My Calling'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
     .calling-page {
         padding: 0.5rem;
         background: #f7f8fc;
     }
 
-    
     .data-table-card .custom-table thead th {
     
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
    
   }
+
     .calling-hero-card {
         background: transparent;
         border-radius: 0;
@@ -186,12 +186,6 @@
         color: #000;
     }
 
-    .table-range-meta {
-        font-size: 0.75rem;
-        color: #6b7280;
-        margin: 0.35rem 0 0.75rem;
-    }
-
     .table-search {
         width: 100%;
         margin-bottom: 0.5rem;
@@ -221,6 +215,12 @@
         width: 100%;
         outline: none;
         color: #111827;
+    }
+
+    .table-range-meta {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin: 0.35rem 0 0.75rem;
     }
 
     .filter-reset-btn {
@@ -321,7 +321,7 @@
         border-collapse: separate;
         border-spacing: 0;
         width: 100%;
-        min-width: 950px;
+        min-width: 850px;
         background: transparent;
         font-size: 0.85rem;
         table-layout: auto;
@@ -341,7 +341,7 @@
         top: 0;
         z-index: 5;
         white-space: nowrap;
-        font-family: Montserrat;
+        font-family: Monserrat;
     }
 
     .data-table-card .custom-table tbody td {
@@ -352,7 +352,7 @@
         text-align: left;
         background: transparent;
         white-space: nowrap;
-        font-family: Montserrat;
+        font-family: Monserrat;
     }
 
     .data-table-card .custom-table tbody td:first-child,
@@ -375,7 +375,7 @@
         border-bottom: none;
     }
 
-    .data-table-card .custom-table tbody td:nth-child(1) { min-width: 160px; }
+    .data-table-card .custom-table tbody td:nth-child(1) { min-width: 140px; }
     .data-table-card .custom-table tbody td:nth-child(2) { min-width: 160px; }
     .data-table-card .custom-table tbody td:nth-child(3) { min-width: 140px; }
     .data-table-card .custom-table tbody td:nth-child(4) { min-width: 120px; }
@@ -383,7 +383,6 @@
     .data-table-card .custom-table tbody td:nth-child(6) { min-width: 180px; }
     .data-table-card .custom-table tbody td:nth-child(7) { min-width: 140px; }
     .data-table-card .custom-table tbody td:nth-child(8) { min-width: 220px; }
-    .data-table-card .custom-table tbody td:nth-child(9) { min-width: 130px; }
 
     .remark-link {
         color: #667eea;
@@ -435,27 +434,8 @@
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
 
-    .action-btn {
-        border-radius: 4px;
-        border: none;
-        padding: 0.2rem 0.4rem;
-        font-size: 0.6rem;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.2rem;
-        transition: all 0.3s ease;
-        line-height: 1.2;
-    }
 
-    .action-btn.danger {
-        background: linear-gradient(135deg, #ff0844 0%, #ff4b2b 100%);
-        color: #fff;
-        box-shadow: 0 2px 4px rgba(255, 75, 43, 0.25);
-    }
-
-
-    @media (max-width: 767px){
+     @media (max-width: 767px){
     .container-fluid{
       padding-left: 0.5rem;
       padding-right: 0.5rem;
@@ -473,29 +453,29 @@
     }
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 calling-page">
     <div class="calling-hero-card">
         <div>
-            <p class="eyebrow-text">Cleanup queue</p>
-            <h2 class="hero-title">Junk call review</h2>
-            <p class="mb-0">Review disqualified prospects, inspect remarks instantly, and permanently purge records when needed.</p>
+            <p class="eyebrow-text">My queue</p>
+            <h2 class="hero-title">Assigned callings</h2>
+            <p class="mb-0">Review your locked prospects, update calling types inline, and keep remarks at your fingertips.</p>
         </div>
         <div class="hero-metrics">
             <div class="hero-metric-card">
-                <div class="hero-metric-icon icon-rose">
-                    <img src="{{ asset('img/icons/pending.png') }}" alt="Total Junk">
+                <div class="hero-metric-icon icon-sky">
+                    <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Total Assigned">
                 </div>
                 <div class="hero-metric-content">
-                    <span class="metric-label">Total junk</span>
-                    <span class="metric-value" id="totalJunk">0</span>
+                    <span class="metric-label">Total assigned</span>
+                    <span class="metric-value" id="totalAssigned">0</span>
                 </div>
             </div>
             <div class="hero-metric-card">
                 <div class="hero-metric-icon icon-amber">
-                    <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
+                    <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
                 </div>
                 <div class="hero-metric-content">
                     <span class="metric-label">Active filters</span>
@@ -504,11 +484,11 @@
             </div>
             <div class="hero-metric-card">
                 <div class="hero-metric-icon icon-emerald">
-                    <img src="{{ asset('img/icons/tick.png') }}" alt="Last Purge">
+                    <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Latest Update">
                 </div>
                 <div class="hero-metric-content">
-                    <span class="metric-label">Last purge</span>
-                    <span class="metric-value" id="lastDeleted">--</span>
+                    <span class="metric-label">Latest update</span>
+                    <span class="metric-value" id="lastUpdated">--</span>
                 </div>
             </div>
         </div>
@@ -527,6 +507,12 @@
             <label for="filter_city" class="form-label-modern"><i class="bi bi-buildings"></i> City</label>
             <select id="filter_city" class="form-control-modern">
                 <option value="">All Cities</option>
+            </select>
+        </div>
+        <div>
+            <label for="filter_calling_type" class="form-label-modern"><i class="bi bi-telephone"></i> Calling Type</label>
+            <select id="filter_calling_type" class="form-control-modern">
+                <option value="">All Types</option>
             </select>
         </div>
         <div>
@@ -559,8 +545,8 @@
                             <th>City</th>
                             <th>Address</th>
                             <th>Phone</th>
+                            <th style="width: 150px;">Assign To</th>
                             <th style="width: 180px;">Remarks</th>
-                            <th style="width: 120px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -569,7 +555,7 @@
         </div>
     </div>
 
-    <div class="table-range-meta" id="junkCallingRangeInfo">
+    <div class="table-range-meta" id="myCallingRangeInfo">
         Showing 0-0 from 0 data
     </div>
 
@@ -580,67 +566,32 @@
         <ul class="pagination" id="paginationFilterLinks"></ul>
     </div>
 </div>
+<?php $__env->stopSection(); ?>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to permanently delete this junk call?</p>
-                <p class="text-danger"><strong>Warning:</strong> This action cannot be undone. The call and all its remarks will be permanently deleted from the database.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDelete">Delete Permanently</button>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
-
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     $(document).ready(function () {
         const $tbody = $('#callingTable tbody');
         let currentPage = 1;
         let currentFilterPage = 1;
-        let lastDeletedTime = '--';
+        let totalAssigned = 0;
 
-        $.ajaxSetup({
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-        });
-
-        const remarksUrlTemplate = '{{ route("calling.remarks.show", ["calling" => "__ID__"]) }}';
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
         const formatNumber = (value) => Number(value || 0).toLocaleString('en-IN');
 
-        function showAlert(type, message) {
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
-            const alertHtml = `
-                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                    <i class="bi ${icon} me-2"></i>${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>`;
-            $('#alertContainer').html(alertHtml);
-            setTimeout(() => $('#alertContainer .alert').fadeOut(() => $(this).remove()), 4000);
-        }
-
         function updateTotals(meta) {
-            let total = 0;
             if (meta && typeof meta.total !== 'undefined') {
-                total = meta.total;
+                totalAssigned = meta.total;
             } else if (Array.isArray(meta)) {
-                total = meta.length;
+                totalAssigned = meta.length;
             } else if (meta && meta.data) {
-                total = meta.data.length;
+                totalAssigned = meta.data.length;
+            } else {
+                totalAssigned = 0;
             }
-            $('#totalJunk').text(formatNumber(total));
-            $('#lastDeleted').text(lastDeletedTime);
+            $('#totalAssigned').text(formatNumber(totalAssigned));
+            $('#lastUpdated').text(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         }
 
         function setActiveFiltersCount(count) {
@@ -648,27 +599,77 @@
         }
 
         function loadStates() {
-            $.get('{{ route("calling.junk.filter-options") }}', function (resp) {
+            $.get('<?php echo e(route("calling.my.filter-options")); ?>', function (resp) {
                 const $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
-                (resp.states || []).forEach(function (st) {
-                    $state.append('<option value="' + st.id + '">' + st.name + '</option>');
+                (resp.states || []).forEach(function (s) { $state.append('<option value="' + s.id + '">' + s.name + '</option>'); });
+
+                window.callingTypes = resp.calling_types || [];
+                const $callingType = $('#filter_calling_type');
+                $callingType.empty().append('<option value="">All Types</option>');
+                window.callingTypes.forEach(function (ct) {
+                    $callingType.append('<option value="' + ct.id + '">' + ct.name + '</option>');
                 });
             });
         }
 
-        function loadCities(stateId) {
-            if (!stateId) {
-                $('#filter_city').html('<option value="">All Cities</option>');
-                return;
-            }
-            $.get('{{ route("calling.junk.cities", ":stateId") }}'.replace(':stateId', stateId), function (resp) {
+        function loadCitiesByState(stateId) {
+            if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
+            const url = '<?php echo e(route("calling.my.cities", ["stateId" => 0])); ?>'.replace(/0$/, String(stateId));
+            $.get(url, function (cities) {
                 const $city = $('#filter_city');
                 $city.empty().append('<option value="">All Cities</option>');
-                (resp || []).forEach(function (ct) {
-                    $city.append('<option value="' + ct.id + '">' + ct.name + '</option>');
-                });
+                (cities || []).forEach(function (c) { $city.append('<option value="' + c.id + '">' + c.name + '</option>'); });
             });
+        }
+
+        function renderRows(rows) {
+            let html = '';
+            if (rows && rows.length) {
+                rows.forEach(function (r) {
+                    const stateName = (r.state && (r.state.state_name || r.state.name)) || '-';
+                    const cityName = (r.city && (r.city.city_name || r.city.name)) || '-';
+                    const phone = r.phone || r.mobile || '';
+                    const full = (r.latest_remark && r.latest_remark.remark) ? r.latest_remark.remark : '';
+                    const short = full ? (full.length > 12 ? full.substring(0, 12) + '...' : full) : '-';
+                    const remarkLink = '<a href="/calling/' + r.id + '/remarks" class="remark-link" title="' + (full || '') + '">' + short + '</a>';
+
+                    let callingTypeOptions = '';
+                    if (window.callingTypes && window.callingTypes.length > 0) {
+                        window.callingTypes.forEach(function (ct) {
+                            const selected = ct.id === r.calling_type_id ? 'selected' : '';
+                            callingTypeOptions += '<option value="' + ct.id + '" ' + selected + '>' + ct.name + '</option>';
+                        });
+                    }
+                    const callingTypeDropdown = '<select class="form-select form-select-sm calling-type-select" data-calling-id="' + r.id + '" style="min-width: 120px;">' + callingTypeOptions + '</select>';
+
+                    let dropdownOptions = '<option value="">Select Member</option>';
+                    if (window.teamMembers && window.teamMembers.length > 0) {
+                        window.teamMembers.forEach(function (member) {
+                            // in my calling, the current user is owner, so we want someone else to assign to. 
+                            // It starts unassigned to others
+                            dropdownOptions += `<option value="${member.id}">${member.name}</option>`;
+                        });
+                    }
+                    const assignDropdown = `<select class="form-select form-select-sm assign-select" data-calling-id="${r.id}" onchange="reassignCalling(${r.id}, this.value)">${dropdownOptions}</select>`;
+
+                    html += `
+                        <tr>
+                            <td>${r.name || '-'}</td>
+                            <td>${r.email || '-'}</td>
+                            <td>${callingTypeDropdown}</td>
+                            <td>${stateName}</td>
+                            <td>${cityName}</td>
+                            <td>${r.address || '-'}</td>
+                            <td>${phone}</td>
+                            <td>${assignDropdown}</td>
+                            <td>${remarkLink}</td>
+                        </tr>`;
+                });
+            } else {
+                html = '<tr><td colspan="9" class="text-center">No records found.</td></tr>';
+            }
+            $tbody.html(html);
         }
 
         // Build simple pagination: "Previous [current / last] Next"
@@ -701,42 +702,16 @@
             `);
         }
 
-        function renderRows(callings) {
-            let html = '';
-            if (!callings.length) {
-                html = '<tr><td colspan="9" class="text-center">No junk calls found.</td></tr>';
-            } else {
-                callings.forEach(function (calling) {
-                    const remarkText = calling.latest_remark ? calling.latest_remark.remark : '';
-                    let shortRemark = remarkText ? (remarkText.length > 12 ? remarkText.substring(0, 12) + '...' : remarkText) : '-';
-                    const remarkUrl = remarksUrlTemplate.replace('__ID__', calling.id);
-                    html += `
-                        <tr>
-                            <td>${calling.name || '-'}</td>
-                            <td>${calling.email || '-'}</td>
-                            <td>${calling.calling_type ? calling.calling_type.name : '-'}</td>
-                            <td>${calling.state ? calling.state.state_name : '-'}</td>
-                            <td>${calling.city ? calling.city.city_name : '-'}</td>
-                            <td>${calling.address || '-'}</td>
-                            <td>${calling.phone || calling.mobile || '-'}</td>
-                            <td><a href="${remarkUrl}" class="remark-link" title="${remarkText}">${shortRemark}</a></td>
-                            <td>
-                                <button class="action-btn restore-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.25);" data-id="${calling.id}">
-                                    <i class="bi bi-arrow-counterclockwise"></i> Restore
-                                </button>
-                                <button class="action-btn danger delete-btn" data-id="${calling.id}">
-                                    <i class="bi bi-trash"></i> Delete
-                                </button>
-                            </td>
-                        </tr>`;
-                });
-            }
-            $tbody.html(html);
-        }
-
-        function loadCallings(page = 1) {
+        function loadMyCallings(page = 1) {
             currentPage = page;
-            $.get('{{ route("calling.junk.data") }}?page=' + page, function (data) {
+            if (!window.teamMembers) {
+                loadTeamMembers().then(function() {
+                    loadMyCallings(page);
+                });
+                return;
+            }
+
+            $.get('<?php echo e(route("calling.my.data")); ?>?page=' + page, function (data) {
                 const rows = Array.isArray(data) ? data : (data.data || []);
                 renderRows(rows);
                 renderPagination(data);
@@ -753,6 +728,30 @@
             updateRangeInfo(data.from, data.to, data.total);
         }
 
+        function applyFilters(page = 1) {
+            currentFilterPage = page;
+            const name = ($('#filter_name').val() || '').trim();
+            const stateId = $('#filter_state').val();
+            const cityId = $('#filter_city').val();
+            const callingTypeId = $('#filter_calling_type').val();
+            const appliedCount = [name, stateId, cityId, callingTypeId].filter(Boolean).length;
+
+            if (!appliedCount) {
+                setActiveFiltersCount(0);
+                loadMyCallings(1);
+                return;
+            }
+
+            setActiveFiltersCount(appliedCount);
+            $.post('<?php echo e(route("calling.my.filter")); ?>?page=' + page, { name, state_id: stateId, city_id: cityId, calling_type_id: callingTypeId })
+                .done(function (data) {
+                    const rows = Array.isArray(data) ? data : (data.data || []);
+                    renderRows(rows);
+                    renderFilterPagination(data);
+                    updateTotals(data);
+                });
+        }
+
         function renderFilterPagination(data) {
             const $pagination = $('#paginationFilterLinks');
             buildDetailedPagination($pagination, data.current_page, data.last_page);
@@ -762,7 +761,7 @@
         }
 
         function updateRangeInfo(from, to, total) {
-            const $info = $('#junkCallingRangeInfo');
+            const $info = $('#myCallingRangeInfo');
             if (!$info.length) return;
 
             const totalValue = Number(total);
@@ -781,50 +780,37 @@
             $info.text(`Showing ${formattedStart}-${formattedEnd} from ${formattedTotal} data`);
         }
 
-        function filterCallings(page = 1) {
-            currentFilterPage = page;
-            const filters = {
-                name: $('#filter_name').val(),
-                state_id: $('#filter_state').val(),
-                city_id: $('#filter_city').val()
+        function debounce(fn, delay) {
+            let t;
+            return function () {
+                clearTimeout(t);
+                const args = arguments;
+                const ctx = this;
+                t = setTimeout(function () { fn.apply(ctx, args); }, delay);
             };
-            const applied = Object.values(filters).filter(Boolean).length;
-            if (!applied) {
-                setActiveFiltersCount(0);
-                loadCallings(1);
-                return;
-            }
-            setActiveFiltersCount(applied);
-            $.post('{{ route("calling.junk.filter") }}?page=' + page, filters, function (data) {
-                const rows = Array.isArray(data) ? data : (data.data || []);
-                renderRows(rows);
-                renderFilterPagination(data);
-                updateTotals(data);
-            });
         }
 
-        $('#filter_state').on('change', function () {
-            const stateId = $(this).val();
-            loadCities(stateId);
-            filterCallings(1);
-        });
-        $('#filter_city').on('change', function () { filterCallings(1); });
-        $('#filter_name').on('input', function () { filterCallings(1); });
+        const triggerFilter = debounce(applyFilters, 300);
 
+        $('#filter_state').on('change', function () { loadCitiesByState($(this).val()); triggerFilter(); });
+        $('#filter_city').on('change', triggerFilter);
+        $('#filter_calling_type').on('change', triggerFilter);
+        $('#filter_name').on('input', triggerFilter);
         $('#resetFilters').on('click', function (e) {
             e.preventDefault();
             $('#filter_name').val('');
             $('#filter_state').val('');
             $('#filter_city').html('<option value="">All Cities</option>');
+            $('#filter_calling_type').val('');
             setActiveFiltersCount(0);
-            loadCallings(1);
+            loadMyCallings(1);
         });
 
         $(document).on('click', '#paginationLinks .page-link', function (e) {
             e.preventDefault();
             const page = $(this).data('page');
             if (page && page !== currentPage) {
-                loadCallings(page);
+                loadMyCallings(page);
             }
         });
 
@@ -832,62 +818,110 @@
             e.preventDefault();
             const page = $(this).data('page');
             if (page && page !== currentFilterPage) {
-                filterCallings(page);
+                applyFilters(page);
             }
         });
 
-        let deleteId = null;
-        $(document).on('click', '.delete-btn', function () {
-            deleteId = $(this).data('id');
-            $('#deleteModal').modal('show');
-        });
+        $(document).on('change', '.calling-type-select', function () {
+            const callingId = $(this).data('calling-id');
+            const newCallingType = $(this).val();
+            const $select = $(this);
+            $select.prop('disabled', true);
 
-        $('#confirmDelete').on('click', function () {
-            if (!deleteId) return;
             $.ajax({
-                url: '{{ route("calling.junk.destroy", ":id") }}'.replace(':id', deleteId),
-                type: 'DELETE',
-                data: { _token: $('meta[name="csrf-token"]').attr('content') },
-                success: function (response) {
-                    $('#deleteModal').modal('hide');
-                    if (response.success) {
-                        lastDeletedTime = new Date().toLocaleString();
-                        showAlert('success', response.message || 'Deleted successfully');
-                        loadCallings(currentPage);
-                    } else {
-                        showAlert('error', response.message || 'Failed to delete junk call');
-                    }
-                },
-                error: function () {
-                    $('#deleteModal').modal('hide');
-                    showAlert('error', 'Failed to delete junk call');
-                }
-            });
-        });
-
-        $(document).on('click', '.restore-btn', function () {
-            const id = $(this).data('id');
-            if (!confirm('Are you sure you want to restore this junk call?')) return;
-            $.ajax({
-                url: '{{ route("calling.junk.restore", ":id") }}'.replace(':id', id),
+                url: '<?php echo e(route("calling.my.update-type")); ?>',
                 type: 'POST',
-                data: { _token: $('meta[name="csrf-token"]').attr('content') },
+                data: {
+                    calling_id: callingId,
+                    calling_type_id: newCallingType
+                },
                 success: function (response) {
                     if (response.success) {
-                        showAlert('success', response.message || 'Restored successfully');
-                        loadCallings(currentPage);
+                        showAlert('success', 'Calling type updated successfully!');
+                        const junkTypeId = window.callingTypes.find(ct => ct.name === 'Junk')?.id;
+                        if (Number(newCallingType) === junkTypeId) {
+                            $select.closest('tr').fadeOut(function () {
+                                $(this).remove();
+                                updateTotals({ total: totalAssigned - 1 });
+                            });
+                        }
                     } else {
-                        showAlert('error', response.message || 'Failed to restore junk call');
+                        showAlert('error', response.message || 'Failed to update calling type.');
+                        loadMyCallings(currentPage);
                     }
                 },
                 error: function () {
-                    showAlert('error', 'Failed to restore junk call');
+                    showAlert('error', 'Failed to update calling type.');
+                    loadMyCallings(currentPage);
+                },
+                complete: function () {
+                    $select.prop('disabled', false);
                 }
             });
         });
 
+        function showAlert(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    <i class="bi ${icon} me-2"></i>${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            $('#alertContainer').html(alertHtml);
+            setTimeout(function () {
+                $('#alertContainer .alert').fadeOut(function () { $(this).remove(); });
+            }, 4000);
+        }
+
+        window.reassignCalling = function(callingId, newUserId) {
+            if (!newUserId) return;
+            $.ajax({
+                url: '<?php echo e(route("calling.my.reassign")); ?>',
+                type: 'POST',
+                data: {
+                    calling_id: callingId,
+                    new_user_id: newUserId,
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert('success', 'Calling reassigned successfully!');
+                        loadMyCallings(currentPage);
+                    } else {
+                        showAlert('error', response.message || 'Failed to reassign calling.');
+                    }
+                },
+                error: function() {
+                    showAlert('error', 'Failed to reassign calling. Please try again.');
+                }
+            });
+        };
+
+        function loadTeamMembers() {
+            return new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: '<?php echo e(route("calling.my.team-members")); ?>',
+                    type: 'GET',
+                    success: function (response) {
+                        window.teamMembers = response;
+                        resolve();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Failed to load team members.");
+                        resolve(); // still resolve so it doesn't get stuck
+                    }
+                });
+            });
+        }
+
+        // initial load
         loadStates();
-        loadCallings();
+        loadTeamMembers().then(function() {
+            loadMyCallings(1);
+        });
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/calling/mycalling.blade.php ENDPATH**/ ?>
