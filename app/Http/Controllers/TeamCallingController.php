@@ -23,6 +23,11 @@ class TeamCallingController extends Controller
     public function getTeamCallings(Request $request)
     {
         $userId = $this->getCurrentUserId();
+        
+        $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
+            $q->where('manager_id', $userId);
+        })->pluck('id');
+
         $junkTypeId = CallingType::where('name', 'Junk')->value('id');
         $perPage = $request->get('per_page', 10);
 
@@ -32,12 +37,9 @@ class TeamCallingController extends Controller
             'city:id,city_name',
             'latestRemark',
             'callingType:id,name',
-            'status:id,status_name',
-            'user'
+            'status:id,status_name'
         ])
-        ->whereHas('user.managers', function($query) use ($userId) {
-            $query->where('manager_id', $userId); // Only callings created by subordinates
-        })
+        ->whereIn('user_id', $subordinateIds)
         ->where('calling_type_id', '!=', $junkTypeId)
         ->orderBy('created_at', 'desc')
         ->paginate($perPage);
@@ -49,6 +51,11 @@ class TeamCallingController extends Controller
     public function filterTeamCallings(Request $request)
     {
         $userId = $this->getCurrentUserId();
+        
+        $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
+            $q->where('manager_id', $userId);
+        })->pluck('id');
+
         $junkTypeId = CallingType::where('name', 'Junk')->value('id');
         $perPage = $request->get('per_page', 10);
 
@@ -57,12 +64,9 @@ class TeamCallingController extends Controller
             'city:id,city_name',
             'latestRemark',
             'callingType:id,name',
-            'status:id,status_name',
-            'user'
+            'status:id,status_name'
         ])
-        ->whereHas('user.managers', function($q) use ($userId) {
-            $q->where('manager_id', $userId); // Only callings created by subordinates
-        })
+        ->whereIn('user_id', $subordinateIds)
         ->where('calling_type_id', '!=', $junkTypeId);
 
         // Apply filters
@@ -91,6 +95,20 @@ class TeamCallingController extends Controller
         return response()->json($records);
     }
 
+    public function getFilterOptions()
+    {
+        return response()->json([
+            'states' => State::orderBy('state_name')->get([
+                'id', \DB::raw('state_name as name')
+            ]),
+            'calling_types' => CallingType::where('name', '!=', 'Junk')
+                ->orderBy('name')->get([
+                    'id',
+                    'name'
+                ]),
+        ]);
+    }
+
     // Reassign calling to different team member
     public function reassignCalling(Request $request)
     {
@@ -101,7 +119,7 @@ class TeamCallingController extends Controller
         // Verify the current user is a manager
         $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
             $q->where('manager_id', $userId);
-        })->pluck('users.id');
+        })->pluck('id');
 
         if ($subordinateIds->isEmpty()) {
             return response()->json(['error' => 'You are not authorized to reassign callings'], 403);
@@ -156,8 +174,8 @@ class TeamCallingController extends Controller
         $teamMembers = User::whereHas('managers', function($q) use ($userId) {
                 $q->where('manager_id', $userId);
             })
-            ->where('users.id', '!=', $userId) // Exclude self
-            ->select('users.id', 'users.name')
+            ->where('id', '!=', $userId) // Exclude self
+            ->select('id', 'name')
             ->get();
 
         return response()->json($teamMembers);
