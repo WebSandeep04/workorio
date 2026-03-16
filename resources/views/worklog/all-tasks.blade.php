@@ -811,8 +811,8 @@
           <!-- Image Upload for Edit -->
           <div class="mb-3">
               <label for="edit_task_images" class="form-label">Add More Images (Optional)</label>
-              <input type="file" name="images[]" id="edit_task_images" class="form-control form-control-sm" multiple accept="image/*">
-              <small class="help-text">You can select or paste images (Ctrl+V). Max 5MB per image.</small>
+              <input type="file" name="images[]" id="edit_task_images" class="form-control form-control-sm" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip">
+              <small class="help-text">You can select or paste files (Ctrl+V). Max 5MB per file.</small>
               <div id="editImagePreview" class="mt-2" tabindex="0" style="min-height:56px;"></div>
               <div id="existingImages" class="mt-2"></div>
           </div>
@@ -1421,7 +1421,7 @@ $(document).ready(function() {
             const it = items[i];
             if (it.kind === 'file') {
                 const file = it.getAsFile();
-                if (file && file.type && file.type.startsWith('image/')) {
+                if (file) {
                     files.push(file);
                 }
             }
@@ -1445,7 +1445,7 @@ $(document).ready(function() {
         if (files.length > 0) {
             preview.append('<small class="text-muted d-block mb-2">New images to add:</small>');
             Array.from(files).forEach((file) => {
-                if (!file.type.startsWith('image/')) return;
+                // Allow non-images as well
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     preview.append(`

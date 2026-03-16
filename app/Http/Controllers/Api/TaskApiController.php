@@ -146,7 +146,7 @@ class TaskApiController extends Controller
             'recurrence_months.*' => 'integer|min:1|max:12',
             'recurrence_end_date' => 'nullable|date|after_or_equal:today',
             'due_date' => 'nullable|date',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
+            'images.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,csv,txt,zip|max:5120'
         ]);
 
         $createdBy = auth()->id();

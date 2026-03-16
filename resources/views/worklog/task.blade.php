@@ -999,7 +999,7 @@
 
                                 <!-- File Input -->
                                 <input
-                                type="file" name="images[]" id="task_images" class="d-none" multiple accept="image/*" style= "background: #DfDfDf;"
+                                type="file" name="images[]" id="task_images" class="d-none" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip" style= "background: #DfDfDf;"
                                 >
 
                                 <!-- Browse Button -->
@@ -1283,7 +1283,7 @@
 
                                 <!-- File Input -->
                                 <input
-                                type="file" name="images[]" id="edit_task_images" class="d-none" multiple accept="image/*" style= "background: #DfDfDf;"
+                                type="file" name="images[]" id="edit_task_images" class="d-none" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip" style= "background: #DfDfDf;"
                                 >
 
                                 <!-- Browse Button -->
@@ -1329,10 +1329,10 @@ $(document).ready(function() {
         let $panel = $('.filterScroll');
         if ($panel.is(':visible')) {
             $panel.slideUp('fast');
-            $(this).text('Show Filters ▼');
+            $(this).text('Show Filters â–¼');
         } else {
             $panel.slideDown('fast');
-            $(this).text('Hide Filters ▲');
+            $(this).text('Hide Filters â–²');
         }
     });
 
@@ -2098,7 +2098,7 @@ $(document).ready(function() {
         const files = e.target.files;
         if (files.length > 0) {
             Array.from(files).forEach((file) => {
-                if (file.type.startsWith('image/')) {
+                if (file) {
                     // Check if file already exists
                     const exists = selectedImages.some(img => img.name === file.name && img.size === file.size);
                     if (!exists) {
@@ -2156,7 +2156,7 @@ $(document).ready(function() {
             const it = items[i];
             if (it.kind === 'file') {
                 const file = it.getAsFile();
-                if (file && file.type && file.type.startsWith('image/')) {
+                if (file) {
                     files.push(file);
                 }
             }
@@ -2843,7 +2843,7 @@ $(document).ready(function() {
         if (files.length > 0) {
             preview.append('<small class="text-muted d-block mb-2">New images to add:</small>');
             Array.from(files).forEach((file, index) => {
-                if (file.type.startsWith('image/')) {
+                if (file) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         preview.append(`
@@ -3151,7 +3151,7 @@ $(document).ready(function() {
         if (files.length > 0) {
             preview.append('<small class="text-muted d-block mb-2">New images to add:</small>');
             Array.from(files).forEach((file) => {
-                if (!file.type.startsWith('image/')) return;
+                // Allow non-images as well
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     preview.append(`

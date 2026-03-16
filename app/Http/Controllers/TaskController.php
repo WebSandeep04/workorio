@@ -302,7 +302,7 @@ class TaskController extends Controller
             'recurrence_months.*' => 'integer|min:1|max:12',
             'recurrence_end_date' => 'nullable|date|after_or_equal:today',
             'due_date' => 'nullable|date',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120' // Max 5MB per image
+            'images.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,csv,txt,zip|max:5120' // Max 5MB per file
         ]);
 
         // Get current user ID from Auth or session
@@ -388,7 +388,7 @@ class TaskController extends Controller
             'recurrence_months.*' => 'integer|min:1|max:12',
             'recurrence_end_date' => 'nullable|date|after_or_equal:today',
             'due_date' => 'nullable|date',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120' // Max 5MB per image
+            'images.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,csv,txt,zip|max:5120' // Max 5MB per file
         ]);
 
         $task = Task::findOrFail($id);
@@ -445,7 +445,8 @@ class TaskController extends Controller
         // Handle new image uploads
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $path = $image->store('task_images', 'public');
+                // Use tenant-aware storage with isolation
+                $path = $this->storeTenantFile($image, 'task_images');
                 TaskImage::create([
                     'task_id' => $task->id,
                     'image_path' => $path,
