@@ -1,8 +1,7 @@
-@extends('layouts.app')
-@section('title', 'My Tasks')
-@section('page_title', 'My Tasks')
-@section('content')
-@push('styles')
+<?php $__env->startSection('title', 'My Tasks'); ?>
+<?php $__env->startSection('page_title', 'My Tasks'); ?>
+<?php $__env->startSection('content'); ?>
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -430,13 +429,13 @@
    
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 <div class="container-fluid">
     <!-- Summary Cards -->
     <div class="summary-cards">
       <div class="summary-card card-1">
         <div class="summary-card-icon icon-sunrise">
-          <img src="{{ asset('img/icons/call.png') }}" alt="Total Tasks">
+          <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Total Tasks">
         </div>
         <div class="summary-card-content">
           <div class="summary-card-label">Total Tasks</div>
@@ -445,7 +444,7 @@
       </div>
       <div class="summary-card card-2">
         <div class="summary-card-icon icon-amber">
-          <img src="{{ asset('img/icons/underprocess.png') }}" alt="In Progress">
+          <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="In Progress">
         </div>
         <div class="summary-card-content">
           <div class="summary-card-label">In Progress</div>
@@ -454,7 +453,7 @@
       </div>
       <div class="summary-card card-3">
         <div class="summary-card-icon icon-emerald">
-          <img src="{{ asset('img/icons/tick.png') }}" alt="Completed">
+          <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Completed">
         </div>
         <div class="summary-card-content">
           <div class="summary-card-label">Completed</div>
@@ -463,7 +462,7 @@
       </div>
       <div class="summary-card card-4">
         <div class="summary-card-icon icon-rose">
-          <img src="{{ asset('img/icons/pending.png') }}" alt="Pending">
+          <img src="<?php echo e(asset('img/icons/pending.png')); ?>" alt="Pending">
         </div>
         <div class="summary-card-content">
           <div class="summary-card-label">Pending</div>
@@ -472,7 +471,7 @@
       </div>
       <div class="summary-card card-5">
         <div class="summary-card-icon icon-sky">
-          <img src="{{ asset('img/icons/new.png') }}" alt="Today's Tasks">
+          <img src="<?php echo e(asset('img/icons/new.png')); ?>" alt="Today's Tasks">
         </div>
         <div class="summary-card-content">
           <div class="summary-card-label">Today's Tasks</div>
@@ -689,9 +688,9 @@
   </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
     // Escape HTML to prevent XSS
@@ -716,7 +715,7 @@ $(document).ready(function() {
     // Load dropdowns using the shared routes
     function loadDropdowns() {
         // Customers
-        $.get("{{ route('task.customers') }}", function(data) {
+        $.get("<?php echo e(route('task.customers')); ?>", function(data) {
             let options = '<option value="">All Customers</option>';
             if (Array.isArray(data) && data.length) {
                 $.each(data, function(i, customer) {
@@ -727,7 +726,7 @@ $(document).ready(function() {
         });
 
         // Statuses
-        $.get("{{ route('task.statuses') }}", function(data) {
+        $.get("<?php echo e(route('task.statuses')); ?>", function(data) {
             let options = '<option value="">All Statuses</option><option value="done">Done</option>';
             if (data && data.length > 0) {
                 $.each(data, function(i, status) {
@@ -738,7 +737,7 @@ $(document).ready(function() {
         });
 
         // Priorities
-        $.get("{{ route('task.priorities') }}", function(data) {
+        $.get("<?php echo e(route('task.priorities')); ?>", function(data) {
             let options = '<option value="">All Priorities</option>';
             if (Array.isArray(data) && data.length) {
                 $.each(data, function(i, priority) {
@@ -858,7 +857,7 @@ $(document).ready(function() {
     function loadTasks() {
         console.log('Loading my tasks...');
         $.ajax({
-            url: "{{ route('my-tasks.fetch') }}",
+            url: "<?php echo e(route('my-tasks.fetch')); ?>",
             type: "GET",
             dataType: 'json',
             success: function(data) {
@@ -1046,14 +1045,14 @@ $(document).ready(function() {
     // Render Kanban Board
     function renderKanban() {
         $.ajax({
-            url: "{{ route('my-tasks.fetch') }}",
+            url: "<?php echo e(route('my-tasks.fetch')); ?>",
             type: "GET",
             dataType: 'json',
             success: function(data) {
                 // Apply same filters to kanban
                 data = applyFilters(data);
 
-                $.get("{{ route('task.statuses') }}", function(statuses) {
+                $.get("<?php echo e(route('task.statuses')); ?>", function(statuses) {
                     const kanbanBoard = $('#kanbanBoard');
                     kanbanBoard.empty();
                     
@@ -1155,7 +1154,7 @@ $(document).ready(function() {
             url: '/task/' + taskId + '/update-status', 
             data: {
                 status: newStatus,
-                _token: '{{ csrf_token() }}'
+                _token: '<?php echo e(csrf_token()); ?>'
             },
             success: function(response) {
                 if (response.success) {
@@ -1172,7 +1171,7 @@ $(document).ready(function() {
                         type: 'POST',
                         data: {
                             task_status_id: newStatus,
-                            _token: '{{ csrf_token() }}'
+                            _token: '<?php echo e(csrf_token()); ?>'
                         },
                         success: function(res) {
                             if (res.success) {
@@ -1242,7 +1241,7 @@ $(document).ready(function() {
         // Reuse existing logic
         let task = null;
         $.ajax({
-            url: "{{ route('my-tasks.fetch') }}",
+            url: "<?php echo e(route('my-tasks.fetch')); ?>",
             type: "GET",
             dataType: 'json',
             success: function(data) {
@@ -1301,15 +1300,15 @@ $(document).ready(function() {
         const taskId = $(this).attr('data-task-id');
         const text = $('#newRemarkText').val().trim();
         if (!text) return;
-        $.post("{{ route('task.remark.save') }}", {
+        $.post("<?php echo e(route('task.remark.save')); ?>", {
             task_id: taskId,
             remark: text,
-            _token: '{{ csrf_token() }}'
+            _token: '<?php echo e(csrf_token()); ?>'
         }, function(res) {
             if (res.success) {
                 $('#newRemarkText').val('');
                 showTaskAlert('success', 'Remark added');
-                $.get("{{ route('my-tasks.fetch') }}", function(data) {
+                $.get("<?php echo e(route('my-tasks.fetch')); ?>", function(data) {
                     const t = data.find(i => i.id == taskId);
                     if (t) displayRemarks(t.remarks);
                 });
@@ -1401,4 +1400,6 @@ $(document).ready(function() {
 
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/worklog/my-tasks.blade.php ENDPATH**/ ?>

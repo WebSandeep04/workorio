@@ -1311,12 +1311,28 @@ $(document).ready(function() {
                 }
 
                 if (imageUrl) {
-                    imagesDiv.append(`
-                        <a href="${imageUrl}" target="_blank" class="d-block border rounded overflow-hidden" style="width: 80px; height: 80px;">
-                            <img src="${imageUrl}" class="w-100 h-100" style="object-fit: cover;" alt="Task Image"
-                                onerror="handleViewImageError(this, ${task.id}, ${img.id || 'null'}, '${img.image_path || ''}')">
-                        </a>
-                    `);
+                    const isDoc = !!img.original_name && img.original_name.match(/\.(pdf|doc|docx|xls|xlsx|csv|txt|zip)$/i);
+                    const ext = (img.original_name || '').split('.').pop().toLowerCase();
+                    const isKnownDoc = isDoc || ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt', 'zip'].includes(ext);
+
+                    if (isKnownDoc) {
+                        imagesDiv.append(`
+                            <a href="${imageUrl}" target="_blank" class="d-flex flex-column align-items-center justify-content-center border rounded p-2 text-decoration-none bg-light" style="width: 80px; height: 80px;" title="${img.original_name || 'Document'}">
+                                <i class="bi bi-file-earmark-text fs-4 text-primary"></i>
+                                <small class="text-truncate w-100 text-center text-dark mt-1" style="font-size: 0.65rem;">${img.original_name || 'Doc'}</small>
+                            </a>
+                        `);
+                    } else {
+                        imagesDiv.append(`
+                            <a href="${imageUrl}" target="_blank" class="d-block border rounded overflow-hidden position-relative" style="width: 80px; height: 80px;" title="${img.original_name || 'Image'}">
+                                <img src="${imageUrl}" class="w-100 h-100" style="object-fit: cover;" alt="Task Image"
+                                    onerror="handleViewImageError(this, ${task.id}, ${img.id || 'null'}, '${img.image_path || ''}')">
+                                <div class="position-absolute bottom-0 start-0 w-100 text-center text-truncate text-white bg-dark bg-opacity-50" style="font-size: 0.55rem; padding: 1px;">
+                                    ${img.original_name || 'Image'}
+                                </div>
+                            </a>
+                        `);
+                    }
                 }
             });
             imagesContainer.show();
