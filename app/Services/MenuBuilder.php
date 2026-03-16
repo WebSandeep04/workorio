@@ -178,7 +178,7 @@ class MenuBuilder
         // Admin gets full access based on feature flags
         if ($isAdmin) {
             foreach ($menuConfig['admin_sections'] as $section) {
-                if ($section['feature_flag'] && (!$tenant || !$tenant->{$section['feature_flag']})) {
+                if (isset($section['feature_flag']) && (!$tenant || !$tenant->{$section['feature_flag']})) {
                     continue;
                 }
                 $filteredSection = static::filterItems($section, $user);
@@ -201,7 +201,7 @@ class MenuBuilder
         if ($isCustomRole) {
             // Custom roles get access based on their permissions
             foreach ($menuConfig['admin_sections'] as $section) {
-                if ($section['feature_flag'] && (!$tenant || !$tenant->{$section['feature_flag']})) {
+                if (isset($section['feature_flag']) && (!$tenant || !$tenant->{$section['feature_flag']})) {
                     continue;
                 }
                 
@@ -243,6 +243,13 @@ class MenuBuilder
                 return $section;
             }
 
+            // User flag check
+            if ($roleName !== 'admin') {
+                if (isset($section['user_flag']) && !$user->{$section['user_flag']}) {
+                    return [];
+                }
+            }
+
             // Custom roles permission check
             if ($roleName !== 'admin' && $roleName !== 'user') {
                 if (isset($section['permission']) && !$user->hasPermission($section['permission'])) {
@@ -275,14 +282,28 @@ class MenuBuilder
         
         // Get tenant information for feature flag checking
         $tenant = $user->tenant;
+
+        // Check user flag for block completely
+        if ($roleName !== 'admin') {
+            if (isset($section['user_flag']) && !$user->{$section['user_flag']}) {
+                return [];
+            }
+        }
         
         foreach ($section['items'] as $item) {
             // Check item-level feature flags first
             if (isset($item['feature_flag']) && (!$tenant || !$tenant->{$item['feature_flag']})) {
                 continue;
             }
-            
-            // Admin gets access to everything (after feature flag check)
+
+            // Check item-level user_flag if not an admin
+            if ($roleName !== 'admin') {
+                if (isset($item['user_flag']) && !$user->{$item['user_flag']}) {
+                    continue;
+                }
+            }
+
+            // Admin gets access to everything (after feature & user flag check)
             if ($roleName === 'admin') {
                 $items[] = $item;
                 continue;

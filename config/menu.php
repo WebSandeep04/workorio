@@ -9,6 +9,7 @@ return [
             'title' => 'Sales & CRM',
             'icon' => 'bi bi-cart',
             'feature_flag' => 'is_sales_enabled',
+            'user_flag' => 'is_sales',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'alldata', 'title' => 'All Data', 'icon' => 'bi bi-collection', 'permission' => 'sales.alldata'],
@@ -32,7 +33,8 @@ return [
             'key' => 'admin_tele_calling',
             'title' => 'Tele Calling',
             'icon' => 'bi bi-telephone-outbound',
-            'feature_flag' => 'is_sales_enabled',
+            'feature_flag' => 'is_tally_calling_enabled',
+            'user_flag' => 'is_tally_calling',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'calling.all', 'title' => 'All Calls', 'icon' => 'bi bi-collection', 'permission' => 'sales.calling.all'],
@@ -49,7 +51,8 @@ return [
             'title' => 'Projects',
             'route' => 'projects.index',
             'icon' => 'bi bi-kanban',
-            'feature_flag' => 'is_worklog_enabled',
+            'feature_flag' => 'is_projects_enabled',
+            'user_flag' => 'is_projects',
             'roles' => ['admin'],
             'permission' => 'projects.view',
         ],
@@ -58,7 +61,8 @@ return [
             'title' => 'Subs & Renewal',
             'route' => 'subscriptions.index',
             'icon' => 'bi bi-arrow-repeat',
-            'feature_flag' => 'is_sales_enabled',
+            'feature_flag' => 'is_subscription_enabled',
+            'user_flag' => 'is_subscription_and_renewal',
             'roles' => ['admin'],
             'permission' => 'subscription.view',
         ],
@@ -67,7 +71,8 @@ return [
             'title' => 'Tracking',
             'route' => 'tracking.index',
             'icon' => 'bi bi-geo-alt',
-            'feature_flag' => 'is_attendance_enabled', // Assuming tracking relates to attendance
+            'feature_flag' => 'is_tracking_enabled', 
+            'user_flag' => 'is_tracking',
             'roles' => ['admin'],
             'permission' => 'tracking.view',
         ],
@@ -77,6 +82,7 @@ return [
             'title' => 'Timesheet',
             'icon' => 'bi bi-clock',
             'feature_flag' => 'is_worklog_enabled',
+            'user_flag' => 'is_worklog',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'worklog', 'title' => 'Timesheet', 'icon' => 'bi bi-clipboard-check', 'permission' => 'worklog.entry'],
@@ -89,7 +95,8 @@ return [
             'key' => 'workflow_critical_path',
             'title' => 'Workflow',
             'icon' => 'bi bi-diagram-3',
-            'feature_flag' => 'is_worklog_enabled',
+            'feature_flag' => 'is_workflow_enabled',
+            'user_flag' => 'is_workflow',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'critical-path.index', 'title' => 'Critical Path', 'icon' => 'bi bi-diagram-2', 'permission' => 'workflow.critical_path'],
@@ -102,7 +109,8 @@ return [
             'key' => 'calendar_section',
             'title' => 'Social Media Calendar',
             'icon' => 'bi bi-calendar3',
-            'feature_flag' => 'is_worklog_enabled',
+            'feature_flag' => 'is_social_media_calendar_enabled',
+            'user_flag' => 'is_calander',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'calendar.index', 'title' => 'Calendar', 'icon' => 'bi bi-calendar3', 'permission' => 'calendar.view'],
@@ -114,7 +122,8 @@ return [
             'key' => 'master_section',
             'title' => 'Master',
             'icon' => 'bi bi-person-badge',
-            'feature_flag' => 'is_worklog_enabled',
+            'feature_flag' => 'is_master_enabled',
+            'user_flag' => 'is_master',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'employees.index', 'title' => 'Employees', 'icon' => 'bi bi-people', 'permission' => 'master.employees'],
@@ -126,7 +135,8 @@ return [
             'key' => 'admin_tasks',
             'title' => 'Tasks & Reminders',
             'icon' => 'bi bi-list-task',
-            'feature_flag' => 'is_worklog_enabled',
+            'feature_flag' => 'is_task_reminders_enabled',
+            'user_flag' => 'is_task',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'all-tasks.index', 'title' => 'All Tasks', 'icon' => 'bi bi-card-list', 'permission' => 'task.view'],
@@ -140,6 +150,7 @@ return [
             'title' => 'Attendance',
             'icon' => 'bi bi-person-check',
             'feature_flag' => 'is_attendance_enabled',
+            'user_flag' => 'is_attandance',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'attendance', 'title' => 'Mark Attendance', 'icon' => 'bi bi-person-check', 'permission' => 'attendance.entry'],
@@ -152,7 +163,8 @@ return [
             'key' => 'admin_reports',
             'title' => 'Reports',
             'icon' => 'bi bi-file-earmark-bar-graph',
-            'feature_flag' => 'is_attendance_enabled',
+            'feature_flag' => 'is_reports_enabled',
+            'user_flag' => 'is_reports',
             'roles' => ['admin'],
             'items' => [
                 // ['route' => 'attendance.stats-view', 'title' => 'Attendance Stats', 'icon' => 'bi bi-bar-chart', 'permission' => 'attendance.stats'],
@@ -166,7 +178,8 @@ return [
             'key' => 'admin_document_management',
             'title' => 'Document',
             'icon' => 'bi bi-folder2-open',
-            'feature_flag' => 'is_document_management_enabled',     
+            'feature_flag' => 'is_document_management_enabled',
+            'user_flag' => 'is_document',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'document.index', 'title' => 'Manage Documents', 'icon' => 'bi bi-folder', 'permission' => 'documents.manage'],
@@ -180,6 +193,7 @@ return [
             'route' => 'petty-cash.index',
             'icon' => 'bi bi-cash-stack',
             'feature_flag' => 'is_petty_cash_enable',
+            'user_flag' => 'is_petty_cash',
             'roles' => ['admin'],
             'permission' => 'petty_cash.view',
         ],
@@ -204,6 +218,7 @@ return [
             'route' => 'contactmanagement.index',
             'icon' => 'bi bi-person-lines-fill',
             'feature_flag' => 'is_contact_management',
+            'user_flag' => 'is_contact_management',
             'roles' => ['admin'],
             'permission' => 'contact_management.access',
         ],
@@ -214,6 +229,7 @@ return [
             'route' => 'asset-management.index',
             'icon' => 'bi bi-box-seam',
             'feature_flag' => 'is_asset_management_enable',
+            'user_flag' => 'is_asset_management',
             'roles' => ['admin'],
             'permission' => 'asset_management.access',
         ],
@@ -224,6 +240,7 @@ return [
             'route' => 'emailmarketing.index',
             'icon' => 'bi bi-envelope',
             'feature_flag' => 'is_email_marketing_enable',
+            'user_flag' => 'is_email_marketing',
             'roles' => ['admin'],
             'permission' => 'email_marketing.view',
         ],
@@ -232,65 +249,66 @@ return [
                     'key' => 'software_setup',
                     'title' => 'Software Setup',
                     'icon' => 'bi bi-gear-fill',
-                    'feature_flag' => 'is_setup_enabled',
                     'roles' => ['admin'],
                     'items' => [
-                        // Core Setup (always show if setup is enabled)
-                        ['route' => 'state', 'title' => 'State', 'icon' => 'bi bi-globe'],
-                        ['route' => 'city', 'title' => 'City', 'icon' => 'bi bi-geo-alt'],
-                        ['route' => 'countries.index', 'title' => 'Countries', 'icon' => 'bi bi-flag', 'permission' => 'master.countries'],
+                        // Core Setup
+                        ['route' => 'state', 'title' => 'State', 'icon' => 'bi bi-globe', 'feature_flag' => 'is_core_setup_enabled', 'user_flag' => 'is_core_setup'],
+                        ['route' => 'city', 'title' => 'City', 'icon' => 'bi bi-geo-alt', 'feature_flag' => 'is_core_setup_enabled', 'user_flag' => 'is_core_setup'],
+                        ['route' => 'countries.index', 'title' => 'Countries', 'icon' => 'bi bi-flag', 'permission' => 'master.countries', 'feature_flag' => 'is_core_setup_enabled', 'user_flag' => 'is_core_setup'],
+
+                        // User Management
+                        ['route' => 'user', 'title' => 'User Management', 'icon' => 'bi bi-people', 'feature_flag' => 'is_user_setup_enabled', 'user_flag' => 'is_user_setup'],
+                        ['route' => 'role-master', 'title' => 'Role Master', 'icon' => 'bi bi-shield-lock', 'feature_flag' => 'is_user_setup_enabled', 'user_flag' => 'is_user_setup'],
+
+                        // Master Setup 
+                        ['route' => 'branches.index', 'title' => 'Branches', 'icon' => 'bi bi-diagram-3', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'shifts.index', 'title' => 'Shift', 'icon' => 'bi bi-clock-history', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'departments.index', 'title' => 'Departments', 'icon' => 'bi bi-diagram-2', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'designations.index', 'title' => 'Designations', 'icon' => 'bi bi-badge-ad', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'employment-types.index', 'title' => 'Employment Types', 'icon' => 'bi bi-briefcase', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'late-reasons.index', 'title' => 'Late Reasons', 'icon' => 'bi bi-clock-history', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'places.index', 'title' => 'Places', 'icon' => 'bi bi-map', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+
+                        // Sales Setup 
+                        ['route' => 'status', 'title' => 'Sales Status', 'icon' => 'bi bi-check2-circle', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'source', 'title' => 'Lead Source', 'icon' => 'bi bi-diagram-3', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'product', 'title' => 'Product', 'icon' => 'bi bi-box2', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'payment-terms', 'title' => 'Payment Terms', 'icon' => 'bi bi-credit-card', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'business', 'title' => 'Business Type', 'icon' => 'bi bi-briefcase', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'calling-type.index', 'title' => 'Calling Types', 'icon' => 'bi bi-list-ul', 'feature_flag' => 'is_tally_calling_setup_enabled', 'user_flag' => 'is_tally_calling_setup'],
+                        ['route' => 'quotation.setup', 'title' => 'Quotation Setup', 'icon' => 'bi bi-file-earmark-text', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'expenses.index', 'title' => 'Expenses', 'icon' => 'bi bi-cash-coin', 'feature_flag' => 'is_petty_cash_setup_enabled', 'user_flag' => 'is_petty_cash_setup'],
+                        ['route' => 'petty-opening-balance.index', 'title' => 'Opening Balance', 'icon' => 'bi bi-wallet2', 'feature_flag' => 'is_petty_cash_setup_enabled', 'user_flag' => 'is_petty_cash_setup'],
+
+                        // Work & Project Setup 
+                        ['route' => 'customer', 'title' => 'Customer', 'icon' => 'bi bi-person-badge', 'feature_flag' => 'is_work_setup_enabled', 'user_flag' => 'is_work_setup'],
+                        ['route' => 'service', 'title' => 'Project Services', 'icon' => 'bi bi-kanban', 'feature_flag' => 'is_projects_setup_enabled', 'user_flag' => 'is_projects_setup'],
+                        ['route' => 'module', 'title' => 'Module', 'icon' => 'bi bi-puzzle', 'feature_flag' => 'is_projects_setup_enabled', 'user_flag' => 'is_projects_setup'],
+                        ['route' => 'customer-project', 'title' => 'Open Project', 'icon' => 'bi bi-collection', 'feature_flag' => 'is_projects_setup_enabled', 'user_flag' => 'is_projects_setup'],
+                        ['route' => 'entry-type.index', 'title' => 'Entry Types', 'icon' => 'bi bi-list-check', 'feature_flag' => 'is_work_setup_enabled', 'user_flag' => 'is_work_setup'],
+                        ['route' => 'holiday', 'title' => 'Holidays', 'icon' => 'bi bi-calendar2-event', 'feature_flag' => 'is_attendance_setup_enabled', 'user_flag' => 'is_attendance_setup'],
+
+                        // Task & Subscription Setup 
+                        ['route' => 'task-status.index', 'title' => 'Task Status', 'icon' => 'bi bi-tag', 'permission' => 'task.status', 'feature_flag' => 'is_task_setup_enabled', 'user_flag' => 'is_task_setup'],
+                        ['route' => 'subscription-status.index', 'title' => 'Subscription Status', 'icon' => 'bi bi-tag', 'feature_flag' => 'is_subscription_setup_enabled', 'user_flag' => 'is_subscription_setup'],
                         
-                        // User Management (show if user setup is enabled)
-                        ['route' => 'user', 'title' => 'User Management', 'icon' => 'bi bi-people', 'feature_flag' => 'is_user_setup_enabled'],
-                        ['route' => 'role-master', 'title' => 'Role Master', 'icon' => 'bi bi-shield-lock', 'feature_flag' => 'is_user_setup_enabled'],
-                        
-                        // Master Setup (Moved from Master Section)
-                        ['route' => 'branches.index', 'title' => 'Branches', 'icon' => 'bi bi-diagram-3', 'feature_flag' => 'is_user_setup_enabled'],
-                        ['route' => 'shifts.index', 'title' => 'Shift', 'icon' => 'bi bi-clock-history', 'feature_flag' => 'is_user_setup_enabled'],
-                        ['route' => 'departments.index', 'title' => 'Departments', 'icon' => 'bi bi-diagram-2', 'feature_flag' => 'is_user_setup_enabled'],
-                        ['route' => 'designations.index', 'title' => 'Designations', 'icon' => 'bi bi-badge-ad', 'feature_flag' => 'is_user_setup_enabled'],
-                        ['route' => 'employment-types.index', 'title' => 'Employment Types', 'icon' => 'bi bi-briefcase', 'feature_flag' => 'is_user_setup_enabled'],
-                        ['route' => 'late-reasons.index', 'title' => 'Late Reasons', 'icon' => 'bi bi-clock-history', 'feature_flag' => 'is_user_setup_enabled'],
-                        ['route' => 'places.index', 'title' => 'Places', 'icon' => 'bi bi-map', 'feature_flag' => 'is_user_setup_enabled'],
-                        
-                        // Sales Setup (show if sales setup is enabled)
-                        ['route' => 'status', 'title' => 'Sales Status', 'icon' => 'bi bi-check2-circle', 'feature_flag' => 'is_sales_setup_enabled'],
-                        ['route' => 'source', 'title' => 'Lead Source', 'icon' => 'bi bi-diagram-3', 'feature_flag' => 'is_sales_setup_enabled'],
-                        ['route' => 'product', 'title' => 'Product', 'icon' => 'bi bi-box2', 'feature_flag' => 'is_sales_setup_enabled'],
-                        ['route' => 'payment-terms', 'title' => 'Payment Terms', 'icon' => 'bi bi-credit-card', 'feature_flag' => 'is_sales_setup_enabled'],
-                        ['route' => 'business', 'title' => 'Business Type', 'icon' => 'bi bi-briefcase', 'feature_flag' => 'is_sales_setup_enabled'],
-                        ['route' => 'calling-type.index', 'title' => 'Calling Types', 'icon' => 'bi bi-list-ul', 'feature_flag' => 'is_sales_setup_enabled'],
-                        ['route' => 'quotation.setup', 'title' => 'Quotation Setup', 'icon' => 'bi bi-file-earmark-text', 'feature_flag' => 'is_sales_setup_enabled'],
-                        ['route' => 'expenses.index', 'title' => 'Expenses', 'icon' => 'bi bi-cash-coin', 'feature_flag' => 'is_petty_cash_enable'],
-                        ['route' => 'petty-opening-balance.index', 'title' => 'Opening Balance', 'icon' => 'bi bi-wallet2', 'feature_flag' => 'is_petty_cash_enable'],
-                        
-                        // Work & Project Setup (show if work setup is enabled)
-                        ['route' => 'customer', 'title' => 'Customer', 'icon' => 'bi bi-person-badge', 'feature_flag' => 'is_work_setup_enabled'],
-                        ['route' => 'service', 'title' => 'Project Services', 'icon' => 'bi bi-kanban', 'feature_flag' => 'is_work_setup_enabled'],
-                        ['route' => 'module', 'title' => 'Module', 'icon' => 'bi bi-puzzle', 'feature_flag' => 'is_work_setup_enabled'],
-                        ['route' => 'customer-project', 'title' => 'Open Project', 'icon' => 'bi bi-collection', 'feature_flag' => 'is_work_setup_enabled'],
-                        ['route' => 'entry-type.index', 'title' => 'Entry Types', 'icon' => 'bi bi-list-check', 'feature_flag' => 'is_work_setup_enabled'],
-                        ['route' => 'holiday', 'title' => 'Holidays', 'icon' => 'bi bi-calendar2-event', 'feature_flag' => 'is_work_setup_enabled'],
-                        
-                        // Task & Subscription Setup (show if respective setup is enabled)
-                        ['route' => 'task-status.index', 'title' => 'Task Status', 'icon' => 'bi bi-tag', 'permission' => 'task.status', 'feature_flag' => 'is_worklog_enabled'],
-                        ['route' => 'subscription-status.index', 'title' => 'Subscription Status', 'icon' => 'bi bi-tag', 'feature_flag' => 'is_subscription_enabled'],
                         // Calendar Setup
-                        ['route' => 'calendar-events.index', 'title' => 'Calendar Events', 'icon' => 'bi bi-calendar-plus', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'calendar.events'],
-                        ['route' => 'calendar-missed-reasons.index', 'title' => 'Missed Reason', 'icon' => 'bi bi-calendar-x', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'calendar.events'],
-                        ['route' => 'calendar-status.index', 'title' => 'Calendar Status', 'icon' => 'bi bi-tag', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'calendar.status'],
-                        ['route' => 'calendar-status-checklist.index', 'title' => 'Status-Checklist', 'icon' => 'bi bi-link-45deg', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'calendar.status_checklist'],
-                        ['route' => 'common-events.index', 'title' => 'Common Events', 'icon' => 'bi bi-collection', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'calendar.common_events'],
-                        ['route' => 'calendar-social.index', 'title' => 'Calendar Social Handles', 'icon' => 'bi bi-share', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'calendar.social_handles'],
-                        ['route' => 'calendar-clients.index', 'title' => 'Calendar Clients', 'icon' => 'bi bi-people', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'calendar.clients'],
-                        ['route' => 'calendar-client-social.index', 'title' => 'Client Social Handles', 'icon' => 'bi bi-link-45deg', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'calendar.client_social'],
-                        ['route' => 'checklist.index', 'title' => 'Checklist', 'icon' => 'bi bi-list-check', 'feature_flag' => 'is_worklog_enabled', 'permission' => 'checklist.index'],
-                        // Asset Management Setup (show if asset management is enabled)
-                        ['route' => 'asset-type.index', 'title' => 'Asset Types', 'icon' => 'bi bi-box', 'feature_flag' => 'is_asset_management_enable'],
-                        ['route' => 'asset-category.index', 'title' => 'Asset Categories', 'icon' => 'bi bi-tags', 'feature_flag' => 'is_asset_management_enable'],
-                        ['route' => 'asset-status.index', 'title' => 'Asset Status', 'icon' => 'bi bi-check2-circle', 'feature_flag' => 'is_asset_management_enable'],
-                        ['route' => 'supplier.index', 'title' => 'Suppliers', 'icon' => 'bi bi-truck', 'feature_flag' => 'is_asset_management_enable'],
-                        ['route' => 'assets.index', 'title' => 'Open Assets', 'icon' => 'bi bi-box-seam', 'feature_flag' => 'is_asset_management_enable'],
+                        ['route' => 'calendar-events.index', 'title' => 'Calendar Events', 'icon' => 'bi bi-calendar-plus', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.events'],
+                        ['route' => 'calendar-missed-reasons.index', 'title' => 'Missed Reason', 'icon' => 'bi bi-calendar-x', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.events'],
+                        ['route' => 'calendar-status.index', 'title' => 'Calendar Status', 'icon' => 'bi bi-tag', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.status'],
+                        ['route' => 'calendar-status-checklist.index', 'title' => 'Status-Checklist', 'icon' => 'bi bi-link-45deg', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.status_checklist'],
+                        ['route' => 'common-events.index', 'title' => 'Common Events', 'icon' => 'bi bi-collection', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.common_events'],
+                        ['route' => 'calendar-social.index', 'title' => 'Calendar Social Handles', 'icon' => 'bi bi-share', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.social_handles'],
+                        ['route' => 'calendar-clients.index', 'title' => 'Calendar Clients', 'icon' => 'bi bi-people', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.clients'],
+                        ['route' => 'calendar-client-social.index', 'title' => 'Client Social Handles', 'icon' => 'bi bi-link-45deg', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.client_social'],
+                        ['route' => 'checklist.index', 'title' => 'Checklist', 'icon' => 'bi bi-list-check', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'checklist.index'],
+                        
+                        // Asset Management Setup 
+                        ['route' => 'asset-type.index', 'title' => 'Asset Types', 'icon' => 'bi bi-box', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
+                        ['route' => 'asset-category.index', 'title' => 'Asset Categories', 'icon' => 'bi bi-tags', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
+                        ['route' => 'asset-status.index', 'title' => 'Asset Status', 'icon' => 'bi bi-check2-circle', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
+                        ['route' => 'supplier.index', 'title' => 'Suppliers', 'icon' => 'bi bi-truck', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
+                        ['route' => 'assets.index', 'title' => 'Open Assets', 'icon' => 'bi bi-box-seam', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
                     ],
                 ],
 

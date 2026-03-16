@@ -54,19 +54,60 @@
                             <div class="menu-checkboxes">
                                 <?php
                                     $menus = [
-                                        'Setup' => 'is_setup_enabled',
                                         'Sales' => 'is_sales_enabled',
                                         'Worklog' => 'is_worklog_enabled',
                                         'Attendance' => 'is_attendance_enabled',
                                         'Subscription' => 'is_subscription_enabled',
                                         'Document Mgmt' => 'is_document_management_enabled',
+                                        'Petty Cash' => 'is_petty_cash_enable',
+                                        'Contact Mgmt' => 'is_contact_management',
+                                        'Asset Mgmt' => 'is_asset_management_enable',
+                                        'Email Marketing' => 'is_email_marketing_enable',
+                                        'Tally Calling' => 'is_tally_calling_enabled',
+                                        'Projects' => 'is_projects_enabled',
+                                        'Tracking' => 'is_tracking_enabled',
+                                        'Workflow' => 'is_workflow_enabled',
+                                        'Calendar' => 'is_social_media_calendar_enabled',
+                                        'Master' => 'is_master_enabled',
+                                        'Task & Reminders' => 'is_task_reminders_enabled',
+                                        'Reports' => 'is_reports_enabled',
+                                    ];
+                                    
+                                    $setupMenus = [
+                                        'Core Setup' => 'is_core_setup_enabled',
                                         'Sales Setup' => 'is_sales_setup_enabled',
                                         'Work Setup' => 'is_work_setup_enabled',
                                         'User Setup' => 'is_user_setup_enabled',
-                                        'Petty Cash' => 'is_petty_cash_enable',
+                                        'Tally Calling Setup' => 'is_tally_calling_setup_enabled',
+                                        'Projects Setup' => 'is_projects_setup_enabled',
+                                        'Tracking Setup' => 'is_tracking_setup_enabled',
+                                        'Workflow Setup' => 'is_workflow_setup_enabled',
+                                        'Calendar Setup' => 'is_calendar_setup_enabled',
+                                        'Master Setup' => 'is_master_setup_enabled',
+                                        'Task Setup' => 'is_task_setup_enabled',
+                                        'Attendance Setup' => 'is_attendance_setup_enabled',
+                                        'Reports Setup' => 'is_reports_setup_enabled',
+                                        'Document Setup' => 'is_document_setup_enabled',
+                                        'Petty Cash Setup' => 'is_petty_cash_setup_enabled',
+                                        'Contact Mgmt Setup' => 'is_contact_management_setup_enabled',
+                                        'Asset Mgmt Setup' => 'is_asset_management_setup_enabled',
+                                        'Email Mktg Setup' => 'is_email_marketing_setup_enabled',
+                                        'Subscription Setup' => 'is_subscription_setup_enabled'
                                     ];
                                 ?>
                                 <?php $__currentLoopData = $menus; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $id): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <label class="modern-checkbox">
+                                        <input type="checkbox" id="<?php echo e($id); ?>" name="<?php echo e($id); ?>" checked>
+                                        <span><?php echo e($label); ?></span>
+                                    </label>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <label class="d-block mb-3 fw-bold text-muted small text-uppercase">Setup Dimensions</label>
+                            <div class="checkbox-grid">
+                                <?php $__currentLoopData = $setupMenus; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $id): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <label class="modern-checkbox">
                                         <input type="checkbox" id="<?php echo e($id); ?>" name="<?php echo e($id); ?>" checked>
                                         <span><?php echo e($label); ?></span>
@@ -324,49 +365,24 @@
                         <div class="invalid-feedback" id="edit_tenant_name_error"></div>
                     </div>
                     <div class="form-group">
-                        <label>Enabled Menus</label>
+                        <label class="d-block mb-2 fw-bold text-muted small text-uppercase">Enabled Modules</label>
+                        <div class="d-flex flex-wrap gap-3 mb-4">
+                            <?php $__currentLoopData = $menus; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $id): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="form-check me-3 mb-2">
+                                <input class="form-check-input" type="checkbox" id="edit_<?php echo e($id); ?>" name="<?php echo e($id); ?>">
+                                <label class="form-check-label" for="edit_<?php echo e($id); ?>"><?php echo e($label); ?></label>
+                            </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </div>
+                        
+                        <label class="d-block mb-2 fw-bold text-muted small text-uppercase">Setup Dimensions</label>
                         <div class="d-flex flex-wrap gap-3">
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" id="edit_is_setup_enabled" name="is_setup_enabled">
-                                <label class="form-check-label" for="edit_is_setup_enabled">Setup</label>
+                            <?php $__currentLoopData = $setupMenus; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $id): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="form-check me-3 mb-2">
+                                <input class="form-check-input" type="checkbox" id="edit_<?php echo e($id); ?>" name="<?php echo e($id); ?>">
+                                <label class="form-check-label" for="edit_<?php echo e($id); ?>"><?php echo e($label); ?></label>
                             </div>
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" id="edit_is_sales_enabled" name="is_sales_enabled">
-                                <label class="form-check-label" for="edit_is_sales_enabled">Sales</label>
-                            </div>
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" id="edit_is_worklog_enabled" name="is_worklog_enabled">
-                                <label class="form-check-label" for="edit_is_worklog_enabled">Worklog</label>
-                            </div>
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" id="edit_is_attendance_enabled" name="is_attendance_enabled">
-                                <label class="form-check-label" for="edit_is_attendance_enabled">Attendance</label>
-                            </div>
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" id="edit_is_subscription_enabled" name="is_subscription_enabled">
-                                <label class="form-check-label" for="edit_is_subscription_enabled">Subscription</label>
-                            </div>
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" id="edit_is_document_management_enabled" name="is_document_management_enabled">
-                                <label class="form-check-label" for="edit_is_document_management_enabled">Document Mgmt</label>
-                            </div>
-                            <div class="w-100"></div>
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" id="edit_is_sales_setup_enabled" name="is_sales_setup_enabled">
-                                <label class="form-check-label" for="edit_is_sales_setup_enabled">Sales Setup</label>
-                            </div>
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" id="edit_is_work_setup_enabled" name="is_work_setup_enabled">
-                                <label class="form-check-label" for="edit_is_work_setup_enabled">Work Setup</label>
-                            </div>
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" id="edit_is_user_setup_enabled" name="is_user_setup_enabled">
-                                <label class="form-check-label" for="edit_is_user_setup_enabled">User Setup</label>
-                            </div>
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" id="edit_is_petty_cash_enable" name="is_petty_cash_enable">
-                                <label class="form-check-label" for="edit_is_petty_cash_enable">Petty Cash</label>
-                            </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                     </div>
                 </div>
@@ -416,6 +432,7 @@ $(document).ready(function() {
     }
 
     function displayTenants(tenants) {
+        window.tenantsData = tenants;
         let html = '';
         $('#tenantCount').text(tenants.length);
         if (tenants.length === 0) {
@@ -431,7 +448,7 @@ $(document).ready(function() {
                         </td>
                         <td>${new Date(tenant.created_at).toLocaleDateString()}</td>
                         <td class="text-center">
-                            <button class="action-btn primary" onclick="editTenant(${tenant.id}, '${tenant.tenant_name}', ${tenant.is_setup_enabled ? 1 : 0}, ${tenant.is_sales_enabled ? 1 : 0}, ${tenant.is_worklog_enabled ? 1 : 0}, ${tenant.is_attendance_enabled ? 1 : 0}, ${tenant.is_subscription_enabled ? 1 : 0}, ${tenant.is_document_management_enabled ? 1 : 0}, ${tenant.is_sales_setup_enabled ? 1 : 0}, ${tenant.is_work_setup_enabled ? 1 : 0}, ${tenant.is_user_setup_enabled ? 1 : 0}, ${tenant.is_petty_cash_enable ? 1 : 0})">
+                            <button class="action-btn primary" onclick="editTenant(${index})">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="action-btn warning" onclick="regenerateCode(${tenant.id})">
@@ -451,16 +468,9 @@ $(document).ready(function() {
     function addTenant() {
         const formData = new FormData($('#tenantForm')[0]);
         // Ensure checkboxes always submit explicit 1/0
-        formData.set('is_setup_enabled', $('#is_setup_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_sales_enabled', $('#is_sales_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_worklog_enabled', $('#is_worklog_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_attendance_enabled', $('#is_attendance_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_subscription_enabled', $('#is_subscription_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_document_management_enabled', $('#is_document_management_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_sales_setup_enabled', $('#is_sales_setup_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_work_setup_enabled', $('#is_work_setup_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_user_setup_enabled', $('#is_user_setup_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_petty_cash_enable', $('#is_petty_cash_enable').is(':checked') ? 1 : 0);
+        $('#tenantForm input[type="checkbox"]').each(function() {
+            formData.set($(this).attr('name'), $(this).is(':checked') ? 1 : 0);
+        });
         
         $.ajax({
             url: '<?php echo e(route("tenant.store")); ?>',
@@ -492,16 +502,9 @@ $(document).ready(function() {
         const formData = new FormData($('#editTenantForm')[0]);
         // Laravel-friendly method override and checkbox values
         formData.set('_method', 'PUT');
-        formData.set('is_setup_enabled', $('#edit_is_setup_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_sales_enabled', $('#edit_is_sales_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_worklog_enabled', $('#edit_is_worklog_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_attendance_enabled', $('#edit_is_attendance_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_subscription_enabled', $('#edit_is_subscription_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_document_management_enabled', $('#edit_is_document_management_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_sales_setup_enabled', $('#edit_is_sales_setup_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_work_setup_enabled', $('#edit_is_work_setup_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_user_setup_enabled', $('#edit_is_user_setup_enabled').is(':checked') ? 1 : 0);
-        formData.set('is_petty_cash_enable', $('#edit_is_petty_cash_enable').is(':checked') ? 1 : 0);
+        $('#editTenantForm input[type="checkbox"]').each(function() {
+            formData.set($(this).attr('name'), $(this).is(':checked') ? 1 : 0);
+        });
         
         $.ajax({
             url: `/tenant/${tenantId}`,
@@ -615,19 +618,23 @@ $(document).ready(function() {
 });
 
 // Global functions for onclick handlers
-function editTenant(tenantId, tenantName, setup, sales, worklog, attendance, subscription, documentMgmt, salesSetup, workSetup, userSetup, pettyCash) {
-    $('#edit_tenant_id').val(tenantId);
-    $('#edit_tenant_name').val(tenantName);
-    $('#edit_is_setup_enabled').prop('checked', !!setup);
-    $('#edit_is_sales_enabled').prop('checked', !!sales);
-    $('#edit_is_worklog_enabled').prop('checked', !!worklog);
-    $('#edit_is_attendance_enabled').prop('checked', !!attendance);
-    $('#edit_is_subscription_enabled').prop('checked', !!subscription);
-    $('#edit_is_document_management_enabled').prop('checked', !!documentMgmt);
-    $('#edit_is_sales_setup_enabled').prop('checked', !!salesSetup);
-    $('#edit_is_work_setup_enabled').prop('checked', !!workSetup);
-    $('#edit_is_user_setup_enabled').prop('checked', !!userSetup);
-    $('#edit_is_petty_cash_enable').prop('checked', !!pettyCash);
+function editTenant(index) {
+    const tenant = window.tenantsData[index];
+    if(!tenant) return;
+
+    $('#edit_tenant_id').val(tenant.id);
+    $('#edit_tenant_name').val(tenant.tenant_name);
+
+    // Dynamically check checkboxes based on tenant properties
+    $('#editTenantForm input[type="checkbox"]').each(function() {
+        const key = $(this).attr('name');
+        if(tenant[key] !== undefined) {
+            $(this).prop('checked', !!tenant[key]);
+        } else {
+            $(this).prop('checked', false);
+        }
+    });
+
     $('#editTenantModal').modal('show');
 }
 

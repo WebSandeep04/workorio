@@ -33,6 +33,29 @@ return new class extends Migration
             if (!Schema::hasColumn('users', 'is_login')) {
                 $table->boolean('is_login')->default(1)->after('is_calander');
             }
+            // New flags added from user request
+            $flags = [
+                'is_tally_calling',
+                'is_projects',
+                'is_subscription_and_renewal',
+                'is_tracking',
+                'is_workflow',
+                'is_master',
+                'is_attandance',
+                'is_reports',
+                'is_document',
+                'is_petty_cash',
+                'is_contact_management',
+                'is_asset_management',
+                'is_email_marketing',
+                'is_software_setup'
+            ];
+
+            foreach ($flags as $flag) {
+                if (!Schema::hasColumn('users', $flag)) {
+                    $table->boolean($flag)->default(0);
+                }
+            }
         });
     }
 
@@ -46,13 +69,34 @@ return new class extends Migration
         }
 
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn([
+            $flags = [
                 'is_sales', 
                 'is_task', 
                 'is_indiaMart', 
                 'is_calander', 
-                'is_login'
-            ]);
+                'is_login',
+                // newly added
+                'is_tally_calling',
+                'is_projects',
+                'is_subscription_and_renewal',
+                'is_tracking',
+                'is_workflow',
+                'is_master',
+                'is_attandance',
+                'is_reports',
+                'is_document',
+                'is_petty_cash',
+                'is_contact_management',
+                'is_asset_management',
+                'is_email_marketing',
+                'is_software_setup'
+            ];
+
+            foreach ($flags as $flag) {
+                if (Schema::hasColumn('users', $flag)) {
+                    $table->dropColumn($flag);
+                }
+            }
         });
     }
 };
