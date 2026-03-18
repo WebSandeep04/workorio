@@ -119,6 +119,18 @@ class EmployeeController extends Controller
              $employee->places()->detach();
         }
 
+        // If the admin changes the employee's Employment Type later, automatically provision the mapped leaves.
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
+                $linkedUser = \App\Models\User::where('employee_id', $employee->id)->first();
+                if ($linkedUser) {
+                    app(\App\Services\LeaveBalanceService::class)->initializePrefillLeaves($linkedUser);
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error initializing leaves upon employee update: ' . $e->getMessage());
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Employee updated successfully.',

@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Leave;
-use App\Models\EntryType;
+use App\Models\LeaveRequest;
+use App\Models\LeaveType;
 use App\Models\Worklog;
+use App\Services\LeaveBalanceService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class LeaveController extends Controller
 {
@@ -24,10 +28,16 @@ class LeaveController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Schema::hasTable('leave_requests')) {
+            return response()->json(['success' => false, 'message' => 'System migration pending.'], 500);
+        }
+
         $validator = Validator::make($request->all(), [
-            'date' => 'required|date',
-            'leave_type_id' => 'required|exists:entry_types,id',
-            'reason' => 'nullable|string|max:1000']);
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'leave_type_id' => 'required|exists:leave_types,id',
+            'reason' => 'nullable|string|max:1000'
+        ]);
 
         if ($validator->fails()) {
             return response()->json([
@@ -39,55 +49,73 @@ class LeaveController extends Controller
         $user = $this->getCurrentUser();
         
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated.'
-            ], 401);
+            return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
         }
         
-        // Check if leave already exists for this date
-        $existingLeave = Leave::where('user_id', $user->id)
-            ->where('date', $request->date)
-            ->first();
-
-        if ($existingLeave) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave already exists for this date.'
-            ], 422);
-        }
-
-        // Check if worklog exists for this date
-        $existingWorklog = Worklog::where('user_id', $user->id)
-            ->where('work_date', $request->date)
-            ->first();
-
-        if ($existingWorklog) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot apply leave for a date when worklog already exists.'
-            ], 422);
-        }
-
+        // Calculate Total Days
         try {
-            $leave = Leave::create([
+            $start = Carbon::parse($request->start_date);
+            $end = Carbon::parse($request->end_date);
+            $totalDays = $start->diffInDays($end) + 1; // Assuming full days for now
+        } catch (\Exception $e) {
+             return response()->json(['success' => false, 'message' => 'Invalid date format.'], 422);
+        }
+
+        // Check Overlaps
+        $overlappingLeave = LeaveRequest::where('user_id', $user->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->where(function ($query) use ($request) {
+                $query->where('start_date', '<=', $request->end_date)
+                      ->where('end_date', '>=', $request->start_date);
+            })
+            ->first();
+
+        if ($overlappingLeave) {
+            return response()->json(['success' => false, 'message' => 'You already have an active leave request overlapping these dates.'], 422);
+        }
+
+        // Verify Balance
+        $balanceService = app(LeaveBalanceService::class);
+        $currentBalance = $balanceService->getBalance($user->id, $request->leave_type_id);
+
+        if ($currentBalance < $totalDays) {
+            return response()->json([
+                'success' => false,
+                'message' => "Insufficient leave balance. You only have {$currentBalance} days available, but requested {$totalDays} days."
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $leaveReq = LeaveRequest::create([
                 'user_id' => $user->id,
-                'date' => $request->date,
                 'leave_type_id' => $request->leave_type_id,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'total_days' => $totalDays,
                 'reason' => $request->reason,
-                'status' => 'approved' // Leaves are automatically approved
+                'status' => 'approved' // Automatically approved right now per prior implementation standard
             ]);
+
+            // Deduct the balance
+            $balanceService->debitLeave(
+                $user->id, 
+                $request->leave_type_id, 
+                $totalDays, 
+                $leaveReq, 
+                'Automated Leave deduction for approved request via portal'
+            );
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Leave applied successfully.',
-                'data' => $leave
+                'message' => "Leave application for {$totalDays} days submitted and processed successfully.",
+                'data' => $leaveReq
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to apply leave. Please try again.'
-            ], 500);
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to apply leave: ' . $e->getMessage()], 500);
         }
     }
 
@@ -97,67 +125,41 @@ class LeaveController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'date' => 'required|date',
-            'leave_type_id' => 'required|exists:entry_types,id',
-            'reason' => 'nullable|string|max:1000']);
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'reason' => 'nullable|string|max:1000'
+        ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
         }
 
         $user = $this->getCurrentUser();
-        
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated.'
-            ], 401);
-        }
-        $leave = Leave::where('id', $id)
-            ->where('user_id', $user->id)
-            ->first();
+        if (!$user) return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
 
-        if (!$leave) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave not found.'
-            ], 404);
-        }
+        $leaveReq = LeaveRequest::where('id', $id)->where('user_id', $user->id)->first();
 
+        if (!$leaveReq) return response()->json(['success' => false, 'message' => 'Leave request not found.'], 404);
 
-
-        // Check if leave already exists for this date (excluding current leave)
-        $existingLeave = Leave::where('user_id', $user->id)
-            ->where('date', $request->date)
-            ->where('id', '!=', $id)
-            ->first();
-
-        if ($existingLeave) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave already exists for this date.'
-            ], 422);
+        if ($leaveReq->status === 'approved') {
+             return response()->json(['success' => false, 'message' => 'Cannot edit an already approved and debited leave request. Please cancel it instead.'], 422);
         }
 
         try {
-            $leave->update([
-                'date' => $request->date,
-                'leave_type_id' => $request->leave_type_id,
-                'reason' => $request->reason]);
+            $start = Carbon::parse($request->start_date);
+            $end = Carbon::parse($request->end_date);
+            $totalDays = $start->diffInDays($end) + 1; 
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Leave updated successfully.',
-                'data' => $leave
+            $leaveReq->update([
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'total_days' => $totalDays,
+                'reason' => $request->reason
             ]);
+
+            return response()->json(['success' => true, 'message' => 'Leave request updated successfully.', 'data' => $leaveReq]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update leave. Please try again.'
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to update leave.'], 500);
         }
     }
 
@@ -167,38 +169,32 @@ class LeaveController extends Controller
     public function destroy($id)
     {
         $user = $this->getCurrentUser();
-        
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated.'
-            ], 401);
-        }
-        $leave = Leave::where('id', $id)
-            ->where('user_id', $user->id)
-            ->first();
+        if (!$user) return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
 
-        if (!$leave) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave not found.'
-            ], 404);
-        }
+        $leaveReq = LeaveRequest::where('id', $id)->where('user_id', $user->id)->first();
+        if (!$leaveReq) return response()->json(['success' => false, 'message' => 'Leave not found.'], 404);
 
-
-
+        DB::beginTransaction();
         try {
-            $leave->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Leave deleted successfully.'
-            ]);
+            if ($leaveReq->status === 'approved') {
+                // Refund the ledger
+                $balanceService = app(LeaveBalanceService::class);
+                $balanceService->creditLeave(
+                    $leaveReq->user_id,
+                    $leaveReq->leave_type_id,
+                    $leaveReq->total_days,
+                    $leaveReq,
+                    'Refund for cancelled leave'
+                );
+            }
+            
+            $leaveReq->update(['status' => 'cancelled']); // Keep audit trail instead of deleting fully
+            
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Leave cancelled and balance refunded successfully.']);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to delete leave. Please try again.'
-            ], 500);
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to delete leave.'], 500);
         }
     }
 
@@ -209,65 +205,64 @@ class LeaveController extends Controller
     {
         try {
             $user = $this->getCurrentUser();
-        
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated.'
-            ], 401);
-        }
+            if (!$user) return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
             
-            // Check if leaves table exists
-            if (!\Illuminate\Support\Facades\DB::getSchemaBuilder()->hasTable('leaves')) {
+            if (!Schema::hasTable('leave_requests')) {
                 return response()->json(['data' => []]);
             }
 
-            $leaves = Leave::with(['leaveType'])
+            $leaves = LeaveRequest::with(['leaveType'])
                 ->where('user_id', $user->id)
-                ->orderBy('date', 'desc')
+                ->where('status', '!=', 'cancelled')
+                ->orderBy('start_date', 'desc')
                 ->get();
 
-            return response()->json([
-                'data' => $leaves
-            ]);
+            return response()->json(['data' => $leaves]);
         } catch (\Exception $e) {
-            return response()->json([
-                'data' => []
-            ]);
+            return response()->json(['data' => []]);
         }
     }
 
     /**
-     * Fetch leave types (entry types with working_hours = 0).
+     * Fetch valid active leave types along with user balances.
      */
     public function fetchLeaveTypes()
     {
         try {
             $user = $this->getCurrentUser();
-        
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated.'
-            ], 401);
-        }
+            if (!$user) return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
             
-            // Check if entry_types table exists
-            if (!\Illuminate\Support\Facades\DB::getSchemaBuilder()->hasTable('entry_types')) {
+            if (!Schema::hasTable('leave_types')) {
                 return response()->json(['data' => []]);
             }
 
-            $leaveTypes = EntryType::where('working_hours', 0)
-                ->orderBy('name')
-                ->get();
+            $query = LeaveType::where('status', true)->orderBy('name');
 
-            return response()->json([
-                'data' => $leaveTypes
-            ]);
+            // Get the employee's employment type safely
+            $empTypeId = $user->employee->employment_type_id ?? null;
+
+            if (!empty($empTypeId) && Schema::hasTable('employment_type_leave_rules')) {
+                $allowedLeaveIds = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                    ->pluck('leave_type_id');
+                $query->whereIn('id', $allowedLeaveIds);
+            }
+
+            $leaveTypes = $query->get();
+            $balanceService = app(LeaveBalanceService::class);
+
+            $mapped = $leaveTypes->map(function ($type) use ($balanceService, $user) {
+                // Fetch balance safely
+                $balance = 0;
+                if (Schema::hasTable('leave_ledgers')) {
+                     $balance = $balanceService->getBalance($user->id, $type->id);
+                }
+                $type->balance = $balance;
+                return $type;
+            });
+
+            return response()->json(['data' => $mapped]);
         } catch (\Exception $e) {
-            return response()->json([
-                'data' => []
-            ]);
+            return response()->json(['data' => []]);
         }
     }
 
@@ -276,26 +271,16 @@ class LeaveController extends Controller
      */
     private function getCurrentUser()
     {
-        // Check if user is authenticated via Auth facade (super admin)
         if (Auth::check()) {
             return Auth::user();
         }
-        
-        // Check if user is authenticated via session (tenant users)
         if (session()->has('user_id')) {
             $userId = session('user_id');
-            
-            // Load actual user data from tenant database
             try {
                 $user = \App\Models\User::find($userId);
-                if ($user) {
-                    return $user; // Return the actual user model
-                }
-            } catch (\Exception $e) {
-                // If user not found, return null
-            }
+                if ($user) return $user;
+            } catch (\Exception $e) {}
         }
-        
         return null;
     }
 }

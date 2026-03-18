@@ -168,6 +168,17 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::post('/employment-types', [EmploymentTypeController::class, 'store'])->name('employment-types.store');
     Route::put('/employment-types/{employment_type}', [EmploymentTypeController::class, 'update'])->name('employment-types.update');
     Route::delete('/employment-types/{employment_type}', [EmploymentTypeController::class, 'destroy'])->name('employment-types.destroy');
+    
+    // Matrix Rules
+    Route::get('/employment-types/{id}/leave-rules', [EmploymentTypeController::class, 'leaveRules'])->name('employment-types.leave-rules');
+    Route::post('/employment-types/{id}/leave-rules', [EmploymentTypeController::class, 'saveLeaveRules'])->name('employment-types.save-leave-rules');
+
+    // Leave Types CRUD
+    Route::get('/leave-type', [\App\Http\Controllers\LeaveTypeController::class, 'index'])->name('leave-type.index');
+    Route::get('/leave-type/fetch', [\App\Http\Controllers\LeaveTypeController::class, 'fetch'])->name('leave-type.fetch');
+    Route::post('/leave-type', [\App\Http\Controllers\LeaveTypeController::class, 'store'])->name('leave-type.store');
+    Route::put('/leave-type/{id}', [\App\Http\Controllers\LeaveTypeController::class, 'update'])->name('leave-type.update');
+    Route::delete('/leave-type/{id}', [\App\Http\Controllers\LeaveTypeController::class, 'destroy'])->name('leave-type.destroy');
 
     Route::get('/countries', [CountryController::class, 'index'])->name('countries.index');
     Route::get('/countries/list', [CountryController::class, 'list'])->name('countries.list');

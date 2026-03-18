@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Employment Types'); ?>
+<?php $__env->startSection('page_title', 'Employment Types'); ?>
 
-@section('title', 'Employment Types')
-@section('page_title', 'Employment Types')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -66,9 +64,9 @@
   .badge-active { background: #dcfce7; color: #166534; padding:0.2rem 0.4rem; border-radius:4px; font-size:0.75rem; }
   .badge-inactive { background: #fee2e2; color: #991b1b; padding:0.2rem 0.4rem; border-radius:4px; font-size:0.75rem;}
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
@@ -111,7 +109,7 @@
       </div>
       <form id="mainForm">
         <div class="modal-body bg-white pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <input type="hidden" id="edit_id" name="id">
           
           <div class="row g-3 mb-4">
@@ -131,48 +129,49 @@
           <!-- The Integrated Leave Matrix -->
           <h6 class="form-label-modern border-bottom pb-2 mb-3"><i class="bi bi-airplane"></i> Assign Leave Policies</h6>
           
-          @if(isset($leaveTypes) && $leaveTypes->isNotEmpty())
-             @foreach($leaveTypes as $leave)
+          <?php if(isset($leaveTypes) && $leaveTypes->isNotEmpty()): ?>
+             <?php $__currentLoopData = $leaveTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $leave): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                  <div class="matrix-box">
                     <div class="form-check form-switch mb-2">
-                        <input class="form-check-input matrix-toggle" type="checkbox" id="leave_toggle_{{ $leave->id }}" name="rules[{{ $leave->id }}][enabled]" value="1">
-                        <label class="form-check-label matrix-header" for="leave_toggle_{{ $leave->id }}">
-                            @if($leave->color_code)
-                                <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:{{ $leave->color_code }};"></span>
-                            @endif
-                            {{ $leave->name }}
+                        <input class="form-check-input matrix-toggle" type="checkbox" id="leave_toggle_<?php echo e($leave->id); ?>" name="rules[<?php echo e($leave->id); ?>][enabled]" value="1">
+                        <label class="form-check-label matrix-header" for="leave_toggle_<?php echo e($leave->id); ?>">
+                            <?php if($leave->color_code): ?>
+                                <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:<?php echo e($leave->color_code); ?>;"></span>
+                            <?php endif; ?>
+                            <?php echo e($leave->name); ?>
+
                         </label>
                     </div>
 
-                    <div class="row g-2 matrix-config" id="matrix_config_{{ $leave->id }}" style="display:none; opacity:0.6;">
+                    <div class="row g-2 matrix-config" id="matrix_config_<?php echo e($leave->id); ?>" style="display:none; opacity:0.6;">
                         <div class="col-md-3">
                             <label style="font-size:0.75rem;">Type</label>
-                            <select class="form-control form-control-sm matrix-type" name="rules[{{ $leave->id }}][generation_type]">
+                            <select class="form-control form-control-sm matrix-type" name="rules[<?php echo e($leave->id); ?>][generation_type]">
                                 <option value="prefill">Prefill (Upfront)</option>
                                 <option value="accrual">Accrual (Earned)</option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label style="font-size:0.75rem;" class="matrix-val-label">Days to give</label>
-                            <input type="number" step="1" min="0" class="form-control form-control-sm" name="rules[{{ $leave->id }}][value]" value="0">
+                            <input type="number" step="1" min="0" class="form-control form-control-sm" name="rules[<?php echo e($leave->id); ?>][value]" value="0">
                         </div>
                         <div class="col-md-3">
                             <label style="font-size:0.75rem;">Carry Forward</label>
-                            <select class="form-control form-control-sm matrix-cf" name="rules[{{ $leave->id }}][carry_forward_allowed]">
+                            <select class="form-control form-control-sm matrix-cf" name="rules[<?php echo e($leave->id); ?>][carry_forward_allowed]">
                                 <option value="0">No, Lapse</option>
                                 <option value="1">Yes, Rollover</option>
                             </select>
                         </div>
                         <div class="col-md-3 cf-max-col" style="display:none;">
                             <label style="font-size:0.75rem;">Max Rollover</label>
-                            <input type="number" class="form-control form-control-sm max-cf-val" name="rules[{{ $leave->id }}][max_carry_forward]" value="0">
+                            <input type="number" class="form-control form-control-sm max-cf-val" name="rules[<?php echo e($leave->id); ?>][max_carry_forward]" value="0">
                         </div>
                     </div>
                  </div>
-             @endforeach
-          @else
+             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+          <?php else: ?>
              <div class="alert alert-warning py-2 mb-0" style="font-size:0.85rem;">No Active Leave Types found. Create leave types first.</div>
-          @endif
+          <?php endif; ?>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn table-search-btn w-100 justify-content-center" id="saveBtn">
@@ -183,9 +182,9 @@
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(function() {
     let rawData = [];
@@ -218,7 +217,7 @@ $(function() {
     function loadData() {
         let search = $('#search').val().toLowerCase();
         
-        $.get("{{ route('employment-types.list') }}", function(res) {
+        $.get("<?php echo e(route('employment-types.list')); ?>", function(res) {
             rawData = res;
             renderTable(search);
         });
@@ -307,7 +306,7 @@ $(function() {
     $('#mainForm').on('submit', function(e) {
         e.preventDefault();
         let id = $('#edit_id').val();
-        let url = id ? `/employment-types/${id}` : "{{ route('employment-types.store') }}";
+        let url = id ? `/employment-types/${id}` : "<?php echo e(route('employment-types.store')); ?>";
         let type = id ? 'PUT' : 'POST';
         
         let $btn = $('#saveBtn');
@@ -338,7 +337,7 @@ $(function() {
             $.ajax({
                 url: `/employment-types/${$(this).data('id')}`,
                 type: 'DELETE',
-                data: { _token: '{{ csrf_token() }}' },
+                data: { _token: '<?php echo e(csrf_token()); ?>' },
                 success: function() {
                     loadData();
                 }
@@ -350,4 +349,6 @@ $(function() {
     loadData();
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/master/employment-types.blade.php ENDPATH**/ ?>

@@ -23,96 +23,18 @@ class MenuBuilder
                 return [];
             }
             
-            // Create a mock user object for tenant users
-            $user = new class($userId, $userName, $userRole, $tenantId) {
-                public $id;
-                public $name;
-                public $role_id;
-                public $tenant_id;
-                public $role;
-                public $tenant;
-                public $is_worklog;
-                public $manager;
-                public $is_manager;
-                
-                public function __construct($id, $name, $roleId, $tenantId) {
-                    $this->id = $id;
-                    $this->name = $name;
-                    $this->role_id = $roleId;
-                    $this->tenant_id = $tenantId;
-                    $this->role = null;
-                    $this->tenant = null;
-                    $this->is_worklog = false;
-                    $this->manager = null;
-                    $this->is_manager = null; // Will be loaded from database
+            // Load actual user data from tenant database
+            try {
+                $dbUser = \App\Models\User::find($userId);
+                if ($dbUser) {
+                    $user = $dbUser;
+                    $user->tenant_id = $tenantId;
+                } else {
+                    return [];
                 }
-                
-                public function subordinates() {
-                    // Load subordinates from database for tenant users
-                    try {
-                        // Ensure we're using the correct database connection
-                        $subordinates = \App\Models\User::whereHas('managers', function($q) {
-                            $q->where('manager_id', $this->id);
-                        })->get();
-                        return $subordinates;
-                    } catch (\Exception $e) {
-                        // Log the error for debugging
-                        \Log::error('Error loading subordinates: ' . $e->getMessage());
-                        return collect([]);
-                    }
-                }
-                
-                public function hasPermission($permission) {
-                    // Load role if not already loaded
-                    if (!$this->role && $this->role_id) {
-                        try {
-                            $this->role = \App\Models\Role::find($this->role_id);
-                        } catch (\Exception $e) {
-                            return false;
-                        }
-                    }
-                    
-                    if (!$this->role) {
-                        return false;
-                    }
-                    
-                    // Check if role has this permission
-                    $permissions = $this->role->permissions_data ?? [];
-                    // Ensure permissions is an array (decode JSON if it's a string)
-                    if (is_string($permissions)) {
-                        $permissions = json_decode($permissions, true) ?? [];
-                    }
-                    return in_array($permission, $permissions);
-                }
-                
-                public function hasPermissionPrefix($prefix) {
-                    // Load role if not already loaded
-                    if (!$this->role && $this->role_id) {
-                        try {
-                            $this->role = \App\Models\Role::find($this->role_id);
-                        } catch (\Exception $e) {
-                            return false;
-                        }
-                    }
-                    
-                    if (!$this->role) {
-                        return false;
-                    }
-                    
-                    // Check if role has any permission with this prefix
-                    $permissions = $this->role->permissions_data ?? [];
-                    // Ensure permissions is an array (decode JSON if it's a string)
-                    if (is_string($permissions)) {
-                        $permissions = json_decode($permissions, true) ?? [];
-                    }
-                    foreach ($permissions as $permission) {
-                        if (str_starts_with($permission, $prefix)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-            };
+            } catch (\Exception $e) {
+                return [];
+            }
         }
 
         $connectionName = DB::getDefaultConnection();
@@ -244,8 +166,8 @@ class MenuBuilder
             }
 
             // User flag check
-            if ($roleName !== 'admin') {
-                if (isset($section['user_flag']) && !$user->{$section['user_flag']}) {
+            if ($roleName === 'user') {
+                if (isset($section['user_flag']) && empty($user->{$section['user_flag']})) {
                     return [];
                 }
             }
@@ -284,8 +206,8 @@ class MenuBuilder
         $tenant = $user->tenant;
 
         // Check user flag for block completely
-        if ($roleName !== 'admin') {
-            if (isset($section['user_flag']) && !$user->{$section['user_flag']}) {
+        if ($roleName === 'user') {
+            if (isset($section['user_flag']) && empty($user->{$section['user_flag']})) {
                 return [];
             }
         }
@@ -297,8 +219,8 @@ class MenuBuilder
             }
 
             // Check item-level user_flag if not an admin
-            if ($roleName !== 'admin') {
-                if (isset($item['user_flag']) && !$user->{$item['user_flag']}) {
+            if ($roleName === 'user') {
+                if (isset($item['user_flag']) && empty($user->{$item['user_flag']})) {
                     continue;
                 }
             }

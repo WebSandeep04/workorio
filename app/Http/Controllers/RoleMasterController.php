@@ -39,11 +39,24 @@ class RoleMasterController extends Controller
                     ->get();
 
         $tenantFeatures = [
+            'core' => [
+                'enabled' => true,
+                'setup_enabled' => (bool) ($tenant->is_core_setup_enabled ?? true),
+                'permissions' => [
+                    'core.setup' => 'Core Setup Management'
+                ]
+            ],
+            'master' => [
+                'enabled' => true,
+                'setup_enabled' => (bool) ($tenant->is_master_setup_enabled ?? true),
+                'permissions' => [
+                    'master.setup' => 'Master Setup Management'
+                ]
+            ],
             'sales' => [
                 'enabled' => (bool) ($tenant->is_sales_enabled ?? true),
                 'setup_enabled' => (bool) ($tenant->is_sales_setup_enabled ?? true),
                 'permissions' => [
-                    // Submenu-level permissions for Sales
                     'sales.alldata' => 'Sales: All Data',
                     'sales.analytics' => 'Sales: Analytics',
                     'sales.leads' => 'Sales: Leads',
@@ -56,25 +69,21 @@ class RoleMasterController extends Controller
                     'sales.quotation' => 'Sales: Quotation',
                     'sales.payment_followup' => 'Sales: Payment Followup',
                     'sales.leadform' => 'Sales: Lead Form',
-                    // Calling
                     'sales.calling' => 'Sales: Calling',
                     'sales.calling.my' => 'Sales: My Calls',
                     'sales.calling.junk' => 'Sales: Junk Calls',
                     'sales.calling.todays' => "Sales: Today's Calls",
-                    // Setup
                     'sales.setup' => 'Sales Setup Management']
             ],
             'worklog' => [
                 'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
                 'setup_enabled' => (bool) ($tenant->is_work_setup_enabled ?? true),
                 'permissions' => [
-                    // Submenu-level permissions for Worklog
                     'worklog.entry' => 'Worklog: Entry',
                     'worklog.history' => 'Worklog: History',
                     'worklog.leave' => 'Worklog: Leave',
                     'worklog.approvals' => 'Worklog: Approvals',
                     'worklog.missing_summary' => 'Worklog: Missing Entries Summary',
-                    // Task permissions
                     'task.view' => 'Task: View All Tasks',
                     'task.create' => 'Task: Create Tasks',
                     'task.edit' => 'Task: Edit Tasks',
@@ -83,14 +92,13 @@ class RoleMasterController extends Controller
                     'task.my_tasks' => 'Task: View My Assigned Tasks',
                     'task.my_created' => 'Task: View My Created Tasks',
                     'task.status' => 'Task: Task Status Management',
-                    // Setup
+                    'task.setup' => 'Task Setup Management',
                     'worklog.setup' => 'Worklog Setup Management']
             ],
             'attendance' => [
                 'enabled' => (bool) ($tenant->is_attendance_enabled ?? true),
                 'setup_enabled' => (bool) ($tenant->is_attendance_setup_enabled ?? false),
                 'permissions' => [
-                    // Submenu-level permissions for Attendance
                     'attendance.entry' => 'Attendance: Entry',
                     'attendance.history' => 'Attendance: History',
                     'attendance.setup' => 'Attendance Setup Management']
@@ -107,7 +115,6 @@ class RoleMasterController extends Controller
                 'enabled' => (bool) ($tenant->is_subscription_enabled ?? true),
                 'setup_enabled' => (bool) ($tenant->is_subscription_setup_enabled ?? false),
                 'permissions' => [
-                    // Subscription permissions
                     'subscription.view' => 'Subscription: View Subscriptions',
                     'subscription.create' => 'Subscription: Create Subscriptions',
                     'subscription.edit' => 'Subscription: Edit Subscriptions',
@@ -130,7 +137,6 @@ class RoleMasterController extends Controller
                 'enabled' => (bool) ($tenant->is_document_management_enabled ?? true),
                 'setup_enabled' => (bool) ($tenant->is_document_setup_enabled ?? false),
                 'permissions' => [
-                    // Document permissions
                     'documents.manage' => 'Manage Documents',
                     'documents.my_documents' => 'My Documents',
                     'documents.setup' => 'Documents Setup Management']
@@ -158,10 +164,8 @@ class RoleMasterController extends Controller
                 'enabled' => (bool) ($tenant->is_social_media_calendar_enabled ?? true),
                 'setup_enabled' => (bool) ($tenant->is_calendar_setup_enabled ?? false),
                 'permissions' => [
-                    // Calendar main features
                     'calendar.view' => 'Calendar: View Calendar',
                     'calendar.client_event_links' => 'Calendar: Client-Event Links',
-                    // Calendar Setup
                     'calendar.events' => 'Calendar: Manage Calendar Events',
                     'calendar.status' => 'Calendar: Manage Calendar Status',
                     'calendar.status_checklist' => 'Calendar: Status-Checklist Management',
@@ -169,14 +173,14 @@ class RoleMasterController extends Controller
                     'calendar.social_handles' => 'Calendar: Manage Social Handles',
                     'calendar.clients' => 'Calendar: Manage Calendar Clients',
                     'calendar.client_social' => 'Calendar: Client Social Handles Management',
-                    // Setup
                     'calendar.setup' => 'Calendar Setup Management']
             ],
             'petty_cash' => [
                 'enabled' => (bool) ($tenant->is_petty_cash_enable ?? true),
-                'setup_enabled' => false,
+                'setup_enabled' => (bool) ($tenant->is_petty_cash_setup_enabled ?? false),
                 'permissions' => [
                     'petty_cash.view' => 'Petty Cash: View Cash',
+                    'petty_cash.setup' => 'Petty Cash Setup Management',
                 ]
             ],
             'approvals' => [

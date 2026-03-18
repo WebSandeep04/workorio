@@ -252,45 +252,46 @@ return [
                     'roles' => ['admin'],
                     'items' => [
                         // Core Setup
-                        ['route' => 'state', 'title' => 'State', 'icon' => 'bi bi-globe', 'feature_flag' => 'is_core_setup_enabled', 'user_flag' => 'is_core_setup'],
-                        ['route' => 'city', 'title' => 'City', 'icon' => 'bi bi-geo-alt', 'feature_flag' => 'is_core_setup_enabled', 'user_flag' => 'is_core_setup'],
-                        ['route' => 'countries.index', 'title' => 'Countries', 'icon' => 'bi bi-flag', 'permission' => 'master.countries', 'feature_flag' => 'is_core_setup_enabled', 'user_flag' => 'is_core_setup'],
+                        ['route' => 'state', 'title' => 'State', 'icon' => 'bi bi-globe', 'permission' => 'core.setup', 'feature_flag' => 'is_core_setup_enabled', 'user_flag' => 'is_core_setup'],
+                        ['route' => 'city', 'title' => 'City', 'icon' => 'bi bi-geo-alt', 'permission' => 'core.setup', 'feature_flag' => 'is_core_setup_enabled', 'user_flag' => 'is_core_setup'],
+                        ['route' => 'countries.index', 'title' => 'Countries', 'icon' => 'bi bi-flag', 'permission' => 'core.setup', 'feature_flag' => 'is_core_setup_enabled', 'user_flag' => 'is_core_setup'],
 
                         // User Management
-                        ['route' => 'user', 'title' => 'User Management', 'icon' => 'bi bi-people', 'feature_flag' => 'is_user_setup_enabled', 'user_flag' => 'is_user_setup'],
-                        ['route' => 'role-master', 'title' => 'Role Master', 'icon' => 'bi bi-shield-lock', 'feature_flag' => 'is_user_setup_enabled', 'user_flag' => 'is_user_setup'],
+                        ['route' => 'user', 'title' => 'User Management', 'icon' => 'bi bi-people', 'permission' => 'user.view', 'feature_flag' => 'is_user_setup_enabled', 'user_flag' => 'is_user_setup'],
+                        ['route' => 'role-master', 'title' => 'Role Master', 'icon' => 'bi bi-shield-lock', 'permission' => 'role.manage', 'feature_flag' => 'is_user_setup_enabled', 'user_flag' => 'is_user_setup'],
 
                         // Master Setup 
-                        ['route' => 'branches.index', 'title' => 'Branches', 'icon' => 'bi bi-diagram-3', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
-                        ['route' => 'shifts.index', 'title' => 'Shift', 'icon' => 'bi bi-clock-history', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
-                        ['route' => 'departments.index', 'title' => 'Departments', 'icon' => 'bi bi-diagram-2', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
-                        ['route' => 'designations.index', 'title' => 'Designations', 'icon' => 'bi bi-badge-ad', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
-                        ['route' => 'employment-types.index', 'title' => 'Employment Types', 'icon' => 'bi bi-briefcase', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
-                        ['route' => 'late-reasons.index', 'title' => 'Late Reasons', 'icon' => 'bi bi-clock-history', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
-                        ['route' => 'places.index', 'title' => 'Places', 'icon' => 'bi bi-map', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'branches.index', 'title' => 'Branches', 'icon' => 'bi bi-diagram-3', 'permission' => 'master.setup', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'shifts.index', 'title' => 'Shift', 'icon' => 'bi bi-clock-history', 'permission' => 'master.setup', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'departments.index', 'title' => 'Departments', 'icon' => 'bi bi-diagram-2', 'permission' => 'master.setup', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'designations.index', 'title' => 'Designations', 'icon' => 'bi bi-badge-ad', 'permission' => 'master.setup', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'employment-types.index', 'title' => 'Employment Types', 'icon' => 'bi bi-briefcase', 'permission' => 'master.setup', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'leave-type.index', 'title' => 'Leave Types', 'icon' => 'bi bi-airplane', 'permission' => 'master.setup', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'late-reasons.index', 'title' => 'Late Reasons', 'icon' => 'bi bi-clock-history', 'permission' => 'master.setup', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
+                        ['route' => 'places.index', 'title' => 'Places', 'icon' => 'bi bi-map', 'permission' => 'master.setup', 'feature_flag' => 'is_master_setup_enabled', 'user_flag' => 'is_master_setup'],
 
                         // Sales Setup 
-                        ['route' => 'status', 'title' => 'Sales Status', 'icon' => 'bi bi-check2-circle', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
-                        ['route' => 'source', 'title' => 'Lead Source', 'icon' => 'bi bi-diagram-3', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
-                        ['route' => 'product', 'title' => 'Product', 'icon' => 'bi bi-box2', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
-                        ['route' => 'payment-terms', 'title' => 'Payment Terms', 'icon' => 'bi bi-credit-card', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
-                        ['route' => 'business', 'title' => 'Business Type', 'icon' => 'bi bi-briefcase', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
-                        ['route' => 'calling-type.index', 'title' => 'Calling Types', 'icon' => 'bi bi-list-ul', 'feature_flag' => 'is_tally_calling_setup_enabled', 'user_flag' => 'is_tally_calling_setup'],
-                        ['route' => 'quotation.setup', 'title' => 'Quotation Setup', 'icon' => 'bi bi-file-earmark-text', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
-                        ['route' => 'expenses.index', 'title' => 'Expenses', 'icon' => 'bi bi-cash-coin', 'feature_flag' => 'is_petty_cash_setup_enabled', 'user_flag' => 'is_petty_cash_setup'],
-                        ['route' => 'petty-opening-balance.index', 'title' => 'Opening Balance', 'icon' => 'bi bi-wallet2', 'feature_flag' => 'is_petty_cash_setup_enabled', 'user_flag' => 'is_petty_cash_setup'],
+                        ['route' => 'status', 'title' => 'Sales Status', 'icon' => 'bi bi-check2-circle', 'permission' => 'sales.setup', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'source', 'title' => 'Lead Source', 'icon' => 'bi bi-diagram-3', 'permission' => 'sales.setup', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'product', 'title' => 'Product', 'icon' => 'bi bi-box2', 'permission' => 'sales.setup', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'payment-terms', 'title' => 'Payment Terms', 'icon' => 'bi bi-credit-card', 'permission' => 'sales.setup', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'business', 'title' => 'Business Type', 'icon' => 'bi bi-briefcase', 'permission' => 'sales.setup', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'calling-type.index', 'title' => 'Calling Types', 'icon' => 'bi bi-list-ul', 'permission' => 'sales.setup', 'feature_flag' => 'is_tally_calling_setup_enabled', 'user_flag' => 'is_tally_calling_setup'],
+                        ['route' => 'quotation.setup', 'title' => 'Quotation Setup', 'icon' => 'bi bi-file-earmark-text', 'permission' => 'sales.setup', 'feature_flag' => 'is_sales_setup_enabled', 'user_flag' => 'is_sales_setup'],
+                        ['route' => 'expenses.index', 'title' => 'Expenses', 'icon' => 'bi bi-cash-coin', 'permission' => 'petty_cash.setup', 'feature_flag' => 'is_petty_cash_setup_enabled', 'user_flag' => 'is_petty_cash_setup'],
+                        ['route' => 'petty-opening-balance.index', 'title' => 'Opening Balance', 'icon' => 'bi bi-wallet2', 'permission' => 'petty_cash.setup', 'feature_flag' => 'is_petty_cash_setup_enabled', 'user_flag' => 'is_petty_cash_setup'],
 
                         // Work & Project Setup 
-                        ['route' => 'customer', 'title' => 'Customer', 'icon' => 'bi bi-person-badge', 'feature_flag' => 'is_work_setup_enabled', 'user_flag' => 'is_work_setup'],
-                        ['route' => 'service', 'title' => 'Project Services', 'icon' => 'bi bi-kanban', 'feature_flag' => 'is_projects_setup_enabled', 'user_flag' => 'is_projects_setup'],
-                        ['route' => 'module', 'title' => 'Module', 'icon' => 'bi bi-puzzle', 'feature_flag' => 'is_projects_setup_enabled', 'user_flag' => 'is_projects_setup'],
-                        ['route' => 'customer-project', 'title' => 'Open Project', 'icon' => 'bi bi-collection', 'feature_flag' => 'is_projects_setup_enabled', 'user_flag' => 'is_projects_setup'],
-                        ['route' => 'entry-type.index', 'title' => 'Entry Types', 'icon' => 'bi bi-list-check', 'feature_flag' => 'is_work_setup_enabled', 'user_flag' => 'is_work_setup'],
-                        ['route' => 'holiday', 'title' => 'Holidays', 'icon' => 'bi bi-calendar2-event', 'feature_flag' => 'is_attendance_setup_enabled', 'user_flag' => 'is_attendance_setup'],
+                        ['route' => 'customer', 'title' => 'Customer', 'icon' => 'bi bi-person-badge', 'permission' => 'worklog.setup', 'feature_flag' => 'is_work_setup_enabled', 'user_flag' => 'is_work_setup'],
+                        ['route' => 'service', 'title' => 'Project Services', 'icon' => 'bi bi-kanban', 'permission' => 'projects.setup', 'feature_flag' => 'is_projects_setup_enabled', 'user_flag' => 'is_projects_setup'],
+                        ['route' => 'module', 'title' => 'Module', 'icon' => 'bi bi-puzzle', 'permission' => 'projects.setup', 'feature_flag' => 'is_projects_setup_enabled', 'user_flag' => 'is_projects_setup'],
+                        ['route' => 'customer-project', 'title' => 'Open Project', 'icon' => 'bi bi-collection', 'permission' => 'projects.setup', 'feature_flag' => 'is_projects_setup_enabled', 'user_flag' => 'is_projects_setup'],
+                        ['route' => 'entry-type.index', 'title' => 'Entry Types', 'icon' => 'bi bi-list-check', 'permission' => 'worklog.setup', 'feature_flag' => 'is_work_setup_enabled', 'user_flag' => 'is_work_setup'],
+                        ['route' => 'holiday', 'title' => 'Holidays', 'icon' => 'bi bi-calendar2-event', 'permission' => 'attendance.setup', 'feature_flag' => 'is_attendance_setup_enabled', 'user_flag' => 'is_attendance_setup'],
 
                         // Task & Subscription Setup 
-                        ['route' => 'task-status.index', 'title' => 'Task Status', 'icon' => 'bi bi-tag', 'permission' => 'task.status', 'feature_flag' => 'is_task_setup_enabled', 'user_flag' => 'is_task_setup'],
-                        ['route' => 'subscription-status.index', 'title' => 'Subscription Status', 'icon' => 'bi bi-tag', 'feature_flag' => 'is_subscription_setup_enabled', 'user_flag' => 'is_subscription_setup'],
+                        ['route' => 'task-status.index', 'title' => 'Task Status', 'icon' => 'bi bi-tag', 'permission' => 'task.setup', 'feature_flag' => 'is_task_setup_enabled', 'user_flag' => 'is_task_setup'],
+                        ['route' => 'subscription-status.index', 'title' => 'Subscription Status', 'icon' => 'bi bi-tag', 'permission' => 'subscription.setup', 'feature_flag' => 'is_subscription_setup_enabled', 'user_flag' => 'is_subscription_setup'],
                         
                         // Calendar Setup
                         ['route' => 'calendar-events.index', 'title' => 'Calendar Events', 'icon' => 'bi bi-calendar-plus', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.events'],
@@ -301,14 +302,14 @@ return [
                         ['route' => 'calendar-social.index', 'title' => 'Calendar Social Handles', 'icon' => 'bi bi-share', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.social_handles'],
                         ['route' => 'calendar-clients.index', 'title' => 'Calendar Clients', 'icon' => 'bi bi-people', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.clients'],
                         ['route' => 'calendar-client-social.index', 'title' => 'Client Social Handles', 'icon' => 'bi bi-link-45deg', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.client_social'],
-                        ['route' => 'checklist.index', 'title' => 'Checklist', 'icon' => 'bi bi-list-check', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'checklist.index'],
+                        ['route' => 'checklist.index', 'title' => 'Checklist', 'icon' => 'bi bi-list-check', 'feature_flag' => 'is_calendar_setup_enabled', 'user_flag' => 'is_calendar_setup', 'permission' => 'calendar.events'],
                         
                         // Asset Management Setup 
-                        ['route' => 'asset-type.index', 'title' => 'Asset Types', 'icon' => 'bi bi-box', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
-                        ['route' => 'asset-category.index', 'title' => 'Asset Categories', 'icon' => 'bi bi-tags', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
-                        ['route' => 'asset-status.index', 'title' => 'Asset Status', 'icon' => 'bi bi-check2-circle', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
-                        ['route' => 'supplier.index', 'title' => 'Suppliers', 'icon' => 'bi bi-truck', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
-                        ['route' => 'assets.index', 'title' => 'Open Assets', 'icon' => 'bi bi-box-seam', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
+                        ['route' => 'asset-type.index', 'title' => 'Asset Types', 'icon' => 'bi bi-box', 'permission' => 'asset_management.setup', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
+                        ['route' => 'asset-category.index', 'title' => 'Asset Categories', 'icon' => 'bi bi-tags', 'permission' => 'asset_management.setup', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
+                        ['route' => 'asset-status.index', 'title' => 'Asset Status', 'icon' => 'bi bi-check2-circle', 'permission' => 'asset_management.setup', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
+                        ['route' => 'supplier.index', 'title' => 'Suppliers', 'icon' => 'bi bi-truck', 'permission' => 'asset_management.setup', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
+                        ['route' => 'assets.index', 'title' => 'Open Assets', 'icon' => 'bi bi-box-seam', 'permission' => 'asset_management.setup', 'feature_flag' => 'is_asset_management_setup_enabled', 'user_flag' => 'is_asset_management_setup'],
                     ],
                 ],
 

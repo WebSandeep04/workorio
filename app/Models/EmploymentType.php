@@ -20,5 +20,10 @@ class EmploymentType extends Model
     {
         return $this->hasMany(Employee::class, 'employment_type_id');
     }
+
+    public function leaveRules()
+    {
+        return $this->hasMany(EmploymentTypeLeaveRule::class, 'employment_type_id');
+    }
 }
 

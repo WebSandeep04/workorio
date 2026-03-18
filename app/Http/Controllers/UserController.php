@@ -147,6 +147,9 @@ public function update(Request $request, $id)
         $user->managers()->sync($request->manager_ids);
     }
 
+    // Attempt to credit prefilled leaves if user employee assignment changed
+    app(\App\Services\LeaveBalanceService::class)->initializePrefillLeaves($user);
+
     return response()->json(['message' => 'User updated successfully']);
 }
 
@@ -207,6 +210,9 @@ public function store(Request $request)
         if ($request->has('manager_ids')) {
             $user->managers()->sync($request->manager_ids);
         }
+
+        // Formally fetch initial generation logic (prefill balance)
+        app(\App\Services\LeaveBalanceService::class)->initializePrefillLeaves($user);
 
         return response()->json(['message' => 'User created successfully']);
     } catch (\Exception $e) {
