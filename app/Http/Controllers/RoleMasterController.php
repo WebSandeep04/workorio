@@ -88,51 +88,56 @@ class RoleMasterController extends Controller
             ],
             'attendance' => [
                 'enabled' => (bool) ($tenant->is_attendance_enabled ?? true),
-                'setup_enabled' => false, // Attendance doesn't have setup
+                'setup_enabled' => (bool) ($tenant->is_attendance_setup_enabled ?? false),
                 'permissions' => [
                     // Submenu-level permissions for Attendance
                     'attendance.entry' => 'Attendance: Entry',
-                    'attendance.history' => 'Attendance: History']
+                    'attendance.history' => 'Attendance: History',
+                    'attendance.setup' => 'Attendance Setup Management']
             ],
             'tracking' => [
-                'enabled' => (bool) ($tenant->is_attendance_enabled ?? true),
-                'setup_enabled' => false,
+                'enabled' => (bool) ($tenant->is_tracking_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_tracking_setup_enabled ?? false),
                 'permissions' => [
-                    'tracking.view' => 'Tracking: View Tracking'
+                    'tracking.view' => 'Tracking: View Tracking',
+                    'tracking.setup' => 'Tracking Setup Management'
                 ]
             ],
             'subscription' => [
                 'enabled' => (bool) ($tenant->is_subscription_enabled ?? true),
-                'setup_enabled' => false,
+                'setup_enabled' => (bool) ($tenant->is_subscription_setup_enabled ?? false),
                 'permissions' => [
                     // Subscription permissions
                     'subscription.view' => 'Subscription: View Subscriptions',
                     'subscription.create' => 'Subscription: Create Subscriptions',
                     'subscription.edit' => 'Subscription: Edit Subscriptions',
                     'subscription.delete' => 'Subscription: Delete Subscriptions',
+                    'subscription.setup' => 'Subscription Setup Management'
                 ]
             ],
             'projects' => [
-                'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
-                'setup_enabled' => false,
+                'enabled' => (bool) ($tenant->is_projects_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_projects_setup_enabled ?? false),
                 'permissions' => [
                     'projects.view' => 'Projects: View Projects',
                     'projects.create' => 'Projects: Create Projects',
                     'projects.edit' => 'Projects: Edit Projects',
                     'projects.delete' => 'Projects: Delete Projects',
+                    'projects.setup' => 'Projects Setup Management'
                 ]
             ],
             'documents' => [
                 'enabled' => (bool) ($tenant->is_document_management_enabled ?? true),
-                'setup_enabled' => false,
+                'setup_enabled' => (bool) ($tenant->is_document_setup_enabled ?? false),
                 'permissions' => [
                     // Document permissions
                     'documents.manage' => 'Manage Documents',
-                    'documents.my_documents' => 'My Documents']
+                    'documents.my_documents' => 'My Documents',
+                    'documents.setup' => 'Documents Setup Management']
             ],
             'user_management' => [
                 'enabled' => (bool) ($tenant->is_user_setup_enabled ?? true),
-                'setup_enabled' => false, // User management doesn't have setup
+                'setup_enabled' => false,
                 'permissions' => [
                     'user.view' => 'View Users',
                     'user.create' => 'Create Users',
@@ -141,16 +146,17 @@ class RoleMasterController extends Controller
                     'role.manage' => 'Manage Roles']
             ],
             'reports' => [
-                'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
-                'setup_enabled' => false, // Reports don't have setup
+                'enabled' => (bool) ($tenant->is_reports_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_reports_setup_enabled ?? false),
                 'permissions' => [
                     'attendance.stats' => 'Attendance Stats',
                     'attendance.report' => 'Attendance Report',
-                    'worklog.history' => 'Worklog Report']
+                    'worklog.history' => 'Worklog Report',
+                    'reports.setup' => 'Reports Setup Management']
             ],
             'calendar' => [
-                'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
-                'setup_enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
+                'enabled' => (bool) ($tenant->is_social_media_calendar_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_calendar_setup_enabled ?? false),
                 'permissions' => [
                     // Calendar main features
                     'calendar.view' => 'Calendar: View Calendar',
@@ -182,23 +188,26 @@ class RoleMasterController extends Controller
             ],
             'contact_management' => [
                 'enabled' => (bool) ($tenant->is_contact_management ?? true),
-                'setup_enabled' => false,
+                'setup_enabled' => (bool) ($tenant->is_contact_management_setup_enabled ?? false),
                 'permissions' => [
                     'contact_management.access' => 'Contact Management: Access',
+                    'contact_management.setup' => 'Contact Management Setup Management'
                 ]
             ],
             'asset_management' => [
                 'enabled' => (bool) ($tenant->is_asset_management_enable ?? true),
-                'setup_enabled' => false,
+                'setup_enabled' => (bool) ($tenant->is_asset_management_setup_enabled ?? false),
                 'permissions' => [
                     'asset_management.access' => 'Asset Management: Access',
+                    'asset_management.setup' => 'Asset Management Setup Management'
                 ]
             ],
             'email_marketing' => [
                  'enabled' => (bool) ($tenant->is_email_marketing_enable ?? false),
-                 'setup_enabled' => false,
+                 'setup_enabled' => (bool) ($tenant->is_email_marketing_setup_enabled ?? false),
                  'permissions' => [
-                     'email_marketing.view' => 'Email Marketing: Access'
+                     'email_marketing.view' => 'Email Marketing: Access',
+                     'email_marketing.setup' => 'Email Marketing Setup Management'
                  ]
             ]
         ];
@@ -308,44 +317,49 @@ class RoleMasterController extends Controller
             ],
             'attendance' => [
                 'enabled' => (bool) ($tenant->is_attendance_enabled ?? true),
-                'setup_enabled' => false,
+                'setup_enabled' => (bool) ($tenant->is_attendance_setup_enabled ?? false),
                 'permissions' => [
                     'attendance.entry' => 'Attendance: Entry',
-                    'attendance.history' => 'Attendance: History']
+                    'attendance.history' => 'Attendance: History',
+                    'attendance.setup' => 'Attendance Setup Management']
             ],
             'tracking' => [
-                'enabled' => (bool) ($tenant->is_attendance_enabled ?? true), // Assuming tracking is part of attendance
-                'setup_enabled' => false,
+                'enabled' => (bool) ($tenant->is_tracking_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_tracking_setup_enabled ?? false),
                 'permissions' => [
-                    'tracking.view' => 'Tracking: View Tracking'
+                    'tracking.view' => 'Tracking: View Tracking',
+                    'tracking.setup' => 'Tracking Setup Management'
                 ]
             ],
             'subscription' => [
                 'enabled' => (bool) ($tenant->is_subscription_enabled ?? true),
-                'setup_enabled' => false,
+                'setup_enabled' => (bool) ($tenant->is_subscription_setup_enabled ?? false),
                 'permissions' => [
                     'subscription.view' => 'Subscription: View Subscriptions',
                     'subscription.create' => 'Subscription: Create Subscriptions',
                     'subscription.edit' => 'Subscription: Edit Subscriptions',
                     'subscription.delete' => 'Subscription: Delete Subscriptions',
+                    'subscription.setup' => 'Subscription Setup Management'
                 ]
             ],
             'projects' => [
-                'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
-                'setup_enabled' => false,
+                'enabled' => (bool) ($tenant->is_projects_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_projects_setup_enabled ?? false),
                 'permissions' => [
                     'projects.view' => 'Projects: View Projects',
                     'projects.create' => 'Projects: Create Projects',
                     'projects.edit' => 'Projects: Edit Projects',
                     'projects.delete' => 'Projects: Delete Projects',
+                    'projects.setup' => 'Projects Setup Management'
                 ]
             ],
             'documents' => [
                 'enabled' => (bool) ($tenant->is_document_management_enabled ?? true),
-                'setup_enabled' => false,
+                'setup_enabled' => (bool) ($tenant->is_document_setup_enabled ?? false),
                 'permissions' => [
                     'documents.manage' => 'Manage Documents',
-                    'documents.my_documents' => 'My Documents']
+                    'documents.my_documents' => 'My Documents',
+                    'documents.setup' => 'Documents Setup Management']
             ],
             'user_management' => [
                 'enabled' => (bool) ($tenant->is_user_setup_enabled ?? true),
@@ -358,16 +372,17 @@ class RoleMasterController extends Controller
                     'role.manage' => 'Manage Roles']
             ],
             'reports' => [
-                'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
-                'setup_enabled' => false,
+                'enabled' => (bool) ($tenant->is_reports_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_reports_setup_enabled ?? false),
                 'permissions' => [
                     'attendance.stats' => 'Attendance Stats',
                     'attendance.report' => 'Attendance Report',
-                    'worklog.history' => 'Worklog Report']
+                    'worklog.history' => 'Worklog Report',
+                    'reports.setup' => 'Reports Setup Management']
             ],
             'calendar' => [
-                'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
-                'setup_enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
+                'enabled' => (bool) ($tenant->is_social_media_calendar_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_calendar_setup_enabled ?? false),
                 'permissions' => [
                     // Calendar main features
                     'calendar.view' => 'Calendar: View Calendar',
@@ -399,23 +414,26 @@ class RoleMasterController extends Controller
             ],
             'contact_management' => [
                 'enabled' => (bool) ($tenant->is_contact_management ?? true),
-                'setup_enabled' => false,
+                'setup_enabled' => (bool) ($tenant->is_contact_management_setup_enabled ?? false),
                 'permissions' => [
                     'contact_management.access' => 'Contact Management: Access',
+                    'contact_management.setup' => 'Contact Management Setup Management'
                 ]
             ],
             'asset_management' => [
                 'enabled' => (bool) ($tenant->is_asset_management_enable ?? true),
-                'setup_enabled' => false,
+                'setup_enabled' => (bool) ($tenant->is_asset_management_setup_enabled ?? false),
                 'permissions' => [
                     'asset_management.access' => 'Asset Management: Access',
+                    'asset_management.setup' => 'Asset Management Setup Management'
                 ]
             ],
             'email_marketing' => [
                  'enabled' => (bool) ($tenant->is_email_marketing_enable ?? false),
-                 'setup_enabled' => false,
+                 'setup_enabled' => (bool) ($tenant->is_email_marketing_setup_enabled ?? false),
                  'permissions' => [
-                     'email_marketing.view' => 'Email Marketing: Access'
+                     'email_marketing.view' => 'Email Marketing: Access',
+                     'email_marketing.setup' => 'Email Marketing Setup Management'
                  ]
             ]
         ];
