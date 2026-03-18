@@ -165,15 +165,8 @@ class MenuBuilder
                 return $section;
             }
 
-            // User flag check
-            if ($roleName === 'user') {
-                if (isset($section['user_flag']) && empty($user->{$section['user_flag']})) {
-                    return [];
-                }
-            }
-
-            // Custom roles permission check
-            if ($roleName !== 'admin' && $roleName !== 'user') {
+            // RBAC permission check
+            if ($roleName !== 'admin') {
                 if (isset($section['permission']) && !$user->hasPermission($section['permission'])) {
                     return [];
                 }
@@ -205,34 +198,20 @@ class MenuBuilder
         // Get tenant information for feature flag checking
         $tenant = $user->tenant;
 
-        // Check user flag for block completely
-        if ($roleName === 'user') {
-            if (isset($section['user_flag']) && empty($user->{$section['user_flag']})) {
-                return [];
-            }
-        }
-        
         foreach ($section['items'] as $item) {
             // Check item-level feature flags first
             if (isset($item['feature_flag']) && (!$tenant || !$tenant->{$item['feature_flag']})) {
                 continue;
             }
 
-            // Check item-level user_flag if not an admin
-            if ($roleName === 'user') {
-                if (isset($item['user_flag']) && empty($user->{$item['user_flag']})) {
-                    continue;
-                }
-            }
-
-            // Admin gets access to everything (after feature & user flag check)
+            // Admin gets access to everything (after feature flag check)
             if ($roleName === 'admin') {
                 $items[] = $item;
                 continue;
             }
-            
-            // Custom roles: check permissions
-            if ($roleName !== 'admin' && $roleName !== 'user') {
+
+            // RBAC strictly for all non-admins
+            if ($roleName !== 'admin') {
                 // Special case: Managers get worklog approvals regardless of permissions
                 if (isset($item['permission']) && $item['permission'] === 'worklog.approvals') {
                     // Check if user is a manager (is_manager = 1)
