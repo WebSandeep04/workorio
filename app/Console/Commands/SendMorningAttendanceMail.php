@@ -21,7 +21,7 @@ class SendMorningAttendanceMail extends Command
      *
      * @var string
      */
-    protected $signature = 'attendance:send-morning-mail';
+    protected $signature = 'attendance:send-morning-mail {--alert=}';
 
     /**
      * The console command description.
@@ -123,7 +123,7 @@ class SendMorningAttendanceMail extends Command
             }
 
             try {
-                Mail::to($recipientEmails)->send(new MorningAttendanceReport($reportData, $today));
+                Mail::to($recipientEmails)->send(new MorningAttendanceReport($reportData, $today, $this->option('alert')));
                 $this->info("  ✅ Morning attendance report sent to " . count($recipientEmails) . " users.");
             } catch (\Exception $e) {
                 $this->error("  ❌ Mailer Error: " . $e->getMessage());

@@ -19,7 +19,7 @@ class SendWorklogReportYesterdayMail extends Command
      *
      * @var string
      */
-    protected $signature = 'worklog:send-yesterday-mail';
+    protected $signature = 'worklog:send-yesterday-mail {--alert=}';
 
     /**
      * The console command description.
@@ -136,6 +136,7 @@ class SendWorklogReportYesterdayMail extends Command
             }
 
             $payload = [
+                'alert_prefix' => $this->option('alert'),
                 'worklogs' => $worklogs,
                 'dateDisplay' => Carbon::now('Asia/Kolkata')->format('F j, Y'),
                 'targetDateDisplay' => Carbon::yesterday('Asia/Kolkata')->format('F j, Y'),

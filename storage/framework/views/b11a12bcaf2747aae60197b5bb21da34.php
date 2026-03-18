@@ -16,7 +16,6 @@
         <thead>
             <tr style="background-color:#34495e; color:#fff;">
                 <th style="padding:10px; border:1px solid #ddd; text-align:left;">User</th>
-                <th style="padding:10px; border:1px solid #ddd; text-align:left;">Attendance Type</th>
                 <th style="padding:10px; border:1px solid #ddd; text-align:left;">Mode</th>
                 <th style="padding:10px; border:1px solid #ddd; text-align:left;">Place</th>
                 <th style="padding:10px; border:1px solid #ddd; text-align:left;">Time (IST)</th>
@@ -57,7 +56,6 @@
                     ?>
                     <tr style="background-color:#f9f9f9;">
                         <td style="padding:8px; border:1px solid #ddd;"><?php echo e($user->name); ?></td>
-                        <td style="padding:8px; border:1px solid #ddd; text-transform:capitalize;"><?php echo e($movementType); ?></td>
                         <td style="padding:8px; border:1px solid #ddd;"><?php echo e($mode); ?></td>
                         <td style="padding:8px; border:1px solid #ddd;"><?php echo e($place); ?></td>
                         <td style="padding:8px; border:1px solid #ddd; color:#27ae60; font-weight:bold;"><?php echo e($timeIST); ?></td>
@@ -67,26 +65,18 @@
                     <?php if($isOnLeave): ?>
                         <tr style="background-color:#fff9e6;">
                             <td style="padding:8px; border:1px solid #ddd;"><?php echo e($user->name); ?></td>
-                            <td style="padding:8px; border:1px solid #ddd; color:#e67e22; font-weight:bold;">Leave</td>
-                            <td style="padding:8px; border:1px solid #ddd;">-</td>
-                            <td style="padding:8px; border:1px solid #ddd;">-</td>
-                            <td style="padding:8px; border:1px solid #ddd;">-</td>
-                            <td style="padding:8px; border:1px solid #ddd; color:#95a5a6;">-</td>
+                            <td colspan="4" style="padding:8px; border:1px solid #ddd; color:#e67e22; font-weight:bold; text-align:center;">Leave</td>
                         </tr>
                     <?php else: ?>
                         <tr style="background-color:#ffe6e6;">
                             <td style="padding:8px; border:1px solid #ddd;"><?php echo e($user->name); ?></td>
-                            <td style="padding:8px; border:1px solid #ddd; color:#e74c3c; font-weight:bold;">Absent</td>
-                            <td style="padding:8px; border:1px solid #ddd;">-</td>
-                            <td style="padding:8px; border:1px solid #ddd;">-</td>
-                            <td style="padding:8px; border:1px solid #ddd;">-</td>
-                            <td style="padding:8px; border:1px solid #ddd; color:#95a5a6;">-</td>
+                            <td colspan="4" style="padding:8px; border:1px solid #ddd; color:#e74c3c; font-weight:bold; text-align:center;">Absent</td>
                         </tr>
                     <?php endif; ?>
                 <?php endif; ?>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <tr>
-                    <td colspan="6" style="padding:1px; text-align:center; border:1px solid #ddd;">No users found.</td>
+                    <td colspan="5" style="padding:1px; text-align:center; border:1px solid #ddd;">No users found.</td>
                 </tr>
             <?php endif; ?>
         </tbody>

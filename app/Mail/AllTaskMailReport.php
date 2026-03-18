@@ -30,7 +30,7 @@ class AllTaskMailReport extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'All Pending Tasks Summary - ' . $this->payload['dateDisplay'],
+            subject: (isset($this->payload['alert_prefix']) && $this->payload['alert_prefix'] ? 'Workorio Alert ' . $this->payload['alert_prefix'] . ' : ' : '') . 'All Pending Tasks Summary - ' . $this->payload['dateDisplay'],
         );
     }
 

@@ -19,7 +19,7 @@ class SendSubscriptionMail extends Command
      *
      * @var string
      */
-    protected $signature = 'subscription:send-mail';
+    protected $signature = 'subscription:send-mail {--alert=}';
 
     /**
      * The console command description.
@@ -172,6 +172,7 @@ class SendSubscriptionMail extends Command
             ksort($statusGroups);
 
             $payload = [
+                'alert_prefix' => $this->option('alert'),
                 'overdueItems' => $overdueItems,
                 'statusGroups' => $statusGroups,
                 'totalActive' => $totalActive,

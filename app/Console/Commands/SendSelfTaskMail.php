@@ -19,7 +19,7 @@ class SendSelfTaskMail extends Command
      *
      * @var string
      */
-    protected $signature = 'task:send-self-mail';
+    protected $signature = 'task:send-self-mail {--alert=}';
 
     /**
      * The console command description.
@@ -112,6 +112,7 @@ class SendSelfTaskMail extends Command
                     }, $tasks);
 
                     $payload = [
+                'alert_prefix' => $this->option('alert'),
                         'userName' => $userName,
                         'totalTasks' => count($tasksData),
                         'tasks' => $tasksData,

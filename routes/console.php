@@ -44,65 +44,71 @@ Schedule::command('subscriptions:generate-recurring')
     ->timezone('Asia/Kolkata')
     ->description('Generate new billing cycles for recurring subscriptions across all tenants');
 
-Schedule::command('sales:send-follow-up-report')
+Schedule::command('sales:send-follow-up-report', ['--alert=1'])
     ->daily()
-    ->at('08:00')
+    ->at('09:15')
     ->timezone('Asia/Kolkata')
     ->description('Send follow-up due reports to sales users');
 
-Schedule::command('sales:send-admin-follow-up-report')
+Schedule::command('sales:send-admin-follow-up-report', ['--alert=2'])
     ->daily()
-    ->at('08:15')
+    ->at('09:30')
     ->timezone('Asia/Kolkata')
     ->description('Send consolidated daily follow-up reports to tenant admins/managers');
 
-Schedule::command('attendance:send-morning-mail')
+Schedule::command('worklog:send-yesterday-mail', ['--alert=3'])
+    ->daily()
+    ->at('10:00')
+    ->timezone('Asia/Kolkata')
+    ->description("Send yesterday's worklog summary to HR/Admins");
+
+Schedule::command('attendance:send-morning-mail', ['--alert=4'])
     ->daily()
     ->at('10:30')
     ->timezone('Asia/Kolkata')
     ->description('Send morning attendance summary email to all users across all tenants');
 
-Schedule::command('attendance:send-night-mail')
+Schedule::command('task:send-self-mail', ['--alert=5'])
     ->daily()
-    ->at('20:00')
-    ->timezone('Asia/Kolkata')
-    ->description('Send evening attendance summary and monthly breakdown to all active users');
-
-Schedule::command('calendar:send-mail')
-    ->daily()
-    ->at('07:00')
-    ->timezone('Asia/Kolkata')
-    ->description('Send daily pending calendar events and monthly summary to calendar users');
-
-Schedule::command('subscription:send-mail')
-    ->daily()
-    ->at('08:00')
-    ->timezone('Asia/Kolkata')
-    ->description('Send daily subscription summary and overdue alerts');
-
-Schedule::command('task:send-all-mail')
-    ->daily()
-    ->at('08:30')
-    ->timezone('Asia/Kolkata')
-    ->description('Send daily summary of all pending tasks grouped by user');
-
-Schedule::command('task:send-self-mail')
-    ->daily()
-    ->at('09:00')
+    ->at('10:30')
     ->timezone('Asia/Kolkata')
     ->description('Send daily task reminders to individual users for their pending tasks');
 
-Schedule::command('worklog:send-today-mail')
+Schedule::command('task:send-all-mail', ['--alert=6'])
     ->daily()
-    ->at('20:00')
+    ->at('10:35')
+    ->timezone('Asia/Kolkata')
+    ->description('Send daily summary of all pending tasks grouped by user');
+
+Schedule::command('calendar:send-mail', ['--alert=7'])
+    ->daily()
+    ->at('11:00')
+    ->timezone('Asia/Kolkata')
+    ->description('Send daily pending calendar events and monthly summary to calendar users');
+    
+Schedule::command('calendar:send-mail', ['--alert=8'])
+    ->daily()
+    ->at('14:15')
+    ->timezone('Asia/Kolkata')
+    ->description('Send daily pending calendar events and monthly summary to calendar users');
+
+Schedule::command('subscription:send-mail', ['--alert=9'])
+    ->daily()
+    ->at('14:30')
+    ->timezone('Asia/Kolkata')
+    ->description('Send daily subscription summary and overdue alerts');
+
+Schedule::command('attendance:send-night-mail', ['--alert=10'])
+    ->daily()
+    ->at('20:30')
+    ->timezone('Asia/Kolkata')
+    ->description('Send evening attendance summary and monthly breakdown to all active users');
+
+Schedule::command('worklog:send-today-mail', ['--alert=11'])
+    ->daily()
+    ->at('21:30')
     ->timezone('Asia/Kolkata')
     ->description("Send today's worklog summary to HR/Admins");
-
-Schedule::command('worklog:send-yesterday-mail')
-    ->daily()
-    ->at('08:00')
-    ->timezone('Asia/Kolkata')
-    ->description("Send yesterday's worklog summary to HR/Admins");
 
 // Dummy command to test cron job
 // use Illuminate\Support\Facades\Log;

@@ -30,7 +30,7 @@ class SelfTaskMailReport extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Pending Tasks - ' . $this->payload['dateDisplay'],
+            subject: (isset($this->payload['alert_prefix']) && $this->payload['alert_prefix'] ? 'Workorio Alert ' . $this->payload['alert_prefix'] . ' : ' : '') . 'Your Pending Tasks - ' . $this->payload['dateDisplay'],
         );
     }
 

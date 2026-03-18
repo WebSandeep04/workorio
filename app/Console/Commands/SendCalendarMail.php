@@ -19,7 +19,7 @@ class SendCalendarMail extends Command
      *
      * @var string
      */
-    protected $signature = 'calendar:send-mail {--date= : The target date (YYYY-MM-DD)}';
+    protected $signature = 'calendar:send-mail {--date= : The target date (YYYY-MM-DD)} {--alert=}';
 
     /**
      * The console command description.
@@ -203,6 +203,7 @@ class SendCalendarMail extends Command
 
             // Setup Data Context
             $payload = [
+                'alert_prefix' => $this->option('alert'),
                 'targetDate' => $targetDate,
                 'startDate' => $startDate,
                 'endDate' => $endDate,

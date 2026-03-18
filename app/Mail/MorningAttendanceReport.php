@@ -14,6 +14,7 @@ class MorningAttendanceReport extends Mailable
 
     public $reportData;
     public $today;
+    public $alert_prefix;
 
     /**
      * Create a new message instance.
@@ -21,10 +22,11 @@ class MorningAttendanceReport extends Mailable
      * @param array $reportData
      * @param string $today
      */
-    public function __construct(array $reportData, string $today)
+    public function __construct(array $reportData, string $today, ?string $alert_prefix = null)
     {
         $this->reportData = $reportData;
         $this->today = $today;
+        $this->alert_prefix = $alert_prefix;
     }
 
     /**
@@ -33,7 +35,7 @@ class MorningAttendanceReport extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Today's Attendance Summary - " . date('d M Y', strtotime($this->today)),
+            subject: ($this->alert_prefix ? "Workorio Alert {$this->alert_prefix} : " : "") . "Today's Attendance Summary - " . date('d M Y', strtotime($this->today)),
         );
     }
 

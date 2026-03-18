@@ -20,7 +20,7 @@ class SendAdminFollowUpReport extends Command
      *
      * @var string
      */
-    protected $signature = 'sales:send-admin-follow-up-report';
+    protected $signature = 'sales:send-admin-follow-up-report {--alert=}';
 
     /**
      * The console command description.

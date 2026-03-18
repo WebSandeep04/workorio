@@ -21,7 +21,7 @@ class SendNightAttendanceMail extends Command
      *
      * @var string
      */
-    protected $signature = 'attendance:send-night-mail';
+    protected $signature = 'attendance:send-night-mail {--alert=}';
 
     /**
      * The console command description.
@@ -177,7 +177,8 @@ class SendNightAttendanceMail extends Command
                 Mail::to($recipientEmails)->send(new NightAttendanceReport(
                     $reportData, 
                     $todayStr, 
-                    Carbon::parse($startOfMonthStr)->format('F Y')
+                    Carbon::parse($startOfMonthStr)->format('F Y'),
+                    $this->option('alert')
                 ));
                 $this->info("  ✅ Night attendance report sent to " . count($recipientEmails) . " users.");
             } catch (\Exception $e) {

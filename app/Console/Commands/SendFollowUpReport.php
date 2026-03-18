@@ -20,7 +20,7 @@ class SendFollowUpReport extends Command
      *
      * @var string
      */
-    protected $signature = 'sales:send-follow-up-report';
+    protected $signature = 'sales:send-follow-up-report {--alert=}';
 
     /**
      * The console command description.

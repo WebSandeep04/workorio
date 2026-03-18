@@ -19,7 +19,7 @@ class SendAllTaskMail extends Command
      *
      * @var string
      */
-    protected $signature = 'task:send-all-mail';
+    protected $signature = 'task:send-all-mail {--alert=}';
 
     /**
      * The console command description.
@@ -144,6 +144,7 @@ class SendAllTaskMail extends Command
             $totalUsers = count($tasksByUser);
 
             $payload = [
+                'alert_prefix' => $this->option('alert'),
                 'tasksByUser' => $tasksByUser,
                 'totalTasks' => $totalTasks,
                 'totalUsers' => $totalUsers,

@@ -30,7 +30,7 @@ class WorklogReportYesterdayMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Last Day Worklog Summary',
+            subject: (isset($this->payload['alert_prefix']) && $this->payload['alert_prefix'] ? 'Workorio Alert ' . $this->payload['alert_prefix'] . ' : ' : '') . 'Last Day Worklog Summary',
         );
     }
 
