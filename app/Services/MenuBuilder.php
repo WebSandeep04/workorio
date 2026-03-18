@@ -4,6 +4,9 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Models\Tenant;
+use App\Models\Role;
 
 class MenuBuilder
 {
@@ -25,7 +28,7 @@ class MenuBuilder
             
             // Load actual user data from tenant database
             try {
-                $dbUser = \App\Models\User::find($userId);
+                $dbUser = User::find($userId);
                 if ($dbUser) {
                     $user = $dbUser;
                     $user->tenant_id = $tenantId;
@@ -49,10 +52,10 @@ class MenuBuilder
             // For tenant users, get tenant from master database
             try {
                 // Switch to master database to get tenant info
-                \Illuminate\Support\Facades\DB::setDefaultConnection('mysql');
-                $tenant = \App\Models\Tenant::find($user->tenant_id);
+                DB::setDefaultConnection('mysql');
+                $tenant = Tenant::find($user->tenant_id);
                 // Switch back to tenant database
-                \App\Services\TenantDatabaseService::setDefaultConnection($user->tenant_id);
+                TenantDatabaseService::setDefaultConnection($user->tenant_id);
             } catch (\Exception $e) {
                 // If tenant not found, return empty menu
                 return [];
@@ -69,7 +72,7 @@ class MenuBuilder
         // Load role data for session users
         if (!$user->role && $user->role_id) {
             try {
-                $role = \App\Models\Role::find($user->role_id);
+                $role = Role::find($user->role_id);
                 $user->role = $role;
             } catch (\Exception $e) {
                 // If role not found, continue with null role
@@ -79,7 +82,7 @@ class MenuBuilder
         // Load user's manager status for session users
         if ($user->is_manager === null && $user->id) {
             try {
-                $hasSubordinates = \Illuminate\Support\Facades\DB::table('user_managers')->where('manager_id', $user->id)->exists();
+                $hasSubordinates = DB::table('user_managers')->where('manager_id', $user->id)->exists();
                 $user->is_manager = $hasSubordinates ? 1 : 0;
             } catch (\Exception $e) {
                 // If table not found or error, set default
@@ -90,58 +93,29 @@ class MenuBuilder
         $roleName = optional($user->role)->role_name;
         $roleId = $user->role_id;
 
-        // Simplified role system for tenants
-        $isAdmin = ($roleName === 'admin');
-        $isCustomRole = ($roleName !== 'admin' && $roleName !== 'user');
-        
         $menuConfig = config('menu');
         $sections = [];
         
-        // Admin gets full access based on feature flags
-        if ($isAdmin) {
-            foreach ($menuConfig['admin_sections'] as $section) {
-                if (isset($section['feature_flag']) && (!$tenant || !$tenant->{$section['feature_flag']})) {
-                    continue;
-                }
-                $filteredSection = static::filterItems($section, $user);
-                
-                // Sort items for Software Setup section if requested
-                if ($section['key'] === 'software_setup' && !empty($filteredSection['items'])) {
-                    usort($filteredSection['items'], function($a, $b) {
-                        return strcasecmp($a['title'], $b['title']);
-                    });
-                }
-                
-                // Only add section if it has items after filtering or it's a standalone section
-                if (!empty($filteredSection['items']) || (!empty($filteredSection) && isset($filteredSection['route']))) {
-                    $sections[] = $filteredSection;
-                }
+        // Loop through all configured sections exactly once
+        foreach ($menuConfig['admin_sections'] as $section) {
+            // Global Feature Flag evaluation (Tenant Tier)
+            if (isset($section['feature_flag']) && (!$tenant || !$tenant->{$section['feature_flag']})) {
+                continue;
             }
-        }
-
-        // For custom roles ONLY, use permission-based logic
-        if ($isCustomRole) {
-            // Custom roles get access based on their permissions
-            foreach ($menuConfig['admin_sections'] as $section) {
-                if (isset($section['feature_flag']) && (!$tenant || !$tenant->{$section['feature_flag']})) {
-                    continue;
-                }
-                
-                // For custom roles, ignore the 'roles' restriction and check permissions instead
-                // Filter section items based on user permissions
-                $filteredSection = static::filterItems($section, $user);
-                
-                // Sort items for Software Setup section if requested
-                if ($section['key'] === 'software_setup' && !empty($filteredSection['items'])) {
-                    usort($filteredSection['items'], function($a, $b) {
-                        return strcasecmp($a['title'], $b['title']);
-                    });
-                }
-                
-                // Only add section if user has permissions for any items or it's a standalone section
-                if (!empty($filteredSection['items']) || (!empty($filteredSection) && isset($filteredSection['route']))) {
-                    $sections[] = $filteredSection;
-                }
+            
+            // Pass into the core filtering engine (which handles both Admins and Custom RBAC correctly)
+            $filteredSection = static::filterItems($section, $user);
+            
+            // Sort items for Software Setup specifically alphabetically
+            if ($section['key'] === 'software_setup' && !empty($filteredSection['items'])) {
+                usort($filteredSection['items'], function($a, $b) {
+                    return strcasecmp($a['title'], $b['title']);
+                });
+            }
+            
+            // Only mount the section to the sidebar if it survived filtering or is a standalone section
+            if (!empty($filteredSection['items']) || (!empty($filteredSection) && isset($filteredSection['route']))) {
+                $sections[] = $filteredSection;
             }
         }
 
