@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use App\Models\User;
 use App\Models\Tenant;
 use App\Models\Attendance;
-use App\Models\Leave;
+use App\Models\LeaveRequest;
 use App\Services\TenantDatabaseService;
 use App\Mail\MorningAttendanceReport;
 use Illuminate\Support\Facades\Mail;
@@ -96,13 +96,11 @@ class SendMorningAttendanceMail extends Command
                 $isOnLeave = false;
                 if (!$firstMovement) {
                     // Check if user is on approved leave today
-                    $isOnLeave = Leave::where('user_id', $user->id)
-                        ->whereDate('date', $today)
-                        ->where(function($query) {
-                            $query->where('status', 'Approved')
-                                  ->orWhere('status', 'approved')
-                                  ->orWhere('status', 1);
-                        })->exists();
+                    $isOnLeave = LeaveRequest::where('user_id', $user->id)
+                        ->whereDate('start_date', '<=', $today)
+                        ->whereDate('end_date', '>=', $today)
+                        ->where('status', 'approved')
+                        ->exists();
                 }
 
                 $reportData[] = [

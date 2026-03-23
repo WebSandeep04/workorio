@@ -10,7 +10,7 @@ use App\Models\Movement;
 use App\Models\User;
 use App\Models\Worklog;
 use App\Models\Holiday;
-use App\Models\Leave;
+use App\Models\LeaveRequest;
 use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -79,8 +79,10 @@ class AttendanceController extends Controller
                     ->where('work_date', $checkDate->format('Y-m-d'))
                     ->exists();
                 
-                $hasLeave = Leave::where('user_id', $user->id)
-                    ->where('date', $checkDate->format('Y-m-d'))
+                $hasLeave = LeaveRequest::where('user_id', $user->id)
+                    ->where('start_date', '<=', $checkDate->format('Y-m-d'))
+                    ->where('end_date', '>=', $checkDate->format('Y-m-d'))
+                    ->where('status', 'approved')
                     ->exists();
                 
                 if (!$hasWorklogEntry && !$hasLeave) {

@@ -9,7 +9,7 @@ use App\Models\Service;
 use App\Models\Module;
 use App\Models\CustomerProject;
 use App\Models\Holiday;
-use App\Models\Leave;
+use App\Models\LeaveRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -530,9 +530,11 @@ class WorklogController extends Controller
                 ->where('work_date', $currentDate)
                 ->exists();
             
-            // Check if user has leave for this date
-            $hasLeave = Leave::where('user_id', $user->id)
-                ->where('date', $currentDate)
+            // Check if user has approved leave for this date
+            $hasLeave = LeaveRequest::where('user_id', $user->id)
+                ->where('start_date', '<=', $currentDate)
+                ->where('end_date', '>=', $currentDate)
+                ->where('status', 'approved')
                 ->exists();
             
             // Check if the date is a holiday
@@ -605,9 +607,11 @@ class WorklogController extends Controller
                 ->where('work_date', $date)
                 ->exists();
             
-            // Check if user has leave for this date (all leaves are automatically approved)
-            $hasLeave = Leave::where('user_id', $user->id)
-                ->where('date', $date)
+            // Check if user has approved leave for this date
+            $hasLeave = LeaveRequest::where('user_id', $user->id)
+                ->where('start_date', '<=', $date)
+                ->where('end_date', '>=', $date)
+                ->where('status', 'approved')
                 ->exists();
             
             // User is considered complete if they have either worklog entry or leave
@@ -679,8 +683,10 @@ class WorklogController extends Controller
             ->whereDoesntHave('worklogs', function($query) use ($date) {
                 $query->where('work_date', $date);
             })
-            ->whereDoesntHave('leaves', function($query) use ($date) {
-                $query->where('date', $date);
+            ->whereDoesntHave('leaveRequests', function($query) use ($date) {
+                $query->where('start_date', '<=', $date)
+                      ->where('end_date', '>=', $date)
+                      ->where('status', 'approved');
             })
             ->select('id', 'name', 'email')
             ->get();
@@ -755,9 +761,11 @@ class WorklogController extends Controller
                         ->where('work_date', $currentDate)
                         ->exists();
                     
-                    // Check if user has leave for this date (all leaves are automatically approved)
-                    $hasLeave = Leave::where('user_id', $user->id)
-                        ->where('date', $currentDate)
+                    // Check if user has approved leave for this date
+                    $hasLeave = LeaveRequest::where('user_id', $user->id)
+                        ->where('start_date', '<=', $currentDate)
+                        ->where('end_date', '>=', $currentDate)
+                        ->where('status', 'approved')
                         ->exists();
                     
                     // User is considered complete if they have either worklog entry or leave

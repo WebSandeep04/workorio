@@ -129,9 +129,11 @@ public function subordinates()
     return $this->hasMany(Attendance::class);
 }
 
-    public function leaves()
+
+
+    public function leaveRequests()
 {
-    return $this->hasMany(Leave::class);
+    return $this->hasMany(LeaveRequest::class);
 }
 
     /**

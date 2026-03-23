@@ -9,7 +9,7 @@ use App\Models\Movement;
 use App\Models\User;
 use App\Models\Worklog;
 use App\Models\Holiday;
-use App\Models\Leave;
+use App\Models\LeaveRequest;
 use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -54,9 +54,10 @@ class AttendanceController extends Controller
                     ->where('work_date', $checkDate->format('Y-m-d'))
                     ->exists();
                 
-                $hasLeave = Leave::where('user_id', $user->id)
-                    
-                    ->where('date', $checkDate->format('Y-m-d'))
+                $hasLeave = \App\Models\LeaveRequest::where('user_id', $user->id)
+                    ->where('start_date', '<=', $checkDate->format('Y-m-d'))
+                    ->where('end_date', '>=', $checkDate->format('Y-m-d'))
+                    ->where('status', 'approved')
                     ->exists();
                 
                 if (!$hasWorklogEntry && !$hasLeave) {
@@ -1306,16 +1307,27 @@ class AttendanceController extends Controller
         
         $holidays = $holidaysData->keys()->toArray();
 
-        $leaves = Leave::where('user_id', $userId)
-            ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-            ->get()
-            ->pluck('date')
-            ->map(function($date) {
-                return $date->format('Y-m-d');
-            })
-            ->unique()
-            ->values()
-            ->toArray();
+        $leaveRequests = \App\Models\LeaveRequest::where('user_id', $userId)
+            ->where('status', 'approved')
+            ->where(function($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                      ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                      ->orWhere(function($q) use ($startDate, $endDate) {
+                          $q->where('start_date', '<=', $startDate->format('Y-m-d'))
+                            ->where('end_date', '>=', $endDate->format('Y-m-d'));
+                      });
+            })->get();
+            
+        $leavesList = [];
+        foreach ($leaveRequests as $req) {
+            $period = new \DatePeriod(new \DateTime($req->start_date), new \DateInterval('P1D'), (new \DateTime($req->end_date))->modify('+1 day'));
+            foreach ($period as $dt) {
+                if ($dt >= new \DateTime($startDate->format('Y-m-d')) && $dt <= new \DateTime($endDate->format('Y-m-d'))) {
+                    $leavesList[] = $dt->format('Y-m-d');
+                }
+            }
+        }
+        $leaves = collect($leavesList)->unique()->values()->toArray();
 
         $summary = $this->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData, $user);
         
@@ -1400,7 +1412,17 @@ class AttendanceController extends Controller
         $holiday = Holiday::where('holiday_date', $date)->first();
         $isSunday = $carbonDate->dayOfWeek === Carbon::SUNDAY;
 
-        $leaves = Leave::where('date', $date)->get()->groupBy('user_id');
+        $leavesRaw = \App\Models\LeaveRequest::where('status', 'approved')
+            ->where('start_date', '<=', $date)
+            ->where('end_date', '>=', $date)
+            ->get();
+        
+        $leaves = collect();
+        foreach ($leavesRaw as $req) {
+            if (!$leaves->has($req->user_id)) {
+                $leaves->put($req->user_id, collect([(object)['date' => \Carbon\Carbon::parse($date)]]));
+            }
+        }
 
         $reportData = [];
 
@@ -1708,9 +1730,30 @@ class AttendanceController extends Controller
         $holidays = $holidaysData->keys()->toArray();
 
         // Get all leaves
-        $allLeaves = Leave::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-            ->get()
-            ->groupBy('user_id');
+        $allLeavesRaw = \App\Models\LeaveRequest::where('status', 'approved')
+            ->where(function($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                      ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                      ->orWhere(function($q) use ($startDate, $endDate) {
+                          $q->where('start_date', '<=', $startDate->format('Y-m-d'))
+                            ->where('end_date', '>=', $endDate->format('Y-m-d'));
+                      });
+            })->get();
+            
+        $leavesData = [];
+        foreach ($allLeavesRaw as $req) {
+            $period = new \DatePeriod(new \DateTime($req->start_date), new \DateInterval('P1D'), (new \DateTime($req->end_date))->modify('+1 day'));
+            foreach ($period as $dt) {
+                $d = $dt->format('Y-m-d');
+                if ($dt >= new \DateTime($startDate->format('Y-m-d')) && $dt <= new \DateTime($endDate->format('Y-m-d'))) {
+                    if (!isset($leavesData[$req->user_id])) {
+                        $leavesData[$req->user_id] = collect();
+                    }
+                    $leavesData[$req->user_id]->push((object)['date' => \Carbon\Carbon::parse($d)]);
+                }
+            }
+        }
+        $allLeaves = collect($leavesData);
 
         $reportData = [];
 

@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use App\Models\User;
 use App\Models\Tenant;
 use App\Models\Attendance;
-use App\Models\Leave;
+use App\Models\LeaveRequest;
 use App\Services\TenantDatabaseService;
 use App\Mail\NightAttendanceReport;
 use Illuminate\Support\Facades\Mail;
@@ -91,16 +91,29 @@ class SendNightAttendanceMail extends Command
                 ->groupBy('user_id');
 
             // Pre-fetch all approved leaves for the month
-            $leaves = Leave::whereIn('user_id', $users->pluck('id'))
-                ->whereBetween('date', [$startOfMonthStr, $todayStr])
-                ->where(function($query) {
-                    $query->where('status', 'Approved')
-                          ->orWhere('status', 'approved')
-                          ->orWhere('status', '1')
-                          ->orWhere('status', 1);
-                })
-                ->get()
-                ->groupBy('user_id');
+            $leaveRequests = LeaveRequest::whereIn('user_id', $users->pluck('id'))
+                ->where('status', 'approved')
+                ->where(function($query) use ($startOfMonthStr, $todayStr) {
+                    $query->whereBetween('start_date', [$startOfMonthStr, $todayStr])
+                          ->orWhereBetween('end_date', [$startOfMonthStr, $todayStr])
+                          ->orWhere(function($q) use ($startOfMonthStr, $todayStr) {
+                              $q->where('start_date', '<=', $startOfMonthStr)
+                                ->where('end_date', '>=', $todayStr);
+                          });
+                })->get();
+                
+            $leavesList = [];
+            foreach ($leaveRequests as $req) {
+                $period = new \DatePeriod(new \DateTime($req->start_date), new \DateInterval('P1D'), (new \DateTime($req->end_date))->modify('+1 day'));
+                foreach ($period as $dt) {
+                    $d = $dt->format('Y-m-d');
+                    if (!isset($leavesList[$req->user_id])) {
+                        $leavesList[$req->user_id] = collect();
+                    }
+                    $leavesList[$req->user_id]->push((object)['date' => \Carbon\Carbon::parse($d)]);
+                }
+            }
+            $leaves = collect($leavesList);
 
             foreach ($users as $user) {
                 $userAtts = $attendances->get($user->id, collect())->keyBy(function($item) {

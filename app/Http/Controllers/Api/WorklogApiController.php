@@ -12,7 +12,7 @@ use App\Models\Service;
 use App\Models\Module;
 use App\Models\CustomerProject;
 use App\Models\Holiday;
-use App\Models\Leave;
+use App\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -329,7 +329,11 @@ class WorklogApiController extends Controller
 
         while ($currentDate < $endDate) {
             $hasEntry = Worklog::where('user_id', $user->id)->where('work_date', $currentDate)->exists();
-            $hasLeave = Leave::where('user_id', $user->id)->where('date', $currentDate)->exists();
+            $hasLeave = LeaveRequest::where('user_id', $user->id)
+                ->where('start_date', '<=', $currentDate)
+                ->where('end_date', '>=', $currentDate)
+                ->where('status', 'approved')
+                ->exists();
             $isHoliday = Holiday::where('holiday_date', $currentDate)->exists();
             $isSunday = date('w', strtotime($currentDate)) == 0;
 

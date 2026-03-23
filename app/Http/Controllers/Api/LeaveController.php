@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use App\Models\Leave;
-use App\Models\EntryType;
+use App\Models\LeaveRequest;
+use App\Models\LeaveType;
 use App\Models\Worklog;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -29,16 +29,16 @@ class LeaveController extends Controller
         $user = $this->getCurrentUser();
         
         // Check if leaves table exists
-        if (!DB::getSchemaBuilder()->hasTable('leaves')) {
+        if (!DB::getSchemaBuilder()->hasTable('leave_requests')) {
             return response()->json([
                 'success' => true,
                 'data' => []
             ]);
         }
 
-        $leaves = Leave::with(['leaveType'])
+        $leaves = LeaveRequest::with(['leaveType'])
             ->where('user_id', $user->id)
-            ->orderBy('date', 'desc')
+            ->orderBy('start_date', 'desc')
             ->get();
 
         return response()->json([
@@ -52,15 +52,15 @@ class LeaveController extends Controller
      */
     public function getLeaveTypes(): JsonResponse
     {
-        // Check if entry_types table exists
-        if (!DB::getSchemaBuilder()->hasTable('entry_types')) {
+        // Check if leave_types table exists
+        if (!DB::getSchemaBuilder()->hasTable('leave_types')) {
             return response()->json([
                 'success' => true,
                 'data' => []
             ]);
         }
 
-        $leaveTypes = EntryType::where('working_hours', 0)
+        $leaveTypes = LeaveType::where('status', 1)
             ->orderBy('name')
             ->get();
 
@@ -77,7 +77,7 @@ class LeaveController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'date' => 'required|date',
-            'leave_type_id' => 'required|exists:entry_types,id',
+            'leave_type_id' => 'required|exists:leave_types,id',
             'reason' => 'nullable|string|max:1000'
         ]);
 
@@ -92,8 +92,10 @@ class LeaveController extends Controller
         $user = $this->getCurrentUser();
 
         // Check if leave already exists for this date
-        $existingLeave = Leave::where('user_id', $user->id)
-            ->where('date', $request->date)
+        $existingLeave = LeaveRequest::where('user_id', $user->id)
+            ->where('start_date', '<=', $request->date)
+            ->where('end_date', '>=', $request->date)
+            ->where('status', '!=', 'rejected')
             ->first();
 
         if ($existingLeave) {
@@ -116,10 +118,12 @@ class LeaveController extends Controller
         }
 
         try {
-            $leave = Leave::create([
+            $leave = LeaveRequest::create([
                 'user_id' => $user->id,
-                'date' => $request->date,
                 'leave_type_id' => $request->leave_type_id,
+                'start_date' => $request->date,
+                'end_date' => $request->date,
+                'total_days' => 1,
                 'reason' => $request->reason,
                 'status' => 'approved' // Automatically approved
             ]);
@@ -144,7 +148,7 @@ class LeaveController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'date' => 'required|date',
-            'leave_type_id' => 'required|exists:entry_types,id',
+            'leave_type_id' => 'required|exists:leave_types,id',
             'reason' => 'nullable|string|max:1000'
         ]);
 
@@ -158,7 +162,7 @@ class LeaveController extends Controller
 
         $user = $this->getCurrentUser();
         
-        $leave = Leave::where('id', $id)
+        $leave = LeaveRequest::where('id', $id)
             ->where('user_id', $user->id)
             ->first();
 
@@ -170,8 +174,10 @@ class LeaveController extends Controller
         }
 
         // Check if leave already exists for this date (excluding current leave)
-        $existingLeave = Leave::where('user_id', $user->id)
-            ->where('date', $request->date)
+        $existingLeave = LeaveRequest::where('user_id', $user->id)
+            ->where('start_date', '<=', $request->date)
+            ->where('end_date', '>=', $request->date)
+            ->where('status', '!=', 'rejected')
             ->where('id', '!=', $id)
             ->first();
 
@@ -184,7 +190,9 @@ class LeaveController extends Controller
 
         try {
             $leave->update([
-                'date' => $request->date,
+                'start_date' => $request->date,
+                'end_date' => $request->date,
+                'total_days' => 1,
                 'leave_type_id' => $request->leave_type_id,
                 'reason' => $request->reason
             ]);
@@ -209,7 +217,7 @@ class LeaveController extends Controller
     {
         $user = $this->getCurrentUser();
         
-        $leave = Leave::where('id', $id)
+        $leave = LeaveRequest::where('id', $id)
             ->where('user_id', $user->id)
             ->first();
 

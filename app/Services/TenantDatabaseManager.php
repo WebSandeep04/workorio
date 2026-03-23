@@ -107,7 +107,7 @@ class TenantDatabaseManager
                 'users', 'roles', 'sales_records', 'sales_status', 'sales_lead_sources',
                 'sales_products', 'sales_business_types', 'states', 'cities',
                 'prospectuses', 'remarks', 'worklogs', 'worklog_approvals',
-                'attendance', 'movements', 'leaves', 'holidays',
+                'attendance', 'movements', 'leave_requests', 'leave_ledgers', 'leave_types', 'holidays',
                 'customers', 'services', 'modules', 'customer_projects',
                 'customer_project_modules', 'customer_project_users',
                 'subscription_types', 'customer_subscriptions',
