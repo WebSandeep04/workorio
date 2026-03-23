@@ -798,6 +798,11 @@ Route::delete('/entry-type/{id}', [EntryTypeController::class, 'destroy'])->name
 
 // Leave routes
 Route::middleware(['auth.or.session'])->group(function () {
+Route::get('/leave/approvals', [App\Http\Controllers\LeaveController::class, 'approvals'])->name('leave.approvals');
+Route::get('/leave/approvals/fetch', [App\Http\Controllers\LeaveController::class, 'fetchApprovals'])->name('leave.approvals.fetch');
+Route::post('/leave/approvals/{id}/approve', [App\Http\Controllers\LeaveController::class, 'approve'])->name('leave.approve');
+Route::post('/leave/approvals/{id}/reject', [App\Http\Controllers\LeaveController::class, 'reject'])->name('leave.reject');
+
 Route::get('/leave', [App\Http\Controllers\LeaveController::class, 'index'])->name('leave.index');
 Route::get('/leave/fetch', [App\Http\Controllers\LeaveController::class, 'fetch'])->name('leave.fetch');
 Route::get('/leave/types', [App\Http\Controllers\LeaveController::class, 'fetchLeaveTypes'])->name('leave.types');

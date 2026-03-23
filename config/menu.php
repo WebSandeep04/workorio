@@ -195,6 +195,7 @@ return [
                 ['route' => 'worklog-approvals', 'title' => 'Timesheet Approvals', 'icon' => 'bi bi-check2-square', 'permission' => 'worklog.approvals'],
                 ['route' => 'attendance.approval', 'title' => 'Attendance Approval', 'icon' => 'bi bi-person-check', 'permission' => 'attendance.approval'],
                 ['route' => 'attendance.unlock', 'title' => 'Unlock Attendance', 'icon' => 'bi bi-unlock', 'permission' => 'attendance.approval'],
+                ['route' => 'leave.approvals', 'title' => 'Leave Approval', 'icon' => 'bi bi-calendar-check', 'permission' => 'worklog.approvals'],
             ],
         ],
         // Contact Management section

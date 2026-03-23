@@ -94,23 +94,14 @@ class LeaveController extends Controller
                 'end_date' => $request->end_date,
                 'total_days' => $totalDays,
                 'reason' => $request->reason,
-                'status' => 'approved' // Automatically approved right now per prior implementation standard
+                'status' => 'pending' // Automatically starts as pending for Manager workflow
             ]);
-
-            // Deduct the balance
-            $balanceService->debitLeave(
-                $user->id, 
-                $request->leave_type_id, 
-                $totalDays, 
-                $leaveReq, 
-                'Automated Leave deduction for approved request via portal'
-            );
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => "Leave application for {$totalDays} days submitted and processed successfully.",
+                'message' => "Leave application for {$totalDays} days submitted and is pending approval.",
                 'data' => $leaveReq
             ]);
         } catch (\Exception $e) {
@@ -282,5 +273,149 @@ class LeaveController extends Controller
             } catch (\Exception $e) {}
         }
         return null;
+    }
+
+    /**
+     * Display approvals view.
+     */
+    public function approvals()
+    {
+        return view('leave.approvals');
+    }
+
+    /**
+     * Fetch all leaves for approval.
+     */
+    public function fetchApprovals()
+    {
+        try {
+            $user = $this->getCurrentUser();
+            if (!$user) return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
+            
+            if (!Schema::hasTable('leave_requests')) {
+                return response()->json(['data' => []]);
+            }
+
+            if ($user->role_id == 1) {
+                // Admin: Show leaves from users who have no manager
+                $leaves = LeaveRequest::with(['leaveType', 'user'])
+                    ->whereIn('status', ['pending', 'approved', 'rejected'])
+                    ->whereHas('user', function($query) {
+                        $query->whereDoesntHave('managers');
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            } else {
+                // Manager: Show leaves from their mapped subordinates
+                // We fetch subordinate IDs manually to perfectly isolate tenant SQL mappings
+                $actualUser = clone $user; 
+                try { $actualUser = \App\Models\User::find($user->id); } catch(\Exception $e) {}
+                
+                $subordinateIds = $actualUser ? $actualUser->subordinates()->pluck('users.id')->toArray() : [];
+
+                if (!empty($subordinateIds)) {
+                    $leaves = LeaveRequest::with(['leaveType', 'user'])
+                        ->whereIn('status', ['pending', 'approved', 'rejected'])
+                        ->whereIn('user_id', $subordinateIds)
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+                } else {
+                    $leaves = collect([]);
+                }
+            }
+
+            return response()->json(['data' => $leaves]);
+        } catch (\Exception $e) {
+            \Log::error('fetchLeaveApprovals Error: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
+            return response()->json(['data' => []]);
+        }
+    }
+
+    /**
+     * Approve leave request
+     */
+    public function approve($id)
+    {
+        $user = $this->getCurrentUser();
+        if (!$user) return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
+
+        try {
+            if ($user->role_id == 1) {
+                $leaveReq = LeaveRequest::where('id', $id)
+                    ->whereHas('user', function($query) {
+                        $query->whereDoesntHave('managers');
+                    })->firstOrFail();
+            } else {
+                $actualUser = clone $user; 
+                try { $actualUser = \App\Models\User::find($user->id); } catch(\Exception $e) {}
+                
+                $subordinateIds = $actualUser ? $actualUser->subordinates()->pluck('users.id')->toArray() : [];
+                $leaveReq = LeaveRequest::where('id', $id)
+                    ->whereIn('user_id', $subordinateIds)
+                    ->firstOrFail();
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Leave not found or unauthorized.'], 404);
+        }
+
+        if ($leaveReq->status !== 'pending') return response()->json(['success' => false, 'message' => 'Leave is already ' . $leaveReq->status], 422);
+
+        DB::beginTransaction();
+        try {
+            $leaveReq->status = 'approved';
+            $leaveReq->approved_by = $user->id;
+            $leaveReq->save();
+
+            $balanceService = app(LeaveBalanceService::class);
+            $balanceService->debitLeave(
+                $leaveReq->user_id, 
+                $leaveReq->leave_type_id, 
+                $leaveReq->total_days, 
+                $leaveReq, 
+                'Leave deduction upon approval'
+            );
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Leave approved successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to approve leave: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Reject leave request
+     */
+    public function reject($id)
+    {
+        $user = $this->getCurrentUser();
+        if (!$user) return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
+
+        try {
+            if ($user->role_id == 1) {
+                $leaveReq = LeaveRequest::where('id', $id)
+                    ->whereHas('user', function($query) {
+                        $query->whereDoesntHave('managers');
+                    })->firstOrFail();
+            } else {
+                $actualUser = clone $user; 
+                try { $actualUser = \App\Models\User::find($user->id); } catch(\Exception $e) {}
+                
+                $subordinateIds = $actualUser ? $actualUser->subordinates()->pluck('users.id')->toArray() : [];
+                $leaveReq = LeaveRequest::where('id', $id)
+                    ->whereIn('user_id', $subordinateIds)
+                    ->firstOrFail();
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Leave not found or unauthorized.'], 404);
+        }
+
+        if ($leaveReq->status !== 'pending') return response()->json(['success' => false, 'message' => 'Leave is not pending'], 422);
+
+        $leaveReq->status = 'rejected';
+        $leaveReq->approved_by = $user->id;
+        $leaveReq->save();
+
+        return response()->json(['success' => true, 'message' => 'Leave rejected successfully']);
     }
 }
