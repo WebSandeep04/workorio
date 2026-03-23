@@ -284,6 +284,32 @@ class LeadApiController extends Controller
             ]);
         }
 
+        // --- Start Email Notification ---
+        $creator = \App\Models\User::find($salesRecord->user_id);
+
+        $recipientEmails = \App\Models\User::where('is_sales', 1)
+            ->whereNotNull('email')
+            ->pluck('email')
+            ->toArray();
+            
+        if ($creator && $creator->email && !in_array($creator->email, $recipientEmails)) {
+            $recipientEmails[] = $creator->email;
+        }
+
+        $recipientEmails = array_filter($recipientEmails, function($email) {
+            return filter_var($email, FILTER_VALIDATE_EMAIL);
+        });
+
+        if (!empty($recipientEmails)) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($recipientEmails)
+                    ->send(new \App\Mail\NewLeadNotification($salesRecord, $creator, $remarkText));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to send API new lead email: " . $e->getMessage());
+            }
+        }
+        // --- End Email Notification ---
+
         return response()->json([
             'success' => true,
             'message' => 'Lead created successfully',
