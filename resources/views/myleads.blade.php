@@ -1931,6 +1931,10 @@ $(document).on('change', '#add_lead_prospectus', function() {
 
 function submitLead(e) {
     e.preventDefault();
+    let $btn = $(e.currentTarget);
+    let originalText = $btn.html();
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...');
+
     let data = {
         _token: $('meta[name="csrf-token"]').attr('content'),
         prospectus_id: $('#add_lead_prospectus').val(),
@@ -1952,6 +1956,7 @@ function submitLead(e) {
     
     $.post('/savelead', data)
      .done(function(response) {
+         $btn.prop('disabled', false).html(originalText);
          showAlert('success', 'Sales record submitted successfully!');
          $('#addLeadForm')[0].reset();
          $('#addLeadModal').modal('hide');
@@ -1960,6 +1965,7 @@ function submitLead(e) {
          loadStatusCounts();
      })
      .fail(function(xhr) {
+         $btn.prop('disabled', false).html(originalText);
          console.error(xhr.responseText);
          showAlert('error', 'Failed to submit sales record!');
      });
@@ -1967,6 +1973,10 @@ function submitLead(e) {
 
 function submitProspect(e) {
     e.preventDefault();
+    let $btn = $(e.currentTarget);
+    let originalText = $btn.html();
+    $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...');
+
     let data = {
         _token: $('meta[name="csrf-token"]').attr('content'),
         prospectus_name: $('#modalnewProspectusName').val(),
@@ -1982,6 +1992,7 @@ function submitProspect(e) {
 
     $.post('/prospectus', data)
     .done(function(response) {
+        $btn.prop('disabled', false).html(originalText);
         $('#addProspectusModal').modal('hide');
         $('#addProspectusForm')[0].reset();
         showAlert('success', 'Prospect added successfully.');
@@ -1993,6 +2004,7 @@ function submitProspect(e) {
         });
     })
     .fail(function(xhr) {
+        $btn.prop('disabled', false).html(originalText);
         showAlert('error', 'Something went wrong while adding prospect!');
         console.log(xhr.responseText);
     });
