@@ -805,6 +805,7 @@ Route::post('/leave/approvals/{id}/reject', [App\Http\Controllers\LeaveControlle
 
 Route::get('/leave', [App\Http\Controllers\LeaveController::class, 'index'])->name('leave.index');
 Route::get('/leave/fetch', [App\Http\Controllers\LeaveController::class, 'fetch'])->name('leave.fetch');
+Route::get('/leave/ledger', [App\Http\Controllers\LeaveController::class, 'fetchLedger'])->name('leave.ledger');
 Route::get('/leave/types', [App\Http\Controllers\LeaveController::class, 'fetchLeaveTypes'])->name('leave.types');
 Route::post('/leave', [App\Http\Controllers\LeaveController::class, 'store'])->name('leave.store');
 Route::put('/leave/{id}', [App\Http\Controllers\LeaveController::class, 'update'])->name('leave.update');

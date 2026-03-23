@@ -241,13 +241,34 @@ class LeaveController extends Controller
             $leaveTypes = $query->get();
             $balanceService = app(LeaveBalanceService::class);
 
-            $mapped = $leaveTypes->map(function ($type) use ($balanceService, $user) {
+            $mapped = $leaveTypes->map(function ($type) use ($balanceService, $user, $empTypeId) {
                 // Fetch balance safely
                 $balance = 0;
                 if (Schema::hasTable('leave_ledgers')) {
                      $balance = $balanceService->getBalance($user->id, $type->id);
                 }
+                
+                $totalAllowed = 0;
+                if (!empty($empTypeId) && Schema::hasTable('employment_type_leave_rules')) {
+                     $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                         ->where('leave_type_id', $type->id)
+                         ->first();
+                     if ($rule) {
+                         $totalAllowed = $rule->value;
+                     }
+                }
+                
+                $pending = 0;
+                if (Schema::hasTable('leave_requests')) {
+                     $pending = \App\Models\LeaveRequest::where('user_id', $user->id)
+                         ->where('leave_type_id', $type->id)
+                         ->where('status', 'pending')
+                         ->sum('total_days');
+                }
+
                 $type->balance = $balance;
+                $type->total_allowed = $totalAllowed;
+                $type->pending = $pending;
                 return $type;
             });
 
@@ -273,6 +294,30 @@ class LeaveController extends Controller
             } catch (\Exception $e) {}
         }
         return null;
+    }
+
+    public function fetchLedger(Request $request)
+    {
+        try {
+            $user = $this->getCurrentUser();
+            if (!$user) return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
+            
+            if (!Schema::hasTable('leave_ledgers')) {
+                return response()->json(['data' => []]);
+            }
+
+            $query = \App\Models\LeaveLedger::with(['leaveType'])->where('user_id', $user->id);
+            
+            if ($request->has('leave_type_id') && $request->leave_type_id) {
+                $query->where('leave_type_id', $request->leave_type_id);
+            }
+
+            $ledger = $query->orderBy('created_at', 'desc')->get();
+
+            return response()->json(['success' => true, 'data' => $ledger]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'data' => []]);
+        }
     }
 
     /**

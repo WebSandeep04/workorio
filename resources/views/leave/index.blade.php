@@ -20,7 +20,10 @@
   /* Table Styles */
   .modern-card { padding: 0; margin-bottom: 0.5rem; }
   .data-table-card { border-radius: 5px; border: 1px solid #f2f4f7; background: #fff; box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08); overflow: hidden; }
-  .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; }
+  .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; scrollbar-color: #434afa #e4e7ec; }
+  .table-scroll::-webkit-scrollbar { height: 8px; }
+  .table-scroll::-webkit-scrollbar-track { background: #e4e7ec; border-radius: 999px; }
+  .table-scroll::-webkit-scrollbar-thumb { background: #434afa; border-radius: 999px; }
   .custom-table { border-spacing: 0; width: 100%; min-width: 800px; font-size: 0.85rem; }
   .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; }
   .custom-table tbody td { font-size: 0.85rem; padding: 0.65rem 0.75rem; border-bottom: 1px solid #f4f4f6; }
@@ -38,12 +41,58 @@
   .badge-pending { background: #fff3cd; color: #856404; }
   .badge-approved { background: #d4edda; color: #155724; }
   .badge-cancelled { background: #f8d7da; color: #721c24; }
+
+  /* Summary Cards */
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .summary-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #eceef3;
+    padding: 0.5rem;
+    box-shadow: 0px 4px 4px 0px #0000000A;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .summary-card:hover { transform: translateY(-2px); box-shadow: 0px 8px 8px 0px #0000000A; }
+  .summary-card-content { display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; }
+  .summary-card-label { font-size: 10px; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem; color: #000; line-height: 1.2; font-family: Montserrat; }
+  .summary-card-value { font-size: 1.1rem; font-weight: 700; margin: 0; line-height: 1; color: #101828; font-family: Montserrat; }
+  
+  .details-btn {
+      font-size: 10px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: #434afa;
+      color: white;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+  }
+  .details-btn:hover { background: #3538d4; color: white;}
+  .stats-row { display: flex; gap: 0.5rem; font-size: 10px; margin-top: 4px; }
+  .text-xs { font-size: 10px; }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-2 mt-2">
     <div id="alertBox"></div>
+    
+    <!-- Summary Cards Container -->
+    <div class="summary-cards" id="leaveSummaryCards">
+        <!-- Cards loaded dynamically -->
+    </div>
     
     <!-- Search and Add -->
     <div class="table-search mb-2">
@@ -154,6 +203,35 @@
         </div>
     </div>
 </div>
+
+<!-- Ledger Modal -->
+<div class="modal fade" id="ledgerModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #434afa;">
+                <h5 class="modal-title text-white">Leave Ledger: <span id="ledgerLeaveTypeName"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-scroll">
+                    <table class="table custom-table mb-0" id="ledgerTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Balance After</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledgerTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -236,9 +314,60 @@ function loadLeaveTypes() {
         if (response.data) {
             allLeaveTypes = response.data;
             let opts = '<option value="">Select Leave Type</option>';
-            response.data.forEach(t => opts += `<option value="${t.id}">${t.name}</option>`);
+            let cardsHtml = '';
+            
+            response.data.forEach(t => {
+                opts += `<option value="${t.id}">${t.name}</option>`;
+                
+                cardsHtml += `
+                    <div class="summary-card">
+                        <div class="summary-card-content" style="padding-right:0;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="summary-card-label">${t.name}</div>
+                                <button class="details-btn" onclick="openLedger(${t.id}, '${t.name}')">Ledger</button>
+                            </div>
+                            <div class="summary-card-value text-primary mt-1">${t.balance} <span style="font-size:10px; color:#6b7280; font-weight:500;">Balance</span></div>
+                            <div class="stats-row text-muted fw-bold">
+                                <span>Allowed: ${t.total_allowed}</span> | 
+                                <span class="text-warning">Pending: ${t.pending}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
             $('#leave_type_id').html(opts);
+            $('#leaveSummaryCards').html(cardsHtml);
         }
+    });
+}
+
+function openLedger(leaveTypeId, leaveTypeName) {
+    $('#ledgerLeaveTypeName').text(leaveTypeName);
+    $('#ledgerTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted">Loading ledger...</td></tr>');
+    $('#ledgerModal').modal('show');
+    
+    $.get('{{ route("leave.ledger") }}', { leave_type_id: leaveTypeId }, function(res) {
+        if(res.success && res.data.length > 0) {
+            let html = '';
+            res.data.forEach(tx => {
+                let badgeClass = tx.transaction_type === 'credit' ? 'success' : (tx.transaction_type === 'debit' ? 'danger' : 'secondary');
+                let op = tx.transaction_type === 'credit' ? '+' : '';
+                html += `
+                    <tr>
+                        <td>${new Date(tx.created_at).toLocaleDateString()}</td>
+                        <td><span class="badge bg-${badgeClass}">${tx.transaction_type.toUpperCase()}</span></td>
+                        <td class="text-${badgeClass} fw-bold">${op}${tx.amount}</td>
+                        <td class="fw-bold">${tx.balance_after}</td>
+                        <td><span class="text-xs">${tx.remarks || '-'}</span></td>
+                    </tr>
+                `;
+            });
+            $('#ledgerTableBody').html(html);
+        } else {
+            $('#ledgerTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted">No ledger records found.</td></tr>');
+        }
+    }).fail(function() {
+        $('#ledgerTableBody').html('<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load ledger.</td></tr>');
     });
 }
 
