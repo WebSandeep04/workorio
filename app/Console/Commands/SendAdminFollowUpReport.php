@@ -124,7 +124,7 @@ class SendAdminFollowUpReport extends Command
             }
 
             try {
-                Mail::to($recipientEmails)->send(new AdminFollowUpReport($records, $newLeads, $today, $summary));
+                Mail::to($recipientEmails)->send(new AdminFollowUpReport($records, $newLeads, $today, $summary, $this->option('alert')));
                 $this->info("  ✅ Admin follow-up report sent to: " . implode(', ', $recipientEmails));
             } catch (\Exception $e) {
                 $this->error("  ❌ Mailer Error: " . $e->getMessage());

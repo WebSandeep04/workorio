@@ -77,7 +77,7 @@ class SendFollowUpReport extends Command
                 }
 
                 try {
-                    Mail::to($user->email)->send(new FollowUpReport($user, $leads, $today));
+                    Mail::to($user->email)->send(new FollowUpReport($user, $leads, $today, $this->option('alert')));
                     $this->info("  ✅ Follow-up email sent to {$user->name} ({$user->email})");
                 } catch (\Exception $e) {
                     $this->error("  ❌ Mailer Error for {$user->name}: " . $e->getMessage());

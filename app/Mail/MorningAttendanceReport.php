@@ -35,7 +35,7 @@ class MorningAttendanceReport extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: ($this->alert_prefix ? "Workorio Alert {$this->alert_prefix} : " : "") . "Today's Attendance Summary - " . date('d M Y', strtotime($this->today)),
+            subject: ($this->alert_prefix ? "[Workorio Alert : {$this->alert_prefix}] " : "") . "Today's Attendance Summary - " . date('d M Y', strtotime($this->today)),
         );
     }
 

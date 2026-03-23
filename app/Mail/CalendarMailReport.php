@@ -32,7 +32,7 @@ class CalendarMailReport extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: (isset($this->payload['alert_prefix']) && $this->payload['alert_prefix'] ? 'Workorio Alert ' . $this->payload['alert_prefix'] . ' : ' : '') . '📋 Pending Events + Monthly Summary - ' . $this->endDate,
+            subject: (isset($this->payload['alert_prefix']) && $this->payload['alert_prefix'] ? '[Workorio Alert : ' . $this->payload['alert_prefix'] . '] ' : '') . '📋 Pending Events + Monthly Summary - ' . $this->endDate,
         );
     }
 

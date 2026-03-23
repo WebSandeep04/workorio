@@ -38,7 +38,7 @@ class NightAttendanceReport extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: ($this->alert_prefix ? "Workorio Alert {$this->alert_prefix} : " : "") . "Monthly Attendance Summary - " . $this->monthYear,
+            subject: ($this->alert_prefix ? "[Workorio Alert : {$this->alert_prefix}] " : "") . "Monthly Attendance Summary - " . $this->monthYear,
         );
     }
 

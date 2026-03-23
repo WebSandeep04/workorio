@@ -17,16 +17,18 @@ class AdminFollowUpReport extends Mailable
     public $newLeads;
     public $today;
     public $summary;
+    public $alert_prefix;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($records, $newLeads, $today, $summary)
+    public function __construct($records, $newLeads, $today, $summary, $alert_prefix = null)
     {
         $this->records = $records;
         $this->newLeads = $newLeads;
         $this->today = $today;
         $this->summary = $summary;
+        $this->alert_prefix = $alert_prefix;
     }
 
     /**
@@ -35,7 +37,7 @@ class AdminFollowUpReport extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Follow-up Report ({$this->today})",
+            subject: ($this->alert_prefix ? "[Workorio Alert : {$this->alert_prefix}] " : "") . "Follow-up Report ({$this->today})",
         );
     }
 

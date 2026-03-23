@@ -30,10 +30,12 @@ class SubscriptionMailReport extends Mailable
     public function envelope(): Envelope
     {
         $overdueCount = count($this->payload['overdueItems']);
-        $subjectPrefix = $overdueCount > 0 ? " Alert: {$overdueCount} Overdue" : "✅ Daily Report";
+        $subjectPrefix = $overdueCount > 0 ? "Alert: {$overdueCount} Overdue" : "✅ Daily Report";
+        
+        $alertStr = !empty($this->payload['alert_prefix']) ? "[Workorio Alert : {$this->payload['alert_prefix']}] " : "";
 
         return new Envelope(
-            subject: "{$subjectPrefix} | Subscription Summary - " . $this->payload['dateDisplay'],
+            subject: "{$alertStr}{$subjectPrefix} | Subscription Summary - " . $this->payload['dateDisplay'],
         );
     }
 
