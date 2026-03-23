@@ -118,6 +118,8 @@ class SendSubscriptionMail extends Command
             $statusGroups = []; 
             $totalActive = 0;
             $totalReceivable = 0;
+            $totalPendingAmount = 0;
+            $totalInvoiceSentAmount = 0;
             $today = Carbon::today('Asia/Kolkata')->format('Y-m-d');
 
             if (!empty($results)) {
@@ -144,6 +146,14 @@ class SendSubscriptionMail extends Command
                     ];
 
                     $isPaid = in_array(strtolower($statusKey), ['paid', 'payment received', 'completed']);
+
+                    if (!$isPaid) {
+                        if (strpos(strtolower($statusKey), 'pending') !== false) {
+                            $totalPendingAmount += $item['amount'];
+                        } elseif (strpos(strtolower($statusKey), 'invoice') !== false || strpos(strtolower($statusKey), 'sent') !== false) {
+                            $totalInvoiceSentAmount += $item['amount'];
+                        }
+                    }
                     $isOverdue = (!$isPaid && $dueDate && $dueDate < $today);
 
                     if ($isOverdue) {
@@ -177,6 +187,8 @@ class SendSubscriptionMail extends Command
                 'statusGroups' => $statusGroups,
                 'totalActive' => $totalActive,
                 'totalReceivable' => $totalReceivable,
+                'totalPendingAmount' => $totalPendingAmount,
+                'totalInvoiceSentAmount' => $totalInvoiceSentAmount,
                 'dateDisplay' => Carbon::now('Asia/Kolkata')->format('d M Y')
             ];
 

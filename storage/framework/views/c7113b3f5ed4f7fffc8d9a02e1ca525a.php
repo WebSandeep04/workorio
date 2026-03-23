@@ -5,7 +5,7 @@
 </head>
 <body style="margin: 0; padding: 0px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6;">
 
-@php
+<?php
 function renderTable($items, $title, $titleColor = '#111827', $isOverdue = false) {
     if (empty($items)) return "";
 
@@ -84,14 +84,14 @@ foreach ($payload['statusGroups'] as $statusName => $items) {
 if(empty($tablesHtml)) {
     $tablesHtml = "<div style='padding:20px;text-align:center;color:#6b7280;'>No subscriptions to display.</div>";
 }
-@endphp
+?>
 
 <div style="width: 100%; max-width: 1400px; margin: 0 auto; background-color: #ffffff; padding: 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
     <div style="background-color: #4f46e5; padding:20px; color:white;">
         <table width="100%">
             <tr>
                 <td style="font-size:18px;font-weight:bold;">Subscription Report</td>
-                <td style="text-align:right;font-size:12px;opacity:0.9;">{{ $payload['dateDisplay'] }}</td>
+                <td style="text-align:right;font-size:12px;opacity:0.9;"><?php echo e($payload['dateDisplay']); ?></td>
             </tr>
         </table>
     </div>
@@ -103,13 +103,13 @@ if(empty($tablesHtml)) {
                 <td style="padding: 0 5px;">
                     <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                         <div style="font-size: 11px; color: #d97706; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">Total Pending</div>
-                        <div style="font-size: 18px; color: #92400e; font-weight: 700;">₹{{ number_format($payload['totalPendingAmount'] ?? 0, 2) }}</div>
+                        <div style="font-size: 18px; color: #92400e; font-weight: 700;">₹<?php echo e(number_format($payload['totalPendingAmount'] ?? 0, 2)); ?></div>
                     </div>
                 </td>
                 <td style="padding: 0 5px;">
                     <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
                         <div style="font-size: 11px; color: #2563eb; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">Invoice / Sent</div>
-                        <div style="font-size: 18px; color: #1e40af; font-weight: 700;">₹{{ number_format($payload['totalInvoiceSentAmount'] ?? 0, 2) }}</div>
+                        <div style="font-size: 18px; color: #1e40af; font-weight: 700;">₹<?php echo e(number_format($payload['totalInvoiceSentAmount'] ?? 0, 2)); ?></div>
                     </div>
                 </td>
             </tr>
@@ -117,13 +117,16 @@ if(empty($tablesHtml)) {
     </div>
     
     <div style="padding:5px 2px 20px 2px;">
-        {!! $tablesHtml !!}
+        <?php echo $tablesHtml; ?>
+
     </div>
     
     <div style="background:#f9fafb;padding:15px;text-align:center;font-size:10px;color:#6b7280;border-top:1px solid #e5e7eb;">
-        Workorio Automated Report &bull; Total Active: {{ $payload['totalActive'] }} &bull; Pending: ₹{{ number_format($payload['totalReceivable'], 2) }}
+        Workorio Automated Report &bull; Total Active: <?php echo e($payload['totalActive']); ?> &bull; Pending: ₹<?php echo e(number_format($payload['totalReceivable'], 2)); ?>
+
     </div>
 </div>
 
 </body>
 </html>
+<?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/emails/subscription_report.blade.php ENDPATH**/ ?>
