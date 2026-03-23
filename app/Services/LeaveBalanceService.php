@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\LeaveLedger;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 class LeaveBalanceService
