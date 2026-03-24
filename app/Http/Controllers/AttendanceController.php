@@ -1329,11 +1329,22 @@ class AttendanceController extends Controller
             })->get();
             
         $leavesList = [];
+        $leavesDetails = [];
         foreach ($leaveRequests as $req) {
             $period = new \DatePeriod(new \DateTime($req->start_date), new \DateInterval('P1D'), (new \DateTime($req->end_date))->modify('+1 day'));
             foreach ($period as $dt) {
                 if ($dt >= new \DateTime($startDate->format('Y-m-d')) && $dt <= new \DateTime($endDate->format('Y-m-d'))) {
-                    $leavesList[] = $dt->format('Y-m-d');
+                    $d = $dt->format('Y-m-d');
+                    $leavesList[] = $d;
+                    if (!isset($leavesDetails[$d])) {
+                        if ($req->is_rh) {
+                            $leavesDetails[$d] = 'RH';
+                        } elseif ($req->is_sl) {
+                            $leavesDetails[$d] = 'SL';
+                        } else {
+                            $leavesDetails[$d] = 'L';
+                        }
+                    }
                 }
             }
         }
@@ -1341,7 +1352,7 @@ class AttendanceController extends Controller
 
         $summary = $this->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData, $user);
         
-        $dailyBreakdown = $this->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData);
+        $dailyBreakdown = $this->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData);
         
         return [
             'user' => [
@@ -1430,7 +1441,7 @@ class AttendanceController extends Controller
         $leaves = collect();
         foreach ($leavesRaw as $req) {
             if (!$leaves->has($req->user_id)) {
-                $leaves->put($req->user_id, collect([(object)['date' => \Carbon\Carbon::parse($date)]]));
+                $leaves->put($req->user_id, collect([(object)['date' => \Carbon\Carbon::parse($date), 'is_rh' => $req->is_rh, 'is_sl' => $req->is_sl]]));
             }
         }
 
@@ -1439,6 +1450,8 @@ class AttendanceController extends Controller
         foreach ($users as $user) {
             $attendance = $attendances->get($user->id);
             $userLeaves = $leaves->get($user->id);
+            $leaveObj = $userLeaves ? $userLeaves->first() : null;
+            $leaveType = $leaveObj ? ($leaveObj->is_rh ? 'RH' : ($leaveObj->is_sl ? 'SL' : 'L')) : null;
             
             $dayData = [
                 'user' => [
@@ -1450,6 +1463,7 @@ class AttendanceController extends Controller
                 'is_sunday' => $isSunday,
                 'is_holiday' => !!$holiday,
                 'is_leave' => !!$userLeaves,
+                'leave_type' => $leaveType,
                 'hours' => 0,
                 'office_hours' => 0,
                 'field_hours' => 0,
@@ -1481,12 +1495,20 @@ class AttendanceController extends Controller
                 if ($isSunday || $holiday) {
                     $dayData['status'] = 'holiday';
                 } else {
-                    if ($dayData['hours'] >= 7) {
-                        $dayData['status'] = 'present';
-                    } elseif ($dayData['hours'] >= 4) {
-                        $dayData['status'] = 'halfday';
+                    if ($dayData['leave_type'] === 'SL') {
+                        if ($dayData['hours'] >= 7) {
+                            $dayData['status'] = 'present';
+                        } else {
+                            $dayData['status'] = 'short leave';
+                        }
                     } else {
-                        $dayData['status'] = 'absent';
+                        if ($dayData['hours'] >= 7) {
+                            $dayData['status'] = 'present';
+                        } elseif ($dayData['hours'] >= 4) {
+                            $dayData['status'] = 'halfday';
+                        } else {
+                            $dayData['status'] = 'absent';
+                        }
                     }
                 }
 
@@ -1511,7 +1533,13 @@ class AttendanceController extends Controller
             } elseif ($holiday) {
                 $dayData['status'] = 'holiday';
             } elseif ($userLeaves) {
-                $dayData['status'] = 'leave';
+                if ($leaveType === 'RH') {
+                    $dayData['status'] = 'restricted holiday';
+                } elseif ($leaveType === 'SL') {
+                    $dayData['status'] = 'short leave';
+                } else {
+                    $dayData['status'] = 'leave';
+                }
             }
 
             $reportData[] = $dayData;
@@ -1759,7 +1787,11 @@ class AttendanceController extends Controller
                     if (!isset($leavesData[$req->user_id])) {
                         $leavesData[$req->user_id] = collect();
                     }
-                    $leavesData[$req->user_id]->push((object)['date' => \Carbon\Carbon::parse($d)]);
+                    $leavesData[$req->user_id]->push((object)[
+                        'date' => \Carbon\Carbon::parse($d),
+                        'is_rh' => $req->is_rh,
+                        'is_sl' => $req->is_sl
+                    ]);
                 }
             }
         }
@@ -1774,13 +1806,28 @@ class AttendanceController extends Controller
                 return \Carbon\Carbon::parse($item->date)->format('Y-m-d');
             });
 
-            $userLeaves = $allLeaves->get($user->id, collect())
-                ->pluck('date')
+            $rawLeaves = $allLeaves->get($user->id, collect());
+            
+            $userLeaves = $rawLeaves->pluck('date')
                 ->map(function($date) {
                     return $date->format('Y-m-d');
                 })
                 ->unique()
                 ->toArray(); // Just array of leave dates
+                
+            $userLeavesDetails = [];
+            foreach ($rawLeaves as $l) {
+                $d = $l->date->format('Y-m-d');
+                if (!isset($userLeavesDetails[$d])) {
+                    if ($l->is_rh) {
+                        $userLeavesDetails[$d] = 'RH';
+                    } elseif ($l->is_sl) {
+                        $userLeavesDetails[$d] = 'SL';
+                    } else {
+                        $userLeavesDetails[$d] = 'L';
+                    }
+                }
+            }
             
             $dailyStatuses = [];
             
@@ -1805,16 +1852,27 @@ class AttendanceController extends Controller
                         $statusCode = 'H/W'; // Holiday Working
                         $statusClass = 'text-info';
                     } else {
-                        // Normal Working Day
-                        if ($hours >= 7) {
-                            $statusCode = 'P'; // Present
-                            $statusClass = 'text-success';
-                        } elseif ($hours >= 4) {
-                            $statusCode = 'P2'; // Half Day
-                            $statusClass = 'text-warning';
+                        $leaveType = $userLeavesDetails[$dateStr] ?? null;
+                        if ($leaveType === 'SL') {
+                            if ($hours >= 7) {
+                                $statusCode = 'P (SL)';
+                                $statusClass = 'text-success';
+                            } else {
+                                $statusCode = 'SL';
+                                $statusClass = 'text-info';
+                            }
                         } else {
-                            $statusCode = 'P'; // Falling back to P if punched in but low hours (or could be absent)
-                            $statusClass = 'text-success'; 
+                            // Normal Working Day
+                            if ($hours >= 7) {
+                                $statusCode = 'P'; // Present
+                                $statusClass = 'text-success';
+                            } elseif ($hours >= 4) {
+                                $statusCode = 'P2'; // Half Day
+                                $statusClass = 'text-warning';
+                            } else {
+                                $statusCode = 'P'; // Falling back to P if punched in but low hours (or could be absent)
+                                $statusClass = 'text-success'; 
+                            }
                         }
                     }
 
@@ -1824,9 +1882,18 @@ class AttendanceController extends Controller
                 } elseif ($d['is_sunday']) {
                     $statusCode = 'S'; // Sunday
                     $statusClass = 'text-danger small';
-                } elseif (in_array($dateStr, $userLeaves)) {
-                    $statusCode = 'L'; // Leave
-                    $statusClass = 'text-warning';
+                } elseif (isset($userLeavesDetails[$dateStr])) {
+                    $lType = $userLeavesDetails[$dateStr];
+                    if ($lType === 'RH') {
+                        $statusCode = 'RH';
+                        $statusClass = 'text-primary';
+                    } elseif ($lType === 'SL') {
+                        $statusCode = 'SL';
+                        $statusClass = 'text-info';
+                    } else {
+                        $statusCode = 'L'; // Leave
+                        $statusClass = 'text-warning';
+                    }
                 } else {
                     $statusCode = 'A'; // Absent
                     $statusClass = 'text-danger';
@@ -2103,7 +2170,8 @@ class AttendanceController extends Controller
                 'day_name' => $dayName,
                 'is_sunday' => $currentDate->dayOfWeek === Carbon::SUNDAY,
                 'is_holiday' => in_array($dateStr, $holidays),
-                'is_leave' => in_array($dateStr, $leaves),
+                'is_leave' => isset($leaves[$dateStr]),
+                'leave_type' => $leaves[$dateStr] ?? null,
                 'holiday_name' => null,
                 'status' => 'absent',
                 'hours' => 0,
@@ -2157,12 +2225,20 @@ class AttendanceController extends Controller
                         $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
                     }
                 } else {
-                    if ($dayData['hours'] >= 7) {
-                        $dayData['status'] = 'present';
-                    } elseif ($dayData['hours'] >= 4) {
-                        $dayData['status'] = 'halfday';
+                    if ($dayData['leave_type'] === 'SL') {
+                        if ($dayData['hours'] >= 7) {
+                            $dayData['status'] = 'present';
+                        } else {
+                            $dayData['status'] = 'short leave';
+                        }
                     } else {
-                        $dayData['status'] = 'absent by less hr';
+                        if ($dayData['hours'] >= 7) {
+                            $dayData['status'] = 'present';
+                        } elseif ($dayData['hours'] >= 4) {
+                            $dayData['status'] = 'halfday';
+                        } else {
+                            $dayData['status'] = 'absent by less hr';
+                        }
                     }
                 }
             } else {
@@ -2174,8 +2250,14 @@ class AttendanceController extends Controller
                     if ($holidaysData && isset($holidaysData[$dateStr])) {
                         $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
                     }
-                } elseif (in_array($dateStr, $leaves)) {
-                    $dayData['status'] = 'leave';
+                } elseif (isset($leaves[$dateStr])) {
+                    if ($leaves[$dateStr] === 'RH') {
+                        $dayData['status'] = 'restricted holiday';
+                    } elseif ($leaves[$dateStr] === 'SL') {
+                        $dayData['status'] = 'short leave';
+                    } else {
+                        $dayData['status'] = 'leave';
+                    }
                 } else {
                     $dayData['status'] = 'absent';
                 }

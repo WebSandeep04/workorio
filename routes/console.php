@@ -110,9 +110,3 @@ Schedule::command('worklog:send-today-mail', ['--alert=11'])
     ->timezone('Asia/Kolkata')
     ->description("Send today's worklog summary to HR/Admins");
 
-// Dummy command to test cron job
-// use Illuminate\Support\Facades\Log;
-
-// Schedule::call(function () {
-//     Log::info('Cron Job Test: Scheduler is running at ' . now());
-// })->dailyAt('18:40')->timezone('Asia/Kolkata')->name('cron:test');

@@ -602,7 +602,6 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/myleads/export', [MyLeadsController::class, 'exportLeads'])->name('myleads.export');
     Route::post('/myleads/reassign', [MyLeadsController::class, 'reassignLead'])->name('myleads.reassign');
     Route::get('/myleads/team-members', [MyLeadsController::class, 'getTeamMembers'])->name('myleads.team-members');
-    Route::get('/test-team-members', [MyLeadsController::class, 'getTeamMembers'])->name('test.team-members');
 
     // Payment Followup routes
     Route::get('/payment-followup', [PaymentFollowupController::class, 'index'])->name('payment-followup');
@@ -691,7 +690,6 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/team-analytics/member', [TeamAnalyticsController::class, 'getMemberAnalytics'])->name('team-analytics.member');
     Route::get('/team-analytics/overview', [TeamAnalyticsController::class, 'getTeamOverview'])->name('team-analytics.overview');
     Route::get('/team-analytics/remarks', [TeamAnalyticsController::class, 'getRemarks'])->name('team-analytics.remarks');
-    Route::get('/team-analytics/debug-remarks', [TeamAnalyticsController::class, 'debugRemarks'])->name('team-analytics.debug-remarks');
 });
 
 // Customer Project Module Routes
@@ -720,16 +718,6 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Quotation helper routes (tenant context) - align with customers/products fetch
     // (payment terms route defined earlier)
     
-    // Simple test route without tenant middleware
-    Route::get('/payment-terms/simple-test', function() {
-        try {
-            $count = \App\Models\PaymentTerm::count();
-            return response()->json(['count' => $count, 'message' => 'PaymentTerm model works without tenant context']);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    });
-
     // Form Builder (Lead Form)
     Route::get('/form-builder', [FormBuilderController::class, 'index'])->name('formbuilder.index');
     Route::get('/form-builder/create', [FormBuilderController::class, 'create'])->name('formbuilder.create');
@@ -859,7 +847,6 @@ Route::get('/worklog-missing-summary', function() {
             Route::get('/task/customers', [\App\Http\Controllers\TaskController::class, 'getCustomers'])->name('task.customers');
             Route::get('/task/statuses', [\App\Http\Controllers\TaskController::class, 'getTaskStatuses'])->name('task.statuses');
              Route::get('/task/priorities', [\App\Http\Controllers\TaskController::class, 'getTaskPriorities'])->name('task.priorities');
-             Route::get('/task/debug-statuses', [\App\Http\Controllers\TaskController::class, 'debugStatuses'])->name('task.debug-statuses');
              Route::post('/task/store', [\App\Http\Controllers\TaskController::class, 'store'])->name('task.store');
              Route::put('/task/{id}', [\App\Http\Controllers\TaskController::class, 'update'])->name('task.update');
              Route::get('/task/{taskId}/image/{imageId}', [\App\Http\Controllers\TaskController::class, 'serveImage'])->name('task.image');
