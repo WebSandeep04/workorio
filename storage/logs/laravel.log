@@ -24,3 +24,8 @@
 #11 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #12 {main}
 "} 
+[2026-03-24 05:49:28] local.ERROR: AuthController@login start {"email":"anupriya@triserv360.com"} 
+[2026-03-24 05:49:28] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-03-24 05:49:29] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-03-24 05:49:29] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":5,"name":"Anupriya Singh","email":"anupriya@triserv360.com","role_id":7,"tenant_id":1}} 
+[2026-03-24 05:49:29] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
