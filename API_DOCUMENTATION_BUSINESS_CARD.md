@@ -6,7 +6,7 @@ This document outlines the API endpoints available for the Business Card Scanner
 
 The feature allows users to:
 1.  **Scan** a business card using OCR and AI (Gemini) to extract details.
-2.  **Save** the extracted details to the database.
+2.  **Save** the extracsted details to the database.
 3.  **View, Edit, and Delete** saved business cards.
 4.  **Convert** a business card into a Lead/Contact (handled via `is_converted` flag).
 
