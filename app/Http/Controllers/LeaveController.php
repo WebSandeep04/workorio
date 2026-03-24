@@ -35,7 +35,9 @@ class LeaveController extends Controller
         $validator = Validator::make($request->all(), [
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'leave_type_id' => 'required', // Can be 'rh' or an ID
+            'leave_type_id' => 'required', // Can be 'rh', 'sl' or an ID
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i|after:start_time',
             'reason' => 'nullable|string|max:1000'
         ]);
 
@@ -76,7 +78,8 @@ class LeaveController extends Controller
         }
         
         $isRH = $request->leave_type_id === 'rh';
-        $actualLeaveTypeId = $isRH ? null : $request->leave_type_id;
+        $isSL = $request->leave_type_id === 'sl';
+        $actualLeaveTypeId = ($isRH || $isSL) ? null : $request->leave_type_id;
 
         if ($isRH) {
             // Check RH restrictions
@@ -89,8 +92,9 @@ class LeaveController extends Controller
                  return response()->json(['success' => false, 'message' => 'You are not eligible for any Restricted Holidays.'], 422);
             }
             $totalRH = $employmentType->rh_allowed;
-            $takenRH = LeaveRequest::where('user_id', $user->id)
+            $takenRH = \App\Models\LeaveRequest::where('user_id', $user->id)
                 ->where('is_rh', 1)
+                ->whereYear('start_date', date('Y'))
                 ->whereIn('status', ['pending', 'approved'])
                 ->sum('total_days');
                 
@@ -100,10 +104,34 @@ class LeaveController extends Controller
                     'message' => "Insufficient RH balance. You only have " . max(0, $totalRH - $takenRH) . " days available."
                 ], 422);
             }
+        } elseif ($isSL) {
+            if (!$request->start_time || !$request->end_time) {
+                 return response()->json(['success' => false, 'message' => 'Start time and end time are required for Short Leave.'], 422);
+            }
+            if ($totalDays > 1) {
+                 return response()->json(['success' => false, 'message' => 'Short Leaves can only be taken for a single day.'], 422);
+            }
             
-            // Also enforce that RH dates must actually match an RH holiday?
-            // Optional: But standard to just check if totalDays of RH exists in holidays
-            // Leaving without date validation if not specially requested for now
+            $empTypeId = $user->employee->employment_type_id ?? null;
+            $employmentType = \App\Models\EmploymentType::find($empTypeId);
+            if (!$employmentType || $employmentType->sl_allowed <= 0) {
+                 return response()->json(['success' => false, 'message' => 'You are not eligible for Short Leaves.'], 422);
+            }
+            
+            $totalSL = $employmentType->sl_allowed;
+            $takenSL = \App\Models\LeaveRequest::where('user_id', $user->id)
+                ->where('is_sl', 1)
+                ->whereYear('start_date', Carbon::parse($request->start_date)->year)
+                ->whereMonth('start_date', Carbon::parse($request->start_date)->month)
+                ->whereIn('status', ['pending', 'approved'])
+                ->count();
+                
+            if ($takenSL >= $totalSL) {
+                 return response()->json(['success' => false, 'message' => 'You have exhausted your Short Leave quota for this month.'], 422);
+            }
+            
+            // Total Days for SL can be 0 or fractional. Usually we just record it as 0 to not mess up normal days ledger, or 0.25
+            $totalDays = 0; 
         } else {
             // Verify Balance for normal leave
             $balanceService = app(LeaveBalanceService::class);
@@ -123,8 +151,11 @@ class LeaveController extends Controller
                 'user_id' => $user->id,
                 'leave_type_id' => $actualLeaveTypeId,
                 'is_rh' => $isRH,
+                'is_sl' => $isSL,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
+                'start_time' => $isSL ? $request->start_time : null,
+                'end_time' => $isSL ? $request->end_time : null,
                 'total_days' => $totalDays,
                 'reason' => $request->reason,
                 'status' => 'pending' // Automatically starts as pending for Manager workflow
@@ -200,7 +231,7 @@ class LeaveController extends Controller
 
         DB::beginTransaction();
         try {
-            if ($leaveReq->status === 'approved' && !$leaveReq->is_rh) {
+            if ($leaveReq->status === 'approved' && !$leaveReq->is_rh && !$leaveReq->is_sl) {
                 // Refund the ledger
                 $balanceService = app(LeaveBalanceService::class);
                 $balanceService->creditLeave(
@@ -313,6 +344,7 @@ class LeaveController extends Controller
                     
                     $pendingOrTakenRH = \App\Models\LeaveRequest::where('user_id', $user->id)
                         ->where('is_rh', 1)
+                        ->whereYear('start_date', date('Y'))
                         ->whereIn('status', ['pending', 'approved'])
                         ->sum('total_days');
                         
@@ -328,6 +360,31 @@ class LeaveController extends Controller
                         'total_allowed' => $totalRH,
                         'pending' => 0,
                         'rh_list' => $rhList
+                    ]);
+                }
+
+                if ($employmentType && $employmentType->sl_allowed > 0) {
+                    $totalSL = $employmentType->sl_allowed;
+                    
+                    $pendingOrTakenSL = \App\Models\LeaveRequest::where('user_id', $user->id)
+                        ->where('is_sl', 1)
+                        ->whereYear('start_date', date('Y'))
+                        ->whereMonth('start_date', date('m'))
+                        ->whereIn('status', ['pending', 'approved'])
+                        ->count();
+                        
+                    $userShift = $user->employee->shift ?? null;
+                    $shiftStart = $userShift ? $userShift->start_time : '09:00:00';
+                    $shiftEnd = $userShift ? $userShift->end_time : '18:00:00';
+                        
+                    $mapped->push((object)[
+                        'id' => 'sl',
+                        'name' => 'Short Leave (SL)',
+                        'balance' => max(0, $totalSL - $pendingOrTakenSL),
+                        'total_allowed' => $totalSL,
+                        'pending' => 0,
+                        'shift_start' => $shiftStart,
+                        'shift_end' => $shiftEnd
                     ]);
                 }
             }
@@ -471,7 +528,7 @@ class LeaveController extends Controller
             $leaveReq->approved_by = $user->id;
             $leaveReq->save();
 
-            if (!$leaveReq->is_rh) {
+            if (!$leaveReq->is_rh && !$leaveReq->is_sl) {
                 $balanceService = app(LeaveBalanceService::class);
                 $balanceService->debitLeave(
                     $leaveReq->user_id, 

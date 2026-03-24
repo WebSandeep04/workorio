@@ -13,8 +13,11 @@ class LeaveRequest extends Model
         'user_id',
         'leave_type_id',
         'is_rh',
+        'is_sl',
         'start_date',
         'end_date',
+        'start_time',
+        'end_time',
         'total_days',
         'reason',
         'status', // pending, approved, rejected, cancelled

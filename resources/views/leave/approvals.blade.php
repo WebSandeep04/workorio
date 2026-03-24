@@ -133,10 +133,16 @@ function renderTable() {
 
             let typeName = leave.leave_type ? leave.leave_type.name : '-';
             if (leave.is_rh) typeName = 'Restricted Holiday (RH)';
+            if (leave.is_sl) typeName = 'Short Leave (SL)';
+            
+            let timeStr = '';
+            if (leave.is_sl && leave.start_time) {
+                 timeStr = `<br><span class="badge bg-light text-dark border mt-1"><i class="bi bi-clock me-1"></i>${leave.start_time.substring(0,5)} to ${leave.end_time.substring(0,5)}</span>`;
+            }
 
             html += `<tr>
                 <td><strong>${leave.user ? leave.user.name : 'Unknown User'}</strong></td>
-                <td><strong>${new Date(leave.start_date).toLocaleDateString()}</strong> to <strong>${new Date(leave.end_date).toLocaleDateString()}</strong></td>
+                <td><strong>${new Date(leave.start_date).toLocaleDateString()}</strong> ${leave.start_date !== leave.end_date ? `to <strong>${new Date(leave.end_date).toLocaleDateString()}</strong>` : ''} ${timeStr}</td>
                 <td><span style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-weight:700;">${leave.total_days}</span></td>
                 <td>${typeName}</td>
                 <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>

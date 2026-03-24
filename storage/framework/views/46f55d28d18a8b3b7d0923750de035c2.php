@@ -176,6 +176,19 @@
                             <option value="">Choose your pending RH...</option>
                         </select>
                     </div>
+                    
+                    <div class="row g-2 mb-3" id="sl_time_div" style="display:none;">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-primary">From Time <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="start_time" name="start_time">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-primary">To Time <span class="text-danger">*</span></label>
+                            <input type="time" class="form-control" id="end_time" name="end_time">
+                        </div>
+                        <div class="col-12 text-muted fw-bold" style="font-size:0.75rem;" id="shift_bounds_text"></div>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Reason</label>
                         <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="Optional reason..."></textarea>
@@ -271,6 +284,14 @@ $(document).ready(function() {
         let typeId = $(this).val();
         let targetType = allLeaveTypes.find(t => t.id == typeId);
         
+        // Reset blocks
+        $('#rh_holiday_div').slideUp();
+        $('#rh_holiday_select').removeAttr('required').val('');
+        $('#sl_time_div').slideUp();
+        $('#start_time, #end_time').removeAttr('required').val('');
+        $('#start_date, #end_date').prop('readonly', false);
+        $('#end_date').closest('.col-6').show();
+
         if (typeId === 'rh' && targetType && targetType.rh_list) {
             $('#rh_holiday_div').slideDown();
             let opts = '<option value="">Choose your pending RH...</option>';
@@ -281,10 +302,20 @@ $(document).ready(function() {
             $('#rh_holiday_select').html(opts).attr('required', true);
             
             $('#start_date, #end_date').prop('readonly', true);
-        } else {
-            $('#rh_holiday_div').slideUp();
-            $('#rh_holiday_select').removeAttr('required').val('');
-            $('#start_date, #end_date').prop('readonly', false);
+        } else if (typeId === 'sl' && targetType) {
+            $('#sl_time_div').slideDown();
+            $('#start_time, #end_time').attr('required', true);
+            // Lock dates to single day
+            $('#end_date').closest('.col-6').hide();
+            $('#end_date').val($('#start_date').val());
+            
+            // Limit bounds
+            let sStart = targetType.shift_start ? targetType.shift_start.substring(0,5) : '09:00';
+            let sEnd = targetType.shift_end ? targetType.shift_end.substring(0,5) : '18:00';
+            
+            $('#start_time').attr('min', sStart).attr('max', sEnd);
+            $('#end_time').attr('min', sStart).attr('max', sEnd);
+            $('#shift_bounds_text').text(`Shift limits: ${sStart} to ${sEnd}`);
         }
 
         if(targetType) {
@@ -314,6 +345,24 @@ $(document).ready(function() {
             $('#submitBtn').prop('disabled', true);
         }
     });
+
+    $('#start_date').on('change', function() {
+        if ($('#leave_type_id').val() === 'sl') {
+            $('#end_date').val($(this).val());
+        }
+    });
+
+    $('#start_time, #end_time').on('change', function() {
+        let st = $('#start_time').val();
+        let et = $('#end_time').val();
+        if(st && et && st >= et) {
+            showAlert('error', 'End time must be after Start time.');
+            $('#submitBtn').prop('disabled', true);
+        } else {
+            $('#submitBtn').prop('disabled', false);
+        }
+    });
+
 });
 
 function calculateDays() {
@@ -388,6 +437,10 @@ function openLedger(leaveTypeId, leaveTypeName) {
         showAlert('warning', 'There is no detailed ledger for Restricted Holidays (RH). The balance is simply deduced from your allowance based on your active RH leave requests.');
         return;
     }
+    if (leaveTypeId === 'sl') {
+        showAlert('warning', 'Short Leaves have a fixed monthly quota, no accrued ledger is maintained.');
+        return;
+    }
 
     $('#ledgerLeaveTypeName').text(leaveTypeName);
     $('#ledgerTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted">Loading ledger...</td></tr>');
@@ -436,9 +489,15 @@ function renderTable() {
 
             let typeName = leave.leave_type ? leave.leave_type.name : '-';
             if (leave.is_rh) typeName = 'Restricted Holiday (RH)';
+            if (leave.is_sl) typeName = 'Short Leave (SL)';
+            
+            let timeStr = '';
+            if (leave.is_sl && leave.start_time) {
+                 timeStr = `<br><span class="badge bg-light text-dark border mt-1"><i class="bi bi-clock me-1"></i>${leave.start_time.substring(0,5)} to ${leave.end_time.substring(0,5)}</span>`;
+            }
 
             html += `<tr>
-                <td><strong>${new Date(leave.start_date).toLocaleDateString()}</strong> to <strong>${new Date(leave.end_date).toLocaleDateString()}</strong></td>
+                <td><strong>${new Date(leave.start_date).toLocaleDateString()}</strong> ${leave.start_date !== leave.end_date ? `to <strong>${new Date(leave.end_date).toLocaleDateString()}</strong>` : ''} ${timeStr}</td>
                 <td><span style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-weight:700;">${leave.total_days}</span></td>
                 <td>${typeName}</td>
                 <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>
@@ -480,6 +539,9 @@ function openCreateModal() {
     $('#balanceAlert').hide();
     $('#rh_holiday_div').hide();
     $('#rh_holiday_select').removeAttr('required');
+    $('#sl_time_div').hide();
+    $('#start_time, #end_time').removeAttr('required');
+    $('#end_date').closest('.col-6').show();
     $('#start_date, #end_date').prop('readonly', false);
     
     const today = new Date().toISOString().split('T')[0];
@@ -498,8 +560,10 @@ function submitForm() {
     const data = {
         _token: '<?php echo e(csrf_token()); ?>',
         start_date: $('#start_date').val(),
-        end_date: $('#end_date').val(),
+        end_date: $('#leave_type_id').val() === 'sl' ? $('#start_date').val() : $('#end_date').val(),
         leave_type_id: $('#leave_type_id').val(),
+        start_time: $('#start_time').val(),
+        end_time: $('#end_time').val(),
         reason: $('#reason').val()
     };
     if (currentLeaveId) data._method = 'PUT';
