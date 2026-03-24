@@ -169,6 +169,13 @@
                             <option value="">Select Leave Type</option>
                         </select>
                     </div>
+                    
+                    <div class="mb-3" id="rh_holiday_div" style="display:none;">
+                        <label class="form-label small fw-bold text-primary">Select Restricted Holiday <span class="text-danger">*</span></label>
+                        <select class="form-control" id="rh_holiday_select">
+                            <option value="">Choose your pending RH...</option>
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Reason</label>
                         <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="Optional reason..."></textarea>
@@ -263,11 +270,48 @@ $(document).ready(function() {
     $('#leave_type_id').on('change', function() {
         let typeId = $(this).val();
         let targetType = allLeaveTypes.find(t => t.id == typeId);
+        
+        if (typeId === 'rh' && targetType && targetType.rh_list) {
+            $('#rh_holiday_div').slideDown();
+            let opts = '<option value="">Choose your pending RH...</option>';
+            targetType.rh_list.forEach(h => {
+                let cleanDate = h.holiday_date.substring(0, 10);
+                opts += `<option value="${cleanDate}" data-name="${h.name}">${h.name} (${cleanDate})</option>`;
+            });
+            $('#rh_holiday_select').html(opts).attr('required', true);
+            
+            $('#start_date, #end_date').prop('readonly', true);
+        } else {
+            $('#rh_holiday_div').slideUp();
+            $('#rh_holiday_select').removeAttr('required').val('');
+            $('#start_date, #end_date').prop('readonly', false);
+        }
+
         if(targetType) {
             $('#balanceAlert').fadeIn();
             $('#dynamicBalance').text(targetType.balance);
         } else {
             $('#balanceAlert').hide();
+        }
+    });
+
+    $('#rh_holiday_select').on('change', function() {
+        let val = $(this).val();
+        let name = $(this).find(':selected').data('name');
+        if (val) {
+            $('#start_date').val(val);
+            $('#end_date').val(val);
+            // Optional: you can prepend the name to the reason if you want
+            if (!$('#reason').val().includes('Restricted Holiday:')) {
+                $('#reason').val('Restricted Holiday: ' + name);
+            }
+            calculateDays();
+        } else {
+            $('#start_date').val('');
+            $('#end_date').val('');
+            $('#reason').val('');
+            $('#calcDaysDisplay').text('Total: 0 Days');
+            $('#submitBtn').prop('disabled', true);
         }
     });
 });
@@ -340,6 +384,11 @@ function loadLeaveTypes() {
 }
 
 function openLedger(leaveTypeId, leaveTypeName) {
+    if (leaveTypeId === 'rh') {
+        showAlert('warning', 'There is no detailed ledger for Restricted Holidays (RH). The balance is simply deduced from your allowance based on your active RH leave requests.');
+        return;
+    }
+
     $('#ledgerLeaveTypeName').text(leaveTypeName);
     $('#ledgerTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted">Loading ledger...</td></tr>');
     $('#ledgerModal').modal('show');
@@ -385,10 +434,13 @@ function renderTable() {
             if(leave.status === 'cancelled') badge = 'cancelled';
             if(leave.status === 'rejected') badge = 'cancelled';
 
+            let typeName = leave.leave_type ? leave.leave_type.name : '-';
+            if (leave.is_rh) typeName = 'Restricted Holiday (RH)';
+
             html += `<tr>
                 <td><strong>${new Date(leave.start_date).toLocaleDateString()}</strong> to <strong>${new Date(leave.end_date).toLocaleDateString()}</strong></td>
                 <td><span style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-weight:700;">${leave.total_days}</span></td>
-                <td>${leave.leave_type ? leave.leave_type.name : '-'}</td>
+                <td>${typeName}</td>
                 <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>
                 <td>${leave.reason || '-'}</td>
                 <td class="text-center">
@@ -426,6 +478,9 @@ function openCreateModal() {
     $('#submitBtn').text('Submit Application');
     $('#leaveForm')[0].reset();
     $('#balanceAlert').hide();
+    $('#rh_holiday_div').hide();
+    $('#rh_holiday_select').removeAttr('required');
+    $('#start_date, #end_date').prop('readonly', false);
     
     const today = new Date().toISOString().split('T')[0];
     $('#start_date').val(today);

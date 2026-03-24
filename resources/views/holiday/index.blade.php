@@ -372,6 +372,7 @@
             <tr>
               <th>Holiday Name</th>
               <th>Date</th>
+              <th>Type</th>
               <th style="width: 100px;">Actions</th>
             </tr>
           </thead>
@@ -417,6 +418,10 @@
             <label for="holiday_date" class="form-label-modern">Holiday Date <span class="text-danger">*</span></label>
             <input type="date" class="form-control form-control-modern" id="holiday_date" name="holiday_date" required>
           </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="holiday_is_rh" name="is_rh" value="1">
+            <label class="form-check-label fw-bold" for="holiday_is_rh">Is this a Restricted Holiday (RH)?</label>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn-modern btn-modern-danger w-100 justify-content-center" id="addSubmitBtn">
@@ -449,6 +454,10 @@
           <div class="mb-3">
             <label for="edit_holiday_date" class="form-label-modern">Holiday Date <span class="text-danger">*</span></label>
             <input type="date" class="form-control form-control-modern" id="edit_holiday_date" name="holiday_date" required>
+          </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="edit_holiday_is_rh" name="is_rh" value="1">
+            <label class="form-check-label fw-bold" for="edit_holiday_is_rh">Is this a Restricted Holiday (RH)?</label>
           </div>
         </div>
         <div class="modal-footer">
@@ -591,16 +600,20 @@ $(function () {
         // You can use a more friendly display format if desired, but user asked for "only date"
         // standard YYYY-MM-DD is often clear enough, or use locale date
         
+        const badge = holiday.is_rh ? '<span class="badge bg-warning text-dark">Restricted</span>' : '<span class="badge bg-success">Public</span>';
+        
         rows += `
           <tr style="animation-delay: ${i * 0.1}s;">
             <td>${holiday.name}</td>
             <td>${cleanDate}</td>
+            <td>${badge}</td>
             <td>
               <div class="d-flex gap-2 justify-content-center">
                 <button class="btn-action btn-action-edit editBtn" 
                         data-id="${holiday.id}" 
                         data-name="${holiday.name}" 
                         data-date="${cleanDate}" 
+                        data-is_rh="${holiday.is_rh ? 1 : 0}"
                         title="Edit">
                   <i class="bi bi-pencil"></i>
                 </button>
@@ -656,6 +669,7 @@ $(function () {
     $.post("{{ route('holiday.store') }}", {
       name: $('#holiday_name').val(),
       holiday_date: $('#holiday_date').val(),
+      is_rh: $('#holiday_is_rh').is(':checked') ? 1 : 0,
       _token: '{{ csrf_token() }}'
     }, function (response) {
       if (response.success) {
@@ -683,11 +697,13 @@ $(function () {
     const id = $(this).data('id');
     const name = $(this).data('name');
     const date = $(this).data('date');
+    const is_rh = $(this).data('is_rh');
     
     $('#edit_holiday_id').val(id);
     $('#edit_holiday_name').val(name);
     // Date from data attribute is now cleaned (YYYY-MM-DD), identifying correctly by input[type=date]
     $('#edit_holiday_date').val(date);
+    $('#edit_holiday_is_rh').prop('checked', is_rh == 1);
     $('#editHolidayModal').modal('show');
   });
 
@@ -704,6 +720,7 @@ $(function () {
       data: {
         name: $('#edit_holiday_name').val(),
         holiday_date: $('#edit_holiday_date').val(), // This value will include YYYY-MM-DD
+        is_rh: $('#edit_holiday_is_rh').is(':checked') ? 1 : 0,
         _token: '{{ csrf_token() }}'
       },
       success: function (response) {

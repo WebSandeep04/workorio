@@ -35,7 +35,7 @@ class LeaveController extends Controller
         $validator = Validator::make($request->all(), [
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'leave_type_id' => 'required|exists:leave_types,id',
+            'leave_type_id' => 'required', // Can be 'rh' or an ID
             'reason' => 'nullable|string|max:1000'
         ]);
 
@@ -47,6 +47,7 @@ class LeaveController extends Controller
         }
 
         $user = $this->getCurrentUser();
+
         
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
@@ -73,23 +74,55 @@ class LeaveController extends Controller
         if ($overlappingLeave) {
             return response()->json(['success' => false, 'message' => 'You already have an active leave request overlapping these dates.'], 422);
         }
+        
+        $isRH = $request->leave_type_id === 'rh';
+        $actualLeaveTypeId = $isRH ? null : $request->leave_type_id;
 
-        // Verify Balance
-        $balanceService = app(LeaveBalanceService::class);
-        $currentBalance = $balanceService->getBalance($user->id, $request->leave_type_id);
+        if ($isRH) {
+            // Check RH restrictions
+            $empTypeId = $user->employee->employment_type_id ?? null;
+            if (!$empTypeId) {
+                 return response()->json(['success' => false, 'message' => 'Employment type not found for RH check.'], 422);
+            }
+            $employmentType = \App\Models\EmploymentType::find($empTypeId);
+            if (!$employmentType || $employmentType->rh_allowed <= 0) {
+                 return response()->json(['success' => false, 'message' => 'You are not eligible for any Restricted Holidays.'], 422);
+            }
+            $totalRH = $employmentType->rh_allowed;
+            $takenRH = LeaveRequest::where('user_id', $user->id)
+                ->where('is_rh', 1)
+                ->whereIn('status', ['pending', 'approved'])
+                ->sum('total_days');
+                
+            if (($takenRH + $totalDays) > $totalRH) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Insufficient RH balance. You only have " . max(0, $totalRH - $takenRH) . " days available."
+                ], 422);
+            }
+            
+            // Also enforce that RH dates must actually match an RH holiday?
+            // Optional: But standard to just check if totalDays of RH exists in holidays
+            // Leaving without date validation if not specially requested for now
+        } else {
+            // Verify Balance for normal leave
+            $balanceService = app(LeaveBalanceService::class);
+            $currentBalance = $balanceService->getBalance($user->id, $actualLeaveTypeId);
 
-        if ($currentBalance < $totalDays) {
-            return response()->json([
-                'success' => false,
-                'message' => "Insufficient leave balance. You only have {$currentBalance} days available, but requested {$totalDays} days."
-            ], 422);
+            if ($currentBalance < $totalDays) {
+                 return response()->json([
+                     'success' => false,
+                     'message' => "Insufficient leave balance. You only have {$currentBalance} days available, but requested {$totalDays} days."
+                 ], 422);
+            }
         }
 
         DB::beginTransaction();
         try {
             $leaveReq = LeaveRequest::create([
                 'user_id' => $user->id,
-                'leave_type_id' => $request->leave_type_id,
+                'leave_type_id' => $actualLeaveTypeId,
+                'is_rh' => $isRH,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
                 'total_days' => $totalDays,
@@ -167,7 +200,7 @@ class LeaveController extends Controller
 
         DB::beginTransaction();
         try {
-            if ($leaveReq->status === 'approved') {
+            if ($leaveReq->status === 'approved' && !$leaveReq->is_rh) {
                 // Refund the ledger
                 $balanceService = app(LeaveBalanceService::class);
                 $balanceService->creditLeave(
@@ -271,6 +304,33 @@ class LeaveController extends Controller
                 $type->pending = $pending;
                 return $type;
             });
+
+            // Handle RH virtual type
+            if (!empty($empTypeId)) {
+                $employmentType = \App\Models\EmploymentType::find($empTypeId);
+                if ($employmentType && $employmentType->rh_allowed > 0) {
+                    $totalRH = $employmentType->rh_allowed;
+                    
+                    $pendingOrTakenRH = \App\Models\LeaveRequest::where('user_id', $user->id)
+                        ->where('is_rh', 1)
+                        ->whereIn('status', ['pending', 'approved'])
+                        ->sum('total_days');
+                        
+                    $rhList = \App\Models\Holiday::where('is_rh', 1)
+                        ->whereYear('holiday_date', date('Y'))
+                        ->orderBy('holiday_date', 'asc')
+                        ->get(['id', 'name', 'holiday_date']);
+                        
+                    $mapped->push((object)[
+                        'id' => 'rh',
+                        'name' => 'Restricted Holiday (RH)',
+                        'balance' => max(0, $totalRH - $pendingOrTakenRH),
+                        'total_allowed' => $totalRH,
+                        'pending' => 0,
+                        'rh_list' => $rhList
+                    ]);
+                }
+            }
 
             return response()->json(['data' => $mapped]);
         } catch (\Exception $e) {
@@ -411,14 +471,16 @@ class LeaveController extends Controller
             $leaveReq->approved_by = $user->id;
             $leaveReq->save();
 
-            $balanceService = app(LeaveBalanceService::class);
-            $balanceService->debitLeave(
-                $leaveReq->user_id, 
-                $leaveReq->leave_type_id, 
-                $leaveReq->total_days, 
-                $leaveReq, 
-                'Leave deduction upon approval'
-            );
+            if (!$leaveReq->is_rh) {
+                $balanceService = app(LeaveBalanceService::class);
+                $balanceService->debitLeave(
+                    $leaveReq->user_id, 
+                    $leaveReq->leave_type_id, 
+                    $leaveReq->total_days, 
+                    $leaveReq, 
+                    'Leave deduction upon approval'
+                );
+            }
 
             DB::commit();
             return response()->json(['success' => true, 'message' => 'Leave approved successfully']);

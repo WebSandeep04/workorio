@@ -32,11 +32,15 @@ class HolidayController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'holiday_date' => 'required|date|unique:holidays,holiday_date,NULL,id']);
+            'holiday_date' => 'required|date|unique:holidays,holiday_date,NULL,id',
+            'is_rh' => 'nullable|boolean'
+        ]);
 
         Holiday::create([
             'name' => $request->name,
-            'holiday_date' => $request->holiday_date]);
+            'holiday_date' => $request->holiday_date,
+            'is_rh' => $request->is_rh ? 1 : 0
+        ]);
 
         return response()->json(['success' => true, 'message' => 'Holiday added successfully.']);
     }
@@ -45,14 +49,17 @@ class HolidayController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'holiday_date' => 'required|date|unique:holidays,holiday_date,' . $id . ',id']);
+            'holiday_date' => 'required|date|unique:holidays,holiday_date,' . $id . ',id',
+            'is_rh' => 'nullable|boolean'
+        ]);
 
-        $holiday = Holiday::where('id', $id)
-            ->firstOrFail();
+        $holiday = Holiday::where('id', $id)->firstOrFail();
 
         $holiday->update([
             'name' => $request->name,
-            'holiday_date' => $request->holiday_date]);
+            'holiday_date' => $request->holiday_date,
+            'is_rh' => $request->is_rh ? 1 : 0
+        ]);
 
         return response()->json(['success' => true, 'message' => 'Holiday updated successfully.']);
     }

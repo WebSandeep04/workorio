@@ -12,7 +12,9 @@ class Holiday extends Model
 
     protected $fillable = [
         'name',
-        'holiday_date',];
+        'holiday_date',
+        'is_rh',
+    ];
 
     protected $casts = [
         'holiday_date' => 'date',

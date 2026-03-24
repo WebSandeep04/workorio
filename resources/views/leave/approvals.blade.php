@@ -131,11 +131,14 @@ function renderTable() {
             if(leave.status === 'approved') badge = 'approved';
             if(leave.status === 'rejected') badge = 'rejected';
 
+            let typeName = leave.leave_type ? leave.leave_type.name : '-';
+            if (leave.is_rh) typeName = 'Restricted Holiday (RH)';
+
             html += `<tr>
                 <td><strong>${leave.user ? leave.user.name : 'Unknown User'}</strong></td>
                 <td><strong>${new Date(leave.start_date).toLocaleDateString()}</strong> to <strong>${new Date(leave.end_date).toLocaleDateString()}</strong></td>
                 <td><span style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-weight:700;">${leave.total_days}</span></td>
-                <td>${leave.leave_type ? leave.leave_type.name : '-'}</td>
+                <td>${typeName}</td>
                 <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>
                 <td>${leave.reason || '-'}</td>
                 <td class="text-center">
