@@ -48,6 +48,16 @@ class AttendanceController extends Controller
             $isSunday = $checkDate->dayOfWeek === Carbon::SUNDAY;
             
             if (!$isHoliday && !$isSunday) {
+                // Skip if user was not present (absent) on this date
+                $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
+                    ->where('date', $checkDate->format('Y-m-d'))
+                    ->exists();
+
+                if (!$hasAttendance) {
+                    $checkDate->addDay();
+                    continue;
+                }
+
                 // This is a working day, check if worklog exists or leave
                 $hasWorklogEntry = Worklog::where('user_id', $user->id)
                     

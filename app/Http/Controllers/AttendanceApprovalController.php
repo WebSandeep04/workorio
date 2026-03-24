@@ -12,7 +12,8 @@ class AttendanceApprovalController extends Controller
 {
     public function index()
     {
-        return view('attendance.approval');
+        $users = User::orderBy('name')->get();
+        return view('attendance.approval', compact('users'));
     }
 
     public function fetch(Request $request)
@@ -141,6 +142,62 @@ class AttendanceApprovalController extends Controller
             return response()->json(['success' => true, 'message' => 'Times updated successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error updating times: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function markAttendance(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'date' => 'required|date',
+            'in_time' => 'required',
+            'out_time' => 'nullable',
+            'movement_type' => 'required|in:office,field,wfh'
+        ]);
+
+        try {
+            $dateStr = $request->date;
+            
+            // Convert submitted IST time back to UTC for database
+            $inTimeStr = "{$dateStr} {$request->in_time}";
+            $inTime = Carbon::createFromFormat('Y-m-d H:i', $inTimeStr, 'Asia/Kolkata')->setTimezone('UTC');
+
+            // Check if attendance already exists for this date and user
+            $attendance = Attendance::firstOrCreate([
+                'user_id' => $request->user_id,
+                'date' => $request->date,
+            ], [
+                'is_emergency' => 0,
+                'is_wfh' => $request->movement_type === 'wfh' ? 1 : 0,
+                'is_approved' => 1 // Auto approve manual additions
+            ]);
+
+            $type = $request->movement_type === 'wfh' ? 'office' : $request->movement_type;
+
+            // Add IN movement
+            $attendance->movements()->create([
+                'movement_type' => $type,
+                'movement_action' => 'in',
+                'time' => $inTime,
+                'description' => 'Manual attendance marked by admin'
+            ]);
+
+            // Add OUT movement if provided
+            if ($request->filled('out_time')) {
+                $outTimeStr = "{$dateStr} {$request->out_time}";
+                $outTime = Carbon::createFromFormat('Y-m-d H:i', $outTimeStr, 'Asia/Kolkata')->setTimezone('UTC');
+                
+                $attendance->movements()->create([
+                    'movement_type' => $type,
+                    'movement_action' => 'out',
+                    'time' => $outTime,
+                    'description' => 'Manual attendance marked by admin'
+                ]);
+            }
+
+            return response()->json(['success' => true, 'message' => 'Attendance marked successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error marking attendance: ' . $e->getMessage()], 500);
         }
     }
 }

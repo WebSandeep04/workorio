@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Attendance Approval')
-@section('page_title', 'Attendance Approval')
 
-@push('styles')
+<?php $__env->startSection('title', 'Attendance Approval'); ?>
+<?php $__env->startSection('page_title', 'Attendance Approval'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -291,9 +291,9 @@
       margin-left: 5px;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
 
   <!-- Summary Cards -->
@@ -313,7 +313,7 @@
   <div class="table-search mb-2">
     <!-- Date Filter -->
     <div class="d-flex align-items-center gap-2">
-        <input type="date" id="filterDate" class="date-filter-input" value="{{ \Carbon\Carbon::today()->toDateString() }}" title="Filter by Date" onchange="fetchAttendance(1)">
+        <input type="date" id="filterDate" class="date-filter-input" value="<?php echo e(\Carbon\Carbon::today()->toDateString()); ?>" title="Filter by Date" onchange="fetchAttendance(1)">
     </div>
 
     <div class="table-search-field mx-2">
@@ -375,7 +375,7 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="editTimeForm">
-        @csrf
+        <?php echo csrf_field(); ?>
         <input type="hidden" id="edit_attendance_id">
         <div class="modal-body p-3">
           <div class="mb-3">
@@ -406,20 +406,20 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="markAttendanceForm">
-        @csrf
+        <?php echo csrf_field(); ?>
         <div class="modal-body p-3">
           <div class="mb-3">
             <label class="form-label small fw-bold">Employee</label>
             <select class="form-select form-select-sm" name="user_id" required>
               <option value="">Select Employee</option>
-              @foreach($users as $user)
-                <option value="{{ $user->id }}">{{ $user->name }}</option>
-              @endforeach
+              <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <option value="<?php echo e($user->id); ?>"><?php echo e($user->name); ?></option>
+              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-bold">Date</label>
-            <input type="date" class="form-control form-control-sm" name="date" required value="{{ \Carbon\Carbon::today()->toDateString() }}">
+            <input type="date" class="form-control form-control-sm" name="date" required value="<?php echo e(\Carbon\Carbon::today()->toDateString()); ?>">
           </div>
           <div class="row">
             <div class="col-md-6 mb-3">
@@ -450,9 +450,9 @@
   </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
 
@@ -479,7 +479,7 @@ $(document).ready(function() {
         `);
 
         $.ajax({
-            url: "{{ route('attendance.approval.fetch') }}",
+            url: "<?php echo e(route('attendance.approval.fetch')); ?>",
             type: 'GET',
             data: { 
                 page: page, 
@@ -586,7 +586,7 @@ $(document).ready(function() {
         $.ajax({
             url: "/attendance/approve/" + id,
             type: 'POST',
-            data: { _token: '{{ csrf_token() }}' },
+            data: { _token: '<?php echo e(csrf_token()); ?>' },
             success: function(response) {
                 if (response.success) {
                     fetchAttendance(currentPage); 
@@ -650,7 +650,7 @@ $(document).ready(function() {
         submitBtn.text('Saving...').prop('disabled', true);
 
         $.ajax({
-            url: "{{ route('attendance.mark') }}",
+            url: "<?php echo e(route('attendance.mark')); ?>",
             type: 'POST',
             data: $(this).serialize(),
             success: function(response) {
@@ -659,7 +659,7 @@ $(document).ready(function() {
                     $('#markAttendanceModal').modal('hide');
                     $('#markAttendanceForm')[0].reset();
                     // Keep the date as today after reset
-                    $('#markAttendanceForm [name="date"]').val("{{ \Carbon\Carbon::today()->toDateString() }}");
+                    $('#markAttendanceForm [name="date"]').val("<?php echo e(\Carbon\Carbon::today()->toDateString()); ?>");
                     fetchAttendance(currentPage);
                 } else {
                     alert('Error: ' + response.message);
@@ -687,10 +687,10 @@ $(document).ready(function() {
         if (!confirm(`Are you sure you want to approve ${ids.length} records?`)) return;
 
         $.ajax({
-            url: "{{ route('attendance.approve-bulk') }}",
+            url: "<?php echo e(route('attendance.approve-bulk')); ?>",
             type: "POST",
             data: {
-                _token: '{{ csrf_token() }}',
+                _token: '<?php echo e(csrf_token()); ?>',
                 ids: ids
             },
             success: function(response) {
@@ -734,4 +734,6 @@ $(document).ready(function() {
     fetchAttendance();
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/attendance/approval.blade.php ENDPATH**/ ?>

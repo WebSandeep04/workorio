@@ -544,8 +544,13 @@ class WorklogController extends Controller
             // Check if the date is a Sunday (0 = Sunday)
             $isSunday = date('w', strtotime($currentDate)) == 0;
             
-            // Only add to missing dates if user has no worklog entry, no leave, not a holiday, and not a Sunday
-            if (!$hasEntry && !$hasLeave && !$isHoliday && !$isSunday) {
+            // Check if user has attendance for this date
+            $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
+                ->where('date', $currentDate)
+                ->exists();
+            
+            // Only add to missing dates if user has attendance (not absent), no worklog entry, no leave, not a holiday, and not a Sunday
+            if ($hasAttendance && !$hasEntry && !$hasLeave && !$isHoliday && !$isSunday) {
                 $missingDates[] = $currentDate;
             }
             
@@ -572,12 +577,19 @@ class WorklogController extends Controller
         
         // Check if all worklog users have entries for this date
         foreach ($worklogUsers as $user) {
+            // Check if user has attendance (if not, they are exempt)
+            $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
+                ->where('date', $date)
+                ->exists();
+                
+            if (!$hasAttendance) continue;
+
             $hasEntry = Worklog::where('user_id', $user->id)
                 ->where('work_date', $date)
                 ->exists();
             
             if (!$hasEntry) {
-                return false; // At least one user is missing an entry
+                return false; // At least one present user is missing an entry
             }
         }
         
@@ -602,6 +614,13 @@ class WorklogController extends Controller
         
         // Check if all eligible worklog users have entries for this date
         foreach ($worklogUsers as $user) {
+            // Check if user has attendance (if not, they are exempt)
+            $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
+                ->where('date', $date)
+                ->exists();
+                
+            if (!$hasAttendance) continue;
+
             // Check if user has worklog entry
             $hasWorklogEntry = Worklog::where('user_id', $user->id)
                 ->where('work_date', $date)
@@ -680,6 +699,9 @@ class WorklogController extends Controller
         // Get all users with isWorklog = 1 who were created on or before this date and don't have entries or leave
         $missingUsers = \App\Models\User::where('is_worklog', 1)
             ->where('created_at', '<=', $date . ' 23:59:59') // Only users who existed on this date
+            ->whereHas('attendance', function($query) use ($date) {
+                $query->where('date', $date); // Must have attendance (not absent)
+            })
             ->whereDoesntHave('worklogs', function($query) use ($date) {
                 $query->where('work_date', $date);
             })
@@ -757,6 +779,13 @@ class WorklogController extends Controller
                 });
                 
                 foreach ($eligibleUsers as $user) {
+                    // Check if user has attendance (if not, they are exempt)
+                    $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
+                        ->where('date', $currentDate)
+                        ->exists();
+                        
+                    if (!$hasAttendance) continue;
+
                     $hasEntry = Worklog::where('user_id', $user->id)
                         ->where('work_date', $currentDate)
                         ->exists();
