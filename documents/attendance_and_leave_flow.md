@@ -1,98 +1,91 @@
-# Attendance & Leave Management Architecture and Flow
+# Comprehensive Architecture: Attendance, Leave, Worklog, and Real-Time Tracking
 
-This document details the complete operational flow, logic structure, and database mechanisms governing the Attendance and Leave functionality within the Workorio platform.
-
-## 1. Attendance Mechanism Flow
-
-### 1.1 Punch-In & Punch-Out Workflow
-The Attendance subsystem tracks employee time using movements (`office`, `field`, `break`).
-- **Endpoint Initialization:** Employees submit a punch action tracking their `movement_type` along with geographic parameters via `AttendanceController@punchIn`.
-- **Validation Gates:**
-    1. **Worklog Lock Security:** Before permitting attendance, `canPerformAttendanceAction()` validates whether the user (`is_worklog = 1`) has filled in their worklogs chronologically for every past working day since their account creation date. (It smartly bypasses Sundays, Holidays, and Approved Leave days).
-    2. **Active Break Check:** Disallows changing states if the user hasn't actively ended their ongoing break.
-    3. **First-Punch Initialization:** Generates an `Attendance` parent row on the first punch-in of the day.
-    4. **Geographic Fencing & Location Authentication:** Evaluates the provided `latitude`/`longitude` coordinates against the authorized work coordinates tied to the user via their `employee_places` mappings. 
-    5. **WFH & Emergency Gates:** Can bypass strict location fences via a `work_from_home` flag (if authorized) or via an `emergency_attendance` flow requiring photographic verification.
-- **Auto-Punch Adjustments:** If an employee directly punches into 'office' work while formally checked into 'field' work, the system automatically triggers an 'Auto-ended (Office work started)' logout for the field punch to ensure accurate overlap limits.
-- **Log Insertion:** Inserts a `Movement` record stamping the action (`in`/`out`). Total daily hours are continuously computed by finding the delta between the earliest `in` and the latest `out` movements.
-
-### 1.2 Reporting & Status Aggregation
-Complex aggregation maps exist inside `AttendanceController` methods `_fetchMonthlyReportData()` and `_fetchDateReportData()`.
-- The processor evaluates every day in the month loop and prioritizes status assignment in this explicit cascade:
-    1. **`S/W` (Sunday Working):** Attendance recorded on a Sunday. (Tracked as a distinct category).
-    2. **`H/W` (Holiday Working):** Attendance recorded on an official Holiday (non-Sunday).
-    3. **`P (SL)` (Present with Short Leave):** The user was granted Short Leave but managed to clock >= 7 hours.
-    4. **`P` (Present):** Worked >= 7 hours on an ordinary working day.
-    5. **`P2` (Half Day):** Worked >= 4 hours but < 7 hours.
-    6. **`SL` (Short Leave):** Granted an SL configuration and didn't hit 7 hours.
-    7. **`H` (Holiday):** No attendance logged, but date coincides with the Active `Holiday` table.
-    8. **`S` (Sunday):** No attendance logged, and day maps to Sunday natively.
-    9. **`RH` (Restricted Holiday):** No attendance logged, but user took an approved Restricted Holiday Leave.
-    10. **`L` (Leave):** No attendance logged, but user has standard approved Leave.
-    11. **`A` (Absent):** Working day, no attendance logs, no leave coverage.
-- **Shift Analysis & Late Tracking:** Matches the first punch-in time against the employee's assigned `Shift` parameters. If the punch breaches the shift's `start_time` + `late_min` grace threshold, it records a Late occurrence securely in the metrics.
-
-### 1.3 Sunday & Holiday Attendance Logic
-The system allows employees to mark attendance on Sundays and Holidays, but handles them as distinct categories:
-- **Status Assignment:** Any attendance movement recorded on a Sunday result in `S/W` (Sunday Working) status. Attendance on an official Holiday results in `H/W`.
-- **Summary Metrics:** `S/W` and `H/W` days are tracked independently. They are included in the overall "Total Present" combined metric for monthly summaries.
-- **Worklog Requirement:** Working on a Sunday or Holiday **mandates** a worklog submission to unlock subsequent attendance actions, identical to a regular working day.
+This document outlines the operational flow, business logic, and architectural rules governing the core resource management modules.
 
 ---
 
-## 2. Leave Management Flow
+## 1. Attendance Mechanism
+The attendance system is governed by a **chronological lock** that ensures data integrity and daily work documentation.
 
-### 2.1 Request Structuring
-The platform utilizes standard Leave Types (Casual, Sick) governed by a globally configurable ledger, along with "Virtual" Leave Types: Restricted Holidays (RH) and Short Leaves (SL) which are governed by periodic quotas defined directly in the `EmploymentType` assigned to the worker.
+### 1.1 Punch-In Rules
+- **Shift Assignment:** Users must be assigned a shift (Shift Master) to determine late-coming and short-leave windows.
+- **Geofencing:** If a user is assigned specific "Allowed Places," they can only punch in/out within the specified GPS radius.
+- **WFH Option:** Remote workers can be flagged as "WFH" to bypass geofence checks while maintaining tracking integrity.
 
-- **Leave Retrieval Options:** The `fetchLeaveTypes()` method builds the UI options explicitly for the user. It aggregates actual LeaveType tables and evaluates bounds (e.g. SL is bound computationally explicitly to per-month allowances, removing remaining balance calculations tied to previous months).
-- **Date & Timeline Enforcement:** Submissions strictly lock start/end dates. SL requests explicitly bind end dates to mirror start dates entirely, substituting timeline validations with `start_time` and `end_time` logic clamped strictly to the employee's specific active shift periods.
-
-### 2.2 Approval & Execution Engine
-`LeaveController@store` governs pending payload submissions.
-- **Constraint Parsing:**
-    - RH: Checks if `rh_allowed` parameter permits additional days.
-    - SL: Evaluates if `sl_allowed` monthly limit is exhausted. Ensures time is strictly intra-day.
-    - General Leaves: Connects with the active `LeaveBalanceService` to assert if enough accrued ledger balance natively sits underneath the requested Leave Type.
-- **Hierarchical Approval Gates (`fetchApprovals`)**:
-    - Queries restrict visibility. Team Managers can exclusively see subordinates mapping to them via `whereHas` logic. System Admins exclusively catch orphans (subordinates lacking assigned managers) ensuring zero approval overlap.
-- **Ledger Impact Execution (`approve` / `reject` / `destroy`)**:
-    - When a standard leave is transitioned to `Approved`, the `LeaveBalanceService` natively executes double-entry deductions (`debitLeave`) committing ledger transactions.
-    - Canceling an approved leave automatically triggers `creditLeave`, instantly refunding the employee's ledger.
-
-### 2.3 Automated Accrual Mechanics
-Periodic leaf replenishment operations are driven by the `DailyLeaveAccrual` cron command logic.
-- Analyzes daily whether active personnel have cleared thresholds based on the `rules` nested inside their `EmploymentType`.
-- Checks working day requirements (ensuring employees have recorded valid worklogs/attendance bounds) before issuing configured partial accruals mapping continuously to standard arrays.
-
-### 2.4 Worklog Lock Implications & Mandatory Logs
-The `canPerformAttendanceAction` logic includes any day with recorded attendance in the mandatory worklog completion check:
-- **Unified Rule:** If an employee has punched attendance on ANY day (Regular, Sunday, or Holiday), they must complete a worklog for that day to unlock the system for the next day.
-- **Skip Logic:** Sundays and Holidays are only skipped if the user was **Absent** (no attendance recorded).
-- **Result:** Employees who work on a Sunday will see `S/W` in their report, and their Monday punch-in **will be blocked** if the Sunday worklog is missing.
-- **Bulk Validation:** The administrator's Missing Entries summary also factors in Sunday/Holiday work when identifying gaps in organizational worklog compliance.
+### 1.2 Sunday and Holiday Policy
+- **Voluntary Presence:** If a user punches attendance on a Sunday or a gazetted Holiday, the system records the status as:
+    - **`S/W` (Sunday Working):** Recorded if the date is a Sunday.
+    - **`H/W` (Holiday Working):** Recorded if the date is a Gazetted Holiday.
+- **Mandatory Worklog:** If attendance is recorded on ANY day (including weekends/holidays), a **Worklog submission is mandatory**. The system will lock the user's ability to punch in the next working day until the previous worklog is completed.
 
 ---
 
-## 3. Real-Time Tracking Mechanism
+## 2. Worklog Enforcement (The "Attendance Lock")
+The worklog system serves as a gatekeeper for the entire platform.
 
-The platform includes a real-time location tracking subsystem designed for field personnel, integrated directly with the attendance lifecycle.
+### 2.1 Chronological Integrity
+- **The Gap Rule:** Users cannot skip days. If the system detects a gap (Missing Worklog) on a date where attendance was recorded, the Punch-In button is disabled (Locked).
+- **Validation Route:** `AttendanceController@canPerformAttendanceAction` and `WorklogApiController@getMissingDates` are the central points for this validation.
 
-### 3.1 Data Acquisition (Mobile API)
-Tracking is driven by the mobile application which periodically transmits GPS coordinates to `EmployeeLocationController@store`.
+---
 
-- **Activation Gate:** Tracking only functions if `is_tracking = 1` is enabled for the specific user in the `employees` table.
-- **Intelligence Filtering (Noise Reduction):** To prevent database bloat and "GPS drift" while stationary, the API implements two layers of filtering:
-    1. **Exact Duplicate Check:** Skips saving if latitude/longitude (normalized to 8 decimal places) matches the last record.
-    2. **Stationary/Jitter Filter:** If movement speed is < 1 km/h and the distance from the last 5 recorded points is < 15 meters, the coordinate is discarded as jitter.
-- **Timestamping:** Every valid movement is persisted in `employee_locations` with a `tracked_at` precision timestamp.
+## 3. Leave Management System
+Governed by `LeaveRequest` models, this system manages both balance-deductible and quota-based leaves.
 
-### 3.2 Live Monitoring Dashboard
-Administrators monitor field movement via the `TrackingController@index` view, which provides a map-based visualization of the breadcrumb trail.
+### 3.1 Standard Leave Types (Casual/Sick)
+- High-level leaves that deduct from an annual `leave_ledger`.
 
-- **Status-Driven Visualization:** The map markers update dynamically based on the employee's current **Attendance Status**:
-    - 🟢 **Green (Active):** Currently Punched In (Office or Field).
-    - 🟡 **Yellow (Break):** Attendance session is active but user has a 'start' break movement without an 'end'.
-    - 🔴 **Red (Inactive):** Not currently on duty (Punched Out or Not Started).
-- **History Playback:** Admins can filter by date to reconstruct the travel path of any employee, overlaid with their specific Punch-in/Out timestamps for that day.
-- **Resource Optimization:** The tracking fetch logic uses optimized Eloquent relations (`with(['attendances' => ...])`) to minimize the impact on system performance during high-concurrency monitoring.
+### 3.2 Restricted Holidays (RH)
+- Employees are granted a specific quota of RH per year (defined in `EmploymentType`).
+- These are selected from a pre-defined Holiday list marked `is_rh`.
+
+### 3.3 Short Leave (SL) Logic (The Shift Window)
+SL is designed for brief absences and is governed by strict timing windows to protect core working hours.
+- **Quota:** Defined as "SL allowed per month" in `EmploymentType`.
+- **Windows (Shift-Centric):** Limits are defined in the **Shift Master**.
+    - **Morning Window:** Allowed between `Shift Start` and `Shift Start + SL Start Limit`.
+    - **Evening Window:** Allowed between `Shift End - SL End Limit` and `Shift End`.
+    - **Example:** Shift 10 AM - 7 PM with a 2h Start Limit allow SL between 10 AM and 12 PM only.
+- **Core Hour Protection:** SL requests containing times during the mid-shift core hours are rejected.
+- **Reporting Status:**
+    - **`SL`**: Approved Short Leave with < 7 hours worked.
+    - **`P (SL)`**: Approved Short Leave with >= 7 hours worked (User completed the day despite a small absence).
+
+---
+
+## 4. Real-Time Tracking & GPS Intelligence
+Employees flagged with `is_tracking = true` have their movements monitored via the mobile app.
+
+### 4.1 Data Acquisition & Noise Reduction
+To ensure battery efficiency and data quality, the system implements a two-layer filter on incoming GPS coordinates:
+1.  **Exact Duplicate Check:** Prevents redundant database writes for identical coordinates.
+2.  **Stationary/Jitter Filter:** If a user hasn't moved beyond a minimum distance (e.g., 10 meters) since the last breadcrumb, the new point is discarded to prevent "jitter" while the device is stationary indoors.
+
+### 4.2 Admin Tracking Dashboard
+The Dashboard (`TrackingController`) provides a real-time visualization of the field force:
+- **Green Marker (Active):** User is Punched-In and actively moving.
+- **Yellow Marker (On Break):** User has clicked the "Break" button.
+- **Red Marker (Inactive):** User has Punched-Out or hasn't started their day.
+- **Breadcrumb View:** Admins can view the chronological "Snail Trail" of a specific employee to verify route compliance.
+
+---
+
+## 5. Attendance Summary Codes
+| Code | Meaning | Logic |
+| :--- | :--- | :--- |
+| **P** | Present | Regular working day with sufficient hours. |
+| **S/W** | Sunday Working | Attendance recorded on a Sunday. |
+| **H/W** | Holiday Working | Attendance recorded on a Holiday. |
+| **SL** | Short Leave | Approved SL with < 7 hours worked. |
+| **P (SL)** | Present (with SL) | Approved SL but shift hours successfully completed. |
+| **L** | On Leave | Approved Casual/Sick leave. |
+| **A** | Absent | No attendance or leave recorded for a working day. |
+| **H** | Holiday | Gazetted Holiday (No work required). |
+| **S** | Sunday | Weekly Off (No work required). |
+
+---
+
+## 6. Implementation Checklist for Developers
+- [ ] **Shift Limits:** Ensure `sl_start_limit` and `sl_end_limit` are set in the Shift Master.
+- [ ] **Worklog Gaps:** `getMissingDates` must check for `attendance` records, not just dates.
+- [ ] **Tracking Filter:** Do not disable the Stationary Filter in `EmployeeLocationController` as it prevents database bloating.

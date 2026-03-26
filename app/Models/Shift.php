@@ -15,12 +15,14 @@ class Shift extends Model
         'end_time',
         'late_min',
         'is_active',
+        'sl_start_limit',
+        'sl_end_limit',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'late_min' => 'integer',
+        'sl_start_limit' => 'integer', // Added cast for sl_start_limit
+        'sl_end_limit' => 'integer',   // Added cast for sl_end_limit
     ];
 }
-
-

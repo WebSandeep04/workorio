@@ -66,6 +66,8 @@ class ShiftController extends Controller
             'end_time' => 'required|date_format:H:i',
             'late_min' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'sl_start_limit' => 'nullable|integer|min:0',
+            'sl_end_limit' => 'nullable|integer|min:0',
         ]);
     }
 }
