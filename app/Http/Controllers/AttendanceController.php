@@ -41,42 +41,47 @@ class AttendanceController extends Controller
         
         // Loop through each day from creation date to yesterday
         while ($checkDate->lt($today)) {
-            // Skip if this date is a holiday or Sunday
-            $isHoliday = Holiday::where('holiday_date', $checkDate->format('Y-m-d'))
+            $dateStr = $checkDate->format('Y-m-d');
+            
+            // Skip if user was not present (absent) on this date
+            $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
+                ->where('date', $dateStr)
                 ->exists();
-            
-            $isSunday = $checkDate->dayOfWeek === Carbon::SUNDAY;
-            
-            if (!$isHoliday && !$isSunday) {
-                // Skip if user was not present (absent) on this date
-                $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
-                    ->where('date', $checkDate->format('Y-m-d'))
-                    ->exists();
 
-                if (!$hasAttendance) {
+            if (!$hasAttendance) {
+                // If no attendance, we only skip if it's a Sunday or Holiday
+                $isHoliday = Holiday::where('holiday_date', $dateStr)->exists();
+                $isSunday = $checkDate->dayOfWeek === Carbon::SUNDAY;
+                
+                if ($isHoliday || $isSunday) {
                     $checkDate->addDay();
                     continue;
                 }
+                
+                // For regular days with no attendance, the system currently skips as well
+                // according to original logic (lines 56-59)
+                $checkDate->addDay();
+                continue;
+            }
 
-                // This is a working day, check if worklog exists or leave
-                $hasWorklogEntry = Worklog::where('user_id', $user->id)
-                    
-                    ->where('work_date', $checkDate->format('Y-m-d'))
-                    ->exists();
-                
-                $hasLeave = \App\Models\LeaveRequest::where('user_id', $user->id)
-                    ->where('start_date', '<=', $checkDate->format('Y-m-d'))
-                    ->where('end_date', '>=', $checkDate->format('Y-m-d'))
-                    ->where('status', 'approved')
-                    ->exists();
-                
-                if (!$hasWorklogEntry && !$hasLeave) {
-                    $formattedDate = $checkDate->format('l, F j, Y');
-                    return [
-                        'can_perform' => false, 
-                        'message' => "You must complete your worklog entry or have leave for {$formattedDate} before you can perform attendance actions. Please complete your worklog entries chronologically starting from your account creation date."
-                    ];
-                }
+            // If we reach here, user has attendance (could be regular day, Sunday, or Holiday)
+            // They MUST have a worklog entry or approved leave
+            $hasWorklogEntry = Worklog::where('user_id', $user->id)
+                ->where('work_date', $dateStr)
+                ->exists();
+            
+            $hasLeave = \App\Models\LeaveRequest::where('user_id', $user->id)
+                ->where('start_date', '<=', $dateStr)
+                ->where('end_date', '>=', $dateStr)
+                ->where('status', 'approved')
+                ->exists();
+            
+            if (!$hasWorklogEntry && !$hasLeave) {
+                $formattedDate = $checkDate->format('l, F j, Y');
+                return [
+                    'can_perform' => false, 
+                    'message' => "You must complete your worklog entry or have leave for {$formattedDate} before you can perform attendance actions. Please complete your worklog entries chronologically starting from your account creation date."
+                ];
             }
             
             // Move to next day
@@ -1492,8 +1497,10 @@ class AttendanceController extends Controller
                     $dayData['last_out'] = Carbon::parse($lastOutMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
                 }
 
-                if ($isSunday || $holiday) {
-                    $dayData['status'] = 'holiday';
+                if ($isSunday) {
+                    $dayData['status'] = 'sunday working';
+                } elseif ($holiday) {
+                    $dayData['status'] = 'holiday working';
                 } else {
                     if ($dayData['leave_type'] === 'SL') {
                         if ($dayData['hours'] >= 7) {
@@ -1551,12 +1558,15 @@ class AttendanceController extends Controller
             'halfday' => 0,
             'absent' => 0,
             'leave' => 0,
+            'sunday_working' => 0,
             'holiday_working' => 0
         ];
 
         foreach ($reportData as $row) {
             if ($row['hours'] > 0) {
-                if ($row['is_sunday'] || $row['is_holiday']) {
+                if ($row['is_sunday']) {
+                    $summary['sunday_working']++;
+                } elseif ($row['is_holiday']) {
                     $summary['holiday_working']++;
                 } else {
                     if ($row['hours'] >= 7) {
@@ -1633,7 +1643,7 @@ class AttendanceController extends Controller
             foreach ($data['month']['dates'] as $d) {
                 $header[] = $d['day'] . '(' . $d['day_name'] . ')';
             }
-            $header = array_merge($header, ['Work Days', 'Total Present', 'Full Day', 'Half Day', 'Holiday Work', 'Leave', 'Absent', 'Less 8:30', 'More 8:30', 'Late Count']);
+            $header = array_merge($header, ['Work Days', 'Total Present', 'Full Day', 'Half Day', 'Sunday Work', 'Holiday Work', 'Leave', 'Absent', 'Less 8:30', 'More 8:30', 'Late Count']);
             fputcsv($file, $header);
 
             // Data Rows
@@ -1653,6 +1663,7 @@ class AttendanceController extends Controller
                 $row[] = $s['total_present_combined'];
                 $row[] = $s['total_present'];
                 $row[] = $s['total_halfday'];
+                $row[] = $s['total_sundays_worked'];
                 $row[] = $s['total_holidays_worked'];
                 $row[] = $s['days_on_leave'];
                 $row[] = $s['days_absent'];
@@ -1848,7 +1859,10 @@ class AttendanceController extends Controller
                     $hours = $this->calculateHours($att->movements);
                     
                     // Check if it was a Holiday/Sunday working
-                    if ($d['is_sunday'] || in_array($dateStr, $holidays)) {
+                    if ($d['is_sunday']) {
+                        $statusCode = 'S/W'; // Sunday Working
+                        $statusClass = 'text-info';
+                    } elseif (in_array($dateStr, $holidays)) {
                         $statusCode = 'H/W'; // Holiday Working
                         $statusClass = 'text-info';
                     } else {
@@ -1952,6 +1966,7 @@ class AttendanceController extends Controller
         $presentDays = 0; // Days with >= 7 hours
         $halfDays = 0; // Days with >= 4 hours but < 7 hours
         $totalSundays = 0;
+        $totalSundaysWorked = 0;
         $totalHolidaysWorked = 0;
         $totalLess8_30 = 0;
         $totalMore8_30 = 0;
@@ -1987,7 +2002,9 @@ class AttendanceController extends Controller
             }
             
             // Count total holidays worked (Sunday OR Holiday with attendance)
-            if ($attendanceDate->dayOfWeek === Carbon::SUNDAY || in_array($dateStr, $holidays)) {
+            if ($attendanceDate->dayOfWeek === Carbon::SUNDAY) {
+                $totalSundaysWorked++;
+            } elseif (in_array($dateStr, $holidays)) {
                 $totalHolidaysWorked++;
             }
             
@@ -2132,10 +2149,11 @@ class AttendanceController extends Controller
             'days_absent' => $daysAbsent,
             'days_on_leave' => $totalLeaves, // Show total leaves count (all leaves) for summary display
             'attendance_percentage' => $attendancePercentage,
-            'total_present_combined' => $presentDays + $halfDays + $totalHolidaysWorked,
+            'total_present_combined' => $presentDays + $halfDays + $totalHolidaysWorked + $totalSundaysWorked,
             'total_present' => $presentDays,
             'total_halfday' => $halfDays,
             'total_sundays' => $totalSundays,
+            'total_sundays_worked' => $totalSundaysWorked,
             'total_holidays_worked' => $totalHolidaysWorked,
             'total_hours' => round($totalHours, 2),
             'total_office_hours' => round($totalOfficeHours, 2),
@@ -2218,9 +2236,9 @@ class AttendanceController extends Controller
 
                 // Set status - handle specific labeling for Sundays/Holidays vs Regular days
                 if ($dayData['is_sunday']) {
-                    $dayData['status'] = 'sunday';
+                    $dayData['status'] = 'S/W';
                 } elseif ($dayData['is_holiday']) {
-                    $dayData['status'] = 'holiday';
+                    $dayData['status'] = 'H/W';
                     if ($holidaysData && isset($holidaysData[$dateStr])) {
                         $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
                     }

@@ -342,6 +342,15 @@
                         <div class="summary-card-value" id="sumHolidayWorking">0</div>
                     </div>
                 </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-teal">
+                        <i class="bi bi-sun-fill"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Sunday Working</div>
+                        <div class="summary-card-value" id="sumSundayWorking">0</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Table Card -->
@@ -413,7 +422,8 @@
                                     <th>Absent</th>
                                     <th>Half Day</th>
                                     <th>Leave</th>
-                                    <th>Sunday/Holiday Work</th>
+                                    <th>Sunday Work</th>
+                                    <th>Holiday Work</th>
                                     <th>Total Hours</th>
                                     <th>Avg Hrs/Day</th>
                                     <th>Less 8:30</th>
@@ -499,6 +509,15 @@
                     <div class="summary-card-content">
                         <div class="summary-card-label">Holiday Working</div>
                         <div class="summary-card-value" id="dateSumHolidayWorking">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-teal">
+                        <i class="bi bi-sun-fill"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Sunday Working</div>
+                        <div class="summary-card-value" id="dateSumSundayWorking">0</div>
                     </div>
                 </div>
             </div>
@@ -627,6 +646,7 @@ function loadReport(){
             document.getElementById('sumHalfday').textContent = s.total_halfday;
             document.getElementById('sumLeave').textContent = s.days_on_leave;
             document.getElementById('sumHolidayWorking').textContent = s.total_holidays_worked;
+            document.getElementById('sumSundayWorking').textContent = s.total_sundays_worked;
             summaryDiv.style.display = 'grid';
             
             tbody.innerHTML = '';
@@ -734,8 +754,9 @@ function loadMonthlySummary(){
             headerRow += '<th style="min-width:60px;">Work Days</th>';
             headerRow += '<th style="min-width:60px;">Total Present</th>'; 
             headerRow += '<th style="min-width:50px;">Full Day</th>';
-            headerRow += '<th style="min-width:50px;">Half Day</th>';
-            headerRow += '<th style="min-width:50px;">Holiday Work</th>';
+            headerRow += '<th style="min-width:50px;">HD</th>';
+            headerRow += '<th style="min-width:55px;">Sunday Work</th>';
+            headerRow += '<th style="min-width:55px;">Holiday Work</th>';
             headerRow += '<th style="min-width:50px;">Leave</th>';
             headerRow += '<th style="min-width:50px;">Absent</th>';
             headerRow += '<th style="min-width:65px;">Less 8:30</th>';
@@ -771,6 +792,7 @@ function loadMonthlySummary(){
                     rowHtml += `<td class="text-center fw-bold text-success">${s.total_present_combined}</td>`; 
                     rowHtml += `<td class="text-center text-success fw-bold">${s.total_present}</td>`;
                     rowHtml += `<td class="text-center text-warning fw-bold">${s.total_halfday}</td>`;
+                    rowHtml += `<td class="text-center text-info fw-bold">${s.total_sundays_worked}</td>`;
                     rowHtml += `<td class="text-center text-info fw-bold">${s.total_holidays_worked}</td>`;
                     rowHtml += `<td class="text-center text-secondary fw-bold">${s.days_on_leave}</td>`;
                     rowHtml += `<td class="text-center text-danger fw-bold">${s.days_absent}</td>`;
@@ -811,7 +833,11 @@ function statusBadge(status, holidayName = null){
         sunday:'secondary', 
         absent:'danger',
         halfday:'warning',
-        'absent by less hr':'danger'
+        'absent by less hr':'danger',
+        'sunday working':'info',
+        'holiday working':'info',
+        'S/W':'info',
+        'H/W':'info'
     };
     const cls = map[status]||'secondary';
     
@@ -826,10 +852,10 @@ function statusBadge(status, holidayName = null){
     let badgeClass = '';
     if(cls === 'success') badgeClass = 'text-success fw-bold';
     else if(cls === 'danger') badgeClass = 'text-danger fw-bold';
+    else if(status === 'S/W' || status === 'H/W') badgeClass = 'badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-2';
     else badgeClass = `badge bg-${cls} bg-opacity-10 text-${cls} px-3 rounded-pill`;
     
-    // If it's a simple text status preference like in previous screens, use text-success, else use badges. 
-    // Given the previous step requested text-success/bold for Active, I'll use badges for these varied statuses as they are more complex (Holiday, Leave, etc), but styled softly.
+    if(status === 'S/W' || status === 'H/W') return `<span class="${badgeClass}">${status}</span>`;
     
     return `<span class="badge bg-${cls} bg-opacity-10 text-${cls} border border-${cls} border-opacity-25 rounded-pill px-2">${displayStatus}</span>`;
 }
@@ -944,6 +970,7 @@ function loadDateReport() {
             document.getElementById('dateSumHalfday').textContent = s.halfday;
             document.getElementById('dateSumLeave').textContent = s.leave;
             document.getElementById('dateSumHolidayWorking').textContent = s.holiday_working;
+            document.getElementById('dateSumSundayWorking').textContent = s.sunday_working;
             summaryDiv.style.display = 'grid';
             
             tbody.innerHTML = '';

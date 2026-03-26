@@ -334,10 +334,14 @@ class WorklogApiController extends Controller
                 ->where('end_date', '>=', $currentDate)
                 ->where('status', 'approved')
                 ->exists();
-            $isHoliday = Holiday::where('holiday_date', $currentDate)->exists();
-            $isSunday = date('w', strtotime($currentDate)) == 0;
+            
+            $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
+                ->where('date', $currentDate)
+                ->exists();
 
-            if (!$hasEntry && !$hasLeave && !$isHoliday && !$isSunday) {
+            // Logic: If attendance exists (any day), user must have a worklog or leave.
+            // This now includes Sundays and Holidays if the user has attendance.
+            if ($hasAttendance && !$hasEntry && !$hasLeave) {
                 $missingDates[] = $currentDate;
             }
             $currentDate = date('Y-m-d', strtotime($currentDate . ' +1 day'));

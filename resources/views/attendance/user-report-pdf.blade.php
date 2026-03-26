@@ -43,6 +43,7 @@
         <tr>
             <td>Leave: {{ $s['days_on_leave'] }}</td>
             <td>Holiday Working: <span class="text-info">{{ $s['total_holidays_worked'] }}</span></td>
+            <td>Sunday Working: <span class="text-info">{{ $s['total_sundays_worked'] }}</span></td>
             <td>Less 8:30: {{ $s['total_less_8_30'] }}</td>
             <td>More 8:30: {{ $s['total_more_8_30'] }}</td>
         </tr>

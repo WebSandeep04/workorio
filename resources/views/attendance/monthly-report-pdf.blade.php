@@ -65,7 +65,7 @@
                 @endphp
                 <th class="date-col {{ $style }}">{{ $d['day'] }}</th>
             @endforeach
-            <th colspan="10">Summary</th>
+            <th colspan="11">Summary</th>
         </tr>
         <tr>
             @foreach($data['month']['dates'] as $d)
@@ -79,6 +79,7 @@
             <th class="summary-col">TP</th>
             <th class="summary-col">FD</th>
             <th class="summary-col">HD</th>
+            <th class="summary-col">SW</th>
             <th class="summary-col">HW</th>
             <th class="summary-col">L</th>
             <th class="summary-col">A</th>
@@ -107,7 +108,7 @@
                                 if($dayStat['code'] === 'P') $textClass = 'text-success';
                                 elseif($dayStat['code'] === 'P2') $textClass = 'text-warning';
                                 elseif($dayStat['code'] === 'A') $textClass = 'text-danger';
-                                elseif($dayStat['code'] === 'H/W') $textClass = 'text-info';
+                                elseif($dayStat['code'] === 'H/W' || $dayStat['code'] === 'S/W') $textClass = 'text-info';
                             @endphp
                             <td class="date-col {{ $cellClass }} {{ $textClass }}">
                                 <strong>{{ $dayStat['code'] }}</strong>
@@ -119,6 +120,7 @@
                     <td class="text-success"><strong>{{ $s['total_present_combined'] }}</strong></td>
                     <td class="text-success">{{ $s['total_present'] }}</td>
                     <td class="text-warning">{{ $s['total_halfday'] }}</td>
+                    <td class="text-info">{{ $s['total_sundays_worked'] }}</td>
                     <td class="text-info">{{ $s['total_holidays_worked'] }}</td>
                     <td class="text-secondary">{{ $s['days_on_leave'] }}</td>
                     <td class="text-danger">{{ $s['days_absent'] }}</td>

@@ -40,6 +40,7 @@
             <td>Absent: <span class="text-danger">{{ $s['absent'] }}</span></td>
             <td>Leave: <span class="text-warning">{{ $s['leave'] }}</span></td>
             <td>Holiday Working: <span class="text-info">{{ $s['holiday_working'] }}</span></td>
+            <td>Sunday Working: <span class="text-info">{{ $s['sunday_working'] }}</span></td>
         </tr>
     </table>
 </div>

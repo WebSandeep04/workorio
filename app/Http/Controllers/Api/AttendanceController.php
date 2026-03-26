@@ -67,41 +67,46 @@ class AttendanceController extends Controller
         
         // Loop through each day from creation date to yesterday
         while ($checkDate->lt($today)) {
-            // Skip if this date is a holiday or Sunday
-            $isHoliday = Holiday::where('holiday_date', $checkDate->format('Y-m-d'))
+            $dateStr = $checkDate->format('Y-m-d');
+            
+            // Skip if user was not present (absent) on this date
+            $hasAttendance = Attendance::where('user_id', $user->id)
+                ->where('date', $dateStr)
                 ->exists();
-            
-            $isSunday = $checkDate->dayOfWeek === Carbon::SUNDAY;
-            
-            if (!$isHoliday && !$isSunday) {
-                // Skip if user was not present (absent) on this date
-                $hasAttendance = Attendance::where('user_id', $user->id)
-                    ->where('date', $checkDate->format('Y-m-d'))
-                    ->exists();
 
-                if (!$hasAttendance) {
+            if (!$hasAttendance) {
+                // If no attendance, we only skip if it's a Sunday or Holiday
+                $isHoliday = Holiday::where('holiday_date', $dateStr)->exists();
+                $isSunday = $checkDate->dayOfWeek === Carbon::SUNDAY;
+                
+                if ($isHoliday || $isSunday) {
                     $checkDate->addDay();
                     continue;
                 }
+                
+                // For regular days with no attendance, the system currently skips as well
+                $checkDate->addDay();
+                continue;
+            }
 
-                // This is a working day, check if worklog exists or leave
-                $hasWorklogEntry = Worklog::where('user_id', $user->id)
-                    ->where('work_date', $checkDate->format('Y-m-d'))
-                    ->exists();
-                
-                $hasLeave = LeaveRequest::where('user_id', $user->id)
-                    ->where('start_date', '<=', $checkDate->format('Y-m-d'))
-                    ->where('end_date', '>=', $checkDate->format('Y-m-d'))
-                    ->where('status', 'approved')
-                    ->exists();
-                
-                if (!$hasWorklogEntry && !$hasLeave) {
-                    $formattedDate = $checkDate->format('l, F j, Y');
-                    return [
-                        'can_perform' => false, 
-                        'message' => "You must complete your worklog entry or have leave for {$formattedDate} before you can perform attendance actions. Please complete your worklog entries chronologically starting from your account creation date."
-                    ];
-                }
+            // If we reach here, user has attendance (could be regular day, Sunday, or Holiday)
+            // They MUST have a worklog entry or approved leave
+            $hasWorklogEntry = Worklog::where('user_id', $user->id)
+                ->where('work_date', $dateStr)
+                ->exists();
+            
+            $hasLeave = LeaveRequest::where('user_id', $user->id)
+                ->where('start_date', '<=', $dateStr)
+                ->where('end_date', '>=', $dateStr)
+                ->where('status', 'approved')
+                ->exists();
+            
+            if (!$hasWorklogEntry && !$hasLeave) {
+                $formattedDate = $checkDate->format('l, F j, Y');
+                return [
+                    'can_perform' => false, 
+                    'message' => "You must complete your worklog entry or have leave for {$formattedDate} before you can perform attendance actions. Please complete your worklog entries chronologically starting from your account creation date."
+                ];
             }
             
             // Move to next day

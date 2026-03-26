@@ -549,8 +549,9 @@ class WorklogController extends Controller
                 ->where('date', $currentDate)
                 ->exists();
             
-            // Only add to missing dates if user has attendance (not absent), no worklog entry, no leave, not a holiday, and not a Sunday
-            if ($hasAttendance && !$hasEntry && !$hasLeave && !$isHoliday && !$isSunday) {
+            // Only add to missing dates if user has attendance (not absent), no worklog entry, and no leave
+            // This now includes Sundays and Holidays if the user has attendance
+            if ($hasAttendance && !$hasEntry && !$hasLeave) {
                 $missingDates[] = $currentDate;
             }
             
@@ -653,19 +654,13 @@ class WorklogController extends Controller
         
         $currentDate = $startDate;
         while ($currentDate < $endDate) {
-            // Check if the date is a holiday
-            $isHoliday = Holiday::where('holiday_date', $currentDate)
-                ->exists();
-            
-            // Check if the date is a Sunday (0 = Sunday)
-            $isSunday = date('w', strtotime($currentDate)) == 0;
-            
-            // Skip holidays and Sundays
-            if (!$isHoliday && !$isSunday) {
-                // Check if ALL worklog users (who were created on or before this date) have completed this date
-                if (!$this->checkAllUsersWorklogCompletionForDate($currentDate)) {
-                    $missingDates[] = $currentDate;
-                }
+            // Check if ALL worklog users (who were created on or before this date) have completed this date
+            // The checkAllUsersWorklogCompletionForDate function already skips users without attendance
+            // so this will only block Sundays/Holidays if at least one user worked and hasn't filled a log.
+            if (!$this->checkAllUsersWorklogCompletionForDate($currentDate)) {
+                // If it's a Sunday or Holiday, we only add to missing if someone actually has attendance
+                // which is exactly what checkAllUsersWorklogCompletionForDate checks.
+                $missingDates[] = $currentDate;
             }
             
             $currentDate = date('Y-m-d', strtotime($currentDate . ' +1 day'));
@@ -769,8 +764,9 @@ class WorklogController extends Controller
             // Check if the date is a Sunday (0 = Sunday)
             $isSunday = date('w', strtotime($currentDate)) == 0;
             
-            // Skip holidays and Sundays
-            if (!$isHoliday && !$isSunday) {
+            // Now checking all days.
+            // The logic below (line 782) will correctly skip Sundays/Holidays if no attendance exists.
+            if (true) {
                 $missingUsers = [];
                 
                 // Only check users who were created on or before this date
