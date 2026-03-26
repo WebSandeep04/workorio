@@ -1,5 +1,12 @@
-[2026-03-26 05:33:25] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
-[2026-03-26 05:33:28] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
-[2026-03-26 05:33:29] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
-[2026-03-26 05:33:29] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
-[2026-03-26 05:33:29] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-03-26 09:46:02] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-03-26 09:46:02] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-03-26 09:46:02] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-26 09:46:02] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260326-001"} 
+[2026-03-26 10:16:53] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-03-26 10:16:53] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-03-26 10:16:53] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-26 10:16:53] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260326-001"} 
+[2026-03-26 10:20:31] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-03-26 10:20:31] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-03-26 10:20:31] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-03-26 10:20:31] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260326-001"} 
