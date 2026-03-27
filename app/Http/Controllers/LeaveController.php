@@ -37,7 +37,8 @@ class LeaveController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'leave_type_id' => 'required', // Can be 'rh', 'sl' or an ID
             'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i|after:start_time',
+            'end_time' => 'nullable|date_format:H:i',
+            'sl_period' => 'nullable|in:morning,evening',
             'reason' => 'nullable|string|max:1000'
         ]);
 
@@ -105,9 +106,6 @@ class LeaveController extends Controller
                 ], 422);
             }
         } elseif ($isSL) {
-            if (!$request->start_time || !$request->end_time) {
-                 return response()->json(['success' => false, 'message' => 'Start time and end time are required for Short Leave.'], 422);
-            }
             if ($totalDays > 1) {
                  return response()->json(['success' => false, 'message' => 'Short Leaves can only be taken for a single day.'], 422);
             }
@@ -128,11 +126,8 @@ class LeaveController extends Controller
                  return response()->json(['success' => false, 'message' => 'No shift assigned. Short Leave logic requires active shift hours.'], 422);
             }
 
-            // --- Shift-Based SL Validation ---
+            // --- Shift-Based SL Period Handling ---
             try {
-                $reqStart = Carbon::parse($request->start_time);
-                $reqEnd = Carbon::parse($request->end_time);
-                
                 $shiftStart = Carbon::parse($shift->start_time);
                 $shiftEnd = Carbon::parse($shift->end_time);
                 
@@ -141,6 +136,32 @@ class LeaveController extends Controller
                 
                 $morningMax = (clone $shiftStart)->addHours($startLimitHours);
                 $eveningMin = (clone $shiftEnd)->subHours($endLimitHours);
+
+                // If sl_period is provided, override times
+                if ($request->filled('sl_period')) {
+                    if ($request->sl_period === 'morning') {
+                        $request->merge([
+                            'start_time' => $shiftStart->format('H:i'),
+                            'end_time' => $morningMax->format('H:i')
+                        ]);
+                    } else {
+                        $request->merge([
+                            'start_time' => $eveningMin->format('H:i'),
+                            'end_time' => $shiftEnd->format('H:i')
+                        ]);
+                    }
+                }
+
+                if (!$request->start_time || !$request->end_time) {
+                     return response()->json(['success' => false, 'message' => 'Short Leave time must be provided or Morning/Evening must be selected.'], 422);
+                }
+
+                $reqStart = Carbon::parse($request->start_time);
+                $reqEnd = Carbon::parse($request->end_time);
+                
+                if ($reqEnd->lte($reqStart)) {
+                     return response()->json(['success' => false, 'message' => 'End time must be after start time.'], 422);
+                }
                 
                 // Rule 1: Morning SL: Must be within [ShiftStart, ShiftStart + Limit]
                 $isValidMorning = ($reqStart->format('H:i:s') >= $shiftStart->format('H:i:s') && $reqEnd->format('H:i:s') <= $morningMax->format('H:i:s'));
@@ -199,6 +220,7 @@ class LeaveController extends Controller
                 'end_date' => $request->end_date,
                 'start_time' => $isSL ? $request->start_time : null,
                 'end_time' => $isSL ? $request->end_time : null,
+                'sl_period' => $isSL ? $request->sl_period : null,
                 'total_days' => $totalDays,
                 'reason' => $request->reason,
                 'status' => 'pending' // Automatically starts as pending for Manager workflow
@@ -411,14 +433,22 @@ class LeaveController extends Controller
                     
                     $pendingOrTakenSL = \App\Models\LeaveRequest::where('user_id', $user->id)
                         ->where('is_sl', 1)
-                        ->whereYear('start_date', date('Y'))
-                        ->whereMonth('start_date', date('m'))
+                        ->whereYear('start_date', Carbon::parse($request->start_date ?? now())->year)
+                        ->whereMonth('start_date', Carbon::parse($request->start_date ?? now())->month)
                         ->whereIn('status', ['pending', 'approved'])
                         ->count();
                         
-                    $userShift = $user->employee->shift ?? null;
-                    $shiftStart = $userShift ? $userShift->start_time : '09:00:00';
-                    $shiftEnd = $userShift ? $userShift->end_time : '18:00:00';
+                    $employee = $user->employee;
+                    $userShift = $employee ? $employee->shiftRelation : null;
+                    
+                    if ($userShift) {
+                        // DB is in UTC (e.g. 04:30), but User wants to see IST (e.g. 10:00)
+                        $shiftStart = Carbon::parse($userShift->start_time, 'UTC')->timezone('Asia/Kolkata')->format('H:i');
+                        $shiftEnd = Carbon::parse($userShift->end_time, 'UTC')->timezone('Asia/Kolkata')->format('H:i');
+                    } else {
+                        $shiftStart = '09:00';
+                        $shiftEnd = '18:00';
+                    }
                         
                     $mapped->push((object)[
                         'id' => 'sl',
@@ -428,8 +458,8 @@ class LeaveController extends Controller
                         'pending' => 0,
                         'shift_start' => $shiftStart,
                         'shift_end' => $shiftEnd,
-                        'start_limit_hours' => $userShift->sl_start_limit ?? 0,
-                        'end_limit_hours' => $userShift->sl_end_limit ?? 0,
+                        'start_limit_hours' => $userShift ? ($userShift->sl_start_limit ?? 0) : 0,
+                        'end_limit_hours' => $userShift ? ($userShift->sl_end_limit ?? 0) : 0,
                     ]);
                 }
             }

@@ -18,6 +18,7 @@ class LeaveRequest extends Model
         'end_date',
         'start_time',
         'end_time',
+        'sl_period',
         'total_days',
         'reason',
         'status', // pending, approved, rejected, cancelled

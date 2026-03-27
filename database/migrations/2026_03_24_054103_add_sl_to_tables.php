@@ -19,6 +19,7 @@ return new class extends Migration
             $table->boolean('is_sl')->default(false)->after('is_rh');
             $table->time('start_time')->nullable()->after('end_date');
             $table->time('end_time')->nullable()->after('start_time');
+            $table->string('sl_period')->nullable()->after('end_time')->comment('morning or evening');
         });
     }
 

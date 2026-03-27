@@ -80,6 +80,7 @@
   .details-btn:hover { background: #3538d4; color: white;}
   .stats-row { display: flex; gap: 0.5rem; font-size: 10px; margin-top: 4px; }
   .text-xs { font-size: 10px; }
+  .x-small { font-size: 0.7rem; }
 </style>
 <?php $__env->stopPush(); ?>
 
@@ -177,16 +178,28 @@
                         </select>
                     </div>
                     
-                    <div class="row g-2 mb-3" id="sl_time_div" style="display:none;">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-primary">From Time <span class="text-danger">*</span></label>
-                            <input type="time" class="form-control" id="start_time" name="start_time">
+                    <!-- SL Option Selection -->
+                    <div class="mb-3" id="sl_type_div" style="display:none;">
+                        <label class="form-label small fw-bold text-primary d-block">Select Short Leave Period <span class="text-danger">*</span></label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="sl_period" id="sl_morning" value="morning" autocomplete="off" checked>
+                                <label class="btn btn-outline-primary w-100 py-3" for="sl_morning">
+                                    <i class="bi bi-sun fs-4 d-block mb-1"></i>
+                                    Morning
+                                    <div class="x-small fw-normal" id="sl_morning_window">...</div>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="sl_period" id="sl_evening" value="evening" autocomplete="off">
+                                <label class="btn btn-outline-primary w-100 py-3" for="sl_evening">
+                                    <i class="bi bi-moon fs-4 d-block mb-1"></i>
+                                    Evening
+                                    <div class="x-small fw-normal" id="sl_evening_window">...</div>
+                                </label>
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-primary">To Time <span class="text-danger">*</span></label>
-                            <input type="time" class="form-control" id="end_time" name="end_time">
-                        </div>
-                        <div class="col-12 text-muted fw-bold" style="font-size:0.75rem;" id="shift_bounds_text"></div>
+                        <div class="text-muted fw-bold mt-2" style="font-size:0.75rem;" id="shift_bounds_text"></div>
                     </div>
 
                     <div class="mb-3">
@@ -287,10 +300,9 @@ $(document).ready(function() {
         // Reset blocks
         $('#rh_holiday_div').slideUp();
         $('#rh_holiday_select').removeAttr('required').val('');
-        $('#sl_time_div').slideUp();
-        $('#start_time, #end_time').removeAttr('required').val('');
-        $('#start_date, #end_date').prop('readonly', false);
+        $('#sl_type_div').slideUp();
         $('#end_date').closest('.col-6').show();
+        $('#start_date, #end_date').prop('readonly', false);
 
         if (typeId === 'rh' && targetType && targetType.rh_list) {
             $('#rh_holiday_div').slideDown();
@@ -303,19 +315,38 @@ $(document).ready(function() {
             
             $('#start_date, #end_date').prop('readonly', true);
         } else if (typeId === 'sl' && targetType) {
-            $('#sl_time_div').slideDown();
-            $('#start_time, #end_time').attr('required', true);
+            $('#sl_type_div').slideDown();
             // Lock dates to single day
             $('#end_date').closest('.col-6').hide();
             $('#end_date').val($('#start_date').val());
             
-            // Limit bounds
-            let sStart = targetType.shift_start ? targetType.shift_start.substring(0,5) : '09:00';
-            let sEnd = targetType.shift_end ? targetType.shift_end.substring(0,5) : '18:00';
+            // Limit bounds display
+            let sStartStr = targetType.shift_start ? targetType.shift_start.substring(0,5) : '09:00';
+            let sEndStr = targetType.shift_end ? targetType.shift_end.substring(0,5) : '18:00';
+            $('#shift_bounds_text').text(`Shift limits: ${sStartStr} to ${sEndStr}`);
+
+            // Calc windows
+            let startLimit = parseInt(targetType.start_limit_hours || 0);
+            let endLimit = parseInt(targetType.end_limit_hours || 0);
             
-            $('#start_time').attr('min', sStart).attr('max', sEnd);
-            $('#end_time').attr('min', sStart).attr('max', sEnd);
-            $('#shift_bounds_text').text(`Shift limits: ${sStart} to ${sEnd}`);
+            // Helper to add hours to HH:mm string
+            function addHours(timeStr, hours) {
+                let parts = timeStr.split(':');
+                let h = parseInt(parts[0]) + hours;
+                return (h < 10 ? '0'+h : h) + ':' + parts[1];
+            }
+            function subHours(timeStr, hours) {
+                let parts = timeStr.split(':');
+                let h = parseInt(parts[0]) - hours;
+                if(h < 0) h = 0;
+                return (h < 10 ? '0'+h : h) + ':' + parts[1];
+            }
+
+            let morningEnd = addHours(sStartStr, startLimit);
+            let eveningStart = subHours(sEndStr, endLimit);
+
+            $('#sl_morning_window').text(`${sStartStr} - ${morningEnd}`);
+            $('#sl_evening_window').text(`${eveningStart} - ${sEndStr}`);
         }
 
         if(targetType) {
@@ -352,16 +383,6 @@ $(document).ready(function() {
         }
     });
 
-    $('#start_time, #end_time').on('change', function() {
-        let st = $('#start_time').val();
-        let et = $('#end_time').val();
-        if(st && et && st >= et) {
-            showAlert('error', 'End time must be after Start time.');
-            $('#submitBtn').prop('disabled', true);
-        } else {
-            $('#submitBtn').prop('disabled', false);
-        }
-    });
 
 });
 
@@ -543,8 +564,7 @@ function openCreateModal() {
     $('#balanceAlert').hide();
     $('#rh_holiday_div').hide();
     $('#rh_holiday_select').removeAttr('required');
-    $('#sl_time_div').hide();
-    $('#start_time, #end_time').removeAttr('required');
+    $('#sl_type_div').hide();
     $('#end_date').closest('.col-6').show();
     $('#start_date, #end_date').prop('readonly', false);
     
@@ -566,8 +586,7 @@ function submitForm() {
         start_date: $('#start_date').val(),
         end_date: $('#leave_type_id').val() === 'sl' ? $('#start_date').val() : $('#end_date').val(),
         leave_type_id: $('#leave_type_id').val(),
-        start_time: $('#start_time').val(),
-        end_time: $('#end_time').val(),
+        sl_period: $('#leave_type_id').val() === 'sl' ? $('input[name="sl_period"]:checked').val() : null,
         reason: $('#reason').val()
     };
     if (currentLeaveId) data._method = 'PUT';
