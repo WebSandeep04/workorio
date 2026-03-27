@@ -65,6 +65,7 @@ class UnlockAttendanceController extends Controller
         try {
             $attendance = Attendance::findOrFail($id);
             $attendance->is_approved = 0;
+            $attendance->is_locked = 0; // Unlock the record
             $attendance->save();
             
             return response()->json(['success' => true, 'message' => 'Attendance unlocked successfully']);
@@ -81,7 +82,10 @@ class UnlockAttendanceController extends Controller
         ]);
 
         try {
-            Attendance::whereIn('id', $request->ids)->update(['is_approved' => 0]);
+            Attendance::whereIn('id', $request->ids)->update([
+                'is_approved' => 0,
+                'is_locked' => 0
+            ]);
             return response()->json(['success' => true, 'message' => 'Selected records unlocked successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error unlocking records: ' . $e->getMessage()], 500);
@@ -98,10 +102,12 @@ class UnlockAttendanceController extends Controller
         try {
             DB::beginTransaction();
 
-            // Update all attendance records for that date
+            // Update all attendance records for that date (unlock approval and lock)
             $affected = Attendance::whereDate('date', $request->date)
-                ->where('is_approved', 1)
-                ->update(['is_approved' => 0]);
+                ->update([
+                    'is_approved' => 0,
+                    'is_locked' => 0
+                ]);
 
             $user = $this->getCurrentUser();
 

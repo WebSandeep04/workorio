@@ -131,29 +131,34 @@ class AttendanceController extends Controller
         $today = Carbon::today();
         
         // Check if user is currently on break - if so, prevent punch in/out actions.
-        $existingAttendance = null;
-        if ($request->movement_type !== 'break') {
-            $existingAttendance = Attendance::where('user_id', $user->id)
-                ->where('date', $today)
-                ->first();
+        $existingAttendance = Attendance::where('user_id', $user->id)
+            ->where('date', $today)
+            ->first();
+
+        // Check if today's attendance is locked
+        if ($existingAttendance && $existingAttendance->is_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your attendance for today has been locked. Please contact your administrator for any changes.'
+            ], 403);
+        }
                 
-            if ($existingAttendance) {
-                $lastBreakMovement = Movement::where('attendance_id', $existingAttendance->id)
-                    ->where('movement_type', 'break')
-                    ->orderBy('time', 'desc')
-                    ->first();
+        if ($existingAttendance) {
+            $lastBreakMovement = Movement::where('attendance_id', $existingAttendance->id)
+                ->where('movement_type', 'break')
+                ->orderBy('time', 'desc')
+                ->first();
                     
-                if ($lastBreakMovement && $lastBreakMovement->movement_action === 'start') {
-                    Log::info('Punch-in prevented while on break', [
-                        'user_id' => $user->id,
-                        'attendance_id' => $existingAttendance->id,
-                        'movement_type' => $request->movement_type,
-                    ]);
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You are currently on break. Please end your break first before punching in/out.'
-                    ], 400);
-                }
+            if ($lastBreakMovement && $lastBreakMovement->movement_action === 'start') {
+                Log::info('Punch-in prevented while on break', [
+                    'user_id' => $user->id,
+                    'attendance_id' => $existingAttendance->id,
+                    'movement_type' => $request->movement_type,
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You are currently on break. Please end your break first before punching in/out.'
+                ], 400);
             }
         }
         
@@ -428,6 +433,17 @@ class AttendanceController extends Controller
         }
         
         $today = Carbon::today();
+
+        $existingAttendance = Attendance::where('user_id', $user->id)
+            ->where('date', $today)
+            ->first();
+
+        if ($existingAttendance && $existingAttendance->is_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your attendance for today has been locked. Please contact your administrator for any changes.'
+            ], 403);
+        }
 
         // Check for pending tasks not updated today (Blocker)
         // Only valid for 'office' and 'field' punch outs

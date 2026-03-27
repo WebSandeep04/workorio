@@ -148,8 +148,20 @@ class AttendanceController extends Controller
         
         $today = Carbon::today();
         
+        $attendance = Attendance::where('user_id', $user->id)
+            ->where('date', $today)
+            ->first();
+
+        // Check if today's attendance is locked
+        if ($attendance && $attendance->is_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Attendance for today is locked. Please contact your administrator.'
+            ], 403);
+        }
+
         // Check if user is currently on break - if so, prevent punch in/out actions.
-        $existingAttendance = null;
+        $existingAttendance = $attendance;
         if ($request->movement_type !== 'break') {
             $existingAttendance = Attendance::where('user_id', $user->id)
                 ->where('date', $today)
@@ -432,6 +444,14 @@ class AttendanceController extends Controller
         $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $today)
             ->first();
+
+        // Check if today's attendance is locked
+        if ($attendance && $attendance->is_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Attendance for today is locked. Please contact your administrator.'
+            ], 403);
+        }
             
         if ($attendance) {
             $lastBreakMovement = Movement::where('attendance_id', $attendance->id)
@@ -517,10 +537,24 @@ class AttendanceController extends Controller
         
         $today = Carbon::today();
         
-        $attendance = Attendance::firstOrCreate([
-            'user_id' => $user->id,
-            'date' => $today
-        ]);
+        $attendance = Attendance::where('user_id', $user->id)
+            ->where('date', $today)
+            ->first();
+
+        // Check if today's attendance is locked
+        if ($attendance && $attendance->is_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Attendance for today is locked. Please contact your administrator.'
+            ], 403);
+        }
+
+        if (!$attendance) {
+            $attendance = Attendance::create([
+                'user_id' => $user->id,
+                'date' => $today
+            ]);
+        }
 
         $lastBreakMovement = Movement::where('attendance_id', $attendance->id)
             ->where('movement_type', 'break')
@@ -581,6 +615,14 @@ class AttendanceController extends Controller
         $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $today)
             ->first();
+
+        // Check if today's attendance is locked
+        if ($attendance && $attendance->is_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Attendance for today is locked. Please contact your administrator.'
+            ], 403);
+        }
 
         if (!$attendance) {
             return response()->json([

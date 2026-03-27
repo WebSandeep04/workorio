@@ -110,3 +110,9 @@ Schedule::command('worklog:send-today-mail', ['--alert=11'])
     ->timezone('Asia/Kolkata')
     ->description("Send today's worklog summary to HR/Admins");
 
+Schedule::command('attendance:lock-past')
+    ->daily()
+    ->at('01:00')
+    ->timezone('Asia/Kolkata')
+    ->description('Automatically lock all past attendance records');
+

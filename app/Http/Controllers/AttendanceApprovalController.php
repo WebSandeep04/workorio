@@ -93,7 +93,9 @@ class AttendanceApprovalController extends Controller
         ]);
 
         try {
-            Attendance::whereIn('id', $request->ids)->update(['is_approved' => 1]);
+            Attendance::whereIn('id', $request->ids)->update([
+                'is_approved' => 1
+            ]);
             return response()->json(['success' => true, 'message' => 'Selected records approved successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error approving records: ' . $e->getMessage()], 500);
