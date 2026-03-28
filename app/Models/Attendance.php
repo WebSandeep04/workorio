@@ -18,6 +18,7 @@ class Attendance extends Model
         'is_emergency',
         'is_wfh',
         'is_locked',
+        'reject_reason',
     ];
 
     protected $casts = [

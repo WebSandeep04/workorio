@@ -450,6 +450,32 @@
   </div>
 </div>
 
+<!-- Reject Attendance Modal -->
+<div class="modal fade" id="rejectAttendanceModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-danger text-white p-2">
+        <h6 class="modal-title ms-2">Reject Attendance</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="rejectAttendanceForm">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" id="reject_attendance_id">
+        <div class="modal-body p-3">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Reason for Rejection</label>
+            <textarea class="form-control form-control-sm" name="reason" id="reject_reason_text" rows="3" required placeholder="Enter reason..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer p-2 d-flex justify-content-center border-0">
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-danger px-3">Reject</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
@@ -517,6 +543,9 @@ $(document).ready(function() {
                                 <td>
                                     <button class="btn-action text-success" title="Approve" onclick="approveAttendance(${item.id})">
                                         <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button class="btn-action text-danger ms-1" title="Reject" onclick="rejectAttendance(${item.id})">
+                                        <i class="bi bi-x-lg"></i>
                                     </button>
                                     <button class="btn-action text-primary ms-1" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}')">
                                         <i class="bi bi-pencil"></i>
@@ -603,6 +632,44 @@ $(document).ready(function() {
             }
         });
     }
+
+    window.rejectAttendance = function(id) {
+        $('#reject_attendance_id').val(id);
+        $('#reject_reason_text').val('');
+        $('#rejectAttendanceModal').modal('show');
+    }
+
+    $('#rejectAttendanceForm').submit(function(e) {
+        e.preventDefault();
+        let id = $('#reject_attendance_id').val();
+        let submitBtn = $(this).find('button[type="submit"]');
+        let originalText = submitBtn.text();
+
+        submitBtn.text('Rejecting...').prop('disabled', true);
+
+        $.ajax({
+            url: "/attendance/reject/" + id,
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                submitBtn.text(originalText).prop('disabled', false);
+                if (response.success) {
+                    $('#rejectAttendanceModal').modal('hide');
+                    fetchAttendance(currentPage);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                submitBtn.text(originalText).prop('disabled', false);
+                let msg = 'Error rejecting attendance';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                alert(msg);
+            }
+        });
+    });
 
     // Edit Times Modal Helper
     window.editTimes = function(id, inRaw, outRaw) {

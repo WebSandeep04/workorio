@@ -100,6 +100,24 @@ class AttendanceApprovalController extends Controller
         }
     }
 
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:1000'
+        ]);
+
+        try {
+            $attendance = Attendance::findOrFail($id);
+            $attendance->is_approved = 2; // 2 = Rejected
+            $attendance->reject_reason = $request->reason;
+            $attendance->save();
+            
+            return response()->json(['success' => true, 'message' => 'Attendance rejected successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error rejecting attendance: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function bulkApprove(Request $request)
     {
         $request->validate([
