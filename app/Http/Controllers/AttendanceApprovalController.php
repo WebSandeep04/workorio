@@ -22,7 +22,8 @@ class AttendanceApprovalController extends Controller
         
         // Start query
         $query = Attendance::with(['user', 'movements'])
-            ->where('is_approved', 0); // Filter for pending approvals
+            ->where('is_approved', 0) // Filter for pending approvals
+            ->where('is_locked', 0); // Exclude locked records
         
         // Date Filtering
         if ($request->filled('date')) {
@@ -76,6 +77,20 @@ class AttendanceApprovalController extends Controller
     {
         try {
             $attendance = Attendance::findOrFail($id);
+
+            // Check for continuity: any previous pending attendance for this user?
+            $hasPreviousPending = Attendance::where('user_id', $attendance->user_id)
+                ->where('date', '<', $attendance->date)
+                ->where('is_approved', 0)
+                ->exists();
+
+            if ($hasPreviousPending) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => "Cannot approve. There are pending attendance records for previous dates for this user ({$attendance->user->name}). Please approve them chronologically."
+                ], 422);
+            }
+
             $attendance->is_approved = 1;
             $attendance->save();
             
@@ -93,6 +108,25 @@ class AttendanceApprovalController extends Controller
         ]);
 
         try {
+            $attendances = Attendance::with('user')->whereIn('id', $request->ids)->get();
+            
+            foreach ($attendances as $attendance) {
+                // Check if any previous date for this user is pending AND NOT in the list being approved
+                $hasPreviousPending = Attendance::where('user_id', $attendance->user_id)
+                    ->where('date', '<', $attendance->date)
+                    ->where('is_approved', 0)
+                    ->whereNotIn('id', $request->ids) // Must not be in the current selection
+                    ->exists();
+
+                if ($hasPreviousPending) {
+                    $dateStr = $attendance->date instanceof Carbon ? $attendance->date->format('d M Y') : date('d M Y', strtotime($attendance->date));
+                    return response()->json([
+                        'success' => false, 
+                        'message' => "Cannot bulk approve because some users (like {$attendance->user->name} on {$dateStr}) have pending records from earlier dates that are not selected. Please approve in chronological order."
+                    ], 422);
+                }
+            }
+
             Attendance::whereIn('id', $request->ids)->update([
                 'is_approved' => 1
             ]);

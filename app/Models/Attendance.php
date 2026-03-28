@@ -17,10 +17,12 @@ class Attendance extends Model
         'is_approved',
         'is_emergency',
         'is_wfh',
+        'is_locked',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'is_locked' => 'boolean',
     ];
 
     public function user(): BelongsTo

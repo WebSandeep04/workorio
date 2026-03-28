@@ -595,7 +595,11 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                alert('Error approving attendance');
+                let msg = 'Error approving attendance';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                alert(msg);
             }
         });
     }
@@ -701,7 +705,11 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                alert('Error processing bulk approval');
+                let msg = 'Error processing bulk approval';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                alert(msg);
             }
         });
     }
