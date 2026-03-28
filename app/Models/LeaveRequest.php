@@ -23,7 +23,9 @@ class LeaveRequest extends Model
         'reason',
         'status', // pending, approved, rejected, cancelled
         'approved_by',
-        'reject_reason'
+        'reject_reason',
+        'is_half_day',
+        'half_day_period'
     ];
 
     protected $casts = [

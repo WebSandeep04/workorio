@@ -41,6 +41,8 @@ class LeaveController extends Controller
             'start_time' => 'nullable|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i',
             'sl_period' => 'nullable|in:morning,evening',
+            'is_half_day' => 'nullable|boolean',
+            'half_day_period' => 'nullable|in:pre_lunch,post_lunch',
             'reason' => 'nullable|string|max:1000'
         ]);
 
@@ -60,9 +62,16 @@ class LeaveController extends Controller
         
         // Calculate Total Days
         try {
-            $start = Carbon::parse($request->start_date);
-            $end = Carbon::parse($request->end_date);
-            $totalDays = $start->diffInDays($end) + 1; // Assuming full days for now
+            $isHalfDay = ($request->boolean('is_half_day') || $request->leave_type_id === 'hd');
+            if ($isHalfDay) {
+                $totalDays = 0.5;
+                // Force end_date to be start_date for half days
+                $request->merge(['end_date' => $request->start_date]);
+            } else {
+                $start = Carbon::parse($request->start_date);
+                $end = Carbon::parse($request->end_date);
+                $totalDays = $start->diffInDays($end) + 1;
+            }
         } catch (\Exception $e) {
              return response()->json(['success' => false, 'message' => 'Invalid date format.'], 422);
         }
@@ -82,7 +91,31 @@ class LeaveController extends Controller
         
         $isRH = $request->leave_type_id === 'rh';
         $isSL = $request->leave_type_id === 'sl';
-        $actualLeaveTypeId = ($isRH || $isSL) ? null : $request->leave_type_id;
+        $isHDType = $request->leave_type_id === 'hd';
+        $actualLeaveTypeId = ($isRH || $isSL || $isHDType) ? null : $request->leave_type_id;
+
+        // --- Custom Validation: Half Day Limit ---
+        if ($isHalfDay) {
+            $emp = $user->employee;
+            if ($emp && $emp->employmentType) {
+                $limit = (int) $emp->employmentType->no_of_half_days;
+                if ($limit > 0) {
+                    $halfDaysTakenThisMonth = LeaveRequest::where('user_id', $user->id)
+                        ->where('is_half_day', 1)
+                        ->whereIn('status', ['pending', 'approved'])
+                        ->whereMonth('start_date', Carbon::parse($request->start_date)->month)
+                        ->whereYear('start_date', Carbon::parse($request->start_date)->year)
+                        ->count();
+
+                    if ($halfDaysTakenThisMonth >= $limit) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => "You have reached your monthly limit of {$limit} half days."
+                        ], 422);
+                    }
+                }
+            }
+        }
 
         if ($isRH) {
             // Check RH restrictions
@@ -198,6 +231,9 @@ class LeaveController extends Controller
             
             // Total Days for SL can be 0 or fractional. Usually we just record it as 0 to not mess up normal days ledger
             $totalDays = 0; 
+        } elseif ($isHDType) {
+            // Half Day validation (monthly limit) was already handled above in the Half Day Limit block.
+            // We skip standard balance service check here since 'hd' is a virtual quota type.
         } else {
             // Verify Balance for normal leave
             $balanceService = app(LeaveBalanceService::class);
@@ -223,6 +259,8 @@ class LeaveController extends Controller
                 'start_time' => $isSL ? $request->start_time : null,
                 'end_time' => $isSL ? $request->end_time : null,
                 'sl_period' => $isSL ? $request->sl_period : null,
+                'is_half_day' => $isHalfDay ? 1 : 0,
+                'half_day_period' => $isHalfDay ? $request->half_day_period : null,
                 'total_days' => $totalDays,
                 'reason' => $request->reason,
                 'status' => 'pending' // Automatically starts as pending for Manager workflow
@@ -462,6 +500,25 @@ class LeaveController extends Controller
                         'shift_end' => $shiftEnd,
                         'start_limit_hours' => $userShift ? ($userShift->sl_start_limit ?? 0) : 0,
                         'end_limit_hours' => $userShift ? ($userShift->sl_end_limit ?? 0) : 0,
+                    ]);
+                }
+
+                if ($employmentType && $employmentType->no_of_half_days > 0) {
+                    $totalHD = $employmentType->no_of_half_days;
+                    
+                    $takenHD = \App\Models\LeaveRequest::where('user_id', $user->id)
+                        ->where('is_half_day', 1)
+                        ->whereYear('start_date', Carbon::parse($request->start_date ?? now())->year)
+                        ->whereMonth('start_date', Carbon::parse($request->start_date ?? now())->month)
+                        ->whereIn('status', ['pending', 'approved'])
+                        ->count();
+                        
+                    $mapped->push((object)[
+                        'id' => 'hd',
+                        'name' => 'Half Day',
+                        'balance' => max(0, $totalHD - $takenHD),
+                        'total_allowed' => $totalHD,
+                        'pending' => 0
                     ]);
                 }
             }

@@ -89,6 +89,7 @@
             <th>Name</th>
             <th>RH Allowed</th>
             <th>SL/Month</th>
+            <th>Half Days/Month</th>
             <th>Status</th>
             <th class="text-center">Actions</th>
           </tr>
@@ -128,6 +129,10 @@
               <div class="col-md-3">
                 <label class="form-label-modern">SL/Month</label>
                 <input type="number" class="form-control form-control-modern" id="sl_allowed" name="sl_allowed" min="0" value="0">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label-modern">Half Days/Month</label>
+                <input type="number" class="form-control form-control-modern" id="no_of_half_days" name="no_of_half_days" min="0" value="0">
               </div>
               <div class="col-md-3">
                 <label class="form-label-modern">Status</label>
@@ -256,6 +261,7 @@ $(function() {
                     <td><strong>${row.name}</strong></td>
                     <td>${row.rh_allowed || '0'}</td>
                     <td>${row.sl_allowed || '0'}</td>
+                    <td>${row.no_of_half_days || '0'}</td>
                     <td><span class="${statusBadge}">${row.status || 'inactive'}</span></td>
                     <td class="text-center">
                         <button class="btn-action btn-action-edit editBtn" data-id="${row.id}" title="Edit"><i class="bi bi-pencil"></i></button>
@@ -302,6 +308,7 @@ $(function() {
         $('#status').val(row.status);
         $('#rh_allowed').val(row.rh_allowed || 0);
         $('#sl_allowed').val(row.sl_allowed || 0);
+        $('#no_of_half_days').val(row.no_of_half_days || 0);
 
         // Fill Rules
         if(row.leave_rules && row.leave_rules.length > 0) {

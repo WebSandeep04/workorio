@@ -164,6 +164,28 @@
                         Total: 1 Day
                     </div>
 
+                    <div id="half_day_options" style="display:none;" class="mb-3">
+                        <label class="form-label small fw-bold text-primary d-block">Select Half Day Session <span class="text-danger">*</span></label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="half_day_period" id="pre_lunch" value="pre_lunch" autocomplete="off" checked>
+                                <label class="btn btn-outline-primary w-100 py-3" for="pre_lunch">
+                                    <i class="bi bi-brightness-high fs-4 d-block mb-1"></i>
+                                    Pre Lunch
+                                    <div class="x-small fw-normal">Before 1:30 PM</div>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check" name="half_day_period" id="post_lunch" value="post_lunch" autocomplete="off">
+                                <label class="btn btn-outline-primary w-100 py-3" for="post_lunch">
+                                    <i class="bi bi-sunset fs-4 d-block mb-1"></i>
+                                    Post Lunch
+                                    <div class="x-small fw-normal">After 1:30 PM</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Leave Type <span class="text-danger">*</span></label>
                         <select class="form-control" id="leave_type_id" name="leave_type_id" required>
@@ -301,10 +323,13 @@ $(document).ready(function() {
         $('#rh_holiday_div').slideUp();
         $('#rh_holiday_select').removeAttr('required').val('');
         $('#sl_type_div').slideUp();
+        $('#half_day_options').slideUp();
         $('#end_date').closest('.col-6').show();
         $('#start_date, #end_date').prop('readonly', false);
 
-        if (typeId === 'rh' && targetType && targetType.rh_list) {
+        if (typeId === 'hd') {
+             toggleHalfDay(true);
+        } else if (typeId === 'rh' && targetType && targetType.rh_list) {
             $('#rh_holiday_div').slideDown();
             let opts = '<option value="">Choose your pending RH...</option>';
             targetType.rh_list.forEach(h => {
@@ -389,8 +414,14 @@ $(document).ready(function() {
 function calculateDays() {
     let s = $('#start_date').val();
     let e = $('#end_date').val();
+    let isHalf = $('#leave_type_id').val() === 'hd';
     
     if(s && e) {
+        if (isHalf) {
+            $('#calcDaysDisplay').text('Total: 0.5 Day');
+            $('#submitBtn').prop('disabled', false);
+            return;
+        }
         let sd = new Date(s);
         let ed = new Date(e);
         if(ed >= sd) {
@@ -403,6 +434,19 @@ function calculateDays() {
             $('#submitBtn').prop('disabled', true);
         }
     }
+}
+
+function toggleHalfDay(active) {
+    if (active) {
+        $('#half_day_options').slideDown();
+        $('#end_date').val($('#start_date').val()).prop('readonly', true);
+        $('#rh_holiday_div').slideUp();
+        $('#sl_type_div').slideUp();
+    } else {
+        $('#half_day_options').slideUp();
+        $('#end_date').prop('readonly', false);
+    }
+    calculateDays();
 }
 
 function showAlert(type, message) {
@@ -515,6 +559,10 @@ function renderTable() {
             let typeName = leave.leave_type ? leave.leave_type.name : '-';
             if (leave.is_rh) typeName = 'Restricted Holiday (RH)';
             if (leave.is_sl) typeName = 'Short Leave (SL)';
+            if (leave.is_half_day) {
+                let sessionName = leave.half_day_period === 'pre_lunch' ? 'Pre Lunch' : 'Post Lunch';
+                typeName += ` <span class="badge bg-info x-small">${sessionName}</span>`;
+            }
             
             let timeStr = '';
             if (leave.is_sl && leave.start_time) {
@@ -564,9 +612,10 @@ function openCreateModal() {
     $('#balanceAlert').hide();
     $('#rh_holiday_div').hide();
     $('#rh_holiday_select').removeAttr('required');
-    $('#sl_type_div').hide();
     $('#end_date').closest('.col-6').show();
     $('#start_date, #end_date').prop('readonly', false);
+    $('#is_half_day').prop('checked', false);
+    $('#half_day_options').hide();
     
     const today = new Date().toISOString().split('T')[0];
     $('#start_date').val(today);
@@ -584,9 +633,11 @@ function submitForm() {
     const data = {
         _token: '<?php echo e(csrf_token()); ?>',
         start_date: $('#start_date').val(),
-        end_date: $('#leave_type_id').val() === 'sl' ? $('#start_date').val() : $('#end_date').val(),
+        end_date: $('#end_date').val(),
         leave_type_id: $('#leave_type_id').val(),
         sl_period: $('#leave_type_id').val() === 'sl' ? $('input[name="sl_period"]:checked').val() : null,
+        is_half_day: $('#leave_type_id').val() === 'hd' ? 1 : 0,
+        half_day_period: $('#leave_type_id').val() === 'hd' ? $('input[name="half_day_period"]:checked').val() : null,
         reason: $('#reason').val()
     };
     if (currentLeaveId) data._method = 'PUT';
