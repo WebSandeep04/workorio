@@ -33,8 +33,14 @@
                 </tr>
                 @if($leaveRequest->reason)
                 <tr>
-                    <td style="padding: 8px 0; color: #6b7280;"><strong>Reason</strong></td>
+                    <td style="padding: 8px 0; color: #6b7280;"><strong>Applicant Reason</strong></td>
                     <td style="padding: 8px 0; color: #111827; white-space: pre-wrap;">{{ $leaveRequest->reason }}</td>
+                </tr>
+                @endif
+                @if($status === 'rejected' && $leaveRequest->reject_reason)
+                <tr style="border-top: 1px solid #e5e7eb;">
+                    <td style="padding: 8px 0; color: #ef4444;"><strong>Rejection Reason</strong></td>
+                    <td style="padding: 8px 0; color: #ef4444; font-weight: bold; white-space: pre-wrap;">{{ $leaveRequest->reject_reason }}</td>
                 </tr>
                 @endif
             </table>

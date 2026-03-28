@@ -75,6 +75,29 @@
         <ul class="pagination" id="pagination"></ul>
     </div>
 </div>
+
+<!-- Reject Leave Modal -->
+<div class="modal fade" id="rejectLeaveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Reject Leave Request</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="reject_leave_id">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-muted">REASON FOR REJECTION <span class="text-danger">*</span></label>
+                    <textarea class="form-control border-0 bg-light" id="reject_reason" rows="4" placeholder="Please provide a valid reason..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-3 bg-light">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger px-4" onclick="submitRejection()">Confirm Rejection</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -163,6 +186,14 @@ function renderTable() {
 }
 
 function performAction(id, action) {
+    if (action === 'reject') {
+        $('#reject_leave_id').val(id);
+        $('#reject_reason').val('');
+        const modal = new bootstrap.Modal(document.getElementById('rejectLeaveModal'));
+        modal.show();
+        return;
+    }
+
     if(!confirm(`Are you sure you want to ${action} this leave request?`)) return;
     
     $.ajax({
@@ -179,6 +210,39 @@ function performAction(id, action) {
         },
         error: function(xhr) {
              let msg = 'Error processing request.';
+             if(xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+             showAlert('error', msg);
+        }
+    });
+}
+
+function submitRejection() {
+    const id = $('#reject_leave_id').val();
+    const reason = $('#reject_reason').val().trim();
+
+    if (!reason) {
+        alert('Please provide a reason for rejection.');
+        return;
+    }
+
+    $.ajax({
+        url: `/leave/approvals/${id}/reject`,
+        type: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            reason: reason
+        },
+        success: function(res) {
+            if(res.success) {
+                bootstrap.Modal.getInstance(document.getElementById('rejectLeaveModal')).hide();
+                showAlert('success', res.message);
+                loadApprovals();
+            } else {
+                showAlert('error', res.message);
+            }
+        },
+        error: function(xhr) {
+             let msg = 'Error rejecting leave.';
              if(xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
              showAlert('error', msg);
         }

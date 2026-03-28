@@ -641,8 +641,12 @@ class LeaveController extends Controller
     /**
      * Reject leave request
      */
-    public function reject($id)
+    public function reject(Request $request, $id)
     {
+        $request->validate([
+            'reason' => 'required|string|max:1000'
+        ]);
+
         $user = $this->getCurrentUser();
         if (!$user) return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
 
@@ -669,6 +673,7 @@ class LeaveController extends Controller
 
         $leaveReq->status = 'rejected';
         $leaveReq->approved_by = $user->id;
+        $leaveReq->reject_reason = $request->reason;
         $leaveReq->save();
 
         // --- Send Email [SYNCHRONOUS] ---
@@ -677,7 +682,8 @@ class LeaveController extends Controller
                 Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
                     'leave_request_id' => $leaveReq->id,
                     'user_id' => $leaveReq->user->id,
-                    'status' => 'rejected'
+                    'status' => 'rejected',
+                    'reason' => $request->reason
                 ]));
             } catch (\Exception $e) {
                 \Log::error("Failed to send leave rejection email: " . $e->getMessage());

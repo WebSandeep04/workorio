@@ -22,7 +22,8 @@ class LeaveRequest extends Model
         'total_days',
         'reason',
         'status', // pending, approved, rejected, cancelled
-        'approved_by'
+        'approved_by',
+        'reject_reason'
     ];
 
     protected $casts = [
