@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Mail\AttendanceRejectedMail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class AttendanceApprovalController extends Controller
 {
@@ -112,6 +114,19 @@ class AttendanceApprovalController extends Controller
             $attendance->reject_reason = $request->reason;
             $attendance->save();
             
+            // --- Send Email [SYNCHRONOUS] ---
+            if ($attendance->user && $attendance->user->email) {
+                try {
+                    Mail::to($attendance->user->email)->send(new AttendanceRejectedMail([
+                        'attendance_id' => $attendance->id,
+                        'user_id' => $attendance->user->id,
+                        'reason' => $request->reason
+                    ]));
+                } catch (\Exception $e) {
+                    \Log::error("Failed to send attendance rejection email: " . $e->getMessage());
+                }
+            }
+
             return response()->json(['success' => true, 'message' => 'Attendance rejected successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error rejecting attendance: ' . $e->getMessage()], 500);

@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\LeaveStatusMail;
 
 class LeaveController extends Controller
 {
@@ -615,6 +617,20 @@ class LeaveController extends Controller
             }
 
             DB::commit();
+
+            // --- Send Email [SYNCHRONOUS] ---
+            if ($leaveReq->user && $leaveReq->user->email) {
+                try {
+                    Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
+                        'leave_request_id' => $leaveReq->id,
+                        'user_id' => $leaveReq->user->id,
+                        'status' => 'approved'
+                    ]));
+                } catch (\Exception $e) {
+                    \Log::error("Failed to send leave approval email: " . $e->getMessage());
+                }
+            }
+
             return response()->json(['success' => true, 'message' => 'Leave approved successfully']);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -654,6 +670,19 @@ class LeaveController extends Controller
         $leaveReq->status = 'rejected';
         $leaveReq->approved_by = $user->id;
         $leaveReq->save();
+
+        // --- Send Email [SYNCHRONOUS] ---
+        if ($leaveReq->user && $leaveReq->user->email) {
+            try {
+                Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
+                    'leave_request_id' => $leaveReq->id,
+                    'user_id' => $leaveReq->user->id,
+                    'status' => 'rejected'
+                ]));
+            } catch (\Exception $e) {
+                \Log::error("Failed to send leave rejection email: " . $e->getMessage());
+            }
+        }
 
         return response()->json(['success' => true, 'message' => 'Leave rejected successfully']);
     }
