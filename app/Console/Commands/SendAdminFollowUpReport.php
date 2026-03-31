@@ -69,26 +69,28 @@ class SendAdminFollowUpReport extends Command
             
             // For TRISERV specifically, it is ID 1 based on previous bash output
             if ($tenant->id == 1) {
-                $recipientEmails = [
-                    'sandeep@triserv360.com',
-                    'shamshad@triserv360.com',
-                    'areesha@triserv360.com',
-                    'anupriya@triserv360.com'
-                ];
+                // Fixed emails for main tenant - usually these are active, skipping status check for these hardcoded ones unless specified.
+                $recipientEmails = ['sandeep@triserv360.com', 'shamshad@triserv360.com', 'megha@triserv360.com', 'akrati@triserv360.com'];
             } else {
-                $recipientEmails = User::where('role_id', 1)
+                $recipientEmails = User::whereHas('employee', function ($q) {
+                        $q->where('status', 'active');
+                    })
+                    ->where('role_id', 1)
                     ->whereNotNull('email')
                     ->pluck('email')
                     ->toArray();
             }
 
             if (empty($recipientEmails)) {
-                $this->info("  No admin recipients found for {$tenant->tenant_name}. Skipping.");
+                $this->info("  No active admin recipients found for {$tenant->tenant_name}. Skipping.");
                 return;
             }
 
-            // 1. Fetch Follow Ups
+            // 1. Fetch Follow Ups for Active Employees
             $records = SalesRecord::with(['user', 'state', 'city', 'businessType', 'leadSource', 'status', 'product'])
+                ->whereHas('user.employee', function ($q) {
+                    $q->where('status', 'active');
+                })
                 ->whereDate('next_follow_up_date', '<=', $today)
                 ->whereNotIn('status_id', [1, 2, 15, 20])
                 ->get()
@@ -102,8 +104,11 @@ class SendAdminFollowUpReport extends Command
                 // We should still proceed because maybe there are new leads
             }
 
-            // 2. Fetch New Leads
+            // 2. Fetch New Leads for Active Employees
             $newLeads = SalesRecord::with(['user', 'city', 'status', 'product'])
+                ->whereHas('user.employee', function ($q) {
+                    $q->where('status', 'active');
+                })
                 ->whereDate('createdat', '>=', $yesterday)
                 ->orderBy('createdat', 'DESC')
                 ->get();

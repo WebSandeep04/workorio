@@ -110,8 +110,10 @@ class SendMorningAttendanceMail extends Command
                 ];
             }
 
-            // Who gets the email? "Send to all users (including admins) - filter valid emails"
-            $recipientEmails = User::whereNotNull('email')->pluck('email')->filter(function ($email) {
+            // Who gets the email? "Send to all active users - filter valid emails"
+            $recipientEmails = User::whereHas('employee', function ($q) {
+                $q->where('status', 'active');
+            })->whereNotNull('email')->pluck('email')->filter(function ($email) {
                 return filter_var($email, FILTER_VALIDATE_EMAIL);
             })->toArray();
 

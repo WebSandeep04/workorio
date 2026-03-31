@@ -114,8 +114,8 @@ class AttendanceApprovalController extends Controller
             $attendance->reject_reason = $request->reason;
             $attendance->save();
             
-            // --- Send Email [SYNCHRONOUS] ---
-            if ($attendance->user && $attendance->user->email) {
+            // Only send if the employee is active
+            if ($attendance->user && $attendance->user->email && ($attendance->user->employee && $attendance->user->employee->status === 'active')) {
                 try {
                     Mail::to($attendance->user->email)->send(new AttendanceRejectedMail([
                         'attendance_id' => $attendance->id,

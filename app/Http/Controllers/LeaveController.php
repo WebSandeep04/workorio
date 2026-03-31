@@ -675,8 +675,8 @@ class LeaveController extends Controller
 
             DB::commit();
 
-            // --- Send Email [SYNCHRONOUS] ---
-            if ($leaveReq->user && $leaveReq->user->email) {
+            // Only notify if employee is active
+            if ($leaveReq->user && $leaveReq->user->email && ($leaveReq->user->employee && $leaveReq->user->employee->status === 'active')) {
                 try {
                     Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
                         'leave_request_id' => $leaveReq->id,
@@ -733,8 +733,8 @@ class LeaveController extends Controller
         $leaveReq->reject_reason = $request->reason;
         $leaveReq->save();
 
-        // --- Send Email [SYNCHRONOUS] ---
-        if ($leaveReq->user && $leaveReq->user->email) {
+        // Only notify if employee is active
+        if ($leaveReq->user && $leaveReq->user->email && ($leaveReq->user->employee && $leaveReq->user->employee->status === 'active')) {
             try {
                 Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
                     'leave_request_id' => $leaveReq->id,

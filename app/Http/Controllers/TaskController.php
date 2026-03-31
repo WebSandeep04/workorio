@@ -631,13 +631,13 @@ class TaskController extends Controller
     public function poke($id)
     {
         try {
-            $task = Task::with($this->includeAssignedUsers(['user', 'customer', 'creator', 'status', 'priority', 'images']))->findOrFail($id);
+            $task = Task::with($this->includeAssignedUsers(['user.employee', 'assignedUsers.employee', 'customer', 'creator', 'status', 'priority', 'images']))->findOrFail($id);
 
             $recipients = $task->assignedUsers
-                ? $task->assignedUsers->filter(fn ($user) => !empty($user->email))
+                ? $task->assignedUsers->filter(fn ($user) => !empty($user->email) && ($user->employee && $user->employee->status === 'active'))
                 : collect();
 
-            if ($recipients->isEmpty() && $task->user && !empty($task->user->email)) {
+            if ($recipients->isEmpty() && $task->user && !empty($task->user->email) && ($task->user->employee && $task->user->employee->status === 'active')) {
                 $recipients = collect([$task->user]);
             }
 

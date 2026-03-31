@@ -88,7 +88,10 @@ class SendCalendarMail extends Command
                 return;
             }
 
-            $recipientEmails = User::where($colName, 1)
+            $recipientEmails = User::whereHas('employee', function ($q) {
+                    $q->where('status', 'active');
+                })
+                ->where($colName, 1)
                 ->whereNotNull('email')
                 ->pluck('email')
                 ->filter(function ($email) {

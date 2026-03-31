@@ -64,7 +64,10 @@ class SendAllTaskMail extends Command
             
             $recipientEmails = [];
             if ($hasIsTask) {
-                $recipientEmails = User::where('is_task', 1)
+                $recipientEmails = User::whereHas('employee', function ($q) {
+                        $q->where('status', 'active');
+                    })
+                    ->where('is_task', 1)
                     ->whereNotNull('email')
                     ->pluck('email')
                     ->toArray();
@@ -75,7 +78,7 @@ class SendAllTaskMail extends Command
             });
 
             if (empty($recipientEmails)) {
-                $this->info("  ⚠️ No recipients found for {$tenant->tenant_name}. Skipping.");
+                $this->info("  ⚠️ No active recipients found for {$tenant->tenant_name}. Skipping.");
                 return;
             }
 
@@ -110,6 +113,7 @@ class SendAllTaskMail extends Command
                 ) AS latest_remark_date
             FROM tasks t
             INNER JOIN users u ON t.user_id = u.id
+            JOIN employees e ON u.employee_id = e.id AND e.status = 'active'
             LEFT JOIN customers c ON t.customer_id = c.id
             LEFT JOIN task_statuses ts ON t.task_status_id = ts.id
             LEFT JOIN task_priorities tp ON t.task_priority_id = tp.id

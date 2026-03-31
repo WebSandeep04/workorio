@@ -62,7 +62,12 @@ class SendFollowUpReport extends Command
             
             $today = Carbon::today()->format('Y-m-d');
             
-            $users = User::where('is_sales', 1)->whereNotNull('email')->get();
+            $users = User::whereHas('employee', function ($q) {
+                    $q->where('status', 'active');
+                })
+                ->where('is_sales', 1)
+                ->whereNotNull('email')
+                ->get();
 
             foreach ($users as $user) {
                 $leads = SalesRecord::with(['state', 'city', 'businessType', 'leadSource', 'status', 'product'])

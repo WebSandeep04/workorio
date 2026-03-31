@@ -59,18 +59,18 @@ class SendWorklogReportYesterdayMail extends Command
         try {
             TenantDatabaseService::setDefaultConnection($tenant->id);
 
-            // Fetch users with is_worklog = 1 OR role_id = 1
+            // Fetch recipients: active employees with worklog access or admin role
             $hasIsWorklog = \Illuminate\Support\Facades\Schema::hasColumn('users', 'is_worklog');
             
-            $recipientUsers = [];
-            if ($hasIsWorklog) {
-                $recipientUsers = User::where('is_worklog', 1)
-                    ->orWhere('role_id', 1)
-                    ->get();
-            } else {
-                // Fallback to Admins only
-                $recipientUsers = User::where('role_id', 1)->get();
-            }
+            $recipientUsers = User::whereHas('employee', function ($q) {
+                $q->where('status', 'active');
+            })->where(function($q) use ($hasIsWorklog) {
+                if ($hasIsWorklog) {
+                    $q->where('is_worklog', 1)->orWhere('role_id', 1);
+                } else {
+                    $q->where('role_id', 1);
+                }
+            })->get();
 
             $validRecipients = [];
             foreach ($recipientUsers as $user) {
@@ -83,7 +83,7 @@ class SendWorklogReportYesterdayMail extends Command
             }
 
             if (empty($validRecipients)) {
-                $this->info("  ⚠️ No valid email recipients found for {$tenant->tenant_name}. Skipping.");
+                $this->info("  ⚠️ No active valid email recipients found for {$tenant->tenant_name}. Skipping.");
                 return;
             }
 
@@ -107,6 +107,7 @@ class SendWorklogReportYesterdayMail extends Command
                 wa.rating AS rating,
                 wa.remark AS rating_remark
             FROM users u
+            JOIN employees e ON u.employee_id = e.id AND e.status = 'active'
             LEFT JOIN worklogs w 
                 ON w.user_id = u.id 
                AND w.work_date = ?

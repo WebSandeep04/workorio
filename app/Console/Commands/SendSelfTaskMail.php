@@ -64,7 +64,10 @@ class SendSelfTaskMail extends Command
             
             $users = [];
             if ($hasIsTask) {
-                $users = User::where('is_task', 1)
+                $users = User::whereHas('employee', function ($q) {
+                        $q->where('status', 'active');
+                    })
+                    ->where('is_task', 1)
                     ->whereNotNull('email')
                     ->get();
             }

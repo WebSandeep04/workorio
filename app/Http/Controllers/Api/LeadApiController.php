@@ -287,7 +287,10 @@ class LeadApiController extends Controller
         // --- Start Email Notification ---
         $creator = \App\Models\User::find($salesRecord->user_id);
 
-        $recipientEmails = \App\Models\User::where('is_sales', 1)
+        $recipientEmails = User::whereHas('employee', function ($q) {
+                $q->where('status', 'active');
+            })
+            ->where('is_sales', 1)
             ->whereNotNull('email')
             ->pluck('email')
             ->toArray();

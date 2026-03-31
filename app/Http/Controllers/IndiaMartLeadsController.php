@@ -593,7 +593,10 @@ class IndiaMartLeadsController extends Controller
             }
 
             // Get all sales users (is_sales = 1) with valid email
-            $salesUsers = User::where('is_sales', 1)
+            $salesUsers = User::whereHas('employee', function ($q) {
+                    $q->where('status', 'active');
+                })
+                ->where('is_sales', 1)
                 ->whereNotNull('email')
                 ->where('email', '!=', '')
                 ->get();

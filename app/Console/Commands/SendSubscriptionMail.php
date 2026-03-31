@@ -65,7 +65,10 @@ class SendSubscriptionMail extends Command
             
             $recipientEmails = [];
             if ($hasIsSubscription) {
-                $recipientEmails = User::where('is_subscription', 1)
+                $recipientEmails = User::whereHas('employee', function ($q) {
+                        $q->where('status', 'active');
+                    })
+                    ->where('is_subscription', 1)
                     ->whereNotNull('email')
                     ->pluck('email')
                     ->toArray();

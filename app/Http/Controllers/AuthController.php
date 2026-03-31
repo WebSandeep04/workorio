@@ -351,8 +351,11 @@ public function showRegisterForm(){
                 // Set tenant connection
                 TenantDatabaseService::setDefaultConnection($tenant->id);
                 
-                // Try to find user in this tenant database
-                $user = User::where('email', $email)->first();
+                // Try to find user in this tenant database (active employees only)
+                $user = User::where('email', $email)
+                    ->whereHas('employee', function ($q) {
+                        $q->where('status', 'active');
+                    })->first();
                 
                 if ($user) {
                     return [
