@@ -692,3 +692,65 @@
 [2026-03-31 09:58:38] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-03-31 09:58:38] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
 [2026-03-31 09:58:38] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-03-31 10:36:51] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-03-31 10:36:51] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-03-31 10:36:52] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-03-31 10:36:52] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep Kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-03-31 10:36:52] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-03-31 10:47:21] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-03-31 10:47:21] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-03-31 10:47:21] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-03-31 10:47:21] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-03-31 10:47:21] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-03-31 11:04:22] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.48165077414262","long":"80.34596068995303"} 
+[2026-03-31 11:04:23] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-03-31 11:04:23] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-03-31 11:04:23] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-03-31 04:30:00","late_min":10,"cutoff_time":"2026-03-31 04:40:00","now":"2026-03-31 11:04:23","is_late":true} 
+[2026-03-31 11:04:23] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-03-31 11:04:29] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.48165077414262","long":"80.34596068995303"} 
+[2026-03-31 11:04:30] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-03-31 11:04:30] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-03-31 11:04:30] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-03-31 04:30:00","late_min":10,"cutoff_time":"2026-03-31 04:40:00","now":"2026-03-31 11:04:30","is_late":true} 
+[2026-03-31 11:04:30] local.INFO: Late punch-in accepted with reason {"user_id":4,"movement_type":"office","description":"Late punch-in: Work-related reason (approved call / task)"} 
+[2026-03-31 11:04:30] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":1442,"date":"2026-03-31"} 
+[2026-03-31 11:04:30] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":1442} 
+[2026-03-31 11:04:30] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":1442,"movement_id":3398,"movement_type":"office","description":"Late punch-in: Work-related reason (approved call / task)"} 
+[2026-03-31 11:08:44] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481665943693066","long":"80.34595548150708"} 
+[2026-03-31 11:08:45] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-03-31 11:08:45] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-03-31 11:08:45] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-03-31 10:45:00","late_min":10,"cutoff_time":"2026-03-31 10:55:00","now":"2026-03-31 11:08:45","is_late":true} 
+[2026-03-31 11:08:45] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-03-31 11:08:49] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481665943693066","long":"80.34595548150708"} 
+[2026-03-31 11:08:50] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-03-31 11:08:50] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-03-31 11:08:50] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-03-31 10:45:00","late_min":10,"cutoff_time":"2026-03-31 10:55:00","now":"2026-03-31 11:08:50","is_late":true} 
+[2026-03-31 11:08:50] local.INFO: Late punch-in accepted with reason {"user_id":4,"movement_type":"office","description":"Late punch-in: Work-related reason (approved call / task)"} 
+[2026-03-31 11:08:50] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":1443,"date":"2026-03-31"} 
+[2026-03-31 11:08:50] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":1443} 
+[2026-03-31 11:08:50] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":1443,"movement_id":3399,"movement_type":"office","description":"Late punch-in: Work-related reason (approved call / task)"} 
+[2026-03-31 11:14:38] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481652042739963","long":"80.3459355052367"} 
+[2026-03-31 11:14:38] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-03-31 11:14:38] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-03-31 11:14:38] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-03-31 10:45:00","late_min":10,"cutoff_time":"2026-03-31 10:55:00","now":"2026-03-31 11:14:38","is_late":true} 
+[2026-03-31 11:14:38] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-03-31 11:14:44] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481652042739963","long":"80.3459355052367"} 
+[2026-03-31 11:14:45] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-03-31 11:14:45] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-03-31 11:14:45] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-03-31 10:45:00","late_min":10,"cutoff_time":"2026-03-31 10:55:00","now":"2026-03-31 11:14:45","is_late":true} 
+[2026-03-31 11:14:45] local.INFO: Late punch-in accepted with reason {"user_id":4,"movement_type":"office","description":"Late punch-in: Work-related reason (approved call / task)"} 
+[2026-03-31 11:14:45] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":1444,"date":"2026-03-31"} 
+[2026-03-31 11:14:45] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":1444} 
+[2026-03-31 11:14:45] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":1444,"movement_id":3400,"movement_type":"office","description":"Late punch-in: Work-related reason (approved call / task)"} 
+[2026-03-31 11:17:19] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481658646383096","long":"80.34595765397648"} 
+[2026-03-31 11:17:20] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-03-31 11:17:20] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-03-31 11:17:20] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-03-31 10:45:00","late_min":10,"cutoff_time":"2026-03-31 10:55:00","now":"2026-03-31 11:17:20","is_late":true} 
+[2026-03-31 11:17:20] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-03-31 11:17:24] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481658646383096","long":"80.34595765397648"} 
+[2026-03-31 11:17:25] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-03-31 11:17:25] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-03-31 11:17:25] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-03-31 10:45:00","late_min":10,"cutoff_time":"2026-03-31 10:55:00","now":"2026-03-31 11:17:25","is_late":true} 
+[2026-03-31 11:17:25] local.INFO: Late punch-in accepted with reason {"user_id":4,"movement_type":"office","description":"Late punch-in: Work-related reason (approved call / task)"} 
+[2026-03-31 11:17:25] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":1445,"date":"2026-03-31"} 
+[2026-03-31 11:17:25] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":1445} 
+[2026-03-31 11:17:25] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":1445,"movement_id":3401,"movement_type":"office","description":"Late punch-in: Work-related reason (approved call / task)"} 

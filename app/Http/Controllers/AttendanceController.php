@@ -257,6 +257,7 @@ class AttendanceController extends Controller
             }
             // --- Location Validation End ---
 
+            $lateMinutesToRecord = 0;
             // ONLY check for late reason if this is the FIRST office/field IN of the day
             if (!$hasAnyIn) {
                 $employee = $user->employee;
@@ -284,6 +285,7 @@ class AttendanceController extends Controller
 
                     // ONLY require late reason if current time is AFTER (shift_start + late_min)
                     if ($now->greaterThan($cutoffTime)) {
+                        $lateMinutesToRecord = (int) abs($now->diffInMinutes($shiftStart));
                         // User is late; require reason
                         if (empty($request->late_reason)) {
                             Log::info('Late punch-in requires reason (no DB write)', [
@@ -314,12 +316,22 @@ class AttendanceController extends Controller
         }
 
         // All validations passed. Now ensure we have an attendance row for today.
-        $attendance = $existingAttendance ?: Attendance::create([
-            'user_id' => $user->id,
-            'date' => $today,
-            'is_wfh' => $request->boolean('work_from_home') ? 1 : 0,
-            'is_emergency' => $request->boolean('emergency_attendance') ? 1 : 0,
-        ]);
+        if ($existingAttendance) {
+            $attendance = $existingAttendance;
+            // If it's a field in and we already have attendance, we might need to update late_minutes 
+            // if this is the first IN of the day (though usually first IN is what creates the row)
+            if (isset($lateMinutesToRecord) && $lateMinutesToRecord > 0) {
+                 $attendance->update(['late_minutes' => $lateMinutesToRecord]);
+            }
+        } else {
+            $attendance = Attendance::create([
+                'user_id' => $user->id,
+                'date' => $today,
+                'is_wfh' => $request->boolean('work_from_home') ? 1 : 0,
+                'is_emergency' => $request->boolean('emergency_attendance') ? 1 : 0,
+                'late_minutes' => $lateMinutesToRecord ?? 0,
+            ]);
+        }
 
         Log::info('Punch-in attendance resolved', [
             'user_id' => $user->id,
@@ -729,6 +741,8 @@ class AttendanceController extends Controller
             'break_cycles' => $this->calculateCycles($movementsByType->get('break', collect()))
         ];
 
+        $lateMinutes = (int) ($attendance->late_minutes ?? 0);
+
         // Determine current status for each type
         $status = [];
         foreach (['office', 'field', 'break'] as $type) {
@@ -787,6 +801,7 @@ class AttendanceController extends Controller
             'movements' => $movementsArray, // Return grouped movements as expected by frontend
             'status' => $status,
             'cycles' => $cycles,
+            'late_minutes' => $lateMinutes,
             'worklog_validation' => [
                 'can_perform_attendance' => $attendanceCheck['can_perform'],
                 'message' => $attendanceCheck['message']
@@ -921,11 +936,22 @@ class AttendanceController extends Controller
         $stats['total_days'] = $monthAttendances->count();
         
         $totalMonthHours = 0;
+        $totalLateMinutes = 0;
         foreach ($monthAttendances as $attendance) {
             $totalMonthHours += $this->calculateHours($attendance->movements);
+            $totalLateMinutes += (int) abs($attendance->late_minutes ?? 0);
         }
         
         $stats['month_hours'] = $totalMonthHours;
+        $stats['total_late_minutes'] = $totalLateMinutes;
+        
+        // Late Allowance
+        $lateAllowance = 0;
+        if ($user && $user->employee && $user->employee->employmentTypeRelation) {
+            $lateAllowance = (int) $user->employee->employmentTypeRelation->min_per_month_late_allow;
+        }
+        $stats['late_allowance'] = $lateAllowance;
+
         $stats['avg_hours_per_day'] = $stats['total_days'] > 0 ? round($totalMonthHours / $stats['total_days'], 2) : 0;
 
         return response()->json($stats);
@@ -973,11 +999,13 @@ class AttendanceController extends Controller
         $totalOfficeHours = 0;
         $totalFieldHours = 0;
         $totalBreakTime = 0;
+        $totalLateMinutes = 0;
         $totalCycles = ['office' => 0, 'field' => 0, 'break' => 0];
 
         foreach ($attendances as $attendance) {
             $dayHours = $this->calculateHours($attendance->movements);
             $totalHours += $dayHours;
+            $totalLateMinutes += (int) ($attendance->late_minutes ?? 0);
             
             $officeHours = $this->calculateTypeHours($attendance->movements, 'office');
             $fieldHours = $this->calculateTypeHours($attendance->movements, 'field');
@@ -1010,6 +1038,7 @@ class AttendanceController extends Controller
             'total_office_hours' => round($totalOfficeHours, 2),
             'total_field_hours' => round($totalFieldHours, 2),
             'total_break_time' => round($totalBreakTime, 2),
+            'total_late_minutes' => $totalLateMinutes,
             'avg_hours_per_day' => $totalDays > 0 ? round($totalHours / $totalDays, 2) : 0,
             'avg_office_hours_per_day' => $totalDays > 0 ? round($totalOfficeHours / $totalDays, 2) : 0,
             'avg_field_hours_per_day' => $totalDays > 0 ? round($totalFieldHours / $totalDays, 2) : 0,
@@ -1084,6 +1113,7 @@ class AttendanceController extends Controller
                     'office_hours' => 0,
                     'field_hours' => 0,
                     'break_time' => 0,
+                    'late_minutes' => 0,
                     'cycles' => ['office' => 0, 'field' => 0, 'break' => 0]
                 ];
             }
@@ -1093,6 +1123,7 @@ class AttendanceController extends Controller
             $monthlyData[$monthKey]['office_hours'] += $this->calculateTypeHours($attendance->movements, 'office');
             $monthlyData[$monthKey]['field_hours'] += $this->calculateTypeHours($attendance->movements, 'field');
             $monthlyData[$monthKey]['break_time'] += $this->calculateTypeHours($attendance->movements, 'break');
+            $monthlyData[$monthKey]['late_minutes'] += (int) ($attendance->late_minutes ?? 0);
             
             $cycles = $this->calculateDayCycles($attendance->movements);
             $monthlyData[$monthKey]['cycles']['office'] += $cycles['office'];
@@ -1659,7 +1690,7 @@ class AttendanceController extends Controller
             foreach ($data['month']['dates'] as $d) {
                 $header[] = $d['day'] . '(' . $d['day_name'] . ')';
             }
-            $header = array_merge($header, ['Work Days', 'Total Present', 'Full Day', 'Half Day', 'Sunday Work', 'Holiday Work', 'Leave', 'Absent', 'Less 8:30', 'More 8:30', 'Late Count']);
+            $header = array_merge($header, ['Work Days', 'Total Present', 'Full Day', 'Half Day', 'Sunday Work', 'Holiday Work', 'Leave', 'Absent', 'Less 8:30', 'More 8:30', 'Late Count', 'Late Min']);
             fputcsv($file, $header);
 
             // Data Rows
@@ -1686,6 +1717,7 @@ class AttendanceController extends Controller
                 $row[] = $s['total_less_8_30'];
                 $row[] = $s['total_more_8_30'];
                 $row[] = $s['late_count'] ?? 0;
+                $row[] = $s['total_late_minutes'] ?? 0;
                 
                 fputcsv($file, $row);
             }
@@ -1987,6 +2019,7 @@ class AttendanceController extends Controller
         $totalLess8_30 = 0;
         $totalMore8_30 = 0;
         $lateCount = 0;
+        $totalLateMinutes = 0;
         $lateLogs = [];
         
         $shiftRelation = $user ? ($user->employee->shiftRelation ?? null) : null;
@@ -2097,6 +2130,9 @@ class AttendanceController extends Controller
                         ];
                     }
                 }
+                
+                // Add late minutes from attendance record if it exists
+                $totalLateMinutes += (int) abs($attendance->late_minutes ?? 0);
             }
         }
         
@@ -2180,6 +2216,7 @@ class AttendanceController extends Controller
             'total_less_8_30' => $totalLess8_30,
             'total_more_8_30' => $totalMore8_30,
             'late_count' => $lateCount,
+            'total_late_minutes' => $totalLateMinutes,
             'late_logs' => $lateLogs
         ];
     }
@@ -2224,6 +2261,7 @@ class AttendanceController extends Controller
                 $dayData['field_hours'] = $this->calculateTypeHours($attendance->movements, 'field');
                 $dayData['break_time'] = $this->calculateTypeHours($attendance->movements, 'break');
                 $dayData['cycles'] = $this->calculateDayCycles($attendance->movements);
+                $dayData['late_minutes'] = (int) ($attendance->late_minutes ?? 0);
                 $dayData['is_wfh'] = $attendance->is_wfh;
                 
                 // Format movements for display

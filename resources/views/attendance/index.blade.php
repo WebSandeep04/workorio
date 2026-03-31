@@ -35,7 +35,7 @@
 
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 1.25rem;
     margin-bottom: 2rem;
   }
@@ -424,6 +424,11 @@
       <p>Avg Hours / Day</p>
       <h2 id="avgHours">0</h2>
       <span>Consistency</span>
+    </div>
+    <div class="metric-card" style="background: linear-gradient(135deg, #434afa 0%, #1e25fa 100%);">
+      <p>Late Allowance (Min)</p>
+      <h2 id="lateAllowanceDisplay">0/0</h2>
+      <span id="lateAllowanceRemaining">Remaining: 0 min</span>
     </div>
   </div>
 
@@ -911,6 +916,20 @@ function loadAttendanceStats() {
             document.getElementById('monthHours').textContent = formatHoursClock(response.month_hours);
             document.getElementById('totalDays').textContent = formatInteger(response.total_days);
             document.getElementById('avgHours').textContent = formatHoursClock(response.avg_hours_per_day);
+            
+            // Update Late Allowance
+            const lateUsed = parseInt(response.total_late_minutes || 0);
+            const lateTotal = parseInt(response.late_allowance || 0);
+            const lateRemaining = Math.max(0, lateTotal - lateUsed);
+            
+            document.getElementById('lateAllowanceDisplay').textContent = `${lateUsed}/${lateTotal}`;
+            document.getElementById('lateAllowanceRemaining').textContent = `Remaining: ${lateRemaining} min`;
+            
+            // Static color format as requested
+            const lateCard = document.getElementById('lateAllowanceDisplay').closest('.metric-card');
+            if (lateCard) {
+                lateCard.style.background = 'linear-gradient(135deg, #434afa 0%, #1e25fa 100%)';
+            }
         },
         error: function(xhr) {
             console.error('Error loading attendance stats:', xhr.responseText);

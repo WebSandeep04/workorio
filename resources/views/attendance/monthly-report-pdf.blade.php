@@ -65,7 +65,7 @@
                 @endphp
                 <th class="date-col {{ $style }}">{{ $d['day'] }}</th>
             @endforeach
-            <th colspan="11">Summary</th>
+            <th colspan="12">Summary</th>
         </tr>
         <tr>
             @foreach($data['month']['dates'] as $d)
@@ -86,6 +86,7 @@
             <th class="summary-col">&lt;8:30</th>
             <th class="summary-col">&gt;8:30</th>
             <th class="summary-col">Late</th>
+            <th class="summary-col" title="Late Minutes">LM</th>
         </tr>
     </thead>
     <tbody>
@@ -127,6 +128,7 @@
                     <td>{{ $s['total_less_8_30'] }}</td>
                     <td>{{ $s['total_more_8_30'] }}</td>
                     <td class="text-danger">{{ $s['late_count'] ?? 0 }}</td>
+                    <td class="text-danger">{{ $s['total_late_minutes'] ?? 0 }}</td>
                 </tr>
             @endforeach
         @else
