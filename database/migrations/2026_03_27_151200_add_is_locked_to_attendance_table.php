@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('attendance', function (Blueprint $table) {
             $table->boolean('is_locked')->default(false)->after('is_approved')->comment('Automatically locked if date < today');
         });

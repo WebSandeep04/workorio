@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('employment_types', function (Blueprint $table) {
             $table->integer('sl_allowed')->default(0)->after('rh_allowed')->comment('How many Short Leaves allowed per month');
         });

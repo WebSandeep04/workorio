@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('users', function (Blueprint $table) {
             $table->boolean('is_subscription')->default(0)->after('is_calander');
         });

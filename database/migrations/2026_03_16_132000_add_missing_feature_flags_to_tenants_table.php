@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+       // Skip this migration if running on tenant database
+        if (Schema::getConnection()->getName() !== 'mysql') {
+            return;
+        }
         Schema::table('tenants', function (Blueprint $table) {
             if (!Schema::hasColumn('tenants', 'is_tally_calling_enabled')) {
                 $table->boolean('is_tally_calling_enabled')->default(0);

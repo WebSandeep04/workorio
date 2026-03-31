@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::getConnection()->getName() !== 'mysql') {
+            return;
+        }
         Schema::table('tenants', function (Blueprint $table) {
             $flags = [
                 'is_core_setup_enabled',
@@ -25,6 +28,7 @@ return new class extends Migration
                 'is_attendance_setup_enabled',
                 'is_reports_setup_enabled',
                 'is_document_setup_enabled',
+                'is_petty_cash_setup_enabled',
                 'is_contact_management_setup_enabled',
                 'is_asset_management_setup_enabled',
                 'is_email_marketing_setup_enabled',
@@ -57,6 +61,7 @@ return new class extends Migration
                 'is_attendance_setup_enabled',
                 'is_reports_setup_enabled',
                 'is_document_setup_enabled',
+                'is_petty_cash_setup_enabled',
                 'is_contact_management_setup_enabled',
                 'is_asset_management_setup_enabled',
                 'is_email_marketing_setup_enabled',

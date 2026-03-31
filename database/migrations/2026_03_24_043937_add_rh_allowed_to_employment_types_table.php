@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('employment_types', function (Blueprint $table) {
             $table->integer('rh_allowed')->default(0)->after('name')->comment('How many Restricted Holidays allowed');
         });
@@ -21,6 +24,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('employment_types', function (Blueprint $table) {
             $table->dropColumn('rh_allowed');
         });

@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('holidays', function (Blueprint $table) {
             $table->boolean('is_rh')->default(false)->after('holiday_date')->comment('Is Restricted Holiday');
         });

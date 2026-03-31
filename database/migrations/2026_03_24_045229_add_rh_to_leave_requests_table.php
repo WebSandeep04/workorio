@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('leave_requests', function (Blueprint $table) {
             $table->unsignedBigInteger('leave_type_id')->nullable()->change();
             $table->boolean('is_rh')->default(false)->after('leave_type_id');
