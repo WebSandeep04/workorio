@@ -549,9 +549,9 @@ class WorklogController extends Controller
                 ->where('date', $currentDate)
                 ->exists();
             
-            // Only add to missing dates if user has attendance (not absent), no worklog entry, and no leave
-            // This now includes Sundays and Holidays if the user has attendance
-            if ($hasAttendance && !$hasEntry && !$hasLeave) {
+            // Only add to missing dates if user has attendance (not absent) and no worklog entry
+            // Having a leave (short leave/half-day) does not exempt you if you have punched in
+            if ($hasAttendance && !$hasEntry) {
                 $missingDates[] = $currentDate;
             }
             
@@ -634,9 +634,10 @@ class WorklogController extends Controller
                 ->where('status', 'approved')
                 ->exists();
             
-            // User is considered complete if they have either worklog entry or leave
-            if (!$hasWorklogEntry && !$hasLeave) {
-                return false; // At least one eligible user is missing an entry or leave
+            // User must have a worklog entry if they have attendance
+            // Approved leave (half-day/short leave) is not an exemption if they worked
+            if (!$hasWorklogEntry) {
+                return false; // At least one eligible user is missing an entry
             }
         }
         
@@ -793,8 +794,9 @@ class WorklogController extends Controller
                         ->where('status', 'approved')
                         ->exists();
                     
-                    // User is considered complete if they have either worklog entry or leave
-                    if (!$hasEntry && !$hasLeave) {
+                    // User is missing worklog if they have attendance and no entry
+                    // Leave is not an exemption if attendance exists
+                    if (!$hasEntry) {
                         $missingUsers[] = [
                             'id' => $user->id,
                             'name' => $user->name,

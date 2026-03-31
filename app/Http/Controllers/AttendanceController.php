@@ -286,8 +286,41 @@ class AttendanceController extends Controller
                     // ONLY require late reason if current time is AFTER (shift_start + late_min)
                     if ($now->greaterThan($cutoffTime)) {
                         $lateMinutesToRecord = (int) abs($now->diffInMinutes($shiftStart));
+
+                        // Check if monthly late allowance exceeded
+                        $thisMonth = Carbon::now()->startOfMonth();
+                        $alreadyUsedLateMinutes = (int) abs(Attendance::where('user_id', $user->id)
+                            ->where('date', '>=', $thisMonth)
+                            ->sum('late_minutes'));
+                            
+                        $monthlyLateAllowance = (int) ($employee->employmentTypeRelation->min_per_month_late_allow ?? 0);
+
+                        // Check if user already has an approved or pending leave for today
+                        // (which would exempt them from the late allowance check)
+                        $hasLeaveToday = LeaveRequest::where('user_id', $user->id)
+                            ->where('start_date', '<=', $today->toDateString())
+                            ->where('end_date', '>=', $today->toDateString())
+                            ->whereIn('status', ['pending', 'approved'])
+                            ->exists();
+                        
+                        // If allowance is set ( > 0 ) and combined late minutes exceed it, block the punch-in
+                        // BUT exempt them if they have already applied for or had a leave approved for today
+                        if (!$hasLeaveToday && $monthlyLateAllowance > 0 && ($alreadyUsedLateMinutes + $lateMinutesToRecord) > $monthlyLateAllowance) {
+
+                             return response()->json([
+                                 'success' => false,
+                                 'late_allowance_exceeded' => true,
+                                 'message' => 'You have exceeded your monthly late allowance (' . $alreadyUsedLateMinutes . '/' . $monthlyLateAllowance . ' min). Today\'s late of ' . $lateMinutesToRecord . ' min would put you at ' . ($alreadyUsedLateMinutes + $lateMinutesToRecord) . ' min. Please apply for a Short Leave (SL) or Half-Day leave instead.',
+                                 'used' => $alreadyUsedLateMinutes,
+                                 'today_late' => $lateMinutesToRecord,
+                                 'allowance' => $monthlyLateAllowance,
+                                 'leave_url' => route('leave.index')
+                             ], 403);
+                        }
+                        
                         // User is late; require reason
                         if (empty($request->late_reason)) {
+
                             Log::info('Late punch-in requires reason (no DB write)', [
                                 'user_id' => $user->id,
                                 'movement_type' => $request->movement_type,

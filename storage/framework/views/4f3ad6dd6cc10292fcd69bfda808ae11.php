@@ -582,8 +582,10 @@
       </div>
       <div class="modal-footer justify-content-center border-0 pb-4">
         <a href="<?php echo e(route('my-tasks.index')); ?>" class="btn text-white d-none" id="messageModalTaskLink" style="background-color: #434afa; border-color: #434afa; border-radius: 3px; padding: 0.5rem 1.5rem;">Go to My Tasks</a>
+        <a href="<?php echo e(route('leave.index')); ?>" class="btn text-white d-none" id="messageModalLeaveLink" style="background-color: #198754; border-color: #198754; border-radius: 3px; padding: 0.5rem 1.5rem;">Apply for Leave</a>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 3px; padding: 0.5rem 1.5rem;">Close</button>
       </div>
+
     </div>
   </div>
 </div>
@@ -708,10 +710,13 @@ function performPunchIn(type) {
                 }
 
                 if (xhr.status === 403) {
-                     // Location restriction or other forbidden actions
-                    showAlert('error', errorMessage);
+                    if (xhr.responseJSON && xhr.responseJSON.late_allowance_exceeded) {
+                        showMessageModal('Late Allowance Exceeded', errorMessage, 'warning', false, true);
+                    } else {
+                        showAlert('error', errorMessage);
+                    }
                 } else if (xhr.status === 422) {
-                     // Validation errors (missing location, late reason, etc)
+                    // Validation errors (missing location, late reason, etc)
                     if (xhr.responseJSON && xhr.responseJSON.require_late_reason) {
                          pendingLatePunchType = type;
                          openLateReasonModal();
@@ -789,12 +794,13 @@ function performPunchOut(type) {
     });
 }
 
-function showMessageModal(title, message, type = 'info', showTaskButton = false) {
+function showMessageModal(title, message, type = 'info', showTaskButton = false, showLeaveButton = false) {
     const modalEl = document.getElementById('messageModal');
     const header = document.getElementById('messageModalHeader');
     const icon = document.getElementById('messageModalIcon');
     const text = document.getElementById('messageModalText');
     const taskBtn = document.getElementById('messageModalTaskLink');
+    const leaveBtn = document.getElementById('messageModalLeaveLink');
     
     // Set Title
     document.getElementById('messageModalLabel').textContent = title;
@@ -813,12 +819,9 @@ function showMessageModal(title, message, type = 'info', showTaskButton = false)
         icon.innerHTML = '<i class="bi bi-info-circle text-primary"></i>';
     }
 
-    // Toggle Task Button
-    if (showTaskButton) {
-        taskBtn.classList.remove('d-none');
-    } else {
-        taskBtn.classList.add('d-none');
-    }
+    // Toggle Buttons
+    taskBtn.classList.toggle('d-none', !showTaskButton);
+    leaveBtn.classList.toggle('d-none', !showLeaveButton);
 
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
@@ -1459,10 +1462,17 @@ function handleLateReasonSave(e) {
                 console.error('Punch in error (late reason modal):', xhr.responseText);
                 let errorMsg = 'An error occurred while saving late reason.';
                 
-                if (xhr.status === 403 || xhr.status === 422) {
-                     if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMsg = xhr.responseJSON.message;
+                if (xhr.status === 403) {
+                     if (xhr.responseJSON && xhr.responseJSON.late_allowance_exceeded) {
+                        const modalEl = document.getElementById('lateReasonModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                        showMessageModal('Late Allowance Exceeded', xhr.responseJSON.message, 'warning', false, true);
+                        return;
                      }
+                     errorMsg = xhr.responseJSON.message || errorMsg;
+                } else if (xhr.status === 422) {
+                     errorMsg = xhr.responseJSON.message || errorMsg;
                 } else if (xhr.responseJSON && xhr.responseJSON.errors) {
                     errorMsg = Object.values(xhr.responseJSON.errors).flat().join(', ');
                 }
