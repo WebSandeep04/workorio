@@ -15,6 +15,7 @@ return new class extends Migration
             return;
         }
 
+        /*
         Schema::table('users', function (Blueprint $table) {
             $flags = [
                 'is_core_setup',
@@ -44,6 +45,7 @@ return new class extends Migration
                 }
             }
         });
+        */
     }
 
     /**
@@ -55,6 +57,7 @@ return new class extends Migration
             return;
         }
 
+        /*
         Schema::table('users', function (Blueprint $table) {
             $flags = [
                 'is_core_setup',
@@ -84,5 +87,6 @@ return new class extends Migration
                 }
             }
         });
+        */
     }
 };
