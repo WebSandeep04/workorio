@@ -50,7 +50,13 @@
                             <div class="invalid-feedback" id="tenant_name_error"></div>
                         </div>
                         <div class="menu-grid">
-                            <label class="form-label">Enabled Menus</label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">Enabled Menus</label>
+                                <label class="modern-checkbox py-1 px-2" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); cursor: pointer;">
+                                    <input type="checkbox" class="select-all-menus" checked>
+                                    <span>Select All</span>
+                                </label>
+                            </div>
                             <div class="menu-checkboxes">
                                 <?php
                                     $menus = [
@@ -105,7 +111,13 @@
                         </div>
                         
                         <div class="mt-3">
-                            <label class="d-block mb-3 fw-bold text-muted small text-uppercase">Setup Dimensions</label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="fw-bold text-muted small text-uppercase mb-0">Setup Dimensions</label>
+                                <label class="modern-checkbox py-1 px-2" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); cursor: pointer;">
+                                    <input type="checkbox" class="select-all-setup" checked>
+                                    <span>Select All</span>
+                                </label>
+                            </div>
                             <div class="checkbox-grid">
                                 <?php $__currentLoopData = $setupMenus; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $id): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <label class="modern-checkbox">
@@ -365,8 +377,14 @@
                         <div class="invalid-feedback" id="edit_tenant_name_error"></div>
                     </div>
                     <div class="form-group">
-                        <label class="d-block mb-2 fw-bold text-muted small text-uppercase">Enabled Modules</label>
-                        <div class="d-flex flex-wrap gap-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="fw-bold text-muted small text-uppercase mb-0">Enabled Modules</label>
+                            <label class="modern-checkbox py-1 px-2" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); cursor: pointer;">
+                                <input type="checkbox" class="select-all-edit-menus">
+                                <span>Select All</span>
+                            </label>
+                        </div>
+                        <div class="d-flex flex-wrap gap-3 mb-4 edit-menu-checkboxes">
                             <?php $__currentLoopData = $menus; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $id): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="form-check me-3 mb-2">
                                 <input class="form-check-input" type="checkbox" id="edit_<?php echo e($id); ?>" name="<?php echo e($id); ?>">
@@ -375,8 +393,14 @@
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                         
-                        <label class="d-block mb-2 fw-bold text-muted small text-uppercase">Setup Dimensions</label>
-                        <div class="d-flex flex-wrap gap-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="fw-bold text-muted small text-uppercase mb-0">Setup Dimensions</label>
+                            <label class="modern-checkbox py-1 px-2" style="font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); cursor: pointer;">
+                                <input type="checkbox" class="select-all-edit-setup">
+                                <span>Select All</span>
+                            </label>
+                        </div>
+                        <div class="d-flex flex-wrap gap-3 edit-setup-checkboxes">
                             <?php $__currentLoopData = $setupMenus; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $id): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="form-check me-3 mb-2">
                                 <input class="form-check-input" type="checkbox" id="edit_<?php echo e($id); ?>" name="<?php echo e($id); ?>">
@@ -615,6 +639,48 @@ $(document).ready(function() {
             $('.alert').fadeOut();
         }, 5000);
     }
+    // Select All logic
+    $('.select-all-menus').on('change', function() {
+        $('.menu-checkboxes input[type="checkbox"]').prop('checked', $(this).is(':checked'));
+    });
+
+    $('.select-all-setup').on('change', function() {
+        $('.checkbox-grid input[type="checkbox"]').prop('checked', $(this).is(':checked'));
+    });
+
+    $('.select-all-edit-menus').on('change', function() {
+        $('.edit-menu-checkboxes input[type="checkbox"]').prop('checked', $(this).is(':checked'));
+    });
+
+    $('.select-all-edit-setup').on('change', function() {
+        $('.edit-setup-checkboxes input[type="checkbox"]').prop('checked', $(this).is(':checked'));
+    });
+
+
+});
+
+// Update Select All on individual checkbox change
+function updateSelectAll(containerSelector, selectAllSelector) {
+    const total = $(`${containerSelector} input[type="checkbox"]`).length;
+    const checked = $(`${containerSelector} input[type="checkbox"]:checked`).length;
+    if (total === 0) return;
+    $(selectAllSelector).prop('checked', total === checked);
+}
+
+$(document).on('change', '.menu-checkboxes input[type="checkbox"]', function() {
+    updateSelectAll('.menu-checkboxes', '.select-all-menus');
+});
+
+$(document).on('change', '.checkbox-grid input[type="checkbox"]', function() {
+    updateSelectAll('.checkbox-grid', '.select-all-setup');
+});
+
+$(document).on('change', '.edit-menu-checkboxes input[type="checkbox"]', function() {
+    updateSelectAll('.edit-menu-checkboxes', '.select-all-edit-menus');
+});
+
+$(document).on('change', '.edit-setup-checkboxes input[type="checkbox"]', function() {
+    updateSelectAll('.edit-setup-checkboxes', '.select-all-edit-setup');
 });
 
 // Global functions for onclick handlers
@@ -634,7 +700,10 @@ function editTenant(index) {
             $(this).prop('checked', false);
         }
     });
-
+    
+    updateSelectAll('.edit-menu-checkboxes', '.select-all-edit-menus');
+    updateSelectAll('.edit-setup-checkboxes', '.select-all-edit-setup');
+    
     $('#editTenantModal').modal('show');
 }
 
