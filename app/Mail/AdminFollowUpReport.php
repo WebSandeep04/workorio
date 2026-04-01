@@ -15,6 +15,7 @@ class AdminFollowUpReport extends Mailable
 
     public $records;
     public $newLeads;
+    public $completedToday;
     public $today;
     public $summary;
     public $alert_prefix;
@@ -22,10 +23,11 @@ class AdminFollowUpReport extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct($records, $newLeads, $today, $summary, $alert_prefix = null)
+    public function __construct($records, $newLeads, $completedToday, $today, $summary, $alert_prefix = null)
     {
         $this->records = $records;
         $this->newLeads = $newLeads;
+        $this->completedToday = $completedToday;
         $this->today = $today;
         $this->summary = $summary;
         $this->alert_prefix = $alert_prefix;

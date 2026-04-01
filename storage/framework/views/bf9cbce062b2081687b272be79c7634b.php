@@ -325,12 +325,12 @@
   .data-table-card .custom-table tbody td:nth-child(3) { min-width: 130px; }
   .data-table-card .custom-table tbody td:nth-child(4) { min-width: 180px; }
   .data-table-card .custom-table tbody td:nth-child(5) { min-width: 180px; }
-  .data-table-card .custom-table tbody td:nth-child(6) { min-width: 160px; }
-  .data-table-card .custom-table tbody td:nth-child(7) { min-width: 120px; }
-  .data-table-card .custom-table tbody td:nth-child(8) { min-width: 160px; }
-  .data-table-card .custom-table tbody td:nth-child(9) { min-width: 150px; }
+  .data-table-card .custom-table tbody td:nth-child(6) { min-width: 200px; }
+  .data-table-card .custom-table tbody td:nth-child(7) { min-width: 160px; }
+  .data-table-card .custom-table tbody td:nth-child(8) { min-width: 120px; }
+  .data-table-card .custom-table tbody td:nth-child(9) { min-width: 160px; }
   .data-table-card .custom-table tbody td:nth-child(10) { min-width: 150px; }
-  .data-table-card .custom-table tbody td:nth-child(11) { min-width: 200px; }
+  .data-table-card .custom-table tbody td:nth-child(11) { min-width: 150px; }
   .data-table-card .custom-table tbody td:nth-child(12) { min-width: 120px; }
   .data-table-card .custom-table tbody td:nth-child(13) { min-width: 120px; }
 
@@ -637,12 +637,12 @@
               <th>Query Type</th>
               <th>Subject</th>
               <th>Product</th>
+              <th>Remark</th>
               <th>Sender</th>
               <th>Mobile</th>
               <th>Email</th>
               <th>Company</th>
               <th>City</th>
-              <th>Remark</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -778,16 +778,16 @@
           <td>${r.query_type ?? 'N/A'}</td>
           <td>${r.subject ?? 'N/A'}</td>
           <td>${r.query_product_name ?? r.product_name ?? 'N/A'}</td>
-          <td>${r.sender_name ?? 'N/A'}</td>
-          <td>${r.sender_mobile ?? 'N/A'}</td>
-          <td>${r.sender_email ?? 'N/A'}</td>
-          <td>${r.sender_company ?? 'N/A'}</td>
-          <td>${r.sender_city ?? 'N/A'}</td>
           <td>
             <div class="im-followup-btn im-clickable-remark" style="max-width: 200px; white-space: normal; font-size: 0.75rem; color: #4B5563; cursor: pointer;" data-lead-id="${r.id}">
               ${r.latest_remark ?? 'N/A'}
             </div>
           </td>
+          <td>${r.sender_name ?? 'N/A'}</td>
+          <td>${r.sender_mobile ?? 'N/A'}</td>
+          <td>${r.sender_email ?? 'N/A'}</td>
+          <td>${r.sender_company ?? 'N/A'}</td>
+          <td>${r.sender_city ?? 'N/A'}</td>
           <td>${statusBadge(r.status)}</td>
           <td>
             <div class="btn-group">

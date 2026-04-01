@@ -3,7 +3,7 @@
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Follow-up Report - {{ $today }}</title>
+    <title>Follow-up Report - <?php echo e($today); ?></title>
     <style>
         .email-container {
             max-width: 800px;
@@ -141,11 +141,11 @@
     <div class='email-container'>
         <div class='header'>
             <h1>Follow-up Report</h1>
-            <p>Daily Sales Follow-up Summary - {{ $today }}</p>
+            <p>Daily Sales Follow-up Summary - <?php echo e($today); ?></p>
         </div>
         
         <div class='summary-section'>
-            <h2 class='summary-title'>Follow-up Summary - {{ $today }}</h2>
+            <h2 class='summary-title'>Follow-up Summary - <?php echo e($today); ?></h2>
             <div class='table-container'>
                 <table class='summary-table'>
                     <thead>
@@ -155,12 +155,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($summary as $user => $count)
+                        <?php $__currentLoopData = $summary; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user => $count): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td><strong>{{ $user }}</strong></td>
-                            <td style='text-align: center;'><span class='count-badge'>{{ $count }}</span></td>
+                            <td><strong><?php echo e($user); ?></strong></td>
+                            <td style='text-align: center;'><span class='count-badge'><?php echo e($count); ?></span></td>
                         </tr>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
                 </table>
             </div>
@@ -181,24 +181,24 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($newLeads as $nl)
-                            @php
+                        <?php $__empty_1 = true; $__currentLoopData = $newLeads; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $nl): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <?php
                                 $nl_date = \Carbon\Carbon::parse($nl->createdat)->format('d M, Y');
                                 $nl_user = $nl->user ? $nl->user->name : 'Unknown';
                                 $nl_city = $nl->city ? $nl->city->city_name : '';
                                 $nl_status = $nl->status ? $nl->status->status_name : 'Unknown';
-                            @endphp
+                            ?>
                             <tr>
-                                <td><strong>{{ $nl->leads_name }}</strong></td>
-                                <td>{{ $nl_user }}</td>
-                                <td>{{ $nl->contact_number }}</td>
-                                <td>{{ $nl_city }}</td>
-                                <td><span class='status-badge'>{{ $nl_status }}</span></td>
-                                <td>{{ $nl_date }}</td>
+                                <td><strong><?php echo e($nl->leads_name); ?></strong></td>
+                                <td><?php echo e($nl_user); ?></td>
+                                <td><?php echo e($nl->contact_number); ?></td>
+                                <td><?php echo e($nl_city); ?></td>
+                                <td><span class='status-badge'><?php echo e($nl_status); ?></span></td>
+                                <td><?php echo e($nl_date); ?></td>
                             </tr>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr><td colspan='6' style='text-align:center; padding:10px;'>No new leads added since yesterday.</td></tr>
-                        @endforelse
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -219,8 +219,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($completedToday as $ct)
-                            @php
+                        <?php $__empty_1 = true; $__currentLoopData = $completedToday; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $ct): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <?php
                                 $ct_date = \Carbon\Carbon::parse($ct->updatedat)->format('d M, Y H:i');
                                 $ct_user = $ct->user ? $ct->user->name : 'Unknown';
                                 $ct_city = $ct->city ? $ct->city->city_name : '';
@@ -230,41 +230,41 @@
                                 if (strtolower($ct_status) == 'completed') $ct_status_class = 'status-completed';
                                 if (strtolower($ct_status) == 'rejected') $ct_status_class = 'status-rejected';
                                 if (strtolower($ct_status) == 'pending') $ct_status_class = 'status-pending';
-                            @endphp
+                            ?>
                             <tr>
-                                <td><strong>{{ $ct->leads_name }}</strong></td>
-                                <td>{{ $ct_user }}</td>
-                                <td>{{ $ct->contact_number }}</td>
-                                <td>{{ $ct_city }}</td>
-                                <td><span class='status-badge {{ $ct_status_class }}'>{{ $ct_status }}</span></td>
-                                <td>{{ $ct_date }}</td>
+                                <td><strong><?php echo e($ct->leads_name); ?></strong></td>
+                                <td><?php echo e($ct_user); ?></td>
+                                <td><?php echo e($ct->contact_number); ?></td>
+                                <td><?php echo e($ct_city); ?></td>
+                                <td><span class='status-badge <?php echo e($ct_status_class); ?>'><?php echo e($ct_status); ?></span></td>
+                                <td><?php echo e($ct_date); ?></td>
                             </tr>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr><td colspan='6' style='text-align:center; padding:10px;'>No follow ups completed today.</td></tr>
-                        @endforelse
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
         </div>
             
-            @php 
+            <?php 
                 $groupedRecords = $records->groupBy(function($item) {
                     return $item->user ? $item->user->name : 'Unknown';
                 });
-            @endphp
+            ?>
 
-            @foreach ($groupedRecords as $userName => $userRecords)
+            <?php $__currentLoopData = $groupedRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $userName => $userRecords): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class='user-section'>
-                    <h3 class='user-header'>USER: {{ $userName }}</h3>
+                    <h3 class='user-header'>USER: <?php echo e($userName); ?></h3>
                     
-                    @php 
+                    <?php 
                         $dateRecords = $userRecords->groupBy(function($item) {
                             return $item->next_follow_up_date ? $item->next_follow_up_date->format('Y-m-d') : '';
                         });
-                    @endphp
+                    ?>
                     
-                    @foreach ($dateRecords as $date => $dayRecords)
-                        <h4 class='date-header'>DATE: {{ $date }}</h4>
+                    <?php $__currentLoopData = $dateRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date => $dayRecords): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <h4 class='date-header'>DATE: <?php echo e($date); ?></h4>
                         <div class='table-container'>
                             <table class='details-table'>
                                 <thead>
@@ -279,8 +279,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($dayRecords as $rec)
-                                        @php
+                                    <?php $__currentLoopData = $dayRecords; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rec): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <?php
                                             $status_name = $rec->status ? $rec->status->status_name : 'Unknown';
                                             $status_class = 'status-default';
                                             if (strtolower($status_name) == 'completed') $status_class = 'status-completed';
@@ -290,23 +290,23 @@
                                             $city = $rec->city ? $rec->city->city_name : '';
                                             $state = $rec->state ? $rec->state->state_name : '';
                                             $location = trim($city . ', ' . $state, ', ');
-                                        @endphp
+                                        ?>
                                         <tr>
-                                            <td><strong>{{ $rec->leads_name }}</strong></td>
-                                            <td>{{ $rec->contact_person }}</td>
-                                            <td>{{ $rec->contact_number }}</td>
-                                            <td>{{ $location }}</td>
-                                            <td>{{ $rec->email }}</td>
-                                            <td><span class='status-badge {{ $status_class }}'>{{ $status_name }}</span></td>
-                                            <td>{{ $rec->product ? $rec->product->product_name : '' }}</td>
+                                            <td><strong><?php echo e($rec->leads_name); ?></strong></td>
+                                            <td><?php echo e($rec->contact_person); ?></td>
+                                            <td><?php echo e($rec->contact_number); ?></td>
+                                            <td><?php echo e($location); ?></td>
+                                            <td><?php echo e($rec->email); ?></td>
+                                            <td><span class='status-badge <?php echo e($status_class); ?>'><?php echo e($status_name); ?></span></td>
+                                            <td><?php echo e($rec->product ? $rec->product->product_name : ''); ?></td>
                                         </tr>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </tbody>
                             </table>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
         
         <div class='footer'>
@@ -319,3 +319,4 @@
     </div>
 </body>
 </html>
+<?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/emails/admin_followup_report.blade.php ENDPATH**/ ?>

@@ -70,7 +70,7 @@ class SendAdminFollowUpReport extends Command
             // For TRISERV specifically, it is ID 1 based on previous bash output
             if ($tenant->id == 1) {
                 // Fixed emails for main tenant - usually these are active, skipping status check for these hardcoded ones unless specified.
-                $recipientEmails = ['sandeep@triserv360.com', 'shamshad@triserv360.com', 'megha@triserv360.com', 'akrati@triserv360.com'];
+                $recipientEmails = ['sandeep@triserv360.com'];
             } else {
                 $recipientEmails = User::whereHas('employee', function ($q) {
                         $q->where('status', 'active');
@@ -113,7 +113,16 @@ class SendAdminFollowUpReport extends Command
                 ->orderBy('createdat', 'DESC')
                 ->get();
                 
-            if ($records->isEmpty() && $newLeads->isEmpty()) {
+            // 3. Fetch Today's Follow up Completed
+            $completedToday = SalesRecord::with(['user', 'city', 'status', 'product'])
+                ->whereHas('user.employee', function ($q) {
+                    $q->where('status', 'active');
+                })
+                ->whereDate('updatedat', '=', $today)
+                ->orderBy('updatedat', 'DESC')
+                ->get();
+
+            if ($records->isEmpty() && $newLeads->isEmpty() && $completedToday->isEmpty()) {
                 $this->info("  No data to email for {$tenant->tenant_name}");
                 return;
             }
@@ -129,7 +138,7 @@ class SendAdminFollowUpReport extends Command
             }
 
             try {
-                Mail::to($recipientEmails)->send(new AdminFollowUpReport($records, $newLeads, $today, $summary, $this->option('alert')));
+                Mail::to($recipientEmails)->send(new AdminFollowUpReport($records, $newLeads, $completedToday, $today, $summary, $this->option('alert')));
                 $this->info("  ✅ Admin follow-up report sent to: " . implode(', ', $recipientEmails));
             } catch (\Exception $e) {
                 $this->error("  ❌ Mailer Error: " . $e->getMessage());
