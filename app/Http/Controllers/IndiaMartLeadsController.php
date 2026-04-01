@@ -29,7 +29,9 @@ class IndiaMartLeadsController extends Controller
     public function fetch(Request $request)
     {
         $perPage = (int)($request->input('per_page', 10));
-        $query = DB::table('indiamartleads')->where('is_processed', 0);
+        $query = DB::table('indiamartleads')
+            ->select('indiamartleads.*', DB::raw('(SELECT comment FROM external_lead_followups WHERE lead_id = indiamartleads.id ORDER BY created_at DESC LIMIT 1) as latest_remark'))
+            ->where('is_processed', 0);
 
         // Search across key fields
         if ($search = trim((string)$request->input('search', ''))) {
@@ -86,7 +88,9 @@ class IndiaMartLeadsController extends Controller
     public function junkFetch(Request $request)
     {
         $perPage = (int)($request->input('per_page', 10));
-        $query = DB::table('indiamartleads')->whereRaw('LOWER(status) = ?', ['junk']);
+        $query = DB::table('indiamartleads')
+            ->select('indiamartleads.*', DB::raw('(SELECT comment FROM external_lead_followups WHERE lead_id = indiamartleads.id ORDER BY created_at DESC LIMIT 1) as latest_remark'))
+            ->whereRaw('LOWER(status) = ?', ['junk']);
 
         if ($search = trim((string)$request->input('search', ''))) {
             $query->where(function ($q) use ($search) {
@@ -659,15 +663,19 @@ class IndiaMartLeadsController extends Controller
         ]);
 
         try {
-            $followup = \App\Models\ExternalLeadFollowup::create([
-                'lead_id' => $validated['lead_id'],
-                'comment' => $validated['comment'],
-            ]);
+            $userId = auth()->id() ?: $request->session()->get('user_id');
+
+            $followup = new \App\Models\ExternalLeadFollowup();
+            $followup->lead_id = $validated['lead_id'];
+            $followup->comment = $validated['comment'];
+            $followup->user_id = $userId;
+            $followup->save();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Follow-up added successfully',
-                'data' => $followup
+                'data' => $followup,
+                'debug_user_id' => $userId,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -679,7 +687,8 @@ class IndiaMartLeadsController extends Controller
 
     public function getFollowups($leadId)
     {
-        $followups = \App\Models\ExternalLeadFollowup::where('lead_id', $leadId)
+        $followups = \App\Models\ExternalLeadFollowup::with('user')
+            ->where('lead_id', $leadId)
             ->orderByDesc('created_at')
             ->get();
 

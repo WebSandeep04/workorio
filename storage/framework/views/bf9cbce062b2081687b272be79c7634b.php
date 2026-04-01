@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'IndiaMART Leads')
-@section('page_title', 'IndiaMART Leads')
 
-@push('styles')
+<?php $__env->startSection('title', 'IndiaMART Leads'); ?>
+<?php $__env->startSection('page_title', 'IndiaMART Leads'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .data-table-card .custom-table thead th {  
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
@@ -530,14 +530,14 @@
     text-decoration: underline;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="summary-cards">
     <div class="summary-card card-1">
       <div class="summary-card-icon icon-sky">
-        <img src="{{ asset('img/icons/new.png') }}" alt="New Leads">
+        <img src="<?php echo e(asset('img/icons/new.png')); ?>" alt="New Leads">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">New Leads</div>
@@ -546,7 +546,7 @@
     </div>
     <div class="summary-card card-2">
       <div class="summary-card-icon icon-amber">
-        <img src="{{ asset('img/icons/underprocess.png') }}" alt="Processing">
+        <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Processing">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">Processing</div>
@@ -555,7 +555,7 @@
     </div>
     <div class="summary-card card-3">
       <div class="summary-card-icon icon-emerald">
-        <img src="{{ asset('img/icons/tick.png') }}" alt="Converted">
+        <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Converted">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">Converted</div>
@@ -564,7 +564,7 @@
     </div>
     <div class="summary-card card-4">
       <div class="summary-card-icon icon-violet">
-        <img src="{{ asset('img/icons/call.png') }}" alt="Assigned">
+        <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Assigned">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">Assigned</div>
@@ -573,7 +573,7 @@
     </div>
     <div class="summary-card card-5">
       <div class="summary-card-icon icon-rose">
-        <img src="{{ asset('img/icons/pending.png') }}" alt="Junk">
+        <img src="<?php echo e(asset('img/icons/pending.png')); ?>" alt="Junk">
       </div>
       <div class="summary-card-content">
         <div class="summary-card-label">Junk</div>
@@ -667,9 +667,9 @@
 <div class="mt-2 d-flex justify-content-center">
   <ul class="pagination" id="im_pagination"></ul>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 (function () {
   $.ajaxSetup({
@@ -812,7 +812,7 @@
     };
 
     $.ajax({
-      url: '{{ route("indiamart.fetch") }}?page=' + page,
+      url: '<?php echo e(route("indiamart.fetch")); ?>?page=' + page,
       type: 'GET',
       data: params,
       success: function (resp) {
@@ -828,7 +828,7 @@
   }
 
   function loadSummaryStats() {
-    $.get('{{ route("indiamart.summary-stats") }}', function (data) {
+    $.get('<?php echo e(route("indiamart.summary-stats")); ?>', function (data) {
       $('#newLeadsCount').text(data.new_leads ?? 0);
       $('#processingLeadsCount').text(data.processing_leads ?? 0);
       $('#convertedLeadsCount').text(data.converted_leads ?? 0);
@@ -839,7 +839,7 @@
 
   function loadFilterOptions() {
     $.ajax({
-      url: '{{ route("indiamart.filter-options") }}',
+      url: '<?php echo e(route("indiamart.filter-options")); ?>',
       type: 'GET',
       success: function (resp) {
         const statuses = resp.statuses || [];
@@ -859,7 +859,7 @@
     if (usersCache) {
       return Promise.resolve(usersCache);
     }
-    return $.get('{{ route("fetchUsersForManager") }}').then(function (users) {
+    return $.get('<?php echo e(route("fetchUsersForManager")); ?>').then(function (users) {
       usersCache = users || [];
       return usersCache;
     });
@@ -971,7 +971,7 @@
     $btn.prop('disabled', true).text('Processing...');
 
     $.ajax({
-      url: '{{ route("indiamart.bulk-junk") }}',
+      url: '<?php echo e(route("indiamart.bulk-junk")); ?>',
       type: 'POST',
       data: {
         lead_ids: selectedIds
@@ -1025,7 +1025,7 @@
     $(this).prop('disabled', true).text('Assigning...');
 
     const isMultiple = leadId.includes(',');
-    const route = isMultiple ? '{{ route("indiamart.bulk-assign") }}' : '{{ route("indiamart.assign") }}';
+    const route = isMultiple ? '<?php echo e(route("indiamart.bulk-assign")); ?>' : '<?php echo e(route("indiamart.assign")); ?>';
     const data = isMultiple ? {
       lead_ids: leadId.split(','),
       user_id: userId
@@ -1081,7 +1081,7 @@
     $(this).prop('disabled', true).text('Saving...');
 
     $.ajax({
-      url: '{{ route("indiamart.junk") }}',
+      url: '<?php echo e(route("indiamart.junk")); ?>',
       type: 'POST',
       data: {
         lead_id: leadId,
@@ -1116,7 +1116,7 @@
     $('#followup_history').html('<div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</div>');
     
     // Use a placeholder that we replace
-    const url = '{{ route("indiamart.get-followups", ["lead" => "LEAD_ID"]) }}'.replace('LEAD_ID', leadId);
+    const url = '<?php echo e(route("indiamart.get-followups", ["lead" => "LEAD_ID"])); ?>'.replace('LEAD_ID', leadId);
     
     $.ajax({
       url: url,
@@ -1161,7 +1161,7 @@
     $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm text-white" role="status" aria-hidden="true"></span>');
     
     $.ajax({
-        url: '{{ route("indiamart.store-followup") }}',
+        url: '<?php echo e(route("indiamart.store-followup")); ?>',
         type: 'POST',
         data: { lead_id: leadId, comment: comment },
         success: function(resp) {
@@ -1172,14 +1172,14 @@
                 let newComment = `
                     <div class="comment-item p-3 bg-white rounded shadow-sm border border-light">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                             @php
+                             <?php
                                 $currentUser = auth()->user();
                                 if (!$currentUser && session()->has('user_id')) {
                                     $currentUser = \App\Models\User::find(session('user_id'));
                                 }
                                 $currentName = $currentUser->name ?? (session('user_name') ?? 'You');
-                             @endphp
-                             <div class="comment-date text-success small fw-bold">Just now - {{ $currentName }}</div>
+                             ?>
+                             <div class="comment-date text-success small fw-bold">Just now - <?php echo e($currentName); ?></div>
                         </div>
                         <div class="comment-text text-dark" style="font-size: 0.9rem;">${comment}</div>
                     </div>
@@ -1304,4 +1304,6 @@
     </div>
   </div>
 </div>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/indiamart/index.blade.php ENDPATH**/ ?>
