@@ -44,17 +44,23 @@ Schedule::command('subscriptions:generate-recurring')
     ->timezone('Asia/Kolkata')
     ->description('Generate new billing cycles for recurring subscriptions across all tenants');
 
-Schedule::command('sales:send-follow-up-report', ['--alert=1'])
+Schedule::command('attendance:lock-past')
     ->daily()
-    ->at('09:15')
+    ->at('01:00')
     ->timezone('Asia/Kolkata')
-    ->description('Send follow-up due reports to sales users');
+    ->description('Automatically lock all past attendance records');
 
-Schedule::command('sales:send-admin-follow-up-report', ['--alert=2'])
+Schedule::command('sales:send-admin-follow-up-report', ['--alert=1'])
     ->daily()
     ->at('09:30')
     ->timezone('Asia/Kolkata')
     ->description('Send consolidated daily follow-up reports to tenant admins/managers');
+
+Schedule::command('sales:send-follow-up-report', ['--alert=2'])
+    ->daily()
+    ->at('09:45')
+    ->timezone('Asia/Kolkata')
+    ->description('Send follow-up due reports to sales users');
 
 Schedule::command('worklog:send-yesterday-mail', ['--alert=3'])
     ->daily()
@@ -74,18 +80,18 @@ Schedule::command('task:send-self-mail', ['--alert=5'])
     ->timezone('Asia/Kolkata')
     ->description('Send daily task reminders to individual users for their pending tasks');
 
-Schedule::command('task:send-all-mail', ['--alert=6'])
-    ->daily()
-    ->at('10:35')
-    ->timezone('Asia/Kolkata')
-    ->description('Send daily summary of all pending tasks grouped by user');
-
-Schedule::command('calendar:send-mail', ['--alert=7'])
+Schedule::command('calendar:send-mail', ['--alert=6'])
     ->daily()
     ->at('11:00')
     ->timezone('Asia/Kolkata')
     ->description('Send daily pending calendar events and monthly summary to calendar users');
-    
+
+Schedule::command('task:send-all-mail', ['--alert=7'])
+    ->daily()
+    ->at('11:15')
+    ->timezone('Asia/Kolkata')
+    ->description('Send daily summary of all pending tasks grouped by user');
+
 Schedule::command('calendar:send-mail', ['--alert=8'])
     ->daily()
     ->at('14:15')
@@ -98,21 +104,22 @@ Schedule::command('subscription:send-mail', ['--alert=9'])
     ->timezone('Asia/Kolkata')
     ->description('Send daily subscription summary and overdue alerts');
 
-Schedule::command('attendance:send-night-mail', ['--alert=10'])
+Schedule::command('sales:send-admin-follow-up-report', ['--alert=10'])
     ->daily()
-    ->at('20:30')
+    ->at('23:30')
+    ->timezone('Asia/Kolkata')
+    ->description('Send consolidated daily follow-up reports to tenant admins/managers');
+
+Schedule::command('attendance:send-night-mail', ['--alert=11'])
+    ->daily()
+    ->at('23:35')
     ->timezone('Asia/Kolkata')
     ->description('Send evening attendance summary and monthly breakdown to all active users');
 
-Schedule::command('worklog:send-today-mail', ['--alert=11'])
+Schedule::command('worklog:send-today-mail', ['--alert=12'])
     ->daily()
-    ->at('21:30')
+    ->at('23:40')
     ->timezone('Asia/Kolkata')
     ->description("Send today's worklog summary to HR/Admins");
 
-Schedule::command('attendance:lock-past')
-    ->daily()
-    ->at('01:00')
-    ->timezone('Asia/Kolkata')
-    ->description('Automatically lock all past attendance records');
 
