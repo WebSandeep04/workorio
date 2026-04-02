@@ -292,6 +292,20 @@ class IndiaMartLeadsController extends Controller
                 ]);
             }
 
+            // Migrate external follow-ups to sales remarks
+            $externalFollowups = DB::table('external_lead_followups')
+                ->where('lead_id', $lead->id)
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            foreach ($externalFollowups as $followup) {
+                Remark::create([
+                    'remark_date' => date('Y-m-d', strtotime($followup->created_at)),
+                    'remark' => "External Follow-up: " . $followup->comment,
+                    'sales_remark_id' => $salesRecord->id,
+                ]);
+            }
+
             DB::table('indiamartleads')
                 ->where('id', $lead->id)
                 ->update([
@@ -494,6 +508,20 @@ class IndiaMartLeadsController extends Controller
                         Remark::create([
                             'remark_date' => now()->toDateString(),
                             'remark' => $remarkText,
+                            'sales_remark_id' => $salesRecord->id,
+                        ]);
+                    }
+
+                    // Migrate external follow-ups to sales remarks
+                    $externalFollowups = DB::table('external_lead_followups')
+                        ->where('lead_id', $lead->id)
+                        ->orderBy('created_at', 'asc')
+                        ->get();
+
+                    foreach ($externalFollowups as $followup) {
+                        Remark::create([
+                            'remark_date' => date('Y-m-d', strtotime($followup->created_at)),
+                            'remark' => "External Follow-up: " . $followup->comment,
                             'sales_remark_id' => $salesRecord->id,
                         ]);
                     }
