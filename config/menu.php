@@ -45,6 +45,15 @@ return [
             ],
         ],
         [
+            'key' => 'admin_lead_generation',
+            'title' => 'Lead Generation',
+            'icon' => 'bi bi-person-plus',
+            'roles' => ['admin'],
+            'items' => [
+                ['route' => 'leadgen.my', 'title' => 'My Gen Leads', 'icon' => 'bi bi-person-workspace', 'permission' => 'leadgen.my'],
+            ],
+        ],
+        [
             'key' => 'admin_projects',
             'title' => 'Projects',
             'route' => 'projects.index',

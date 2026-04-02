@@ -603,6 +603,19 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/myleads/reassign', [MyLeadsController::class, 'reassignLead'])->name('myleads.reassign');
     Route::get('/myleads/team-members', [MyLeadsController::class, 'getTeamMembers'])->name('myleads.team-members');
 
+    // Lead Generation routes
+    Route::get('/leadgen/my', [\App\Http\Controllers\LeadGenerationController::class, 'myLeads'])->name('leadgen.my');
+    Route::get('/leadgen/my/data', [\App\Http\Controllers\LeadGenerationController::class, 'getMyLeads'])->name('leadgen.my.data');
+    Route::get('/leadgen/my/summary-stats', [\App\Http\Controllers\LeadGenerationController::class, 'getSummaryStats'])->name('leadgen.my.summary-stats');
+    Route::get('/leadgen/my/status-counts', [\App\Http\Controllers\LeadGenerationController::class, 'getStatusCounts'])->name('leadgen.my.status-counts');
+    Route::post('/leadgen/my/filter', [\App\Http\Controllers\LeadGenerationController::class, 'filterLeads'])->name('leadgen.my.filter');
+    Route::get('/leadgen/my/filter-options', [\App\Http\Controllers\LeadGenerationController::class, 'getFilterOptions'])->name('leadgen.my.filter-options');
+    Route::get('/leadgen/my/cities/{stateId}', [\App\Http\Controllers\LeadGenerationController::class, 'getCitiesByState'])->name('leadgen.my.cities');
+    Route::get('/leadgen/my/stats', [\App\Http\Controllers\LeadGenerationController::class, 'getLeadStats'])->name('leadgen.my.stats');
+    Route::post('/leadgen/my/export', [\App\Http\Controllers\LeadGenerationController::class, 'exportLeads'])->name('leadgen.my.export');
+    Route::post('/leadgen/my/reassign', [\App\Http\Controllers\LeadGenerationController::class, 'reassignLead'])->name('leadgen.my.reassign');
+    Route::get('/leadgen/my/team-members', [\App\Http\Controllers\LeadGenerationController::class, 'getTeamMembers'])->name('leadgen.my.team-members');
+
     // Payment Followup routes
     Route::get('/payment-followup', [PaymentFollowupController::class, 'index'])->name('payment-followup');
     Route::get('/payment-followup/data', [PaymentFollowupController::class, 'getPaymentFollowupLeads'])->name('payment-followup.data');

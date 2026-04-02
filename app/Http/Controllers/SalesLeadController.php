@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SalesRecord;
 use App\Models\Remark;
+use App\Models\LeadAssignmentLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,28 +14,31 @@ class SalesLeadController extends Controller
         return view('lead');
     }
 
-  public function store(Request $request)
-{
-    $validated = $request->validate([
-        'prospectus_id' => 'required|integer',
-        'leads_name' => 'nullable|string',
-        'contact_person' => 'nullable|string',
-        'contact_number' => 'nullable|string',
-        'status_id' => 'required|string',
-        'address' => 'nullable|string',
-        'state_id' => 'nullable|integer',
-        'city_id' => 'nullable|integer',
-        'email' => 'nullable|email',
-        'next_follow_up_date' => 'required|date',
-        'business_type_id' => 'nullable|integer',
-        'remark' => 'required|string',
-        'website_link' => 'nullable|string',
-        'lead_source_id' => 'nullable|string',
-        'products_id' => 'nullable|string']);
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'prospectus_id' => 'required|integer',
+            'leads_name' => 'nullable|string',
+            'contact_person' => 'nullable|string',
+            'contact_number' => 'nullable|string',
+            'status_id' => 'required|string',
+            'address' => 'nullable|string',
+            'state_id' => 'nullable|integer',
+            'city_id' => 'nullable|integer',
+            'email' => 'nullable|email',
+            'next_follow_up_date' => 'required|date',
+            'business_type_id' => 'nullable|integer',
+            'remark' => 'required|string',
+            'website_link' => 'nullable|string',
+            'lead_source_id' => 'nullable|string',
+            'products_id' => 'nullable|string',
+            'user_id' => 'nullable|integer'
+        ]);
 
-    // Set additional fields
-    $validated['user_id'] = $this->getCurrentUserId();
-    $validated['createdat'] = now();    
+        // Set additional fields
+        $currentUserId = $this->getCurrentUserId();
+        $validated['user_id'] = $request->input('user_id') ?: $currentUserId;
+        $validated['createdat'] = now();    
 
     // Extract remark before saving SalesRecord
     $remarkText = $validated['remark'] ?? null;
@@ -42,6 +46,15 @@ class SalesLeadController extends Controller
 
     // Save sales record
     $salesRecord = SalesRecord::create($validated);
+
+    // Maintain assignment log
+    LeadAssignmentLog::create([
+        'sales_record_id' => $salesRecord->id,
+        'from_user_id' => null,
+        'to_user_id' => $salesRecord->user_id,
+        'assigned_by' => $currentUserId,
+        'remark' => 'Initial assignment on creation'
+    ]);
 
     // Save remark in 'remarks' table
     if ($remarkText) {
