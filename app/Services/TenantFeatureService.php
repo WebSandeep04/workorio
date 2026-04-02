@@ -48,6 +48,13 @@ class TenantFeatureService
                     'sales.setup' => 'Sales Setup Management'
                 ]
             ],
+            'lead_generation' => [
+                'enabled' => (bool) ($tenant->is_leadgen_enabled ?? false),
+                'setup_enabled' => (bool) ($tenant->is_leadgen_setup_enabled ?? false),
+                'permissions' => [
+                    'leadgen.my' => 'Lead Gen: My Gen Leads'
+                ]
+            ],
             'worklog' => [
                 'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
                 'setup_enabled' => (bool) ($tenant->is_work_setup_enabled ?? true),

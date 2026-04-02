@@ -203,10 +203,10 @@
         <table class="table custom-table" id="sales_table">
           <thead>
             <tr>
-              <th>Status</th><th>Owner</th><th>Prospect</th><th>Lead</th><th>Contact Person</th><th>Contact No.</th><th>Remark</th><th>Next Follow</th><th>Address</th><th>State</th><th>City</th><th>Email</th><th>Business</th><th>Source</th><th>Product</th><th>Ticket</th><th>Assign To</th>
+              <th>Status</th><th>Assigned To</th><th>Prospect</th><th>Lead</th><th>Contact Person</th><th>Contact No.</th><th>Remark</th><th>Next Follow</th><th>Address</th><th>State</th><th>City</th><th>Email</th><th>Business</th><th>Source</th><th>Product</th><th>Ticket</th>
             </tr>
           </thead>
-          <tbody><tr><td colspan="17" class="loading-state"><i class="bi bi-arrow-repeat"></i> Loading...</td></tr></tbody>
+          <tbody><tr><td colspan="16" class="loading-state"><i class="bi bi-arrow-repeat"></i> Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -330,7 +330,7 @@ function loadGenLeads(page = 1) {
     };
     $.post('{{ route("leadgen.my.filter") }}?page=' + page, filters, d => {
         let h = '';
-        if (d.data.length === 0) h = '<tr><td colspan="17" class="text-center">No leads found.</td></tr>';
+        if (d.data.length === 0) h = '<tr><td colspan="16" class="text-center">No leads found.</td></tr>';
         else d.data.forEach(r => {
             let rem = '-'; 
             if (r.latest_remark) {
@@ -338,22 +338,12 @@ function loadGenLeads(page = 1) {
                 const shortRemark = fullRemark.length > 15 ? fullRemark.substring(0, 15) + '...' : fullRemark;
                 rem = `<a href="javascript:void(0)" class="remark-link" onclick="showRemarksModal(${r.id})" title="${fullRemark.replace(/"/g, '&quot;')}">${shortRemark}</a>`;
             }
-            let users = '<option value="">Select User</option>'; 
-            if (window.allUsers) window.allUsers.forEach(u => {
-                const selected = (r.user_id == u.id) ? 'selected' : '';
-                users += `<option value="${u.id}" ${selected}>${u.name}</option>`;
-            });
-            h += `<tr><td>${r.status?.status_name ?? ''}</td><td>${r.user?.name ?? 'Not Assigned'}</td><td>${r.prospectus?.prospectus_name ?? ''}</td><td>${r.leads_name ?? ''}</td><td>${r.contact_person ?? ''}</td><td>${r.contact_number ?? ''}</td><td>${rem}</td><td>${formatDateOnly(r.next_follow_up_date)}</td><td>${r.address ?? ''}</td><td>${r.state?.state_name ?? ''}</td><td>${r.city?.city_name ?? ''}</td><td>${r.email ?? ''}</td><td>${r.business_type?.business_name ?? ''}</td><td>${r.lead_source?.source_name ?? ''}</td><td>${r.product?.product_name ?? ''}</td><td>${r.ticket_value ?? 0}</td><td><select class="assign-select" onchange="reassignLead(${r.id}, this.value)">${users}</select></td></tr>`;
+            h += `<tr><td>${r.status?.status_name ?? ''}</td><td>${r.user?.name ?? 'Not Assigned'}</td><td>${r.prospectus?.prospectus_name ?? ''}</td><td>${r.leads_name ?? ''}</td><td>${r.contact_person ?? ''}</td><td>${r.contact_number ?? ''}</td><td>${rem}</td><td>${formatDateOnly(r.next_follow_up_date)}</td><td>${r.address ?? ''}</td><td>${r.state?.state_name ?? ''}</td><td>${r.city?.city_name ?? ''}</td><td>${r.email ?? ''}</td><td>${r.business_type?.business_name ?? ''}</td><td>${r.lead_source?.source_name ?? ''}</td><td>${r.product?.product_name ?? ''}</td><td>${r.ticket_value ?? 0}</td></tr>`;
         });
         $('#sales_table tbody').html(h);
         buildSimplePagination($('#paginationLinks'), d.current_page, d.last_page);
         $('#leadgenRangeInfo').text(`Showing ${d.from || 0}-${d.to || 0} from ${d.total} data`);
     });
-}
-
-function reassignLead(lid, uid) {
-    if(!uid) return;
-    $.post('{{ route("leadgen.my.reassign") }}', { lead_id: lid, new_user_id: uid, _token: '{{ csrf_token() }}' }, r => { alert(r.message); loadGenLeads(); loadSummaryStats(); loadStatusCounts(); });
 }
 
 function submitLead(e) {
@@ -382,9 +372,9 @@ function fetchProspectuses() {
 
 $(document).ready(() => {
     loadSummaryStats(); loadStatusCounts();
+    loadGenLeads();
+    
     $.get('{{ route("leadgen.my.team-members") }}', d => { 
-        window.allUsers = d; 
-        loadGenLeads();
         let uo = '<option value="">Select User</option>';
         d.forEach(u => uo += `<option value="${u.id}">${u.name}</option>`);
         $('#add_lead_assign_to').html(uo);
