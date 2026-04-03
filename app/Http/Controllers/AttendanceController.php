@@ -351,10 +351,16 @@ class AttendanceController extends Controller
         // All validations passed. Now ensure we have an attendance row for today.
         if ($existingAttendance) {
             $attendance = $existingAttendance;
-            // If it's a field in and we already have attendance, we might need to update late_minutes 
-            // if this is the first IN of the day (though usually first IN is what creates the row)
+            
+            $updates = [];
+            if ($request->boolean('emergency_attendance') && !$attendance->is_emergency) {
+                $updates['is_emergency'] = 1;
+            }
             if (isset($lateMinutesToRecord) && $lateMinutesToRecord > 0) {
-                 $attendance->update(['late_minutes' => $lateMinutesToRecord]);
+                 $updates['late_minutes'] = $lateMinutesToRecord;
+            }
+            if (!empty($updates)) {
+                $attendance->update($updates);
             }
         } else {
             $attendance = Attendance::create([
@@ -610,6 +616,13 @@ class AttendanceController extends Controller
             'date' => $today
         ]);
 
+        if ($attendance && $attendance->is_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your attendance for today has been locked. Please contact your administrator for any changes.'
+            ], 403);
+        }
+
         $lastBreakMovement = Movement::where('attendance_id', $attendance->id)
             ->where('movement_type', 'break')
             ->orderBy('time', 'desc')
@@ -677,6 +690,13 @@ class AttendanceController extends Controller
                 'success' => false,
                 'message' => 'No attendance record found for today'
             ]);
+        }
+
+        if ($attendance && $attendance->is_locked) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your attendance for today has been locked. Please contact your administrator for any changes.'
+            ], 403);
         }
 
         // Find the most recent break that was started but not ended

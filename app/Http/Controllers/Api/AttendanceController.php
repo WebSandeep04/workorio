@@ -89,17 +89,21 @@ class AttendanceController extends Controller
                 continue;
             }
 
-            // If we reach here, user has attendance (could be regular day, Sunday, or Holiday)
-            // They MUST have a worklog entry - leave (short/half-day) is no longer an exemption for worked days
             $hasWorklogEntry = Worklog::where('user_id', $user->id)
                 ->where('work_date', $dateStr)
                 ->exists();
             
-            if (!$hasWorklogEntry) {
+            $hasLeave = \App\Models\LeaveRequest::where('user_id', $user->id)
+                ->where('start_date', '<=', $dateStr)
+                ->where('end_date', '>=', $dateStr)
+                ->where('status', 'approved')
+                ->exists();
+            
+            if (!$hasWorklogEntry && !$hasLeave) {
                 $formattedDate = $checkDate->format('l, F j, Y');
                 return [
                     'can_perform' => false, 
-                    'message' => "You must complete your worklog entry for {$formattedDate} before you can perform attendance actions. Please complete your worklog entries chronologically starting from your account creation date."
+                    'message' => "You must complete your worklog entry or have leave for {$formattedDate} before you can perform attendance actions. Please complete your worklog entries chronologically starting from your account creation date."
                 ];
             }
             
@@ -265,6 +269,7 @@ class AttendanceController extends Controller
             // --- Location Validation End (API) ---
 
             // ONLY check for late reason if this is the FIRST office/field IN of the day
+            $lateMinutesToRecord = 0;
             if (!$hasAnyIn) {
                 $employee = $user->employee;
                 if ($employee && $employee->shiftRelation && $employee->shiftRelation->start_time) {
@@ -309,11 +314,11 @@ class AttendanceController extends Controller
                         if (empty($request->late_reason)) {
                             $lateReasons = \App\Models\LateReason::where('active', true)->get(['id', 'reason']);
                             return response()->json([
-                                'success' => false,
-                                'require_late_reason' => true,
-                                'message' => 'Please provide a reason for late punch-in.',
-                                'late_reasons' => $lateReasons
-                            ], 422);
+                                 'success' => false,
+                                 'require_late_reason' => true,
+                                 'message' => 'Please provide a reason for late punch-in.',
+                                 'late_reasons' => $lateReasons
+                             ], 422);
                         }
                         $description = 'Late punch-in: ' . $request->late_reason;
                     }
@@ -325,8 +330,16 @@ class AttendanceController extends Controller
         // All validations passed. Now ensure we have an attendance row for today.
         if ($existingAttendance) {
             $attendance = $existingAttendance;
+            
+            $updates = [];
             if ($request->boolean('emergency_attendance') && !$attendance->is_emergency) {
-                $attendance->update(['is_emergency' => 1]);
+                $updates['is_emergency'] = 1;
+            }
+            if (isset($lateMinutesToRecord) && $lateMinutesToRecord > 0) {
+                 $updates['late_minutes'] = $lateMinutesToRecord;
+            }
+            if (!empty($updates)) {
+                $attendance->update($updates);
             }
         } else {
             $attendance = Attendance::create([
@@ -334,6 +347,7 @@ class AttendanceController extends Controller
                 'date' => $today,
                 'is_emergency' => $request->boolean('emergency_attendance') ? 1 : 0,
                 'is_wfh' => $request->boolean('work_from_home') ? 1 : 0,
+                'late_minutes' => $lateMinutesToRecord ?? 0,
             ]);
         }
 

@@ -10,7 +10,7 @@ The system relies on the following primary tables to manage various aspects of r
 | Module | Primary Tables | Purpose |
 | :--- | :--- | :--- |
 | **Attendance** | `attendance`, `movements` | Stores daily punch records and individual actions (In, Out, Break). |
-| **Leave** | `leave_requests`, `leave_ledgers`, `leave_types` | Manages balance-deductible (Casual/Sick) and quota-based (RH/SL) absences. |
+| **Leave** | `leave_requests`, `leave_ledgers`, `leave_types` | Manages balance-deductible (Casual/Sick) and quota-based (RH/SL/HD) absences. |
 | **Worklog** | `worklogs`, `worklog_approvals` | Records daily productive output; mandatory companion to attendance. |
 | **Tracking** | `employee_locations` | Real-time GPS breadcrumbs for employees with `is_tracking = true`. |
 | **Rules** | `shifts`, `employment_types`, `holidays` | Masters defining shift timings, leave quotas, and calendar holidays. |
@@ -24,12 +24,16 @@ Attendance is the foundational record of an employee's presence.
 - **Punch-In:** Records the start of work.
     - **Shift Enforcement:** Shift timings determine late-coming windows (`late_min`).
     - **Geofencing:** Radius check against "Allowed Places" (`place_radius`) unless `is_wfh = 1` or `is_emergency = 1`.
-- **Breaks:** Users can start/end multiple break cycles. Punching in/out for work is blocked while an active "Break" status exists.
+    - **Late Tracking:** `late_minutes` are calculated relative to the shift start time and stored in the `attendance` record.
+    - **Mode Tracking:** Every movement is tagged with a `mode` (`web` for browser, `mobile` for API/App).
+- **Breaks:** Users can start/end multiple break cycles. Punching in/out for work is blocked while an active "Break" status exists. 
+    - **Locking:** Break actions are blocked if the attendance record is marked as `is_locked`.
 - **Cycles:** The system supports multiple Punch-In/Out cycles (e.g., Office -> Field -> Office). Each is recorded as an independent `movement` pair.
 - **Punch-Out:** Records the end of work. Mandatory requirement before submitting the daily Worklog.
 
 ### 2.2 Shift & Policy Rules
 - **Late Coming:** If a user punches in after `Shift Start + late_min`, a mandatory `late_reason` must be provided.
+- **Late Allowance:** Employees have a monthly quota for late minutes (`min_per_month_late_allow`). If exceeded, they must apply for an SL or Half-Day leave instead of punching in.
 - **Sunday/Holiday Policy:**
     - **Voluntary Presence:** If a user punches on a Sunday or Holiday, the status is marked as **`S/W`** (Sunday Working) or **`H/W`** (Holiday Working).
     - **Mandatory Worklog:** Even on non-working days (S/H), if attendance is recorded, a worklog MUST be submitted.
@@ -39,10 +43,11 @@ Attendance is the foundational record of an employee's presence.
 ## 3. Worklog Enforcement (The "Gatekeeper")
 The worklog system ensures that time spent (Attendance) is accounted for with productive output.
 
-### 3.1 The Attendance Lock
-The system implements a **Chronological Block** that disables the Attendance Toggle if gaps are detected:
-- **Rule:** If attendance was recorded on Date X, but no Worklog or Approved Leave exists for Date X, the user is **blocked from punching in** on Date X+1.
-- **Validation:** Controlled via `AttendanceController@canPerformAttendanceAction`.
+### 3.1 The Attendance Lock (Chronological Block)
+The system implements a block that disables the Attendance Toggle if gaps are detected:
+- **Rule:** If attendance was recorded on Date X, the user must have either a **Worklog Entry** or an **Approved Leave** for Date X to punch in on Date X+1.
+- **Exemptions:** Sundays and Holidays where no attendance was marked are automatically skipped. Approved leaves (including Half-Day) allow the user to bypass the worklog requirement for that specific day.
+- **Validation:** Controlled via `canPerformAttendanceAction` in both Web and API controllers.
 
 ### 3.2 Submission Prerequisites
 - **Punch-Out Requirement:** A user cannot submit today's worklog until they have performed a final "Punch Out" or "Field Out."
@@ -53,7 +58,6 @@ The system implements a **Chronological Block** that disables the Attendance Tog
 To ensure real-time reporting accuracy, the system ties shift completion to task updates:
 - **The Punch-Out Blocker:** A user cannot "Punch Out" or "Field Out" if they have pending tasks (not completed) that have NOT been updated with remarks or a status change today.
 - **The Punch-In Reminder:** Upon "Punch In," the response includes a `show_task_reminder` flag if the user has pending tasks, prompting them to check their priority items.
-- **Workflow Dependencies:** Critical Path tasks are automatically hidden from the user's task list until their predecessor tasks are satisfied (Started/Completed + lag).
 
 ---
 
@@ -61,9 +65,12 @@ To ensure real-time reporting accuracy, the system ties shift completion to task
 Governed by `LeaveRequest` models, focusing on balance integrity and shift window protection.
 
 ### 4.1 Leave Categories
-1.  **Standard Leaves (Casual/Sick):** Deducted from `leave_ledger` upon approval.
-2.  **Restricted Holidays (RH):** Selected from a predefined holiday list. Users have a yearly quota (e.g., 2 RH per year).
-3.  **Short Leave (SL):**
+1.  **Standard Leaves (Casual/Sick):** Deductible from balance.
+2.  **Restricted Holidays (RH):** Yearly quota (e.g., 2 RH per year).
+3.  **Half-Day Leave (HD):** 
+    - Deducts 0.5 from leave balance.
+    - Exempts user from late allowance blocks for the day.
+4.  **Short Leave (SL):**
     - **Quota:** Monthly limit (e.g., 2 SL per month).
     - **Timing Windows:** Strict enforcement based on **Shift Master**.
         - **Morning Window:** `Shift Start` to `Shift Start + SL Start Limit`.
@@ -72,30 +79,30 @@ Governed by `LeaveRequest` models, focusing on balance integrity and shift windo
 
 ---
 
-## 5. Approval Hierarchy & "Unlocked" Data
+## 5. Approval Hierarchy & Locking
 The system follows a strict hierarchical approval flow to ensure oversight.
 
-### 5.1 Who Approves What?
-| Approver Role | Context | Applicable To |
-| :--- | :--- | :--- |
-| **Direct Manager** | User has manager(s) mapped. | Worklogs, Leave Requests. |
-| **System Admin** | User has NO manager assigned. | Worklogs, Leave Requests, Attendance Approval. |
-| **System Admin** | Global / Technical Control. | Attendance Unlocking, Manual Attendance marking. |
+### 5.1 Approval Roles
+- **Direct Manager:** Approves Worklogs and Leave Requests for mapped subordinates.
+- **System Admin:** Final authority. Approves records for users with no managers, manages attendance unlocking, and manual attendance entries.
 
-### 5.2 Attendance Approval & Unlocking
-- **Initial State:** All attendance records start as `pending` (`is_approved = 0`).
-- **Administrative Approval:** Admins verify and approve attendance. Approved records are locked for end-users.
-- **Unlocking Logic:** If a user needs to modify a past record (e.g., fix a missed Worklog or correct a Punch-In time), an Admin must use the **Unlock Attendance** utility. This sets `is_approved = 0` and logs the action in `attendance_unlock_logs`.
+### 5.2 Record Locking
+- **Attendance Locking:** Once approved by an Admin or manually locked via command, `is_locked = 1`. end-users can no longer perform punch-in, punch-out, or break actions for that day.
+- **Unlocking:** Requires Admin intervention via the **Unlock Attendance** utility, which logs the action in `attendance_unlock_logs`.
 
 ---
 
-## 6. "Unlocated" & Critical Data States
-These are edge cases or specific states where data might seem "disconnected" or requires special attention:
+## 6. API vs. Web Implementation (Developer Reference)
+Although sharing the same database, the Web and API controllers have specific implementation details:
 
-1.  **Floating GPS Points (Orphan Tracking):** If `is_tracking = true`, coordinates are saved to `employee_locations` even if the user hasn't Punched-In. This is "Unlocated Data" — movement exists without an associated attendance session.
-2.  **Attendance-Worklog Mismatch:** Approved Attendance exists, but the Worklog is `Rejected`. This leaves the day in a "locked" state for the user until the Worklog is resubmitted and approved.
-3.  **Cross-Day Movements:** Movements starting at 11:55 PM and ending at 12:15 AM. The system currently timestamps them based on the actual time, but links them to the `attendance` record of the date the "IN" occurred.
-4.  **Pending Leave on Worked Day:** If a user applies for leave but still Punches-In, the **Attendance takes precedence**. The user must cancel the leave to refund their balance.
+| Feature | Web Implementation | API (Mobile) Implementation |
+| :--- | :--- | :--- |
+| **Mode** | Records movements with `mode = 'web'`. | Records movements with `mode = 'mobile'`. |
+| **Real-Time Data** | Basic status return. | Returns `working_hours`, `completed_hours`, and `is_tracking` status. |
+| **Late Reasons** | Direct string capture. | Provides a list of predefined `LateReason` objects for selection. |
+| **Validation Parity** | `canPerformAttendanceAction` includes leave check. | **Fixed**: Now matches Web to include leave check (previously worklog only). |
+| **Late Tracking** | Stores `late_minutes` in `attendance`. | **Fixed**: Corrected bug where `late_minutes` were calculated but not stored. |
+| **Locking Checks** | Applied to all punch types and break actions. | Applied to all punch types and break actions. |
 
 ---
 
@@ -108,7 +115,7 @@ Reference table for reporting and automated status generation:
 | **S/W** | Sunday Working | Attendance recorded on a Sunday. |
 | **H/W** | Holiday Working | Attendance recorded on a Holiday. |
 | **SL** | Short Leave | Approved SL with < 7 hours worked. |
-| **P (SL)** | Present (with SL) | Approved SL but shift hours successfully completed. |
+| **HD** | Half Day | Approved Half-Day leave. |
 | **L** | On Leave | Approved Casual/Sick leave. |
 | **A** | Absent | No attendance OR leave recorded for a working day. |
 | **H** | Holiday | Gazetted Holiday (No work required). |
@@ -118,7 +125,8 @@ Reference table for reporting and automated status generation:
 
 ## 8. Implementation Checklist for Developers
 - [ ] **Shift Limits:** Ensure `sl_start_limit` and `sl_end_limit` are set in the Shift Master for SL validation.
-- [ ] **Worklog Gaps:** `canPerformAttendanceAction` must check for existing attendance records on missing dates.
+- [ ] **Worklog Gaps:** `canPerformAttendanceAction` must check for both Worklog OR Approved Leave on missing dates.
 - [ ] **Task Blocker:** `Task` model check must include tasks due today or older that haven't been updated today.
+- [ ] **Late Logic:** Ensure `late_minutes` are correctly persisted in the `attendance` table during punch-in (both Web/API).
+- [ ] **Locking Integrity:** Verify that `is_locked` prevents all operations including `startBreak` and `endBreak`.
 - [ ] **Tracking Filter:** Maintain the Stationary Filter in GPS acquisition to prevent database bloat.
-- [ ] **Hierarchy Check:** Always use `whereDoesntHave('managers')` for Admin-level approvals to maintain isolation.
