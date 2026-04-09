@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Calling'); ?>
 <?php $__env->startSection('page_title', 'Calling'); ?>
 
@@ -430,7 +428,6 @@
     .data-table-card .custom-table tbody td:nth-child(5) { min-width: 130px; }
     .data-table-card .custom-table tbody td:nth-child(6) { min-width: 130px; }
     .data-table-card .custom-table tbody td:nth-child(7) { min-width: 180px; }
-    .data-table-card .custom-table tbody td:nth-child(8) { min-width: 130px; }
 
 
     .remark-link {
@@ -499,6 +496,52 @@
         margin-bottom: 0;
     }
 }
+    .campaign-item-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid #eef0f7;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .campaign-item-card:hover {
+        border-color: #434AFA;
+        transform: translateX(-5px);
+        box-shadow: 0 4px 12px rgba(67, 74, 250, 0.1);
+    }
+
+    .campaign-item-card.active {
+        background: #434AFA;
+        color: #fff;
+        border-color: #434AFA;
+    }
+
+    .campaign-item-card.active .text-muted {
+        color: rgba(255,255,255,0.8) !important;
+    }
+
+    .campaign-item-card .icon-label {
+        width: 35px;
+        height: 35px;
+        background: #eef0ff;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #434AFA;
+        margin-bottom: 0.5rem;
+    }
+
+    .campaign-item-card.active .icon-label {
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+    }
+
+    .letter-spacing-1 { letter-spacing: 1px; }
+
 </style>
 <?php $__env->stopPush(); ?>
 
@@ -545,6 +588,12 @@
 
     <div class="filterBox">
         <div>
+            <label for="filter_campaign" class="form-label-modern"><i class="bi bi-megaphone"></i> Campaign</label>
+            <select id="filter_campaign" class="form-control-modern">
+                <option value="">Master Record</option>
+            </select>
+        </div>
+        <div>
             <label for="filter_state" class="form-label-modern"><i class="bi bi-geo-alt"></i> State</label>
             <select id="filter_state" class="form-control-modern">
                                 <option value="">All States</option>
@@ -554,12 +603,6 @@
             <label for="filter_city" class="form-label-modern"><i class="bi bi-buildings"></i> City</label>
             <select id="filter_city" class="form-control-modern">
                                 <option value="">All Cities</option>
-                            </select>
-                        </div>
-        <div>
-            <label for="filter_calling_type" class="form-label-modern"><i class="bi bi-telephone"></i> Calling Type</label>
-            <select id="filter_calling_type" class="form-control-modern">
-                                <option value="">All Types</option>
                             </select>
                         </div>
         <div>
@@ -584,8 +627,8 @@
                 <h4 class="card-title-modern mb-0">Unassigned callings</h4>
             </div>
             <div class="header-actions">
-                <button id="lockSelectedBtn" class="chip-btn primary" disabled>
-                            <i class="bi bi-lock"></i> Lock Selected (<span id="selectedCount">0</span>)
+                <button id="openCampaignModalBtn" class="chip-btn primary" disabled>
+                            <i class="bi bi-plus-circle"></i> Create Campaign (<span id="selectedCount">0</span>)
                         </button>
                 <button id="selectAllBtn" class="chip-btn ghost">
                             <i class="bi bi-check2-square"></i> Select All
@@ -602,12 +645,10 @@
                                     </th>
                                     <th>Name</th>
                                     <th>Email</th>
-                                    <th>Calling Type</th>
                                     <th>State</th>
                                     <th>City</th>
                                     <th>Address</th>
                                     <th>Phone</th>
-                                    <th style="width: 180px;">Remarks</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -632,7 +673,35 @@
 
 <?php echo $__env->make('partials.remarks-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-<?php $__env->stopSection(); ?>     
+<?php $__env->stopSection(); ?>
+
+<!-- Campaign Creation Modal -->
+<div class="modal fade" id="campaignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-megaphone me-2"></i> Create New Campaign</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label for="campaignName" class="form-label fw-bold small text-muted text-uppercase">Campaign Name</label>
+                    <input type="text" id="campaignName" class="form-control form-control-lg border-2" style="border-radius: 10px;" placeholder="e.g. Q4 Real Estate Drive">
+                </div>
+                <p class="text-muted small">
+                    <i class="bi bi-info-circle me-1"></i> 
+                    You are grouping <span id="modalSelectedCount" class="fw-bold text-primary">0</span> contacts into this campaign.
+                </p>
+            </div>
+            <div class="modal-footer border-0 p-3 pt-0">
+                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmCampaignBtn" class="btn btn-primary px-4 fw-bold" style="background: #434AFA; border-radius: 8px;">
+                    Create & Assign
+                </button>
+            </div>
+        </div>
+    </div>
+</div>     
 
 <?php $__env->startPush('scripts'); ?>
 <script>
@@ -667,24 +736,23 @@
             $('#activeFilters').text(formatNumber(count));
         }
 
-        function loadStates() {
+        function loadFilterData() {
+            // Load Campaigns
+            $.get('<?php echo e(route("calling.campaigns")); ?>', function(campaigns) {
+                var $camp = $('#filter_campaign');
+                $camp.empty().append('<option value="">Master Record</option>');
+                (campaigns || []).forEach(function(c){
+                    $camp.append('<option value="'+c.id+'">'+(c.name || 'Unnamed')+'</option>');
+                });
+            });
+
+            // Load States
             $.get('<?php echo e(route("calling.filter-options")); ?>', function(resp) {
                 var $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
                 (resp.states || []).forEach(function(s){
                     $state.append('<option value="'+s.id+'">'+s.name+'</option>');
                 });
-                
-                // Store calling types globally for use in dropdowns
-                window.callingTypes = resp.calling_types || [];
-                
-                // Load calling types for filter
-                var $callingType = $('#filter_calling_type');
-                $callingType.empty().append('<option value="">All Types</option>');
-                window.callingTypes.forEach(function(ct){
-                    $callingType.append('<option value="'+ct.id+'">'+ct.name+'</option>');
-                });
-                
             });
         }
 
@@ -697,8 +765,6 @@
                 (cities || []).forEach(function(c){
                     $city.append('<option value="'+c.id+'">'+c.name+'</option>');
                 });
-            }).fail(function(xhr){
-                console.error('Failed to load cities', xhr.status, xhr.responseText);
             });
         }
 
@@ -706,30 +772,18 @@
             var html = '';
             if (rows && rows.length) {
                 rows.forEach(function(r){
-                    var stateName = (r.state && (r.state.state_name || r.state.name)) || '-';
-                    var cityName = (r.city && (r.city.city_name || r.city.name)) || '-';
-                    var phone = r.phone || r.mobile || '';
-                    var full = (r.latest_remark && r.latest_remark.remark) ? r.latest_remark.remark : '';
-                    var short = full ? (full.length > 10 ? full.substring(0,10) + '...' : full) : '-';
-                    var remarkLink = '<a href="javascript:void(0)" class="remark-link-modal" data-id="' + r.id + '" data-full="' + (full || '') + '">' + short + '</a>';
-
-                    const callingTypeName = (r.calling_type && r.calling_type.name) ? r.calling_type.name : (r.calling_type_name || '-');
-                    const callingTypeElement = '<span class="badge" style="background:#e8eaff;color:#434afa;font-weight:600;padding:4px 10px;border-radius:20px;font-size:12px;">' + callingTypeName + '</span>';
-
-                    html += '\n<tr>' +
-                        '<td><input type="checkbox" class="form-check-input row-checkbox" value="' + r.id + '" data-calling-id="' + r.id + '"></td>' +
+                    html += '<tr>' +
+                        '<td><input type="checkbox" class="form-check-input row-checkbox" value="' + r.id + '"></td>' +
                         '<td>' + (r.name || '-') + '</td>' +
                         '<td>' + (r.email || '-') + '</td>' +
-                        '<td>' + callingTypeElement + '</td>' +
-                        '<td>' + stateName + '</td>' +
-                        '<td>' + cityName + '</td>' +
+                        '<td>' + (r.state || '-') + '</td>' +
+                        '<td>' + (r.city || '-') + '</td>' +
                         '<td>' + (r.address || '-') + '</td>' +
-                        '<td>' + phone + '</td>' +
-                        '<td>' + remarkLink + '</td>' +
+                        '<td>' + (r.phone || '-') + '</td>' +
                     '</tr>';
                 });
             } else {
-                html = '<tr><td colspan="10" class="text-center">No records found.</td></tr>';
+                html = '<tr><td colspan="7" class="text-center p-4">No records found.</td></tr>';
             }
             $tbody.html(html);
         }
@@ -737,321 +791,168 @@
         let currentPage = 1;
         let currentFilterPage = 1;
 
-        // Build simple pagination: "Previous [current / last] Next"
         function buildDetailedPagination($container, current, last) {
             $container.empty();
-            
-            // Previous button
-            $container.append(`
-                <li class="page-item ${current === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${Math.max(1, current - 1)}">
-                      <i class="bi bi-chevron-left"></i> Previous
-                    </a>
-                </li>
-            `);
-            
-            // Current page display
-            $container.append(`
-                <li class="page-item active">
-                    <span class="page-link">${current} / ${last}</span>
-                </li>
-            `);
-            
-            // Next button
-            $container.append(`
-                <li class="page-item ${current === last ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${Math.min(last, current + 1)}">
-                      Next <i class="bi bi-chevron-right"></i>
-                    </a>
-                </li>
-            `);
-        }
-
-        function loadCallings(page = 1) {
-            currentPage = page;
-            $.get('<?php echo e(route("calling.data")); ?>?page=' + page, function(data){
-                var rows = Array.isArray(data) ? data : (data.data || []);
-                renderRows(rows);
-                renderPagination(data);
-                updateTotals(data);
-                setActiveFiltersCount(0);
-            }).fail(function(xhr){
-                console.error('Failed to load callings', xhr.status, xhr.responseText);
-            });
+            if (last <= 1) return;
+            $container.append('<li class="page-item ' + (current === 1 ? 'disabled' : '') + '"><a class="page-link" href="#" data-page="' + Math.max(1, current - 1) + '">Previous</a></li>');
+            $container.append('<li class="page-item active"><span class="page-link">' + current + ' / ' + last + '</span></li>');
+            $container.append('<li class="page-item ' + (current === last ? 'disabled' : '') + '"><a class="page-link" href="#" data-page="' + Math.min(last, current + 1) + '">Next</a></li>');
         }
 
         function renderPagination(data) {
-            const $pagination = $('#paginationLinks');
-            const current = data.current_page;
-            const last = data.last_page;
-            buildDetailedPagination($pagination, current, last);
+            buildDetailedPagination($('#paginationLinks'), data.current_page, data.last_page);
             $('#paginationLinks').show();
             $('#paginationFilterLinks').hide();
             updateRangeInfo(data.from, data.to, data.total);
         }
 
-        function applyFilters(page = 1) {
-            currentFilterPage = page;
-            var name = ($('#filter_name').val() || '').trim();
-            var stateId = $('#filter_state').val();
-            var cityId = $('#filter_city').val();
-            var callingTypeId = $('#filter_calling_type').val();
-            const appliedCount = [name, stateId, cityId, callingTypeId].filter(Boolean).length;
-            if (!appliedCount) {
-                setActiveFiltersCount(0);
-                loadCallings(1);
-                return;
-            }
-            setActiveFiltersCount(appliedCount);
-            $.post('<?php echo e(route("calling.filter")); ?>?page=' + page, {
-                name: name,
-                state_id: stateId,
-                city_id: cityId,
-                calling_type_id: callingTypeId
-            }).done(function(data){
-                var rows = Array.isArray(data) ? data : (data.data || []);
-                renderRows(rows);
-                renderFilterPagination(data);
-                updateTotals(data);
-            }).fail(function(xhr){
-                console.error('Filter failed', { name, stateId, cityId, callingTypeId }, xhr.status, xhr.responseText);
-                alert('Failed to fetch filtered results');
-            });
-        }
-
         function renderFilterPagination(data) {
-            const $pagination = $('#paginationFilterLinks');
-            const current = data.current_page;
-            const last = data.last_page;
-            buildDetailedPagination($pagination, current, last);
+            buildDetailedPagination($('#paginationFilterLinks'), data.current_page, data.last_page);
             $('#paginationFilterLinks').show();
             $('#paginationLinks').hide();
             updateRangeInfo(data.from, data.to, data.total);
         }
 
         function updateRangeInfo(from, to, total) {
-            const $info = $('#callingRangeInfo');
-            if (!$info.length) return;
+            $('#callingRangeInfo').text('Showing ' + (from || 0) + '-' + (to || 0) + ' from ' + (total || 0) + ' data');
+        }
 
-            const totalValue = Number(total);
-            const safeTotal = Number.isFinite(totalValue) && totalValue >= 0 ? totalValue : 0;
+        function loadCallings(page = 1) {
+            currentPage = page;
+            $.get('<?php echo e(route("calling.data")); ?>?page=' + page, function(data){
+                renderRows(data.data || []);
+                renderPagination(data);
+                $('#totalCallings').text(data.total || 0);
+            });
+        }
 
-            const startValue = Number(from);
-            const safeStart = safeTotal === 0 ? 0 : (Number.isFinite(startValue) && startValue > 0 ? startValue : 1);
+        function applyFilters(page = 1) {
+            currentFilterPage = page;
+            var campaignId = $('#filter_campaign').val();
+            var name = ($('#filter_name').val() || '').trim();
+            var stateId = $('#filter_state').val();
+            var cityId = $('#filter_city').val();
+            
+            const appliedCount = [name, stateId, cityId, campaignId].filter(Boolean).length;
+            $('#activeFilters').text(appliedCount);
 
-            const endValue = Number(to);
-            const safeEnd = safeTotal === 0 ? 0 : (Number.isFinite(endValue) && endValue >= safeStart ? endValue : safeStart);
+            $.post('<?php echo e(route("calling.filter")); ?>?page=' + page, {
+                campaign_id: campaignId,
+                name: name,
+                state_id: stateId,
+                city_id: cityId,
+                _token: '<?php echo e(csrf_token()); ?>'
+            }).done(function(data){
+                renderRows(data.data || []);
+                renderFilterPagination(data);
+            });
+        }
 
-            const formattedStart = safeStart.toLocaleString('en-IN');
-            const formattedEnd = safeEnd.toLocaleString('en-IN');
-            const formattedTotal = safeTotal.toLocaleString('en-IN');
+        function showAlert(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const alertHtml = `<div class="alert ${alertClass} alert-dismissible fade show" role="alert">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+            $('#alertContainer').html(alertHtml);
+            setTimeout(() => { $('#alertContainer .alert').fadeOut(() => $(this).remove()); }, 4000);
+        }
 
-            $info.text(`Showing ${formattedStart}-${formattedEnd} from ${formattedTotal} data`);
+        function updateSelectedCount() {
+            var selectedCount = $('.row-checkbox:checked').length;
+            $('#selectedCount').text(selectedCount);
+            $('#heroSelected').text(selectedCount.toLocaleString());
+            $('#openCampaignModalBtn').prop('disabled', selectedCount === 0);
         }
 
         // Init
-        loadStates();
+        loadFilterData();
         loadCallings();
 
         // Events
         function debounce(fn, delay){
             let t; return function(){
                 clearTimeout(t); const args = arguments; const ctx = this;
-                t = setTimeout(function(){ fn.apply(ctx, args); }, delay);
+                t = setTimeout(() => { fn.apply(ctx, args); }, delay);
             };
         }
-
         const triggerFilter = debounce(applyFilters, 300);
+
+        $('#filter_campaign').on('change', function() {
+            var campName = $(this).find('option:selected').text();
+            if ($(this).val()) {
+                $('.card-title-modern').text(campName);
+                $('.section-eyebrow').text('Campaign Queue');
+            } else {
+                $('.card-title-modern').text('Unassigned callings');
+                $('.section-eyebrow').text('Live queue');
+            }
+            triggerFilter();
+        });
 
         $('#filter_state').on('change', function(){ loadCitiesByState($(this).val()); triggerFilter(); });
         $('#filter_city').on('change', triggerFilter);
-        $('#filter_calling_type').on('change', triggerFilter);
         $('#filter_name').on('input', triggerFilter);
-        $('#resetFilters').on('click', function(e){ e.preventDefault(); $('#filter_name').val(''); $('#filter_state').val(''); $('#filter_city').html('<option value="">All Cities</option>'); $('#filter_calling_type').val(''); setActiveFiltersCount(0); loadCallings(1); });
+        
+        $('#resetFilters').on('click', function(e){ 
+            e.preventDefault(); 
+            $('#filter_name').val(''); 
+            $('#filter_campaign').val('');
+            $('#filter_state').val(''); 
+            $('#filter_city').html('<option value="">All Cities</option>'); 
+            $('.card-title-modern').text('Unassigned callings');
+            $('.section-eyebrow').text('Live queue');
+            updateSelectedCount(); loadCallings(1); 
+        });
 
-        // Pagination click handlers
         $(document).on('click', '#paginationLinks .page-link', function (e) {
-            e.preventDefault();
-            const page = $(this).data('page');
-            if (page && page !== currentPage) {
-                loadCallings(page);
-            }
+            e.preventDefault(); const page = $(this).data('page');
+            if (page && page !== currentPage) loadCallings(page);
         });
 
         $(document).on('click', '#paginationFilterLinks .page-link', function (e) {
-            e.preventDefault();
-            const page = $(this).data('page');
-            if (page && page !== currentFilterPage) {
-                applyFilters(page);
-            }
+            e.preventDefault(); const page = $(this).data('page');
+            if (page && page !== currentFilterPage) applyFilters(page);
         });
 
-        // Override showRemarksModal to use the calling-specific remarks endpoint (tenant DB)
-        window.showRemarksModal = function(callingId) {
-            $('#remarksList').html('<div class="text-center">Loading...</div>');
-            $('#remarksModal').modal('show');
-            $.ajax({
-                url: '<?php echo e(route("calling.remarks")); ?>',
-                type: 'GET',
-                data: { sales_record_id: callingId },
-                success: function(response) {
-                    $('#modalLeadName').text(response.sales_record.leads_name || '-');
-                    $('#modalContactPerson').text(response.sales_record.contact_person || '-');
-                    $('#modalContactNumber').text(response.sales_record.contact_number || '-');
-                    $('#modalEmail').text(response.sales_record.email || '-');
-                    $('#modalState').text(response.sales_record.state_name || '-');
-                    $('#modalCity').text(response.sales_record.city_name || '-');
-                    $('#modalProduct').text(response.sales_record.product_name || '-');
-                    $('#modalBusiness').text(response.sales_record.business_name || '-');
-                    $('#modalStatus').text(response.sales_record.status_name || '-');
-                    $('#modalTicketValue').text(response.sales_record.ticket_value || '-');
-                    $('#modalNextFollowUp').text(response.sales_record.next_follow_up_date || '-');
-                    let remarksHtml = '';
-                    if (response.remarks && response.remarks.length > 0) {
-                        response.remarks.forEach(function(remark) {
-                            remarksHtml += '<div class="remark-item"><div class="remark-date">' + remark.date + '</div><div class="remark-text">' + remark.remark + '</div></div>';
-                        });
-                    } else {
-                        remarksHtml = '<div class="text-center text-muted">No remarks found</div>';
-                    }
-                    $('#remarksList').html(remarksHtml);
-                },
-                error: function() {
-                    $('#remarksList').html('<div class="text-danger text-center">Failed to load remarks</div>');
-                }
-            });
-        };
-
-        $(document).on('click', '.remark-link-modal', function (e) {
-            e.preventDefault();
-            const callingId = $(this).data('id');
-            if (callingId) {
-                showRemarksModal(callingId);
-            }
+        // Campaign Multi-assignment
+        $('#openCampaignModalBtn').on('click', () => {
+            $('#modalSelectedCount').text($('.row-checkbox:checked').length);
+            $('#campaignName').val('');
+            $('#campaignModal').modal('show');
         });
 
-        // Show alert function
-        function showAlert(type, message) {
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
-            const alertHtml = `
-                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                    <i class="bi ${icon} me-2"></i>${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-            $('#alertContainer').html(alertHtml);
-            
-            setTimeout(function() {
-                $('#alertContainer .alert').fadeOut(function(){ $(this).remove(); });
-            }, 4000);
-        }
+        $('#confirmCampaignBtn').on('click', function() {
+            var campaignName = $('#campaignName').val().trim();
+            var selectedIds = $('.row-checkbox:checked').map(function() { return $(this).val(); }).get();
+            if (!campaignName) return alert('Campaign name required');
 
-        // Checkbox and Lock functionality
-        function updateSelectedCount() {
-            var selectedCount = $('.row-checkbox:checked').length;
-            $('#selectedCount').text(selectedCount);
-            $('#heroSelected').text(formatNumber(selectedCount));
-            $('#lockSelectedBtn').prop('disabled', selectedCount === 0);
-        }
-
-        // Select All functionality
-        $('#selectAllCheckbox').on('change', function() {
-            var isChecked = $(this).is(':checked');
-            $('.row-checkbox').prop('checked', isChecked);
-            updateSelectedCount();
-        });
-
-        // Individual checkbox change
-        $(document).on('change', '.row-checkbox', function() {
-            updateSelectedCount();
-            
-            // Update select all checkbox state
-            var totalCheckboxes = $('.row-checkbox').length;
-            var checkedCheckboxes = $('.row-checkbox:checked').length;
-            
-            if (checkedCheckboxes === 0) {
-                $('#selectAllCheckbox').prop('indeterminate', false).prop('checked', false);
-            } else if (checkedCheckboxes === totalCheckboxes) {
-                $('#selectAllCheckbox').prop('indeterminate', false).prop('checked', true);
-            } else {
-                $('#selectAllCheckbox').prop('indeterminate', true);
-            }
-        });
-
-        // Select All button functionality
-        $('#selectAllBtn').on('click', function() {
-            var $btn = $(this);
-            var allChecked = $('.row-checkbox:checked').length === $('.row-checkbox').length;
-            
-            if (allChecked) {
-                $('.row-checkbox').prop('checked', false);
-                $('#selectAllCheckbox').prop('checked', false).prop('indeterminate', false);
-                $btn.html('<i class="bi bi-check2-square"></i> Select All');
-            } else {
-                $('.row-checkbox').prop('checked', true);
-                $('#selectAllCheckbox').prop('checked', true).prop('indeterminate', false);
-                $btn.html('<i class="bi bi-square"></i> Deselect All');
-            }
-            updateSelectedCount();
-        });
-
-        // Lock Selected functionality
-        $('#lockSelectedBtn').on('click', function() {
-            var selectedIds = [];
-            $('.row-checkbox:checked').each(function() {
-                selectedIds.push($(this).val());
-            });
-            
-            if (selectedIds.length === 0) {
-                showAlert('error', 'Please select at least one calling to lock.');
-                return;
-            }
-            
-            // Confirmation dialog
-            if (!confirm(`Are you sure you want to lock ${selectedIds.length} selected calling(s)? This will assign them to you.`)) {
-                return;
-            }
-            
-            var $btn = $(this);
-            const defaultLabel = $btn.html();
-            $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Locking...');
-            
-            $.ajax({
-                url: '<?php echo e(route("calling.lock-selected")); ?>',
-                type: 'POST',
-                data: {
-                    calling_ids: selectedIds,
-                    _token: $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    if (response.success) {
-                        showAlert('success', `Successfully locked ${response.locked_count} calling(s)!`);
-                        
-                        // Remove locked rows from current view or reload
-                        selectedIds.forEach(function(id) {
-                            $('input[value="' + id + '"]').closest('tr').fadeOut(function() {
-                                $(this).remove();
-                                updateSelectedCount();
-                            });
-                        });
-                        
-                        // Reset checkboxes
-                        $('#selectAllCheckbox').prop('checked', false).prop('indeterminate', false);
-                        $('#selectAllBtn').html('<i class="bi bi-check2-square"></i> Select All');
-                    } else {
-                        showAlert('error', response.message || 'Failed to lock selected callings.');
-                    }
-                },
-                error: function(xhr) {
-                    console.error('Lock failed:', xhr.responseText);
-                    showAlert('error', 'Failed to lock selected callings. Please try again.');
-                },
-                complete: function() {
-                    $btn.prop('disabled', false).html(defaultLabel);
+            var $btn = $(this); $btn.prop('disabled', true).text('Creating...');
+            $.post('<?php echo e(route("calling.create-campaign")); ?>', {
+                campaign_name: campaignName,
+                calling_ids: selectedIds,
+                _token: '<?php echo e(csrf_token()); ?>'
+            }).done(resp => {
+                if (resp.success) {
+                    showAlert('success', resp.message);
+                    $('#campaignModal').modal('hide');
+                    $('.row-checkbox').prop('checked', false);
+                    $('#selectAllCheckbox').prop('checked', false).prop('indeterminate', false);
                     updateSelectedCount();
+                    loadFilterData(); // Refresh dropdown
                 }
-            });
+            }).always(() => { $btn.prop('disabled', false).text('Create & Assign'); });
+        });
+
+        $(document).on('change', '.row-checkbox', updateSelectedCount);
+        $('#selectAllCheckbox').on('change', function() {
+            $('.row-checkbox').prop('checked', $(this).is(':checked'));
+            updateSelectedCount();
+        });
+
+        $('#selectAllBtn').on('click', function() {
+            var allChecked = $('.row-checkbox:checked').length === $('.row-checkbox').length;
+            $('.row-checkbox').prop('checked', !allChecked);
+            $('#selectAllCheckbox').prop('checked', !allChecked).prop('indeterminate', false);
+            $(this).html(!allChecked ? '<i class="bi bi-square"></i> Deselect All' : '<i class="bi bi-check2-square"></i> Select All');
+            updateSelectedCount();
         });
     });
 </script>

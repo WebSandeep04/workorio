@@ -14,8 +14,8 @@
           <p><strong>Name :</strong> {{ $calling->name ?? '--' }}</p>
           <p><strong>Email :</strong> {{ $calling->email ?? '--' }}</p>
           <p><strong>Phone :</strong> {{ $calling->phone ?? '--' }}</p>
-          <p><strong>State :</strong> {{ optional($calling->state)->state_name ?? '--' }}</p>
-          <p><strong>City :</strong> {{ optional($calling->city)->city_name ?? '--' }}</p>
+          <p><strong>State :</strong> {{ $calling->state ?? '--' }}</p>
+          <p><strong>City :</strong> {{ $calling->city ?? '--' }}</p>
           <p><strong>Address :</strong> {{ $calling->address ?? '--' }}</p>
           <p><strong>Calling Type :</strong> {{ optional($calling->callingType)->name ?? 'No Type' }}</p>
           <p><strong>Next Follow-up :</strong> {{ $calling->next_follow_up_date ?? '--' }}</p>
