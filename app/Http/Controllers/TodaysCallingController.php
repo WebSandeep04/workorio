@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Calling;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class TodaysCallingController extends Controller
 {
@@ -14,19 +14,36 @@ class TodaysCallingController extends Controller
         return view('calling.todayscalling');
     }
 
+    /**
+     * Helper to get the base query for Today's Calls
+     */
+    private function getTodaysCallsQuery($userId, $today)
+    {
+        return DB::table('calling_campaign_calling')
+            ->join('callings', 'calling_campaign_calling.calling_id', '=', 'callings.id')
+            ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
+            ->where('calling_campaign_calling.user_id', $userId)
+            ->where('calling_campaign_calling.is_locked', 1)
+            ->whereNotNull('calling_campaign_calling.next_followup_date')
+            ->whereDate('calling_campaign_calling.next_followup_date', '<=', $today)
+            ->select(
+                'callings.*',
+                'calling_campaigns.name as campaign_name',
+                'calling_campaign_calling.calling_campaign_id',
+                'calling_types.name as pivot_status'
+            );
+    }
+
     public function getCallings(Request $request)
     {
         $today = now()->toDateString();
         $userId = $this->getCurrentUserId();
         $perPage = $request->get('per_page', 10);
 
-        $query = Calling::whereHas('campaigns', function($q) use ($userId, $today) {
-            $q->where('calling_campaign_calling.user_id', $userId)
-              ->whereNotNull('calling_campaign_calling.next_followup_date')
-              ->whereDate('calling_campaign_calling.next_followup_date', '<=', $today);
-        });
+        $query = $this->getTodaysCallsQuery($userId, $today);
 
-        return response()->json($query->orderBy('id', 'desc')->paginate($perPage));
+        return response()->json($query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage));
     }
 
     public function filterCallings(Request $request)
@@ -35,30 +52,26 @@ class TodaysCallingController extends Controller
         $userId = $this->getCurrentUserId();
         $perPage = $request->get('per_page', 10);
 
-        $query = Calling::whereHas('campaigns', function($q) use ($userId, $today) {
-            $q->where('calling_campaign_calling.user_id', $userId)
-              ->whereNotNull('calling_campaign_calling.next_followup_date')
-              ->whereDate('calling_campaign_calling.next_followup_date', '<=', $today);
-        });
+        $query = $this->getTodaysCallsQuery($userId, $today);
 
         if ($request->filled('name')) {
             $term = trim((string) $request->name);
             $query->where(function ($q) use ($term) {
                 $like = '%'.$term.'%';
-                $q->where('name', 'like', $like)
-                  ->orWhere('email', 'like', $like)
-                  ->orWhere('phone', 'like', $like)
-                  ->orWhere('address', 'like', $like);
+                $q->where('callings.name', 'like', $like)
+                  ->orWhere('callings.email', 'like', $like)
+                  ->orWhere('callings.phone', 'like', $like)
+                  ->orWhere('callings.address', 'like', $like);
             });
         }
         if ($request->filled('state_id')) {
-            $query->where('state', 'like', '%' . $request->state_id . '%');
+            $query->where('callings.state', 'like', '%' . $request->state_id . '%');
         }
         if ($request->filled('city_id')) {
-            $query->where('city', 'like', '%' . $request->city_id . '%');
+            $query->where('callings.city', 'like', '%' . $request->city_id . '%');
         }
 
-        return response()->json($query->orderBy('id', 'desc')->paginate($perPage));
+        return response()->json($query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage));
     }
 
     public function getFilterOptions()

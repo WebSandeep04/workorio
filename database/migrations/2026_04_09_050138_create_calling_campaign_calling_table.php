@@ -21,8 +21,12 @@ return new class extends Migration
             $table->unsignedBigInteger('calling_id')->index();
             $table->unsignedBigInteger('user_id')->nullable()->index();
             
-            $table->string('status')->nullable()->index();
+            $table->unsignedBigInteger('calling_type_id')->nullable()->index();
             $table->date('next_followup_date')->nullable();
+            $table->boolean('is_locked')->default(0);
+
+            $table->foreign('calling_type_id')
+                  ->references('id')->on('calling_types')->onDelete('set null');
 
             $table->foreign('calling_campaign_id', 'fk_camp_id')
                   ->references('id')->on('calling_campaigns')->onDelete('cascade');

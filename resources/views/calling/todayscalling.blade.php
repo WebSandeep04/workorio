@@ -123,11 +123,11 @@
             <table class="table custom-table" id="callingTable">
                 <thead>
                     <tr>
+                        <th>Campaign</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>State</th>
                         <th>City</th>
-                        <th>Address</th>
                         <th>Phone</th>
                         <th style="width: 150px;">Action</th>
                     </tr>
@@ -147,7 +147,6 @@
     </div>
 </div>
 
-@include('partials.remarks-modal')
 @endsection
 
 @push('scripts')
@@ -185,16 +184,16 @@
             if (rows && rows.length) {
                 rows.forEach(function(r){
                     html += `<tr>
+                        <td>${r.campaign_name || '-'}</td>
                         <td>${r.name || '-'}</td>
                         <td>${r.email || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
-                        <td>${r.address || '-'}</td>
                         <td>${r.phone || '-'}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary show-remarks" data-id="${r.id}">
+                            <a href="/calling/${r.id}/remarks?campaign_id=${r.calling_campaign_id}" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-chat-text"></i> Remarks
-                            </button>
+                            </a>
                         </td>
                     </tr>`;
                 });
@@ -254,11 +253,6 @@
         $(document).on('click', '.page-link', function(e) {
             e.preventDefault();
             loadData($(this).data('page'));
-        });
-
-        $(document).on('click', '.show-remarks', function() {
-            const id = $(this).data('id');
-            if(window.showRemarksModal) window.showRemarksModal(id);
         });
 
         function debounce(fn, delay) {

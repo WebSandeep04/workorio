@@ -970,8 +970,9 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::post('/calling/todays/filter', [TodaysCallingController::class, 'filterCallings'])->name('calling.todays.filter');
     Route::get('/calling/todays/filter-options', [TodaysCallingController::class, 'getFilterOptions'])->name('calling.todays.filter-options');
     Route::get('/calling/todays/cities/{stateId}', [TodaysCallingController::class, 'getCitiesByState'])->name('calling.todays.cities');
-    Route::get('/calling/{calling}/remarks', [CallingController::class, 'remarks'])->name('calling.remarks.show');
-    Route::post('/calling/{calling}/remarks', [CallingController::class, 'storeRemark'])->name('calling.remarks.store');
+    Route::get('/calling/{id}/remarks', [CallingController::class, 'remarks'])->name('calling.remarks.show');
+    Route::post('/calling/{id}/remarks', [CallingController::class, 'storeRemark'])->name('calling.remarks.store');
+    Route::post('/calling/remarks/{id}/update', [CallingController::class, 'updateRemark'])->name('calling.remarks.update');
     // separate controllers for my & junk
     Route::get('/calling/my', [MyCallingController::class, 'index'])->name('calling.my');
     Route::get('/calling/my/data', [MyCallingController::class, 'getCallings'])->name('calling.my.data');

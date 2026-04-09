@@ -41,14 +41,16 @@ class MyCallingController extends Controller
         return DB::table('calling_campaign_calling')
             ->join('callings', 'calling_campaign_calling.calling_id', '=', 'callings.id')
             ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
             ->where('calling_campaign_calling.user_id', $userId)
             ->where('calling_campaign_calling.is_locked', 1)
             ->select(
                 'callings.*',
                 'calling_campaigns.name as campaign_name',
                 'calling_campaign_calling.calling_campaign_id',
-                'calling_campaign_calling.status as pivot_status',
-                'calling_campaign_calling.next_followup_date as pivot_followup'
+                'calling_types.name as pivot_status',
+                'calling_campaign_calling.next_followup_date as pivot_followup',
+                DB::raw('(SELECT remark FROM calling_remarks WHERE calling_id = callings.id ORDER BY id DESC LIMIT 1) as latest_remark')
             );
     }
 

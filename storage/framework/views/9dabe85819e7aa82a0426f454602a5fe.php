@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Lead Remarks'); ?>
+<?php $__env->startSection('page_title', 'Lead Remarks'); ?>
 
-@section('title', 'Lead Remarks')
-@section('page_title', 'Lead Remarks')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid py-3 calling-remarks-page">
   <div class="row g-3">
 
@@ -16,29 +14,29 @@
         <div class="card-body ui-body small">
           <div class="row g-2">
             <div class="col-4 text-muted fw-semibold">Name:</div>
-            <div class="col-8 fw-bold">{{ $calling->name ?? '--' }}</div>
+            <div class="col-8 fw-bold"><?php echo e($calling->name ?? '--'); ?></div>
             
             <div class="col-4 text-muted fw-semibold">Email:</div>
-            <div class="col-8 text-break">{{ $calling->email ?? '--' }}</div>
+            <div class="col-8 text-break"><?php echo e($calling->email ?? '--'); ?></div>
             
             <div class="col-4 text-muted fw-semibold">Phone:</div>
-            <div class="col-8">{{ $calling->phone ?? '--' }}</div>
+            <div class="col-8"><?php echo e($calling->phone ?? '--'); ?></div>
             
             <div class="col-12"><hr class="my-2"></div>
             
             <div class="col-4 text-muted fw-semibold">Campaign:</div>
-            <div class="col-8 text-primary fw-bold">{{ $currentCampaign ? $currentCampaign->name : 'General' }}</div>
+            <div class="col-8 text-primary fw-bold"><?php echo e($currentCampaign ? $currentCampaign->name : 'General'); ?></div>
             
             <div class="col-4 text-muted fw-semibold">Status:</div>
-            <div class="col-8"><span id="display_pivot_status" class="badge bg-info text-dark">{{ $pivotData->status_name ?? 'Not Set' }}</span></div>
+            <div class="col-8"><span id="display_pivot_status" class="badge bg-info text-dark"><?php echo e($pivotData->status_name ?? 'Not Set'); ?></span></div>
             
             <div class="col-4 text-muted fw-semibold">Next Date:</div>
-            <div class="col-8 fw-bold text-danger" id="display_pivot_date">{{ $pivotData->next_followup_date ?? '--' }}</div>
+            <div class="col-8 fw-bold text-danger" id="display_pivot_date"><?php echo e($pivotData->next_followup_date ?? '--'); ?></div>
 
             <div class="col-12"><hr class="my-2"></div>
             
             <div class="col-12 text-muted fw-semibold mb-1">Address:</div>
-            <div class="col-12 text-secondary">{{ $calling->address ?? '--' }}</div>
+            <div class="col-12 text-secondary"><?php echo e($calling->address ?? '--'); ?></div>
           </div>
         </div>
       </div>
@@ -53,8 +51,8 @@
         </div>
         <div class="card-body ui-body">
           <form id="remarkForm" method="POST">
-            @csrf
-            <input type="hidden" name="campaign_id" value="{{ request('campaign_id') }}">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="campaign_id" value="<?php echo e(request('campaign_id')); ?>">
             <input type="hidden" name="remark_id" id="remark_id" value="">
 
             <div class="mb-3">
@@ -67,16 +65,17 @@
                     <label class="form-label-modern text-dark">Stage / Status</label>
                     <select name="calling_type_id" id="calling_type_id" class="form-select form-select-sm">
                         <option value="">Choose Status...</option>
-                        @foreach($callingTypes as $type)
-                            <option value="{{ $type->id }}" {{ ($pivotData->calling_type_id ?? '') == $type->id ? 'selected' : '' }}>
-                                {{ $type->name }}
+                        <?php $__currentLoopData = $callingTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($type->id); ?>" <?php echo e(($pivotData->calling_type_id ?? '') == $type->id ? 'selected' : ''); ?>>
+                                <?php echo e($type->name); ?>
+
                             </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label-modern text-dark">Next Date</label>
-                    <input type="date" name="next_followup_date" id="next_followup_date" class="form-control form-control-sm" value="{{ $pivotData->next_followup_date ?? '' }}">
+                    <input type="date" name="next_followup_date" id="next_followup_date" class="form-control form-control-sm" value="<?php echo e($pivotData->next_followup_date ?? ''); ?>">
                 </div>
             </div>
 
@@ -96,29 +95,30 @@
         </div>
         <div class="card-body ui-body remark-scroll">
           <div id="remarkList">
-            @forelse ($calling->remarks->sortByDesc('created_at') as $r)
-              <div class="remark-item mb-3 pb-2 border-bottom" data-id="{{ $r->id }}">
+            <?php $__empty_1 = true; $__currentLoopData = $calling->remarks->sortByDesc('created_at'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $r): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+              <div class="remark-item mb-3 pb-2 border-bottom" data-id="<?php echo e($r->id); ?>">
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                  <span class="text-primary small" style="font-weight: 600;">{{ optional($r->created_at)->format('d M Y, h:i A') }}</span>
+                  <span class="text-primary small" style="font-weight: 600;"><?php echo e(optional($r->created_at)->format('d M Y, h:i A')); ?></span>
                   <div>
-                    @if($r->user_id == $currentUserId || (Auth::user() && Auth::user()->isAdmin()))
+                    <?php if($r->user_id == $currentUserId || (Auth::user() && Auth::user()->isAdmin())): ?>
                       <button type="button" class="btn btn-link btn-sm p-0 me-2 edit-remark-btn" style="text-decoration: none; font-size: 0.8rem; color: #434AFA;">
                         <i class="bi bi-pencil-square"></i> Edit
                       </button>
-                    @endif
-                    <span class="badge bg-light text-muted" style="font-size: 0.65rem;">UID: {{ $r->user_id }}</span>
+                    <?php endif; ?>
+                    <span class="badge bg-light text-muted" style="font-size: 0.65rem;">UID: <?php echo e($r->user_id); ?></span>
                   </div>
                 </div>
                 <div class="remark-text" style="font-size: 0.9rem; color: #344054;">
-                   {{ $r->remark }}
+                   <?php echo e($r->remark); ?>
+
                 </div>
               </div>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
               <div class="text-center py-5 no-history">
                   <i class="bi bi-chat-left-dots text-muted opacity-25" style="font-size: 4rem;"></i>
                   <p class="text-muted mt-2">No interaction history found for this lead.</p>
               </div>
-            @endforelse
+            <?php endif; ?>
           </div>
         </div>
       </div>
@@ -126,9 +126,9 @@
 
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
 .calling-remarks-page { background: #f8f9fa; min-height: calc(100vh - 100px); padding-bottom: 3rem; }
 .ui-card { border-radius: 12px; border: 1px solid #eef0f6; box-shadow: 0 4px 12px rgba(0,0,0,0.03); overflow: hidden; min-height: 500px; }
@@ -142,16 +142,16 @@
 .form-control:focus, .form-select:focus { border-color: #434AFA; box-shadow: 0 0 0 3px rgba(67, 74, 250, 0.1); }
 .remark-item:hover { background-color: #fcfdfe; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 $(document).ready(function() {
     console.log("Remarks AJAX script initialized");
 
-    const currentUserId = {{ $currentUserId ?? 'null' }};
-    const isAdmin = {{ (Auth::user() && Auth::user()->isAdmin()) ? 'true' : 'false' }};
+    const currentUserId = <?php echo e($currentUserId ?? 'null'); ?>;
+    const isAdmin = <?php echo e((Auth::user() && Auth::user()->isAdmin()) ? 'true' : 'false'); ?>;
 
     // SweetAlert Toast Definition
     const Toast = Swal.mixin({
@@ -183,9 +183,9 @@ $(document).ready(function() {
         const remarkId = $('#remark_id').val();
         
         // Determine URL
-        let url = "{{ route('calling.remarks.store', ['id' => $calling->id]) }}";
+        let url = "<?php echo e(route('calling.remarks.store', ['id' => $calling->id])); ?>";
         if (remarkId) {
-            url = "{{ route('calling.remarks.update', ['id' => ':id']) }}".replace(':id', remarkId);
+            url = "<?php echo e(route('calling.remarks.update', ['id' => ':id'])); ?>".replace(':id', remarkId);
         }
 
         $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Processing...');
@@ -285,4 +285,6 @@ $(document).ready(function() {
     }
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/calling/remarks.blade.php ENDPATH**/ ?>
