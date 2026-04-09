@@ -16,28 +16,21 @@ return new class extends Migration
             return;
         }
 
-        Schema::create('callings', function (Blueprint $table) {
+        Schema::create('calling_campaigns', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->nullable();
-            $table->string('phone', 20)->nullable();
-            $table->string('address')->nullable();
-            $table->string('city')->nullable();
-            $table->string('state')->nullable();
+            $table->timestamps();
         });
-    }   
+    }
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        // Only drop in tenant DBs
         if (Schema::getConnection()->getName() === 'mysql') {
             return;
         }
-
-        Schema::dropIfExists('callings');
-        
+        Schema::dropIfExists('calling_campaigns');
     }
 };

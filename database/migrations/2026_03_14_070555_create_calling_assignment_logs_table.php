@@ -16,7 +16,8 @@ return new class extends Migration
         }
         Schema::create('calling_assignment_logs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('calling_id');
+            $table->unsignedBigInteger('calling_id')->index();
+            $table->unsignedBigInteger('calling_campaign_id')->nullable()->index();
             $table->unsignedBigInteger('from_user_id')->nullable();
             $table->unsignedBigInteger('to_user_id');
             $table->unsignedBigInteger('assigned_by');

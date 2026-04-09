@@ -132,9 +132,16 @@ public function subordinates()
 
 
     public function leaveRequests()
-{
-    return $this->hasMany(LeaveRequest::class);
-}
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    public function assignedCallings()
+    {
+        return $this->belongsToMany(Calling::class, 'calling_campaign_calling')
+            ->withPivot(['calling_campaign_id', 'status', 'next_followup_date'])
+            ->withTimestamps();
+    }
 
     /**
      * Return permissions array for the user's role.

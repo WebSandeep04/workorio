@@ -11,6 +11,7 @@ class CallingAssignmentLog extends Model
 
     protected $fillable = [
         'calling_id',
+        'calling_campaign_id',
         'from_user_id',
         'to_user_id',
         'assigned_by',
@@ -20,6 +21,11 @@ class CallingAssignmentLog extends Model
     public function calling()
     {
         return $this->belongsTo(Calling::class, 'calling_id');
+    }
+
+    public function campaign()
+    {
+        return $this->belongsTo(CallingCampaign::class, 'calling_campaign_id');
     }
 
     public function fromUser()

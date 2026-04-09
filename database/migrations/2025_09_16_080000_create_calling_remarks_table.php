@@ -19,10 +19,13 @@ return new class extends Migration
         Schema::create('calling_remarks', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('calling_id')->index();
+            $table->unsignedBigInteger('calling_campaign_id')->nullable()->index();
+            $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->text('remark')->nullable();
 
-            // FKs (if tables exist)
+            // Foreign Keys
             $table->foreign('calling_id')->references('id')->on('callings')->onDelete('cascade');
+            $table->foreign('calling_campaign_id')->references('id')->on('calling_campaigns')->onDelete('cascade');
 
             $table->timestamps();
         });

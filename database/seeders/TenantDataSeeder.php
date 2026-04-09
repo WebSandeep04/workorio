@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Calling;
 use App\Models\CallingRemark;
 use App\Models\CallingType;
+use App\Models\CallingCampaign;
 
 class TenantDataSeeder extends Seeder
 {
@@ -60,9 +61,11 @@ class TenantDataSeeder extends Seeder
         $this->seedAdminUser($tenantId);
         // 7. Calling types
         $this->seedCallingTypes();
-        // 8. Sample callings
+        // 8. Campaigns
+        $this->seedCallingCampaigns();
+        // 9. Sample callings
         $this->seedCallings();
-        // 9. Sample calling remarks
+        // 10. Sample calling remarks
         $this->seedCallingRemarks();
         
         // 9. Quotation settings
@@ -314,11 +317,11 @@ class TenantDataSeeder extends Seeder
     {
         $callingTypes = [
             ['name' => 'Cold'],
-            ['name' => 'Follow Up'],
-            ['name' => 'Hot Lead'],
-            ['name' => 'Customer Support'],
-            ['name' => 'Demo Call'],
-            ['name' => 'Closing Call'],
+            ['name' => 'Call Not Picked/Dissconnect'],
+            ['name' => "Don't Call Again"],
+            ['name' => 'Not Interested'],
+            ['name' => 'Interested'],
+            ['name' => 'Sent Details'],
             ['name' => 'Junk'],
         ];
         
@@ -329,107 +332,94 @@ class TenantDataSeeder extends Seeder
             );
         }
         
-        $this->command->info('✅ Seeded calling types: Cold, Follow Up, Hot Lead, Customer Support, Demo Call, Closing Call, Junk');        
+        $this->command->info('✅ Seeded calling types.');        
     }
     
+    /**
+     * Seed Sample Campaigns
+     */
+    private function seedCallingCampaigns(): void
+    {
+        $campaigns = ['General Sales', 'Diwali Offer 2024', 'Website Inquiries', 'Product Launch'];
+        foreach ($campaigns as $name) {
+            CallingCampaign::firstOrCreate(['name' => $name]);
+        }
+        $this->command->info('✅ Seeded calling campaigns.');
+    }
+
     private function seedCallings(): void
     {
-        // Get all calling type IDs
-        $callingTypeIds = DB::table('calling_types')->pluck('id')->toArray();
-        
-        if (empty($callingTypeIds)) {
-            $this->command->error('Calling types not found. Please ensure calling types are seeded first.');
-            return;
-        }
-        
-        // Get status IDs (should be seeded before this)
-        $statusIds = DB::table('sales_status')->pluck('id')->toArray();
-        
-        // pick random 10 from existing states/cities
-        $stateIds = DB::table('states')->pluck('id')->all();
-        $cityByState = [];
-        foreach ($stateIds as $sid) {
-            $cityByState[$sid] = DB::table('cities')->where('state_id', $sid)->pluck('id')->all();
-        }
         $names = ['Aman','Rohit','Priya','Neha','Karan','Simran','Vivek','Pooja','Arjun','Sneha'];
+        $states = ['Maharashtra', 'Karnataka', 'Gujarat', 'Delhi', 'Rajasthan'];
+        $cities = ['Mumbai', 'Bangalore', 'Ahmedabad', 'New Delhi', 'Jaipur'];
+
+        // Get all campaign IDs and an admin user ID for links
+        $campaignIds = CallingCampaign::pluck('id')->toArray();
         $adminUserId = DB::table('users')->value('id');
+
         for ($i=0; $i<10; $i++) {
-            $sid = $stateIds[array_rand($stateIds)];
-            $cities = $cityByState[$sid] ?? [];
-            $cid = !empty($cities) ? $cities[array_rand($cities)] : null;
-            DB::table('callings')->insert([
-                'user_id' => $adminUserId,
-                'calling_type_id' => $callingTypeIds[array_rand($callingTypeIds)],
-                'status_id' => !empty($statusIds) ? $statusIds[array_rand($statusIds)] : null,
+            // 1. Create the lead (Main contact)
+            $callingId = DB::table('callings')->insertGetId([
                 'name' => $names[$i],
                 'email' => strtolower($names[$i]).$i.'@example.com',
-                'state_id' => $sid,
-                'city_id' => $cid,
-                'address' => 'Sample address '.$i,
                 'phone' => '99999'.str_pad((string)$i, 5, '0', STR_PAD_LEFT),
-                'next_follow_up_date' => now()->addDays(rand(1, 30))->toDateString(),
-                'created_at' => now(),
-                'updated_at' => now(),
+                'address' => 'Sample address '.$i,
+                'city' => $cities[array_rand($cities)],
+                'state' => $states[array_rand($states)],
             ]);
-        }
-        
-        // Add some specific Follow Up calls for today's calling functionality
-        $followUpTypeId = DB::table('calling_types')->where('name', 'Follow Up')->value('id');
-        if ($followUpTypeId) {
-            for ($i = 0; $i < 3; $i++) {
-                $sid = $stateIds[array_rand($stateIds)];
-                $cities = $cityByState[$sid] ?? [];
-                $cid = !empty($cities) ? $cities[array_rand($cities)] : null;
-                
-                DB::table('callings')->insert([
+
+            // 2. Link to a random campaign via pivot
+            if (!empty($campaignIds)) {
+                $campaignId = $campaignIds[array_rand($campaignIds)];
+                DB::table('calling_campaign_calling')->insert([
+                    'calling_campaign_id' => $campaignId,
+                    'calling_id' => $callingId,
                     'user_id' => $adminUserId,
-                    'calling_type_id' => $followUpTypeId,
-                    'status_id' => !empty($statusIds) ? $statusIds[array_rand($statusIds)] : null,
-                    'name' => 'Follow Up ' . ($i + 1),
-                    'email' => 'followup' . ($i + 1) . '@example.com',
-                    'state_id' => $sid,
-                    'city_id' => $cid,
-                    'address' => 'Follow up address ' . ($i + 1),
-                    'phone' => '88888' . str_pad((string)($i + 1), 5, '0', STR_PAD_LEFT),
-                    'next_follow_up_date' => now()->subDays(rand(0, 2))->toDateString(), // Due today or overdue
+                    'status' => 'Pending',
+                    'next_followup_date' => now()->addDays(rand(1, 10))->toDateString(),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
             }
         }
-        
-        $this->command->info('✅ Seeded 10 calling records with random calling type IDs + 3 Follow Up calls for today');
+
+        $this->command->info('✅ Seeded 10 calling contacts and linked them to campaigns.');
     }
 
     private function seedCallingRemarks(): void
     {
-        $callingIds = DB::table('callings')->pluck('id')->all();
-        if (empty($callingIds)) {
+        $assignments = DB::table('calling_campaign_calling')->get();
+        if ($assignments->isEmpty()) {
             return;
         }
+
         $phrases = [
             'Left voicemail, awaiting response',
             'Spoke to client; requested callback next week',
             'Interested in demo; send details via email',
             'Number unreachable; try again tomorrow',
             'Requested quotation; follow up in 2 days',
-            'Not interested currently; follow up in a month',
         ];
+
         $rows = [];
-        foreach ($callingIds as $cid) {
-            $n = rand(1, 3);
+        foreach ($assignments as $asgn) {
+            $n = rand(1, 2);
             for ($i = 0; $i < $n; $i++) {
                 $rows[] = [
-                    'calling_id' => $cid,
+                    'calling_id' => $asgn->calling_id,
+                    'calling_campaign_id' => $asgn->calling_campaign_id,
+                    'user_id' => $asgn->user_id,
                     'remark' => $phrases[array_rand($phrases)],
-                    'created_at' => now()->subDays(rand(0, 10)),
-                    'updated_at' => now()->subDays(rand(0, 10)),
+                    'created_at' => now()->subDays(rand(0, 5)),
+                    'updated_at' => now()->subDays(rand(0, 5)),
                 ];
             }
         }
+
         if (!empty($rows)) {
             DB::table('calling_remarks')->insert($rows);
         }
+        $this->command->info('✅ Seeded campaign-specific remarks.');
     }
 
     /**

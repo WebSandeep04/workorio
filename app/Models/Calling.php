@@ -6,52 +6,49 @@ use Illuminate\Database\Eloquent\Model;
 
 class Calling extends Model
 {
+    // The user removed timestamps from the callings migration
+    public $timestamps = false;
+
     protected $fillable = [
-        'user_id',
-        'calling_type_id',
-        'status_id',
         'name',
         'email',
         'phone',
         'address',
-        'state_id',
-        'city_id',
-        'next_follow_up_date',
+        'city',
+        'state',
     ];
 
-    public function state()
+    /**
+     * Many-to-Many relationship with campaigns
+     */
+    public function campaigns()
     {
-        return $this->belongsTo(State::class);
+        return $this->belongsToMany(CallingCampaign::class, 'calling_campaign_calling')
+            ->withPivot(['user_id', 'status', 'next_followup_date'])
+            ->withTimestamps();
     }
 
-    public function city()
-    {
-        return $this->belongsTo(City::class);
-    }
-
+    /**
+     * All remarks for this person
+     */
     public function remarks()
     {
-        return $this->hasMany(CallingRemark::class);
+        return $this->hasMany(CallingRemark::class, 'calling_id');
     }
 
+    /**
+     * Get the latest remark recorded for this person
+     */
     public function latestRemark()
     {
-        return $this->hasOne(CallingRemark::class)->latestOfMany();
+        return $this->hasOne(CallingRemark::class, 'calling_id')->latestOfMany();
     }
 
-    public function callingType()
-    {
-        return $this->belongsTo(CallingType::class);
-    }
-
-    public function status()
-    {
-        return $this->belongsTo(SalesStatus::class, 'status_id');
-    }
-
+    /**
+     * All assignment logs for this person
+     */
     public function assignmentLogs()
     {
         return $this->hasMany(CallingAssignmentLog::class, 'calling_id')->latest();
     }
 }
-
