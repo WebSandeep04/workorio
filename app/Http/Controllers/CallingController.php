@@ -101,6 +101,10 @@ class CallingController extends Controller
             $query->where('city', 'like', '%' . $request->city_id . '%');
         }
 
+        if ($request->filled('list_id')) {
+            $query->where('list_id', $request->list_id);
+        }
+
         return response()->json($query->orderBy('id', 'desc')->paginate($perPage));
     }
 
@@ -114,6 +118,7 @@ class CallingController extends Controller
                 ->whereNotNull('state')
                 ->orderBy('state')
                 ->get(['state as id', 'state as name']),
+            'lists' => \App\Models\CallingList::orderBy('name')->get(['id', 'name']),
         ]);
     }
 

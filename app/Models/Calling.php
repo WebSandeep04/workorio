@@ -10,6 +10,7 @@ class Calling extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'list_id',
         'name',
         'email',
         'phone',
@@ -17,6 +18,11 @@ class Calling extends Model
         'city',
         'state',
     ];
+
+    public function callingList()
+    {
+        return $this->belongsTo(CallingList::class, 'list_id');
+    }
 
     /**
      * Many-to-Many relationship with campaigns

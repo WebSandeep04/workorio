@@ -102,6 +102,12 @@
             </select>
         </div>
         <div>
+            <label for="filter_list" class="form-label-modern"><i class="bi bi-list-task"></i> Lead List</label>
+            <select id="filter_list" class="form-control-modern">
+                <option value="">All Lists</option>
+            </select>
+        </div>
+        <div>
             <label for="filter_state" class="form-label-modern"><i class="bi bi-geo-alt"></i> State</label>
             <select id="filter_state" class="form-control-modern"><option value="">All States</option></select>
         </div>
@@ -208,6 +214,9 @@
             $.get('{{ route("calling.filter-options") }}', function(resp) {
                 var $state = $('#filter_state'); $state.empty().append('<option value="">All States</option>');
                 (resp.states || []).forEach(function(s){ $state.append('<option value="'+s.id+'">'+s.name+'</option>'); });
+
+                var $list = $('#filter_list'); $list.empty().append('<option value="">All Lists</option>');
+                (resp.lists || []).forEach(function(l){ $list.append('<option value="'+l.id+'">'+l.name+'</option>'); });
             });
         }
 
@@ -244,10 +253,11 @@
             var name = ($('#filter_name').val() || '').trim();
             var stateId = $('#filter_state').val();
             var cityId = $('#filter_city').val();
-            const appliedCount = [campaignId, name, stateId, cityId].filter(Boolean).length;
+            var listId = $('#filter_list').val();
+            const appliedCount = [campaignId, name, stateId, cityId, listId].filter(Boolean).length;
             $('#activeFilters').text(appliedCount);
 
-            $.post('{{ route("calling.filter") }}?page=' + page, { campaign_id: campaignId, name, state_id: stateId, city_id: cityId })
+            $.post('{{ route("calling.filter") }}?page=' + page, { campaign_id: campaignId, name, state_id: stateId, city_id: cityId, list_id: listId })
             .done(function(data){
                 renderRows(data.data || []);
                 buildPagination(data);
@@ -274,11 +284,11 @@
 
         loadFilterData(); loadData(1);
 
-        $('#filter_campaign, #filter_city').on('change', () => loadData(1));
+        $('#filter_campaign, #filter_city, #filter_list').on('change', () => loadData(1));
         $('#filter_state').on('change', function(){ loadCitiesByState($(this).val()); loadData(1); });
         $('#filter_name').on('input', function() { loadData(1); });
         $('#resetFilters').on('click', function() {
-            $('#filter_name, #filter_campaign, #filter_state').val(''); $('#filter_city').html('<option value="">All Cities</option>');
+            $('#filter_name, #filter_campaign, #filter_state, #filter_list').val(''); $('#filter_city').html('<option value="">All Cities</option>');
             loadData(1);
         });
 

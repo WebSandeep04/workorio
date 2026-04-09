@@ -35,6 +35,7 @@ return [
             'feature_flag' => 'is_tally_calling_enabled',
             'roles' => ['admin'],
             'items' => [
+                ['route' => 'calling.list.index', 'title' => 'List', 'icon' => 'bi bi-list-task', 'permission' => 'sales.calling'],
                 ['route' => 'calling.all', 'title' => 'All Calls', 'icon' => 'bi bi-collection', 'permission' => 'sales.calling.all'],
                 ['route' => 'calling', 'title' => 'Campaign', 'icon' => 'bi bi-megaphone', 'permission' => 'sales.calling'],
                 ['route' => 'calling.lock', 'title' => 'Lock Calling', 'icon' => 'bi bi-lock', 'permission' => 'sales.calling'],
