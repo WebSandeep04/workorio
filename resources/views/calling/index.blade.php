@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Calling')
-@section('page_title', 'Calling')
+@section('title', 'Campaign')
+@section('page_title', 'Campaign Management')
 
 @push('styles')
 <style>

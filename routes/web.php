@@ -954,10 +954,12 @@ Route::middleware(['auth.or.session'])->group(function () {
 // calling routes (tenant DB)
 Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::get('/calling', [CallingController::class, 'index'])->name('calling');
+    Route::get('/calling/lock', [CallingController::class, 'lockIndex'])->name('calling.lock');
     Route::get('/calling/data', [CallingController::class, 'getCallings'])->name('calling.data');
     Route::post('/calling/filter', [CallingController::class, 'filterCallings'])->name('calling.filter');
     Route::get('/calling/campaigns', [CallingController::class, 'getCampaigns'])->name('calling.campaigns');
     Route::get('/calling/filter-options', [CallingController::class, 'getFilterOptions'])->name('calling.filter-options');
+    Route::post('/calling/lock-leads', [CallingController::class, 'lockLeads'])->name('calling.lock-leads');
     Route::get('/calling/cities/{stateId}', [CallingController::class, 'getCitiesByState'])->name('calling.cities');
     Route::post('/calling/update-type', [CallingController::class, 'updateCallingType'])->name('calling.update-type');
     Route::post('/calling/create-campaign', [CallingController::class, 'createCampaign'])->name('calling.create-campaign');

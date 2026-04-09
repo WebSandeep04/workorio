@@ -1,5 +1,5 @@
-<?php $__env->startSection('title', 'Calling'); ?>
-<?php $__env->startSection('page_title', 'Calling'); ?>
+<?php $__env->startSection('title', 'Campaign'); ?>
+<?php $__env->startSection('page_title', 'Campaign Management'); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>

@@ -36,7 +36,8 @@ return [
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'calling.all', 'title' => 'All Calls', 'icon' => 'bi bi-collection', 'permission' => 'sales.calling.all'],
-                ['route' => 'calling', 'title' => 'Calling Board', 'icon' => 'bi bi-telephone', 'permission' => 'sales.calling'],
+                ['route' => 'calling', 'title' => 'Campaign', 'icon' => 'bi bi-megaphone', 'permission' => 'sales.calling'],
+                ['route' => 'calling.lock', 'title' => 'Lock Calling', 'icon' => 'bi bi-lock', 'permission' => 'sales.calling'],
                 ['route' => 'calling.my', 'title' => 'My Calls', 'icon' => 'bi bi-person', 'permission' => 'sales.calling.my'],
                 ['route' => 'calling.team', 'title' => 'Team Calls', 'icon' => 'bi bi-people', 'condition' => 'has_subordinates', 'permission' => 'sales.calling.team'],
                 ['route' => 'calling.assigned', 'title' => 'Assigned Calls', 'icon' => 'bi bi-person-check', 'condition' => 'is_manager', 'permission' => 'sales.calling.assigned'],
