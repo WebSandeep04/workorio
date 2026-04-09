@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'My Calling'); ?>
+<?php $__env->startSection('page_title', 'My Calling'); ?>
 
-@section('title', 'My Calling')
-@section('page_title', 'My Calling')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     .calling-page { padding: 0.5rem; background: #f7f8fc; }
     .hero-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; width: 100%; margin-bottom: 1rem; }
@@ -61,9 +59,9 @@
     #campaignDataView { display: none; }
     .back-to-camp { display: inline-flex; align-items: center; gap: 0.5rem; color: #434afa; font-weight: 600; font-size: 0.85rem; margin-bottom: 1rem; cursor: pointer; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 calling-page">
     <div id="alertContainer"></div>
 
@@ -71,7 +69,7 @@
     <div class="hero-metrics">
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-sky">
-                <img src="{{ asset('img/icons/call.png') }}" alt="Total Assigned">
+                <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Total Assigned">
             </div>
             <div class="hero-metric-content">
                 <span class="metric-label">Total leads</span>
@@ -80,7 +78,7 @@
         </div>
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-amber">
-                <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
+                <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
             </div>
             <div class="hero-metric-content">
                 <span class="metric-label">Active filters</span>
@@ -89,7 +87,7 @@
         </div>
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-emerald">
-                <img src="{{ asset('img/icons/tick.png') }}" alt="Last Updated">
+                <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Last Updated">
             </div>
             <div class="hero-metric-content">
                 <span class="metric-label">Last updated</span>
@@ -204,10 +202,10 @@
     </div>
 </div>
 
-@include('partials.remarks-modal')
-@endsection
+<?php echo $__env->make('partials.remarks-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     $(document).ready(function() {
         var $tbody = $('#callingTable tbody');
@@ -242,7 +240,7 @@
 
         function loadCampaigns() {
             $('#campaignGrid').html('<div class="p-5 text-center w-100">Loading campaigns...</div>');
-            $.get('{{ route("calling.my.my-campaigns") }}', function(resp) {
+            $.get('<?php echo e(route("calling.my.my-campaigns")); ?>', function(resp) {
                 let html = '';
                 resp.forEach(function(c) {
                     html += `
@@ -266,9 +264,9 @@
             $('#campaignDataView').show();
             $('#campDataTable tbody').html('<tr><td colspan="6" class="text-center p-4">Loading leads...</td></tr>');
 
-            $.post('{{ route("calling.my.filter") }}', {
+            $.post('<?php echo e(route("calling.my.filter")); ?>', {
                 campaign_id: campId,
-                _token: '{{ csrf_token() }}'
+                _token: '<?php echo e(csrf_token()); ?>'
             }).done(function(data) {
                 let rows = data.data || [];
                 let html = '';
@@ -293,7 +291,7 @@
 
         // Standard Filter/Data logic
         function loadFilterData() {
-            $.get('{{ route("calling.my.filter-options") }}', function(resp) {
+            $.get('<?php echo e(route("calling.my.filter-options")); ?>', function(resp) {
                 var $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
                 (resp.states || []).forEach(function(s){
@@ -304,7 +302,7 @@
 
         function loadCitiesByState(stateId) {
             if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
-            var url = '{{ route("calling.my.cities", ["stateId" => 0]) }}'.replace(/0$/, String(stateId));
+            var url = '<?php echo e(route("calling.my.cities", ["stateId" => 0])); ?>'.replace(/0$/, String(stateId));
             $.get(url, function(cities){
                 var $city = $('#filter_city');
                 $city.empty().append('<option value="">All Cities</option>');
@@ -345,11 +343,11 @@
             const appliedCount = [name, stateId, cityId].filter(Boolean).length;
             $('#activeFilters').text(appliedCount);
 
-            $.post('{{ route("calling.my.filter") }}?page=' + page, {
+            $.post('<?php echo e(route("calling.my.filter")); ?>?page=' + page, {
                 name: name,
                 state_id: stateId,
                 city_id: cityId,
-                _token: '{{ csrf_token() }}'
+                _token: '<?php echo e(csrf_token()); ?>'
             }).done(function(data){
                 renderRows(data.data || []);
                 buildPagination(data);
@@ -393,4 +391,6 @@
         }
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/calling/mycalling.blade.php ENDPATH**/ ?>

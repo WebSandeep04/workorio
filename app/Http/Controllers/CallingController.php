@@ -163,11 +163,20 @@ class CallingController extends Controller
         ]);
 
         try {
+            $userId = $this->getCurrentUserId();
+            
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unable to identify user. Please re-login.'
+                ], 401);
+            }
+
             DB::table('calling_campaign_calling')
                 ->where('calling_campaign_id', $request->campaign_id)
                 ->whereIn('calling_id', $request->calling_ids)
                 ->update([
-                    'user_id' => auth()->id(),
+                    'user_id' => $userId,
                     'is_locked' => 1,
                     'updated_at' => now()
                 ]);
@@ -182,6 +191,14 @@ class CallingController extends Controller
                 'message' => 'Failed to lock leads: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Get current user ID from Auth or Session.
+     */
+    private function getCurrentUserId(): ?int
+    {
+        return auth()->id() ?? (session()->has('user_id') ? (int) session('user_id') : null);
     }
 
     /**

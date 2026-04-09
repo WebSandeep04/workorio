@@ -5,472 +5,85 @@
 
 @push('styles')
 <style>
-    .calling-page {
-        padding: 0.5rem;
-        background: #f7f8fc;
-    }
-
-    .data-table-card .custom-table thead th {
-    
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
-   
-  }
-
-    .calling-hero-card {
-        background: transparent;
-        border-radius: 0;
-        color: inherit;
-        padding: 0;
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        gap: 1rem;
-        flex-wrap: wrap;
-        margin-bottom: 1rem;
-    }
-
-    .calling-hero-card > div:first-child {
-        display: none;
-    }
-
-    .eyebrow-text {
-        display: none;
-    }
-
-    .hero-title {
-        display: none;
-    }
-
-    .hero-metrics {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.75rem;
-        width: 100%;
-    }
-
-    .hero-metric-card {
-        background: #fff;
-        border-radius: 10px;
-        border: 1px solid #eceef3;
-        padding: 0.75rem 1rem;
-        width: 100%;
-        box-shadow: 0px 4px 4px 0px #0000000A;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        transition: all 0.3s ease;
-    }
-
-    .hero-metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0px 8px 8px 0px #0000000A;
-    }
-
-    .hero-metric-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-
-    .hero-metric-icon img {
-        width: 24px;
-        height: 24px;
-        object-fit: contain;
-    }
-
-    .icon-sunrise { background: linear-gradient(135deg, #f97316, #fb923c); }
+    .calling-page { padding: 0.5rem; background: #f7f8fc; }
+    .hero-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; width: 100%; margin-bottom: 1rem; }
+    .hero-metric-card { background: #fff; border-radius: 10px; border: 1px solid #eceef3; padding: 0.75rem 1rem; width: 100%; box-shadow: 0px 4px 4px 0px #0000000A; display: flex; align-items: center; gap: 0.75rem; }
+    .hero-metric-icon { width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .hero-metric-icon img { width: 24px; height: 24px; object-fit: contain; }
+    .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
     .icon-amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
     .icon-emerald { background: linear-gradient(135deg, #34d399, #10b981); }
-    .icon-rose { background: linear-gradient(135deg, #fb7185, #f43f5e); }
-    .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
-    .icon-violet { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
-
-    .hero-metric-content {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        flex-grow: 1;
-        min-width: 0;
+    .metric-label { font-size: 0.65rem; color: #000; text-transform: uppercase; font-weight: 600; font-family: Montserrat; }
+    .metric-value { font-size: 1.2rem; font-weight: 700; color: #101828; font-family: Montserrat; }
+    
+    .filterBox { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr 150px; 
+        gap: 0.75rem; 
+        background: #434AFA; 
+        padding: 1rem; 
+        border-radius: 8px; 
+        color: #fff; 
+        margin-bottom: 1rem; 
+        align-items: end;
     }
-
-    .metric-label {
-        display: block;
-        font-size: 0.65rem;
-        color: #000;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.2rem;
-        font-weight: 600;
-        font-family: Montserrat;
-    }
-
-    .metric-value {
-        font-size: 1.2rem;
-        font-weight: 700;
-        line-height: 1.2;
-        display: block;
-        color: #101828;
-        font-family: Montserrat;
-    }
-
-    .filterBox {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-        gap: 0.5rem;
-        background: #434AFA;
-        padding: 0.75rem;
-        border-radius: 5px;
-        color: #fff;
-        border: 1px solid #434AFA;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-        margin-bottom: 1rem;
-        justify-items: stretch;
-        font-family: Montserrat, sans-serif;
-    }
-
-    .filterBox > div {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        height: 100%;
-        gap: 0.35rem;
-    }
-
-    .form-label-modern {
-        color: #fff;
-        font-size: 10px;
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        text-shadow: none;
-        font-family: Montserrat, sans-serif;
-    }
-
-    .form-control-modern {
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        border-radius: 6px;
-        padding: 0.35rem 0.5rem;
-        background: #fff;
-        color: #000;
-        transition: all 0.3s ease;
-        font-size: 10px;
-        font-family: Montserrat, sans-serif;
-    }
-
-    .filterBox .form-control-modern option {
-        color: #000;
-        background: #fff;
-        font-family: Montserrat, sans-serif;
-    }
-
-    .filterBox .form-control-modern:focus {
-        outline: none;
-        border-color: #fff;
-        background: #fff;
-        color: #000;
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
-        transform: translateY(-1px);
-    }
-
-    .filterBox .form-control-modern:hover {
-        border-color: rgba(255, 255, 255, 0.6);
-        background: #fff;
-        color: #000;
-    }
-
-    .table-range-meta {
-        font-size: 0.75rem;
-        color: #6b7280;
-        margin: 0.35rem 0 0.75rem;
-    }
-
-    .filter-reset-btn {
-        border: 2px solid rgba(255, 255, 255, 0.4);
-        border-radius: 6px;
-        background: rgba(255, 255, 255, 0.18);
-        color: white;
-        padding: 0.35rem 0.5rem;
-        font-weight: 600;
-        font-size: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.35rem;
-        transition: all 0.3s ease;
-    }
-
-    .filter-reset-btn:hover {
-        background: rgba(255, 255, 255, 0.28);
-        border-color: rgba(255, 255, 255, 0.6);
-    }
-
-    .modern-card-header {
-        padding: 0px;
-        border-bottom: 1px solid #eef0f6;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-        background: white;
-    }
-
-    .section-eyebrow {
-        font-size: 0.45rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: #9ca3af;
-        margin-bottom: 0.05rem;
-        line-height: 1;
-    }
-
-    .card-title-modern {
-        margin: 0;
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: #101828;
-        line-height: 1.2;
-    }
-
-    .modern-card {
-        padding: 0;
-        margin-bottom: 0.5rem;
-    }
-
-    .modern-card-body {
-        padding: 0px;
-    }
-
-    .data-table-card {
-        border-radius: 5px;
-        border: 1px solid #f2f4f7;
-        background: #fff;
-        box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08);
-        overflow: hidden;
-    }
-
-    .data-table-card .modern-card-body {
-        padding: 0;
-    }
-
-    .data-table-card .table-scroll {
-        width: 100%;
-        overflow-x: auto;
-        padding: 0.5rem 0.75rem 1rem;
-        margin-bottom: 0;
-        background: transparent;
-    }
-
-    .data-table-card .table-scroll::-webkit-scrollbar {
-        height: 8px;
-    }
-
-    .data-table-card .table-scroll::-webkit-scrollbar-track {
-        background: #e4e7ec;
-        border-radius: 999px;
-    }
-
-    .data-table-card .table-scroll::-webkit-scrollbar-thumb {
-        background: #434AFA;
-        border-radius: 999px;
-    }
-
-    .data-table-card .table-scroll {
-        scrollbar-color: #434AFA #e4e7ec;
-    }
-
-    .data-table-card .custom-table {
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-        min-width: 900px;
-        background: transparent;
-        font-size: 0.85rem;
-        table-layout: auto;
-    }
-
-    .data-table-card .custom-table thead th {
-        background: #fff;
-        color: #000;
-        font-size: 0.65rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        font-weight: 700;
-        padding: 0.6rem 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #f1f3f5;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-        white-space: nowrap;
-        font-family: Montserrat;
-    }
-
-    .data-table-card .custom-table tbody td {
-        font-size: 0.85rem;
-        padding: 0.65rem 0.75rem;
-        color: #1f2937;
-        border-bottom: 1px solid #f4f4f6;
-        text-align: left;
-        background: transparent;
-        white-space: nowrap;
-        font-family: Montserrat;
-    }
-
-    .data-table-card .custom-table tbody td:first-child,
-    .data-table-card .custom-table tbody td:nth-child(2) {
-        font-weight: 600;
-        color: #111827;
-    }
-
-    .data-table-card .custom-table tbody tr {
-        transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-    }
-
-    .data-table-card .custom-table tbody tr:hover {
-        background: #f8f9ff;
-        box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08);
-        transform: translateY(-1px);
-    }
-
-    .data-table-card .custom-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .data-table-card .custom-table tbody td:nth-child(1) { min-width: 160px; }
-    .data-table-card .custom-table tbody td:nth-child(2) { min-width: 150px; }
-    .data-table-card .custom-table tbody td:nth-child(3) { min-width: 140px; }
-    .data-table-card .custom-table tbody td:nth-child(4) { min-width: 120px; }
-    .data-table-card .custom-table tbody td:nth-child(5) { min-width: 130px; }
-    .data-table-card .custom-table tbody td:nth-child(6) { min-width: 180px; }
-    .data-table-card .custom-table tbody td:nth-child(7) { min-width: 140px; }
-    .data-table-card .custom-table tbody td:nth-child(8) { min-width: 220px; }
-    .data-table-card .custom-table tbody td:nth-child(9) { min-width: 150px; }
-    .data-table-card .custom-table tbody td:nth-child(10) { min-width: 220px; }
-
-    .remark-link {
-        color: #667eea;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .remark-link:hover {
-        color: #764ba2;
-        text-decoration: underline;
-    }
-
-    .pagination-wrapper {
-        margin-top: 1.5rem;
-        display: flex;
-        justify-content: center;
-    }
-
-    .pagination .page-link {
-        color: #434afa;
-        border: 2px solid #e0e0e0;
-        border-radius: 6px;
-        padding: 0.25rem 0.5rem;
-        margin: 0 2px;
-        font-size: 10px;
-        transition: all 0.3s ease;
-        font-weight: 500;
-    }
-
-    .pagination .page-item.active .page-link {
-        background: #434afa;
-        border-color: #434afa;
-        color: white;
-        box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
-    }
-
-    .pagination .page-link:hover {
-        background: rgba(67, 74, 250, 0.15);
-        border-color: #434afa;
-        transform: translateY(-1px);
-    }
-
-    #alertContainer .alert,
-    .alert-holder .alert {
-        border-radius: 12px;
-        border: none;
-        padding: 0.85rem 1rem;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    }
-
-     @media (max-width: 767px){
-    .container-fluid{
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
-      margin-left: 0;
-    }
-
-    .hero-metrics{
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-    }
-
-    .hero-metric-card{
-        margin-bottom: 0;
-    }
-}
+    .form-label-modern { color: #fff; font-size: 10px; font-weight: 600; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.25rem; text-transform: uppercase; font-family: Montserrat; }
+    .form-control-modern { border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 6px; padding: 0.45rem 0.6rem; background: #fff; color: #000; font-size: 11px; font-family: Montserrat; width: 100%; }
+    
+    .filter-reset-btn { border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 6px; background: rgba(255, 255, 255, 0.18); color: white; padding: 0.45rem; font-size: 10px; font-weight: 600; height: 35px; display: flex; align-items: center; justify-content: center; }
+    
+    .modern-card { border-radius: 8px; border: 1px solid #f2f4f7; background: #fff; box-shadow: 0px 10px 30px rgba(15, 23, 42, 0.05); overflow: hidden; }
+    .modern-card-header { padding: 1rem; border-bottom: 1px solid #eef0f6; display: flex; align-items: center; justify-content: space-between; background: white; }
+    .section-eyebrow { font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; color: #9ca3af; font-weight: 700; }
+    .card-title-modern { margin: 0; font-size: 0.9rem; font-weight: 700; color: #101828; }
+    
+    .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .custom-table thead th { background: #fafbfc; color: #475467; font-size: 0.7rem; text-transform: uppercase; font-weight: 700; padding: 0.9rem 1rem; border-bottom: 1px solid #eaecf0; font-family: Montserrat; }
+    .custom-table tbody td { font-size: 0.85rem; padding: 0.9rem 1rem; color: #344054; border-bottom: 1px solid #f2f4f7; font-family: Montserrat; }
+    
+    .pagination-wrapper { margin-top: 1.5rem; display: flex; justify-content: center; }
+    .pagination .page-link { color: #434afa; border: 1px solid #dee2e6; padding: 0.25rem 0.75rem; margin: 0 2px; border-radius: 4px; font-size: 0.75rem; }
+    .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: #fff; }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-2 calling-page">
-    <div class="calling-hero-card">
-        <div>
-            <p class="eyebrow-text">Today's queue</p>
-            <h2 class="hero-title">Follow-up call board</h2>
-            <p class="mb-0">Call every prospect due today. Update calling types inline and jump to remarks instantly.</p>
+    <div id="alertContainer"></div>
+
+    <!-- Metrics -->
+    <div class="hero-metrics">
+        <div class="hero-metric-card">
+            <div class="hero-metric-icon icon-sky">
+                <img src="{{ asset('img/icons/call.png') }}" alt="Due Today">
+            </div>
+            <div class="hero-metric-content">
+                <span class="metric-label">Due today</span>
+                <span class="metric-value" id="totalDue">0</span>
+            </div>
         </div>
-        <div class="hero-metrics">
-            <div class="hero-metric-card">
-                <div class="hero-metric-icon icon-sky">
-                    <img src="{{ asset('img/icons/call.png') }}" alt="Due Today">
-                </div>
-                <div class="hero-metric-content">
-                    <span class="metric-label">Due today</span>
-                    <span class="metric-value" id="totalDue">0</span>
-                </div>
+        <div class="hero-metric-card">
+            <div class="hero-metric-icon icon-amber">
+                <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
             </div>
-            <div class="hero-metric-card">
-                <div class="hero-metric-icon icon-amber">
-                    <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
-                </div>
-                <div class="hero-metric-content">
-                    <span class="metric-label">Active filters</span>
-                    <span class="metric-value" id="activeFilters">0</span>
-                </div>
+            <div class="hero-metric-content">
+                <span class="metric-label">Filters</span>
+                <span class="metric-value" id="activeFilters">0</span>
             </div>
-            <div class="hero-metric-card">
-                <div class="hero-metric-icon icon-emerald">
-                    <img src="{{ asset('img/icons/tick.png') }}" alt="Last Update">
-                </div>
-                <div class="hero-metric-content">
-                    <span class="metric-label">Last update</span>
-                    <span class="metric-value" id="lastUpdated">--</span>
-                </div>
+        </div>
+        <div class="hero-metric-card">
+            <div class="hero-metric-icon icon-emerald">
+                <img src="{{ asset('img/icons/tick.png') }}" alt="Last Updated">
+            </div>
+            <div class="hero-metric-content">
+                <span class="metric-label">Last updated</span>
+                <span class="metric-value" id="lastUpdated" style="font-size: 0.9rem;">--</span>
             </div>
         </div>
     </div>
 
-    <div id="alertContainer" class="alert-holder"></div>
-
+    <!-- Filters -->
     <div class="filterBox">
-        <div>
-            <label for="filter_name" class="form-label-modern"><i class="bi bi-search"></i> Name</label>
-            <input type="text" id="filter_name" class="form-control-modern" placeholder="Search by name">
-        </div>
         <div>
             <label for="filter_state" class="form-label-modern"><i class="bi bi-geo-alt"></i> State</label>
             <select id="filter_state" class="form-control-modern">
@@ -484,364 +97,176 @@
             </select>
         </div>
         <div>
-            <label for="filter_calling_type" class="form-label-modern"><i class="bi bi-telephone"></i> Calling Type</label>
-            <select id="filter_calling_type" class="form-control-modern">
-                <option value="">All Types</option>
-            </select>
-        </div>
-        <div>
-            <label class="form-label-modern" style="visibility: hidden;">Reset</label>
             <button id="resetFilters" class="filter-reset-btn w-100">
                 <i class="bi bi-arrow-counterclockwise"></i> Reset
             </button>
         </div>
     </div>
 
-    <div class="modern-card data-table-card">
-        <div class="modern-card-header">
+    <!-- Search -->
+    <div class="mb-3" style="max-width: 400px;">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+            <input type="text" id="filter_name" class="form-control border-start-0" placeholder="Search by name or phone...">
         </div>
-        <div class="modern-card-body">
-            <div class="table-scroll">
-                <table class="table custom-table" id="callingTable">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Calling Type</th>
-                            <th>Status</th>
-                            <th>State</th>
-                            <th>City</th>
-                            <th>Address</th>
-                            <th>Phone</th>
-                            <th>Follow-up Date</th>
-                            <th>Remarks</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+    </div>
+
+    <!-- Table -->
+    <div class="modern-card">
+        <div class="modern-card-header">
+            <div>
+                <p class="section-eyebrow mb-1">Today's queue</p>
+                <h4 class="card-title-modern mb-0">Follow-up board</h4>
             </div>
         </div>
+        <div class="table-responsive">
+            <table class="table custom-table" id="callingTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>State</th>
+                        <th>City</th>
+                        <th>Address</th>
+                        <th>Phone</th>
+                        <th style="width: 150px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="7" class="text-center p-5 text-muted">Loading today's follow-ups...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="table-range-meta" id="todaysCallingRangeInfo">
-        Showing 0-0 from 0 data
-    </div>
-
-    <div class="pagination-wrapper">
-        <ul class="pagination" id="paginationLinks"></ul>
-    </div>
-    <div class="pagination-wrapper">
-        <ul class="pagination" id="paginationFilterLinks"></ul>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="text-muted small" id="rangeInfo">Showing 0-0 from 0 data</div>
+        <div class="pagination-wrapper mb-0">
+            <ul class="pagination" id="paginationLinks"></ul>
+        </div>
     </div>
 </div>
+
+@include('partials.remarks-modal')
 @endsection
 
 @push('scripts')
 <script>
-$(function () {
-    const $tbody = $('#callingTable tbody');
-    let currentPage = 1;
-    let currentFilterPage = 1;
-    let totalDue = 0;
+    $(document).ready(function() {
+        var $tbody = $('#callingTable tbody');
+        let currentFilterPage = 1;
 
-    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-    const formatNumber = (value) => Number(value || 0).toLocaleString('en-IN');
-
-    function showAlert(type, message) {
-        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-        const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
-        const alertHtml = `
-            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                <i class="bi ${icon} me-2"></i>${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>`;
-        $('#alertContainer').html(alertHtml);
-        setTimeout(() => $('#alertContainer .alert').fadeOut(() => $(this).remove()), 3500);
-    }
-
-    // Build simple pagination: "Previous [current / last] Next"
-    function buildPagination($container, current, last) {
-        $container.empty();
-        
-        // Previous button
-        $container.append(`
-            <li class="page-item ${current === 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${Math.max(1, current - 1)}">
-                  <i class="bi bi-chevron-left"></i> Previous
-                </a>
-            </li>
-        `);
-        
-        // Current page display
-        $container.append(`
-            <li class="page-item active">
-                <span class="page-link">${current} / ${last}</span>
-            </li>
-        `);
-        
-        // Next button
-        $container.append(`
-            <li class="page-item ${current === last ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${Math.min(last, current + 1)}">
-                  Next <i class="bi bi-chevron-right"></i>
-                </a>
-            </li>
-        `);
-    }
-
-    function updateRangeInfo(from, to, total) {
-        const $info = $('#todaysCallingRangeInfo');
-        if (!$info.length) return;
-
-        const totalValue = Number(total);
-        const safeTotal = Number.isFinite(totalValue) && totalValue >= 0 ? totalValue : 0;
-
-        const startValue = Number(from);
-        const safeStart = safeTotal === 0 ? 0 : (Number.isFinite(startValue) && startValue > 0 ? startValue : 1);
-
-        const endValue = Number(to);
-        const safeEnd = safeTotal === 0 ? 0 : (Number.isFinite(endValue) && endValue >= safeStart ? endValue : safeStart);
-
-        const formattedStart = safeStart.toLocaleString('en-IN');
-        const formattedEnd = safeEnd.toLocaleString('en-IN');
-        const formattedTotal = safeTotal.toLocaleString('en-IN');
-
-        $info.text(`Showing ${formattedStart}-${formattedEnd} from ${formattedTotal} data`);
-    }
-
-    function updateTotals(meta) {
-        if (meta && typeof meta.total !== 'undefined') {
-            totalDue = meta.total;
-        } else if (Array.isArray(meta)) {
-            totalDue = meta.length;
-        } else if (meta && meta.data) {
-            totalDue = meta.data.length;
-        } else {
-            totalDue = 0;
+        function loadFilterData() {
+            $.get('{{ route("calling.todays.filter-options") }}', function(resp) {
+                var $state = $('#filter_state');
+                $state.empty().append('<option value="">All States</option>');
+                (resp.states || []).forEach(function(s){
+                    $state.append('<option value="'+s.id+'">'+s.name+'</option>');
+                });
+            });
         }
-        $('#totalDue').text(formatNumber(totalDue));
-        $('#lastUpdated').text(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-    }
 
-    function setActiveFiltersCount(count) {
-        $('#activeFilters').text(formatNumber(count));
-    }
+        function loadCitiesByState(stateId) {
+            if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
+            var url = '{{ route("calling.todays.cities", ["stateId" => 0]) }}'.replace(/0$/, String(stateId));
+            $.get(url, function(cities){
+                var $city = $('#filter_city');
+                $city.empty().append('<option value="">All Cities</option>');
+                (cities || []).forEach(function(c){
+                    $city.append('<option value="'+c.id+'">'+c.name+'</option>');
+                });
+            });
+        }
 
-    function populateStates(states) {
-        const $state = $('#filter_state');
-            $state.empty().append('<option value="">All States</option>');
-        (states || []).forEach((s) => $state.append(`<option value="${s.id}">${s.name}</option>`));
-    }
-
-    function populateCallingTypeFilter(types) {
-        const $filter = $('#filter_calling_type');
-        $filter.empty().append('<option value="">All Types</option>');
-        (types || []).forEach((ct) => $filter.append(`<option value="${ct.id}">${ct.name}</option>`));
-    }
-
-    function loadFilterOptions() {
-        return $.get('{{ route("calling.todays.filter-options") }}').done((resp) => {
-            if (resp.states) populateStates(resp.states);
-            if (resp.calling_types && resp.calling_types.length) {
-                window.callingTypes = resp.calling_types;
-                populateCallingTypeFilter(window.callingTypes);
+        function renderRows(rows) {
+            var html = '';
+            if (rows && rows.length) {
+                rows.forEach(function(r){
+                    html += `<tr>
+                        <td>${r.name || '-'}</td>
+                        <td>${r.email || '-'}</td>
+                        <td>${r.state || '-'}</td>
+                        <td>${r.city || '-'}</td>
+                        <td>${r.address || '-'}</td>
+                        <td>${r.phone || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary show-remarks" data-id="${r.id}">
+                                <i class="bi bi-chat-text"></i> Remarks
+                            </button>
+                        </td>
+                    </tr>`;
+                });
+            } else {
+                html = '<tr><td colspan="7" class="text-center p-4">No follow-ups due today.</td></tr>';
             }
-        });
-    }
-
-    function ensureCallingTypes() {
-        if (window.callingTypes && window.callingTypes.length) {
-            populateCallingTypeFilter(window.callingTypes);
-            return $.Deferred().resolve().promise();
+            $tbody.html(html);
         }
-        return $.get('{{ route("getcallingtypes") }}').done((types) => {
-            window.callingTypes = types || [];
-            populateCallingTypeFilter(window.callingTypes);
-        });
-    }
 
-    function loadCities(stateId) {
-        if (!stateId) {
+        function loadData(page = 1) {
+            currentFilterPage = page;
+            var name = ($('#filter_name').val() || '').trim();
+            var stateId = $('#filter_state').val();
+            var cityId = $('#filter_city').val();
+            
+            const appliedCount = [name, stateId, cityId].filter(Boolean).length;
+            $('#activeFilters').text(appliedCount);
+
+            $.post('{{ route("calling.todays.filter") }}?page=' + page, {
+                name: name,
+                state_id: stateId,
+                city_id: cityId,
+                _token: '{{ csrf_token() }}'
+            }).done(function(data){
+                renderRows(data.data || []);
+                buildPagination(data);
+                $('#totalDue').text(data.total || 0);
+                $('#lastUpdated').text(new Date().toLocaleTimeString());
+            });
+        }
+
+        function buildPagination(data) {
+            const $container = $('#paginationLinks');
+            $container.empty();
+            if (data.last_page <= 1) return;
+            
+            $container.append('<li class="page-item ' + (data.current_page === 1 ? 'disabled' : '') + '"><a class="page-link" href="#" data-page="' + (data.current_page - 1) + '">Previous</a></li>');
+            $container.append('<li class="page-item active"><span class="page-link">' + data.current_page + ' / ' + data.last_page + '</span></li>');
+            $container.append('<li class="page-item ' + (data.current_page === data.last_page ? 'disabled' : '') + '"><a class="page-link" href="#" data-page="' + (data.current_page + 1) + '">Next</a></li>');
+            
+            $('#rangeInfo').text('Showing ' + (data.from || 0) + '-' + (data.to || 0) + ' from ' + (data.total || 0) + ' data');
+        }
+
+        loadFilterData();
+        loadData(1);
+
+        $('#filter_state').on('change', function(){ loadCitiesByState($(this).val()); loadData(1); });
+        $('#filter_city').on('change', () => loadData(1));
+        $('#filter_name').on('input', debounce(() => loadData(1), 300));
+        $('#resetFilters').on('click', function() {
+            $('#filter_name').val('');
+            $('#filter_state').val('');
             $('#filter_city').html('<option value="">All Cities</option>');
-            return;
-        }
-        const url = '{{ route("calling.todays.cities", ["stateId" => 0]) }}'.replace(/0$/, String(stateId));
-        $.get(url).done((cities) => {
-            const $city = $('#filter_city');
-            $city.empty().append('<option value="">All Cities</option>');
-            (cities || []).forEach((c) => $city.append(`<option value="${c.id}">${c.name}</option>`));
-            });
-    }
-
-    function callingTypeDropdown(row) {
-        let options = '<option value="">Loading...</option>';
-        if (window.callingTypes && window.callingTypes.length) {
-            options = '';
-            window.callingTypes.forEach((ct) => {
-                const selected = Number(ct.id) === Number(row.calling_type_id) ? 'selected' : '';
-                options += `<option value="${ct.id}" ${selected}>${ct.name}</option>`;
-            });
-        }
-        return `<select class="form-select form-select-sm calling-type-select" data-calling-id="${row.id}" style="min-width:120px;">${options}</select>`;
-    }
-
-    function renderRows(rows) {
-        let html = '';
-        if (rows && rows.length) {
-            rows.forEach((r) => {
-                const stateName = (r.state && (r.state.state_name || r.state.name)) || '-';
-                const cityName = (r.city && (r.city.city_name || r.city.name)) || '-';
-                const phone = r.phone || r.mobile || '';
-                const fullRemark = (r.latest_remark && r.latest_remark.remark) ? r.latest_remark.remark : '';
-                const shortRemark = fullRemark ? (fullRemark.length > 12 ? `${fullRemark.substring(0, 12)}...` : fullRemark) : '-';
-                const remarkLink = `<a href="/calling/${r.id}/remarks" class="remark-link" title="${fullRemark || ''}">${shortRemark}</a>`;
-
-                html += `
-                <tr>
-                    <td>${r.name || '-'}</td>
-                    <td>${r.email || '-'}</td>
-                    <td>${callingTypeDropdown(r)}</td>
-                    <td>${r.status ? r.status.status_name : 'No Status'}</td>
-                    <td>${stateName}</td>
-                    <td>${cityName}</td>
-                    <td>${r.address || '-'}</td>
-                    <td>${phone}</td>
-                    <td>${r.next_follow_up_date || '-'}</td>
-                    <td>${remarkLink}</td>
-                </tr>`;
-            });
-        } else {
-            html = '<tr><td colspan="10" class="text-center">No follow-up calls found for today.</td></tr>';
-        }
-        $tbody.html(html);
-    }
-
-    function loadCallings(page = 1) {
-        currentPage = page;
-        $.get('{{ route("calling.todays.data") }}?page=' + page).done((data) => {
-            const rows = Array.isArray(data) ? data : (data.data || []);
-            renderRows(rows);
-            buildPagination($('#paginationLinks'), data.current_page, data.last_page);
-            $('#paginationLinks').show();
-        $('#paginationFilterLinks').hide();
-            updateTotals(data);
-            setActiveFiltersCount(0);
-            updateRangeInfo(data.from, data.to, data.total);
+            loadData(1);
         });
-    }
 
-    function applyFilters(page = 1) {
-        currentFilterPage = page;
-        const name = ($('#filter_name').val() || '').trim();
-        const stateId = $('#filter_state').val();
-        const cityId = $('#filter_city').val();
-        const callingType = $('#filter_calling_type').val();
-        const applied = [name, stateId, cityId, callingType].filter(Boolean).length;
-
-        if (!applied) {
-            setActiveFiltersCount(0);
-            loadCallings(1);
-            return;
-        }
-
-        setActiveFiltersCount(applied);
-
-        $.post('{{ route("calling.todays.filter") }}?page=' + page, {
-            name: name,
-            state_id: stateId,
-            city_id: cityId,
-            calling_type_id: callingType
-        }).done((data) => {
-            const rows = Array.isArray(data) ? data : (data.data || []);
-            renderRows(rows);
-            buildPagination($('#paginationFilterLinks'), data.current_page, data.last_page);
-            $('#paginationFilterLinks').show();
-        $('#paginationLinks').hide();
-            updateTotals(data);
-            updateRangeInfo(data.from, data.to, data.total);
-        }).fail(() => {
-            showAlert('error', 'Failed to fetch filtered results.');
-    });
-    }
-
-    function debounce(fn, delay) {
-        let t;
-        return function () {
-            clearTimeout(t);
-            const args = arguments;
-            const ctx = this;
-            t = setTimeout(() => fn.apply(ctx, args), delay);
-        };
-    }
-
-    const triggerFilter = debounce(applyFilters, 300);
-
-    $('#filter_state').on('change', function () { loadCities($(this).val()); triggerFilter(); });
-    $('#filter_city').on('change', triggerFilter);
-    $('#filter_calling_type').on('change', triggerFilter);
-    $('#filter_name').on('input', triggerFilter);
-
-    $('#resetFilters').on('click', function (e) {
-        e.preventDefault();
-        $('#filter_name').val('');
-        $('#filter_state').val('');
-        $('#filter_city').html('<option value="">All Cities</option>');
-        $('#filter_calling_type').val('');
-        setActiveFiltersCount(0);
-        loadCallings(1);
-    });
-
-    $(document).on('click', '#paginationLinks .page-link', function (e) {
-        e.preventDefault();
-        const page = $(this).data('page');
-        if (page && page !== currentPage) {
-            loadCallings(page);
-        }
-    });
-
-    $(document).on('click', '#paginationFilterLinks .page-link', function (e) {
-        e.preventDefault();
-        const page = $(this).data('page');
-        if (page && page !== currentFilterPage) {
-            applyFilters(page);
-        }
-    });
-
-    $(document).on('change', '.calling-type-select', function () {
-        const callingId = $(this).data('calling-id');
-        const newCallingType = $(this).val();
-        const $select = $(this);
-        $select.prop('disabled', true);
-        
-        $.post('{{ route("calling.update-type") }}', {
-                calling_id: callingId,
-            calling_type_id: newCallingType
-        }).done((response) => {
-                if (response.success) {
-                    showAlert('success', 'Calling type updated successfully!');
-                const followUpTypeId = window.callingTypes.find(ct => ct.name === 'Follow Up')?.id;
-                if (followUpTypeId && Number(newCallingType) !== Number(followUpTypeId)) {
-                    $select.closest('tr').fadeOut(function () {
-                            $(this).remove();
-                        updateTotals({ total: totalDue - 1 });
-                        });
-                    }
-                } else {
-                showAlert('error', response.message || 'Failed to update calling type.');
-                loadCallings(currentPage);
-                }
-        }).fail(() => {
-                showAlert('error', 'Failed to update calling type.');
-            loadCallings(currentPage);
-        }).always(() => {
-                $select.prop('disabled', false);
+        $(document).on('click', '.page-link', function(e) {
+            e.preventDefault();
+            loadData($(this).data('page'));
         });
-    });
 
-    $.when(loadFilterOptions(), ensureCallingTypes()).then(function () {
-        loadCallings();
+        $(document).on('click', '.show-remarks', function() {
+            const id = $(this).data('id');
+            if(window.showRemarksModal) window.showRemarksModal(id);
+        });
+
+        function debounce(fn, delay) {
+            let t; return function() {
+                clearTimeout(t); const args = arguments; const ctx = this;
+                t = setTimeout(() => { fn.apply(ctx, args); }, delay);
+            };
+        }
     });
-});
 </script>
 @endpush

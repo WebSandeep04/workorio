@@ -978,6 +978,7 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::post('/calling/my/filter', [MyCallingController::class, 'filterCallings'])->name('calling.my.filter');
     Route::get('/calling/my/filter-options', [MyCallingController::class, 'getFilterOptions'])->name('calling.my.filter-options');
     Route::get('/calling/my/cities/{stateId}', [MyCallingController::class, 'getCitiesByState'])->name('calling.my.cities');
+    Route::get('/calling/my/my-campaigns', [MyCallingController::class, 'getMyCampaigns'])->name('calling.my.my-campaigns');
     Route::post('/calling/my/update-type', [MyCallingController::class, 'updateCallingType'])->name('calling.my.update-type');
     Route::post('/calling/my/reassign', [MyCallingController::class, 'reassignCalling'])->name('calling.my.reassign');
     Route::get('/calling/my/team-members', [MyCallingController::class, 'getTeamMembers'])->name('calling.my.team-members');

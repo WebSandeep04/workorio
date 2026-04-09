@@ -4,83 +4,42 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Calling;
-use App\Models\State;
-use App\Models\City;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
-use App\Models\CallingType;
 
 class TodaysCallingController extends Controller
 {
     public function index()
     {
-        $today = now()->toDateString();
-
-        $followUpTypeId = CallingType::where('name', 'Follow Up')->value('id');
-        
-        $query = Calling::with(['state:id,state_name', 'city:id,city_name', 'latestRemark', 'callingType:id,name'])
-            ->where('calling_type_id', $followUpTypeId) // Only show Follow Up calls
-            ->whereNotNull('next_follow_up_date')
-            ->whereDate('next_follow_up_date', '<=', $today)
-            ->orderBy('next_follow_up_date')
-            ->orderBy('created_at', 'desc');
-
-        $userId = $this->getCurrentUserId();
-        if ($userId && Schema::hasColumn('callings', 'user_id')) {
-            $query->where('user_id', $userId);
-        }
-
-        $callings = $query->get();
-
-        $grouped = $callings->groupBy(function ($c) {
-            return $c->next_follow_up_date ? Carbon::parse($c->next_follow_up_date)->format('Y-m-d') : 'No Date';
-        });
-
-        return view('calling.todayscalling', [
-            'groupedCallings' => $grouped,
-            'today' => $today,
-        ]);
+        return view('calling.todayscalling');
     }
 
     public function getCallings(Request $request)
     {
         $today = now()->toDateString();
-        $followUpTypeId = CallingType::where('name', 'Follow Up')->value('id');
         $userId = $this->getCurrentUserId();
         $perPage = $request->get('per_page', 10);
 
-        $query = Calling::with(['state:id,state_name', 'city:id,city_name', 'latestRemark', 'callingType:id,name', 'status:id,status_name'])
-            ->where('calling_type_id', $followUpTypeId)
-            ->whereNotNull('next_follow_up_date')
-            ->whereDate('next_follow_up_date', '<=', $today)
-            ->orderBy('next_follow_up_date')
-            ->orderBy('created_at', 'desc');
+        $query = Calling::whereHas('campaigns', function($q) use ($userId, $today) {
+            $q->where('calling_campaign_calling.user_id', $userId)
+              ->whereNotNull('calling_campaign_calling.next_followup_date')
+              ->whereDate('calling_campaign_calling.next_followup_date', '<=', $today);
+        });
 
-        if ($userId && Schema::hasColumn('callings', 'user_id')) {
-            $query->where('user_id', $userId);
-        }
-
-        return response()->json($query->paginate($perPage));
+        return response()->json($query->orderBy('id', 'desc')->paginate($perPage));
     }
 
     public function filterCallings(Request $request)
     {
         $today = now()->toDateString();
-        $followUpTypeId = CallingType::where('name', 'Follow Up')->value('id');
         $userId = $this->getCurrentUserId();
         $perPage = $request->get('per_page', 10);
 
-        $query = Calling::with(['state:id,state_name', 'city:id,city_name', 'latestRemark', 'callingType:id,name', 'status:id,status_name'])
-            ->where('calling_type_id', $followUpTypeId)
-            ->whereNotNull('next_follow_up_date')
-            ->whereDate('next_follow_up_date', '<=', $today)
-            ->orderBy('next_follow_up_date')
-            ->orderBy('created_at', 'desc');
-
-        if ($userId && Schema::hasColumn('callings', 'user_id')) {
-            $query->where('user_id', $userId);
-        }
+        $query = Calling::whereHas('campaigns', function($q) use ($userId, $today) {
+            $q->where('calling_campaign_calling.user_id', $userId)
+              ->whereNotNull('calling_campaign_calling.next_followup_date')
+              ->whereDate('calling_campaign_calling.next_followup_date', '<=', $today);
+        });
 
         if ($request->filled('name')) {
             $term = trim((string) $request->name);
@@ -93,32 +52,33 @@ class TodaysCallingController extends Controller
             });
         }
         if ($request->filled('state_id')) {
-            $query->where('state_id', $request->state_id);
+            $query->where('state', 'like', '%' . $request->state_id . '%');
         }
         if ($request->filled('city_id')) {
-            $query->where('city_id', $request->city_id);
-        }
-        if ($request->filled('calling_type_id')) {
-            $query->where('calling_type_id', $request->calling_type_id);
+            $query->where('city', 'like', '%' . $request->city_id . '%');
         }
 
-        return response()->json($query->paginate($perPage));
+        return response()->json($query->orderBy('id', 'desc')->paginate($perPage));
     }
 
     public function getFilterOptions()
     {
         return response()->json([
-            'states' => State::orderBy('state_name')->get(['id', \DB::raw('state_name as name')]),
-            'calling_types' => CallingType::orderBy('name')->get(['id', 'name']),
+            'states' => Calling::distinct()
+                ->whereNotNull('state')
+                ->orderBy('state')
+                ->get(['state as id', 'state as name']),
         ]);
     }
 
-    public function getCitiesByState($stateId)
+    public function getCitiesByState($stateName)
     {
         return response()->json(
-            City::where('state_id', $stateId)
-                ->orderBy('city_name')
-                ->get(['id', \DB::raw('city_name as name')])
+            Calling::distinct()
+                ->where('state', $stateName)
+                ->whereNotNull('city')
+                ->orderBy('city')
+                ->get(['city as id', 'city as name'])
         );
     }
 
@@ -127,5 +87,3 @@ class TodaysCallingController extends Controller
         return Auth::id() ?? (session()->has('user_id') ? (int) session('user_id') : null);
     }
 }
-
-
