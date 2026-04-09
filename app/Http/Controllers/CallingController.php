@@ -32,8 +32,16 @@ class CallingController extends Controller
     public function getCallings(Request $request)
     {
         $perPage = $request->get('per_page', 10);
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+
+        $query = Calling::query();
+        if ($junkTypeId) {
+            $query->whereDoesntHave('campaigns', function($q) use ($junkTypeId) {
+                $q->where('calling_campaign_calling.calling_type_id', $junkTypeId);
+            });
+        }
         
-        $callings = Calling::orderBy('id', 'desc')->paginate($perPage);
+        $callings = $query->orderBy('id', 'desc')->paginate($perPage);
             
         return response()->json($callings);
     }
@@ -52,8 +60,15 @@ class CallingController extends Controller
     public function filterCallings(Request $request)
     {
         $perPage = $request->get('per_page', 10);
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
         
         $query = Calling::query();
+
+        if ($junkTypeId) {
+            $query->whereDoesntHave('campaigns', function($q) use ($junkTypeId) {
+                $q->where('calling_campaign_calling.calling_type_id', $junkTypeId);
+            });
+        }
 
         // Filter by Campaign if provided
         if ($request->filled('campaign_id')) {

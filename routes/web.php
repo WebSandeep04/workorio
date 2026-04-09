@@ -993,6 +993,9 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::post('/calling/assigned/filter', [AssignedCallingController::class, 'filterAssignedCallings'])->name('calling.assigned.filter');
     Route::get('/calling/assigned/filter-options', [AssignedCallingController::class, 'getFilterOptions'])->name('calling.assigned.filter-options');
     Route::get('/calling/assigned/cities/{stateId}', [AssignedCallingController::class, 'getCitiesByState'])->name('calling.assigned.cities');
+    Route::get('/calling/assigned/lead-details/{id}', [AssignedCallingController::class, 'getLeadDetailsWithRemarks'])->name('calling.assigned.lead-details');
+    Route::get('/calling/assigned/team-members', [AssignedCallingController::class, 'getTeamMembers'])->name('calling.assigned.team-members');
+    Route::post('/calling/assigned/reassign', [AssignedCallingController::class, 'reassignCalling'])->name('calling.assigned.reassign');
     Route::post('/calling/assigned/update-type', [AssignedCallingController::class, 'updateCallingType'])->name('calling.assigned.update-type');
 
     // team calling routes

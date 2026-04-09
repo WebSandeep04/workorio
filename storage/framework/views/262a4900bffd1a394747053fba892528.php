@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Team Calling'); ?>
 <?php $__env->startSection('page_title', 'Team Calling'); ?>
 
@@ -10,42 +8,12 @@
         background: #f7f8fc;
     }
 
-    .data-table-card .custom-table thead th {
-    
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
-   
-  }
-
-    .calling-hero-card {
-        background: transparent;
-        border-radius: 0;
-        color: inherit;
-        padding: 0;
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        gap: 1rem;
-        flex-wrap: wrap;
-        margin-bottom: 1rem;
-    }
-
-    .calling-hero-card > div:first-child {
-        display: none;
-    }
-
-    .eyebrow-text {
-        display: none;
-    }
-
-    .hero-title {
-        display: none;
-    }
-
+    /* Hero Metrics */
     .hero-metrics {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 0.75rem;
-        width: 100%;
+        margin-bottom: 1rem;
     }
 
     .hero-metric-card {
@@ -82,12 +50,9 @@
         object-fit: contain;
     }
 
-    .icon-sunrise { background: linear-gradient(135deg, #f97316, #fb923c); }
+    .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
     .icon-amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
     .icon-emerald { background: linear-gradient(135deg, #34d399, #10b981); }
-    .icon-rose { background: linear-gradient(135deg, #fb7185, #f43f5e); }
-    .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
-    .icon-violet { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
 
     .hero-metric-content {
         display: flex;
@@ -117,6 +82,7 @@
         font-family: Montserrat;
     }
 
+    /* Filter Box */
     .filterBox {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -132,14 +98,6 @@
         font-family: Montserrat, sans-serif;
     }
 
-    .filterBox > div {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        height: 100%;
-        gap: 0.35rem;
-    }
-
     .form-label-modern {
         color: #fff;
         font-size: 10px;
@@ -150,7 +108,6 @@
         gap: 0.25rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        text-shadow: none;
         font-family: Montserrat, sans-serif;
     }
 
@@ -160,67 +117,9 @@
         padding: 0.35rem 0.5rem;
         background: #fff;
         color: #000;
-        transition: all 0.3s ease;
         font-size: 10px;
         font-family: Montserrat, sans-serif;
-    }
-
-    .filterBox .form-control-modern option {
-        color: #000;
-        background: #fff;
-        font-family: Montserrat, sans-serif;
-    }
-
-    .filterBox .form-control-modern:focus {
-        outline: none;
-        border-color: #fff;
-        background: #fff;
-        color: #000;
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
-        transform: translateY(-1px);
-    }
-
-    .filterBox .form-control-modern:hover {
-        border-color: rgba(255, 255, 255, 0.6);
-        background: #fff;
-        color: #000;
-    }
-
-    .table-search {
         width: 100%;
-        margin-bottom: 0.5rem;
-    }
-
-    .table-search-field {
-        width: 100%;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        background: #f4f5f7;
-        border: 1px solid #e5e7eb;
-        border-radius: 2px;
-        padding: 0.35rem 0.9rem;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    }
-
-    .table-search-field i {
-        color: #9ca3af;
-        font-size: 0.85rem;
-    }
-
-    .table-search-field input {
-        border: none;
-        background: transparent;
-        font-size: 0.85rem;
-        width: 100%;
-        outline: none;
-        color: #111827;
-    }
-
-    .table-range-meta {
-        font-size: 0.75rem;
-        color: #6b7280;
-        margin: 0.35rem 0 0.75rem;
     }
 
     .filter-reset-btn {
@@ -237,264 +136,82 @@
         gap: 0.35rem;
         transition: all 0.3s ease;
     }
+    .filter-reset-btn:hover { background: rgba(255, 255, 255, 0.28); }
 
-    .filter-reset-btn:hover {
-        background: rgba(255, 255, 255, 0.28);
-        border-color: rgba(255, 255, 255, 0.6);
-    }
-
-    .modern-card-header {
-        padding: 0px;
-        border-bottom: 1px solid #eef0f6;
-        display: flex;
+    /* Search Section */
+    .table-search-field {
+        width: 100%;
+        display: inline-flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-        background: white;
+        gap: 0.35rem;
+        background: #f4f5f7;
+        border: 1px solid #e5e7eb;
+        border-radius: 2px;
+        padding: 0.35rem 0.9rem;
+        margin-bottom: 1rem;
+    }
+    .table-search-field i { color: #9ca3af; font-size: 0.85rem; }
+    .table-search-field input { border: none; background: transparent; font-size: 0.85rem; width: 100%; outline: none; font-family: Montserrat; }
+
+    /* Table System */
+    .data-table-card { border-radius: 5px; border: 1px solid #f2f4f7; background: #fff; box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08); overflow: hidden; margin-bottom: 1rem; }
+    .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; }
+    .custom-table { border-collapse: separate; border-spacing: 0; width: 100%; font-family: Montserrat; }
+    .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; white-space: nowrap; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
+    .custom-table tbody td { font-size: 0.85rem; padding: 0.65rem 0.75rem; color: #1f2937; border-bottom: 1px solid #f4f4f6; white-space: nowrap; }
+    .custom-table tbody tr:hover { background: #f8f9ff; transform: translateY(-1px); }
+    
+    .remark-link { color: #434AFA; text-decoration: none; font-weight: 500; }
+    .remark-link:hover { text-decoration: underline; }
+
+    .assign-select {
+        font-size: 11px;
+        padding: 4px 6px;
+        border-radius: 4px;
+        border: 1px solid #d0d5dd;
+        font-family: Montserrat;
+        width: 140px;
     }
 
-    .section-eyebrow {
-        font-size: 0.45rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: #9ca3af;
-        margin-bottom: 0.05rem;
-        line-height: 1;
-    }
+    .pagination .page-link { color: #434afa; border: 2px solid #e0e0e0; border-radius: 6px; padding: 0.25rem 0.5rem; margin: 0 2px; font-size: 10px; font-family: Montserrat; }
+    .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); }
 
-    .card-title-modern {
-        margin: 0;
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: #101828;
-        line-height: 1.2;
-    }
-
-    .modern-card {
-        padding: 0;
-        margin-bottom: 0.5rem;
-    }
-
-    .modern-card-body {
-        padding: 0px;
-    }
-
-    .data-table-card {
-        border-radius: 5px;
-        border: 1px solid #f2f4f7;
-        background: #fff;
-        box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08);
-        overflow: hidden;
-    }
-
-    .data-table-card .modern-card-body {
-        padding: 0;
-    }
-
-    .data-table-card .table-scroll {
-        width: 100%;
-        overflow-x: auto;
-        padding: 0.5rem 0.75rem 1rem;
-        margin-bottom: 0;
-        background: transparent;
-    }
-
-    .data-table-card .table-scroll::-webkit-scrollbar {
-        height: 8px;
-    }
-
-    .data-table-card .table-scroll::-webkit-scrollbar-track {
-        background: #e4e7ec;
-        border-radius: 999px;
-    }
-
-    .data-table-card .table-scroll::-webkit-scrollbar-thumb {
-        background: #434AFA;
-        border-radius: 999px;
-    }
-
-    .data-table-card .table-scroll {
-        scrollbar-color: #434AFA #e4e7ec;
-    }
-
-    .data-table-card .custom-table {
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-        min-width: 850px;
-        background: transparent;
-        font-size: 0.85rem;
-        table-layout: auto;
-    }
-
-    .data-table-card .custom-table thead th {
-        background: #fff;
-        color: #000;
-        font-size: 0.65rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        font-weight: 700;
-        padding: 0.6rem 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #f1f3f5;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-        white-space: nowrap;
-        font-family: Monserrat;
-    }
-
-    .data-table-card .custom-table tbody td {
-        font-size: 0.85rem;
-        padding: 0.65rem 0.75rem;
-        color: #1f2937;
-        border-bottom: 1px solid #f4f4f6;
-        text-align: left;
-        background: transparent;
-        white-space: nowrap;
-        font-family: Monserrat;
-    }
-
-    .data-table-card .custom-table tbody td:first-child,
-    .data-table-card .custom-table tbody td:nth-child(2) {
-        font-weight: 600;
-        color: #111827;
-    }
-
-    .data-table-card .custom-table tbody tr {
-        transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-    }
-
-    .data-table-card .custom-table tbody tr:hover {
-        background: #f8f9ff;
-        box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08);
-        transform: translateY(-1px);
-    }
-
-    .data-table-card .custom-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .data-table-card .custom-table tbody td:nth-child(1) { min-width: 140px; }
-    .data-table-card .custom-table tbody td:nth-child(2) { min-width: 160px; }
-    .data-table-card .custom-table tbody td:nth-child(3) { min-width: 140px; }
-    .data-table-card .custom-table tbody td:nth-child(4) { min-width: 120px; }
-    .data-table-card .custom-table tbody td:nth-child(5) { min-width: 120px; }
-    .data-table-card .custom-table tbody td:nth-child(6) { min-width: 180px; }
-    .data-table-card .custom-table tbody td:nth-child(7) { min-width: 140px; }
-    .data-table-card .custom-table tbody td:nth-child(8) { min-width: 220px; }
-
-    .remark-link {
-        color: #667eea;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .remark-link:hover {
-        color: #764ba2;
-        text-decoration: underline;
-    }
-
-    .pagination-wrapper {
-        margin-top: 1.5rem;
-        display: flex;
-        justify-content: center;
-    }
-
-    .pagination .page-link {
-        color: #434afa;
-        border: 2px solid #e0e0e0;
-        border-radius: 6px;
-        padding: 0.25rem 0.5rem;
-        margin: 0 2px;
-        font-size: 10px;
-        transition: all 0.3s ease;
-        font-weight: 500;
-    }
-
-    .pagination .page-item.active .page-link {
-        background: #434afa;
-        border-color: #434afa;
-        color: white;
-        box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
-    }
-
-    .pagination .page-link:hover {
-        background: rgba(67, 74, 250, 0.15);
-        border-color: #434afa;
-        transform: translateY(-1px);
-    }
-
-    #alertContainer .alert,
-    .alert-holder .alert {
-        border-radius: 12px;
-        border: none;
-        padding: 0.85rem 1rem;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    }
-
-
-     @media (max-width: 767px){
-    .container-fluid{
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
-      margin-left: 0;
-    }
-
-    .hero-metrics{
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-    }
-
-    .hero-metric-card{
-        margin-bottom: 0;
-    }
-}
+    .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; font-family: Montserrat; }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 calling-page">
-    <div class="calling-hero-card">
-        <div>
-            <p class="eyebrow-text">Team queue</p>
-            <h2 class="hero-title">Team callings</h2>
-            <p class="mb-0">Review your team's callings, update calling types inline, and manage assignments.</p>
+    <!-- Hero Metrics -->
+    <div class="hero-metrics">
+        <div class="hero-metric-card">
+            <div class="hero-metric-icon icon-sky">
+                <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Total Assigned">
+            </div>
+            <div class="hero-metric-content">
+                <span class="metric-label">Team leads assigned</span>
+                <span class="metric-value" id="totalAssigned">0</span>
+            </div>
         </div>
-        <div class="hero-metrics">
-            <div class="hero-metric-card">
-                <div class="hero-metric-icon icon-sky">
-                    <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Total Assigned">
-                </div>
-                <div class="hero-metric-content">
-                    <span class="metric-label">Total assigned</span>
-                    <span class="metric-value" id="totalAssigned">0</span>
-                </div>
+        <div class="hero-metric-card">
+            <div class="hero-metric-icon icon-amber">
+                <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
             </div>
-            <div class="hero-metric-card">
-                <div class="hero-metric-icon icon-amber">
-                    <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
-                </div>
-                <div class="hero-metric-content">
-                    <span class="metric-label">Active filters</span>
-                    <span class="metric-value" id="activeFilters">0</span>
-                </div>
+            <div class="hero-metric-content">
+                <span class="metric-label">Active filters</span>
+                <span class="metric-value" id="activeFilters">0</span>
             </div>
-            <div class="hero-metric-card">
-                <div class="hero-metric-icon icon-emerald">
-                    <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Latest Update">
-                </div>
-                <div class="hero-metric-content">
-                    <span class="metric-label">Latest update</span>
-                    <span class="metric-value" id="lastUpdated">--</span>
-                </div>
+        </div>
+        <div class="hero-metric-card">
+            <div class="hero-metric-icon icon-emerald">
+                <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Latest Update">
+            </div>
+            <div class="hero-metric-content">
+                <span class="metric-label">Last fetched</span>
+                <span class="metric-value" id="lastUpdated">--</span>
             </div>
         </div>
     </div>
-
-    <div id="alertContainer" class="alert-holder"></div>
 
     <div class="filterBox">
         <div>
@@ -523,442 +240,168 @@
         </div>
     </div>
 
-    <div class="table-search mb-2">
-        <div class="table-search-field">
-            <i class="bi bi-search"></i>
-            <input type="text" id="filter_name" placeholder="Search by name" />
+    <div class="table-search-field">
+        <i class="bi bi-search"></i>
+        <input type="text" id="filter_name" placeholder="Search by name, agent, or campaign..." />
+    </div>
+
+    <div class="data-table-card">
+        <div class="table-scroll">
+            <table class="table custom-table" id="callingTable">
+                <thead>
+                    <tr>
+                        <th>Campaign</th>
+                        <th>Lead Name</th>
+                        <th>Agent</th>
+                        <th>Email</th>
+                        <th>State</th>
+                        <th>City</th>
+                        <th>Phone</th>
+                        <th style="width: 150px;">Handover</th>
+                        <th style="width: 160px;">Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="9" class="text-center p-4 text-muted">Awaiting data stream...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div class="modern-card data-table-card">
-        <div class="modern-card-header">
-        </div>
-        <div class="modern-card-body">
-            <div class="table-scroll">
-                <table class="table custom-table" id="callingTable">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Calling Type</th>
-                            <th>State</th>
-                            <th>City</th>
-                            <th>Address</th>
-                            <th>Phone</th>
-                            <th style="width: 150px;">Assign To</th>
-                            <th style="width: 180px;">Remarks</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="table-range-meta" id="teamCallingRangeInfo">
-        Showing 0-0 from 0 data
-    </div>
-
-    <div class="pagination-wrapper">
-        <ul class="pagination" id="paginationLinks"></ul>
-    </div>
-    <div class="pagination-wrapper">
-        <ul class="pagination" id="paginationFilterLinks"></ul>
+    <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+        <div class="table-range-meta" id="rangeInfo">Showing 0-0 from 0 data</div>
+        <ul class="pagination mb-0" id="paginationLinks"></ul>
     </div>
 </div>
 
-<?php echo $__env->make('partials.remarks-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php echo $__env->make('partials.calling-details-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
 <script>
-    $(document).ready(function () {
+    $(document).ready(function() {
         const $tbody = $('#callingTable tbody');
-        let currentPage = 1;
-        let currentFilterPage = 1;
-        let totalAssigned = 0;
 
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
-        const formatNumber = (value) => Number(value || 0).toLocaleString('en-IN');
-
-        function updateTotals(meta) {
-            if (meta && typeof meta.total !== 'undefined') {
-                totalAssigned = meta.total;
-            } else if (Array.isArray(meta)) {
-                totalAssigned = meta.length;
-            } else if (meta && meta.data) {
-                totalAssigned = meta.data.length;
-            } else {
-                totalAssigned = 0;
-            }
-            $('#totalAssigned').text(formatNumber(totalAssigned));
-            $('#lastUpdated').text(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        }
-
-        function setActiveFiltersCount(count) {
-            $('#activeFilters').text(formatNumber(count));
-        }
-
-        function loadStates() {
-            $.get('<?php echo e(route("calling.team.filter-options")); ?>', function (resp) {
-                const $state = $('#filter_state');
+        function loadFilterData() {
+            $.get('<?php echo e(route("calling.team.filter-options")); ?>', function(resp) {
+                var $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
-                (resp.states || []).forEach(function (s) { $state.append('<option value="' + s.id + '">' + s.name + '</option>'); });
+                (resp.states || []).forEach(function(s){ $state.append('<option value="'+s.id+'">'+s.name+'</option>'); });
 
-                window.callingTypes = resp.calling_types || [];
-                const $callingType = $('#filter_calling_type');
-                $callingType.empty().append('<option value="">All Types</option>');
-                window.callingTypes.forEach(function (ct) {
-                    $callingType.append('<option value="' + ct.id + '">' + ct.name + '</option>');
-                });
+                var $type = $('#filter_calling_type');
+                $type.empty().append('<option value="">All Types</option>');
+                (resp.calling_types || []).forEach(function(t){ $type.append('<option value="'+t.id+'">'+t.name+'</option>'); });
             });
+        }
+
+        function loadTeamMembers() {
+            $.get('<?php echo e(route("calling.team.team-members")); ?>', function(resp) { window.teamMembers = resp; });
         }
 
         function loadCitiesByState(stateId) {
             if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
-            const url = '<?php echo e(route("calling.team.cities", ["stateId" => 0])); ?>'.replace(/0$/, String(stateId));
-            $.get(url, function (cities) {
-                const $city = $('#filter_city');
+            $.get('<?php echo e(route("calling.team.cities", ["stateId" => ":id"])); ?>'.replace(':id', stateId), function(cities){
+                var $city = $('#filter_city');
                 $city.empty().append('<option value="">All Cities</option>');
-                (cities || []).forEach(function (c) { $city.append('<option value="' + c.id + '">' + c.name + '</option>'); });
+                (cities || []).forEach(function(c){ $city.append('<option value="'+c.id+'">'+c.name+'</option>'); });
+            });
+        }
+
+        function getTeamDropdown(id, campId, currentAgentId) {
+            let options = '<option value="">Handover...</option>';
+            if (window.teamMembers) {
+                window.teamMembers.forEach(m => {
+                    const selected = m.id == currentAgentId ? 'selected' : '';
+                    options += `<option value="${m.id}" ${selected}>${m.name}</option>`;
+                });
+            }
+            return `<select class="assign-select" onchange="performReassign(${id}, ${campId}, this.value)">${options}</select>`;
+        }
+
+        window.performReassign = function(callingId, campId, newUserId) {
+            if (!newUserId) return;
+            $.post('<?php echo e(route("calling.team.reassign")); ?>', {
+                calling_id: callingId,
+                campaign_id: campId,
+                new_user_id: newUserId
+            }).done(function(resp) {
+                if (resp.success) {
+                    Swal.fire({ icon: 'success', title: 'Success', text: resp.message, timer: 1500, showConfirmButton: false });
+                    loadData(1);
+                }
             });
         }
 
         function renderRows(rows) {
-            let html = '';
+            var html = '';
             if (rows && rows.length) {
-                rows.forEach(function (r) {
-                    const stateName = (r.state && (r.state.state_name || r.state.name)) || '-';
-                    const cityName = (r.city && (r.city.city_name || r.city.name)) || '-';
-                    const phone = r.phone || r.mobile || '';
-                    const full = (r.latest_remark && r.latest_remark.remark) ? r.latest_remark.remark : '';
-                    const short = full ? (full.length > 12 ? full.substring(0, 12) + '...' : full) : '-';
-                    const remarkLink = '<a href="javascript:void(0)" class="remark-link-modal" data-id="' + r.id + '" data-full="' + (full || '') + '">' + short + '</a>';
-
-                    const callingTypeName = (r.calling_type && r.calling_type.name) ? r.calling_type.name : (r.calling_type_name || '-');
-
-                    let dropdownOptions = '<option value="">Select Member</option>';
-                    if (window.teamMembers && window.teamMembers.length > 0) {
-                        window.teamMembers.forEach(function (member) {
-                            const selected = member.id == r.user_id ? 'selected' : '';
-                            dropdownOptions += `<option value="${member.id}" ${selected}>${member.name}</option>`;
-                        });
-                    }
-                    const assignDropdown = `<select class="form-select form-select-sm assign-select" data-calling-id="${r.id}" onchange="reassignCalling(${r.id}, this.value)">${dropdownOptions}</select>`;
-
-                    html += `
-                        <tr>
-                            <td>${r.name || '-'}</td>
-                            <td>${r.email || '-'}</td>
-                            <td><span class="badge" style="background:#e8eaff;color:#434afa;font-weight:600;padding:4px 10px;border-radius:20px;font-size:12px;">${callingTypeName}</span></td>
-                            <td>${stateName}</td>
-                            <td>${cityName}</td>
-                            <td>${r.address || '-'}</td>
-                            <td>${phone}</td>
-                            <td>${assignDropdown}</td>
-                            <td>${remarkLink}</td>
-                        </tr>`;
+                rows.forEach(function(r){
+                    let remarkText = r.latest_remark ? r.latest_remark.substring(0, 15) + (r.latest_remark.length > 15 ? '...' : '') : 'Remarks';
+                    let dropdown = getTeamDropdown(r.id, r.calling_campaign_id, r.agent_id);
+                    html += `<tr>
+                        <td>${r.campaign_name || 'Legacy'}</td>
+                        <td>${r.name || '-'}</td>
+                        <td class="text-primary">${r.agent_name || 'Unassigned'}</td>
+                        <td>${r.email || '-'}</td>
+                        <td>${r.state || '-'}</td>
+                        <td>${r.city || '-'}</td>
+                        <td>${r.phone || '-'}</td>
+                        <td>${dropdown}</td>
+                        <td>
+                            <a href="javascript:void(0)" class="remark-link" onclick="showCallingDetails(${r.id})">
+                                <i class="bi bi-chat-left-dots-fill"></i> ${remarkText}
+                            </a>
+                        </td>
+                    </tr>`;
                 });
             } else {
-                html = '<tr><td colspan="9" class="text-center">No records found.</td></tr>';
+                html = '<tr><td colspan="9" class="text-center p-5 text-muted">No subordinate leads found.</td></tr>';
             }
             $tbody.html(html);
         }
 
-        // Build simple pagination: "Previous [current / last] Next"
-        function buildDetailedPagination($container, current, last) {
-            $container.empty();
-            
-            // Previous button
-            $container.append(`
-                <li class="page-item ${current === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${Math.max(1, current - 1)}">
-                      <i class="bi bi-chevron-left"></i> Previous
-                    </a>
-                </li>
-            `);
-            
-            // Current page display
-            $container.append(`
-                <li class="page-item active">
-                    <span class="page-link">${current} / ${last}</span>
-                </li>
-            `);
-            
-            // Next button
-            $container.append(`
-                <li class="page-item ${current === last ? 'disabled' : ''}">
-                    <a class="page-link" href="#" data-page="${Math.min(last, current + 1)}">
-                      Next <i class="bi bi-chevron-right"></i>
-                    </a>
-                </li>
-            `);
-        }
+        function loadData(page = 1) {
+            var name = ($('#filter_name').val() || '').trim();
+            var stateId = $('#filter_state').val();
+            var cityId = $('#filter_city').val();
+            var typeId = $('#filter_calling_type').val();
+            const appliedCount = [name, stateId, cityId, typeId].filter(Boolean).length;
+            $('#activeFilters').text(appliedCount);
 
-        function loadTeamCallings(page = 1) {
-            currentPage = page;
-            if (!window.teamMembers) {
-                loadTeamMembers().then(function() {
-                    loadTeamCallings(page);
-                });
-                return;
-            }
-
-            $.get('<?php echo e(route("calling.team.data")); ?>?page=' + page, function (data) {
-                const rows = Array.isArray(data) ? data : (data.data || []);
-                renderRows(rows);
-                renderPagination(data);
-                updateTotals(data);
-                setActiveFiltersCount(0);
+            $.post('<?php echo e(route("calling.team.filter")); ?>?page=' + page, {
+                name: name, state_id: stateId, city_id: cityId, calling_type_id: typeId
+            }).done(function(data){
+                renderRows(data.data || []);
+                buildPagination(data);
+                $('#totalAssigned').text((data.total || 0).toLocaleString('en-IN'));
+                $('#lastUpdated').text(new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
             });
         }
 
-        function renderPagination(data) {
-            const $pagination = $('#paginationLinks');
-            buildDetailedPagination($pagination, data.current_page, data.last_page);
-            $('#paginationLinks').show();
-            $('#paginationFilterLinks').hide();
-            updateRangeInfo(data.from, data.to, data.total);
+        function buildPagination(data) {
+            const $container = $('#paginationLinks'); $container.empty();
+            if (data.last_page <= 1) return;
+            $container.append(`<li class="page-item ${data.current_page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${data.current_page - 1}"><i class="bi bi-chevron-left"></i> Previous</a></li>`);
+            $container.append(`<li class="page-item active"><span class="page-link">${data.current_page} / ${data.last_page}</span></li>`);
+            $container.append(`<li class="page-item ${data.current_page === data.last_page ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${data.current_page + 1}">Next <i class="bi bi-chevron-right"></i></a></li>`);
+            $('#rangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
 
-        function applyFilters(page = 1) {
-            currentFilterPage = page;
-            const name = ($('#filter_name').val() || '').trim();
-            const stateId = $('#filter_state').val();
-            const cityId = $('#filter_city').val();
-            const callingTypeId = $('#filter_calling_type').val();
-            const appliedCount = [name, stateId, cityId, callingTypeId].filter(Boolean).length;
+        loadFilterData(); loadTeamMembers(); loadData(1);
 
-            if (!appliedCount) {
-                setActiveFiltersCount(0);
-                loadTeamCallings(1);
-                return;
-            }
-
-            setActiveFiltersCount(appliedCount);
-            $.post('<?php echo e(route("calling.team.filter")); ?>?page=' + page, { name, state_id: stateId, city_id: cityId, calling_type_id: callingTypeId })
-                .done(function (data) {
-                    const rows = Array.isArray(data) ? data : (data.data || []);
-                    renderRows(rows);
-                    renderFilterPagination(data);
-                    updateTotals(data);
-                });
-        }
-
-        function renderFilterPagination(data) {
-            const $pagination = $('#paginationFilterLinks');
-            buildDetailedPagination($pagination, data.current_page, data.last_page);
-            $('#paginationFilterLinks').show();
-            $('#paginationLinks').hide();
-            updateRangeInfo(data.from, data.to, data.total);
-        }
-
-        function updateRangeInfo(from, to, total) {
-            const $info = $('#teamCallingRangeInfo');
-            if (!$info.length) return;
-
-            const totalValue = Number(total);
-            const safeTotal = Number.isFinite(totalValue) && totalValue >= 0 ? totalValue : 0;
-
-            const startValue = Number(from);
-            const safeStart = safeTotal === 0 ? 0 : (Number.isFinite(startValue) && startValue > 0 ? startValue : 1);
-
-            const endValue = Number(to);
-            const safeEnd = safeTotal === 0 ? 0 : (Number.isFinite(endValue) && endValue >= safeStart ? endValue : safeStart);
-
-            const formattedStart = safeStart.toLocaleString('en-IN');
-            const formattedEnd = safeEnd.toLocaleString('en-IN');
-            const formattedTotal = safeTotal.toLocaleString('en-IN');
-
-            $info.text(`Showing ${formattedStart}-${formattedEnd} from ${formattedTotal} data`);
-        }
-
-        function debounce(fn, delay) {
-            let t;
-            return function () {
-                clearTimeout(t);
-                const args = arguments;
-                const ctx = this;
-                t = setTimeout(function () { fn.apply(ctx, args); }, delay);
-            };
-        }
-
-        const triggerFilter = debounce(applyFilters, 300);
-
-        $('#filter_state').on('change', function () { loadCitiesByState($(this).val()); triggerFilter(); });
-        $('#filter_city').on('change', triggerFilter);
-        $('#filter_calling_type').on('change', triggerFilter);
-        $('#filter_name').on('input', triggerFilter);
-        $('#resetFilters').on('click', function (e) {
-            e.preventDefault();
-            $('#filter_name').val('');
-            $('#filter_state').val('');
-            $('#filter_city').html('<option value="">All Cities</option>');
-            $('#filter_calling_type').val('');
-            setActiveFiltersCount(0);
-            loadTeamCallings(1);
+        $('#filter_state').on('change', function(){ loadCitiesByState($(this).val()); loadData(1); });
+        $('#filter_city').on('change', () => loadData(1));
+        $('#filter_calling_type').on('change', () => loadData(1));
+        $('#filter_name').on('input', function() { loadData(1); });
+        $('#resetFilters').on('click', function() {
+            $('#filter_name').val(''); $('#filter_state').val(''); $('#filter_city').html('<option value="">All Cities</option>');
+            $('#filter_calling_type').val(''); loadData(1);
         });
 
-        $(document).on('click', '#paginationLinks .page-link', function (e) {
-            e.preventDefault();
-            const page = $(this).data('page');
-            if (page && page !== currentPage) {
-                loadTeamCallings(page);
-            }
-        });
-
-        $(document).on('click', '#paginationFilterLinks .page-link', function (e) {
-            e.preventDefault();
-            const page = $(this).data('page');
-            if (page && page !== currentFilterPage) {
-                applyFilters(page);
-            }
-        });
-
-        $(document).on('change', '.calling-type-select', function () {
-            const callingId = $(this).data('calling-id');
-            const newCallingType = $(this).val();
-            const $select = $(this);
-            $select.prop('disabled', true);
-
-            $.ajax({
-                url: '<?php echo e(route("calling.team.update-type")); ?>',
-                type: 'POST',
-                data: {
-                    calling_id: callingId,
-                    calling_type_id: newCallingType
-                },
-                success: function (response) {
-                    if (response.success) {
-                        showAlert('success', 'Calling type updated successfully!');
-                        const junkTypeId = window.callingTypes.find(ct => ct.name === 'Junk')?.id;
-                        if (Number(newCallingType) === junkTypeId) {
-                            $select.closest('tr').fadeOut(function () {
-                                $(this).remove();
-                                updateTotals({ total: totalAssigned - 1 });
-                            });
-                        }
-                    } else {
-                        showAlert('error', response.message || 'Failed to update calling type.');
-                        loadTeamCallings(currentPage);
-                    }
-                },
-                error: function () {
-                    showAlert('error', 'Failed to update calling type.');
-                    loadTeamCallings(currentPage);
-                },
-                complete: function () {
-                    $select.prop('disabled', false);
-                }
-            });
-        });
-
-        // Override showRemarksModal to use the calling-specific remarks endpoint (tenant DB)
-        window.showRemarksModal = function(callingId) {
-            $('#remarksList').html('<div class="text-center">Loading...</div>');
-            $('#remarksModal').modal('show');
-            $.ajax({
-                url: '<?php echo e(route("calling.remarks")); ?>',
-                type: 'GET',
-                data: { sales_record_id: callingId },
-                success: function(response) {
-                    $('#modalLeadName').text(response.sales_record.leads_name || '-');
-                    $('#modalContactPerson').text(response.sales_record.contact_person || '-');
-                    $('#modalContactNumber').text(response.sales_record.contact_number || '-');
-                    $('#modalEmail').text(response.sales_record.email || '-');
-                    $('#modalState').text(response.sales_record.state_name || '-');
-                    $('#modalCity').text(response.sales_record.city_name || '-');
-                    $('#modalProduct').text(response.sales_record.product_name || '-');
-                    $('#modalBusiness').text(response.sales_record.business_name || '-');
-                    $('#modalStatus').text(response.sales_record.status_name || '-');
-                    $('#modalTicketValue').text(response.sales_record.ticket_value || '-');
-                    $('#modalNextFollowUp').text(response.sales_record.next_follow_up_date || '-');
-                    let remarksHtml = '';
-                    if (response.remarks && response.remarks.length > 0) {
-                        response.remarks.forEach(function(remark) {
-                            remarksHtml += '<div class="remark-item"><div class="remark-date">' + remark.date + '</div><div class="remark-text">' + remark.remark + '</div></div>';
-                        });
-                    } else {
-                        remarksHtml = '<div class="text-center text-muted">No remarks found</div>';
-                    }
-                    $('#remarksList').html(remarksHtml);
-                },
-                error: function() {
-                    $('#remarksList').html('<div class="text-danger text-center">Failed to load remarks</div>');
-                }
-            });
-        };
-
-        $(document).on('click', '.remark-link-modal', function (e) {
-            e.preventDefault();
-            const callingId = $(this).data('id');
-            if (callingId) {
-                showRemarksModal(callingId);
-            }
-        });
-
-        function showAlert(type, message) {
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
-            const alertHtml = `
-                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                    <i class="bi ${icon} me-2"></i>${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-            $('#alertContainer').html(alertHtml);
-            setTimeout(function () {
-                $('#alertContainer .alert').fadeOut(function () { $(this).remove(); });
-            }, 4000);
-        }
-
-        window.reassignCalling = function(callingId, newUserId) {
-            if (!newUserId) return;
-            $.ajax({
-                url: '<?php echo e(route("calling.team.reassign")); ?>',
-                type: 'POST',
-                data: {
-                    calling_id: callingId,
-                    new_user_id: newUserId,
-                },
-                success: function(response) {
-                    if (response.success) {
-                        showAlert('success', 'Calling reassigned successfully!');
-                        loadTeamCallings(currentPage);
-                    } else {
-                        showAlert('error', response.message || 'Failed to reassign calling.');
-                    }
-                },
-                error: function() {
-                    showAlert('error', 'Failed to reassign calling. Please try again.');
-                }
-            });
-        };
-
-        function loadTeamMembers() {
-            return new Promise(function(resolve, reject) {
-                $.ajax({
-                    url: '<?php echo e(route("calling.team.team-members")); ?>',
-                    type: 'GET',
-                    success: function (response) {
-                        window.teamMembers = response;
-                        resolve();
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Failed to load team members.");
-                        resolve(); // still resolve so it doesn't get stuck
-                    }
-                });
-            });
-        }
-
-        // initial load
-        loadStates();
-        loadTeamMembers().then(function() {
-            loadTeamCallings(1);
-        });
+        $(document).on('click', '.page-link', function(e) { e.preventDefault(); loadData($(this).data('page')); });
     });
 </script>
 <?php $__env->stopPush(); ?>

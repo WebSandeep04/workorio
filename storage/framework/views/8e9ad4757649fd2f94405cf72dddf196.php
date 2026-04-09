@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Junk Calling'); ?>
+<?php $__env->startSection('page_title', 'Junk Calling'); ?>
 
-@section('title', 'Junk Calling')
-@section('page_title', 'Junk Calling')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     .calling-page { padding: 0.5rem; background: #f7f8fc; }
 
@@ -52,9 +50,9 @@
     .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); }
     .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; font-family: Montserrat; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 calling-page">
     <div class="hero-metrics">
         <div class="hero-metric-card">
@@ -136,18 +134,18 @@
     </div>
 </div>
 
-@include('partials.calling-details-modal')
+<?php echo $__env->make('partials.calling-details-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     $(document).ready(function() {
         const $tbody = $('#junkTable tbody');
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
         function loadFilterData() {
-            $.get('{{ route("calling.junk.filter-options") }}', function(resp) {
+            $.get('<?php echo e(route("calling.junk.filter-options")); ?>', function(resp) {
                 var $state = $('#filter_state'); $state.empty().append('<option value="">All States</option>');
                 (resp.states || []).forEach(function(s){ $state.append('<option value="'+s.id+'">'+s.name+'</option>'); });
             });
@@ -155,7 +153,7 @@
 
         function loadCitiesByState(stateId) {
             if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
-            $.get('{{ route("calling.junk.cities", ["stateId" => ":id"]) }}'.replace(':id', stateId), function(cities){
+            $.get('<?php echo e(route("calling.junk.cities", ["stateId" => ":id"])); ?>'.replace(':id', stateId), function(cities){
                 var $city = $('#filter_city'); $city.empty().append('<option value="">All Cities</option>');
                 (cities || []).forEach(function(c){ $city.append('<option value="'+c.id+'">'+c.name+'</option>'); });
             });
@@ -207,7 +205,7 @@
                 confirmButtonText: 'Yes, restore it'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post('{{ route("calling.junk.restore", ["id" => ":id"]) }}'.replace(':id', pivotId)).done(function(resp) {
+                    $.post('<?php echo e(route("calling.junk.restore", ["id" => ":id"])); ?>'.replace(':id', pivotId)).done(function(resp) {
                         if (resp.success) {
                             Swal.fire('Restored!', resp.message, 'success');
                             loadData(1);
@@ -228,7 +226,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: '{{ route("calling.junk.destroy", ["id" => ":id"]) }}'.replace(':id', pivotId),
+                        url: '<?php echo e(route("calling.junk.destroy", ["id" => ":id"])); ?>'.replace(':id', pivotId),
                         type: 'DELETE'
                     }).done(function(resp) {
                         if (resp.success) {
@@ -247,7 +245,7 @@
             const appliedCount = [name, stateId, cityId].filter(Boolean).length;
             $('#activeFilters').text(appliedCount);
 
-            $.post('{{ route("calling.junk.filter") }}?page=' + page, { name, state_id: stateId, city_id: cityId })
+            $.post('<?php echo e(route("calling.junk.filter")); ?>?page=' + page, { name, state_id: stateId, city_id: cityId })
             .done(function(data){
                 renderRows(data.data || []);
                 buildPagination(data);
@@ -276,4 +274,6 @@
         $(document).on('click', '.page-link', function(e) { e.preventDefault(); loadData($(this).data('page')); });
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/calling/junk.blade.php ENDPATH**/ ?>

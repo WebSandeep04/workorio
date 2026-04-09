@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Assigned Calling'); ?>
+<?php $__env->startSection('page_title', 'Assigned Calling'); ?>
 
-@section('title', 'Team Calling')
-@section('page_title', 'Team Calling')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     .calling-page {
         padding: 0.5rem;
@@ -180,24 +178,24 @@
 
     .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; font-family: Montserrat; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 calling-page">
     <!-- Hero Metrics -->
     <div class="hero-metrics">
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-sky">
-                <img src="{{ asset('img/icons/call.png') }}" alt="Total Assigned">
+                <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Total Assigned">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Team leads assigned</span>
+                <span class="metric-label">Assigned by me</span>
                 <span class="metric-value" id="totalAssigned">0</span>
             </div>
         </div>
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-amber">
-                <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
+                <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
             </div>
             <div class="hero-metric-content">
                 <span class="metric-label">Active filters</span>
@@ -206,10 +204,10 @@
         </div>
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-emerald">
-                <img src="{{ asset('img/icons/tick.png') }}" alt="Latest Update">
+                <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Latest Update">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Last fetched</span>
+                <span class="metric-label">Latest update</span>
                 <span class="metric-value" id="lastUpdated">--</span>
             </div>
         </div>
@@ -244,7 +242,7 @@
 
     <div class="table-search-field">
         <i class="bi bi-search"></i>
-        <input type="text" id="filter_name" placeholder="Search by name, agent, or campaign..." />
+        <input type="text" id="filter_name" placeholder="Search by name, contact, or owner..." />
     </div>
 
     <div class="data-table-card">
@@ -254,12 +252,11 @@
                     <tr>
                         <th>Campaign</th>
                         <th>Lead Name</th>
-                        <th>Agent</th>
+                        <th>Owner</th>
                         <th>Email</th>
                         <th>State</th>
                         <th>City</th>
                         <th>Phone</th>
-                        <th style="width: 150px;">Handover</th>
                         <th style="width: 160px;">Remarks</th>
                     </tr>
                 </thead>
@@ -276,11 +273,11 @@
     </div>
 </div>
 
-@include('partials.calling-details-modal')
+<?php echo $__env->make('partials.calling-details-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     $(document).ready(function() {
         const $tbody = $('#callingTable tbody');
@@ -288,7 +285,7 @@
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
         function loadFilterData() {
-            $.get('{{ route("calling.team.filter-options") }}', function(resp) {
+            $.get('<?php echo e(route("calling.assigned.filter-options")); ?>', function(resp) {
                 var $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
                 (resp.states || []).forEach(function(s){ $state.append('<option value="'+s.id+'">'+s.name+'</option>'); });
@@ -299,59 +296,30 @@
             });
         }
 
-        function loadTeamMembers() {
-            $.get('{{ route("calling.team.team-members") }}', function(resp) { window.teamMembers = resp; });
-        }
 
         function loadCitiesByState(stateId) {
             if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
-            $.get('{{ route("calling.team.cities", ["stateId" => ":id"]) }}'.replace(':id', stateId), function(cities){
+            $.get('<?php echo e(route("calling.assigned.cities", ["stateId" => ":id"])); ?>'.replace(':id', stateId), function(cities){
                 var $city = $('#filter_city');
                 $city.empty().append('<option value="">All Cities</option>');
                 (cities || []).forEach(function(c){ $city.append('<option value="'+c.id+'">'+c.name+'</option>'); });
             });
         }
 
-        function getTeamDropdown(id, campId, currentAgentId) {
-            let options = '<option value="">Handover...</option>';
-            if (window.teamMembers) {
-                window.teamMembers.forEach(m => {
-                    const selected = m.id == currentAgentId ? 'selected' : '';
-                    options += `<option value="${m.id}" ${selected}>${m.name}</option>`;
-                });
-            }
-            return `<select class="assign-select" onchange="performReassign(${id}, ${campId}, this.value)">${options}</select>`;
-        }
-
-        window.performReassign = function(callingId, campId, newUserId) {
-            if (!newUserId) return;
-            $.post('{{ route("calling.team.reassign") }}', {
-                calling_id: callingId,
-                campaign_id: campId,
-                new_user_id: newUserId
-            }).done(function(resp) {
-                if (resp.success) {
-                    Swal.fire({ icon: 'success', title: 'Success', text: resp.message, timer: 1500, showConfirmButton: false });
-                    loadData(1);
-                }
-            });
-        }
 
         function renderRows(rows) {
             var html = '';
             if (rows && rows.length) {
                 rows.forEach(function(r){
                     let remarkText = r.latest_remark ? r.latest_remark.substring(0, 15) + (r.latest_remark.length > 15 ? '...' : '') : 'Remarks';
-                    let dropdown = getTeamDropdown(r.id, r.calling_campaign_id, r.agent_id);
                     html += `<tr>
                         <td>${r.campaign_name || 'Legacy'}</td>
                         <td>${r.name || '-'}</td>
-                        <td class="text-primary">${r.agent_name || 'Unassigned'}</td>
+                        <td class="text-primary">${r.current_owner_name || 'Unassigned'}</td>
                         <td>${r.email || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
                         <td>${r.phone || '-'}</td>
-                        <td>${dropdown}</td>
                         <td>
                             <a href="javascript:void(0)" class="remark-link" onclick="showCallingDetails(${r.id})">
                                 <i class="bi bi-chat-left-dots-fill"></i> ${remarkText}
@@ -360,7 +328,7 @@
                     </tr>`;
                 });
             } else {
-                html = '<tr><td colspan="9" class="text-center p-5 text-muted">No subordinate leads found.</td></tr>';
+                html = '<tr><td colspan="9" class="text-center p-5 text-muted">Empty assignment list.</td></tr>';
             }
             $tbody.html(html);
         }
@@ -373,7 +341,7 @@
             const appliedCount = [name, stateId, cityId, typeId].filter(Boolean).length;
             $('#activeFilters').text(appliedCount);
 
-            $.post('{{ route("calling.team.filter") }}?page=' + page, {
+            $.post('<?php echo e(route("calling.assigned.filter")); ?>?page=' + page, {
                 name: name, state_id: stateId, city_id: cityId, calling_type_id: typeId
             }).done(function(data){
                 renderRows(data.data || []);
@@ -392,7 +360,7 @@
             $('#rangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
 
-        loadFilterData(); loadTeamMembers(); loadData(1);
+        loadFilterData(); loadData(1);
 
         $('#filter_state').on('change', function(){ loadCitiesByState($(this).val()); loadData(1); });
         $('#filter_city').on('change', () => loadData(1));
@@ -406,4 +374,6 @@
         $(document).on('click', '.page-link', function(e) { e.preventDefault(); loadData($(this).data('page')); });
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/calling/assigned.blade.php ENDPATH**/ ?>

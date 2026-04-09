@@ -1,60 +1,184 @@
-<?php $__env->startSection('title', 'Lock Calling'); ?>
+<?php $__env->startSection('title', 'Lock calling'); ?>
 <?php $__env->startSection('page_title', 'Lock Calling'); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>
-    .calling-page { padding: 0.5rem; background: #f7f8fc; }
-    .hero-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; width: 100%; margin-bottom: 1rem; }
-    .hero-metric-card { background: #fff; border-radius: 10px; border: 1px solid #eceef3; padding: 0.75rem 1rem; width: 100%; box-shadow: 0px 4px 4px 0px #0000000A; display: flex; align-items: center; gap: 0.75rem; }
-    .hero-metric-icon { width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .hero-metric-icon img { width: 24px; height: 24px; object-fit: contain; }
+    .calling-page {
+        padding: 0.5rem;
+        background: #f7f8fc;
+    }
+
+    /* Hero Metrics */
+    .hero-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-metric-card {
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #eceef3;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        box-shadow: 0px 4px 4px 0px #0000000A;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+    }
+
+    .hero-metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0px 8px 8px 0px #0000000A;
+    }
+
+    .hero-metric-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .hero-metric-icon img {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+    }
+
     .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
     .icon-emerald { background: linear-gradient(135deg, #34d399, #10b981); }
     .icon-amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
-    .metric-label { font-size: 0.65rem; color: #000; text-transform: uppercase; font-weight: 600; font-family: Montserrat; }
-    .metric-value { font-size: 1.2rem; font-weight: 700; color: #101828; font-family: Montserrat; }
-    
-    .filterBox { 
-        display: grid; 
-        grid-template-columns: 1fr 1fr 1fr 150px; 
-        gap: 0.75rem; 
-        background: #434AFA; 
-        padding: 1rem; 
-        border-radius: 8px; 
-        color: #fff; 
-        margin-bottom: 1rem; 
-        align-items: end;
+
+    .hero-metric-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        flex-grow: 1;
+        min-width: 0;
     }
-    .form-label-modern { color: #fff; font-size: 10px; font-weight: 600; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.25rem; text-transform: uppercase; font-family: Montserrat; }
-    .form-control-modern { border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 6px; padding: 0.45rem 0.6rem; background: #fff; color: #000; font-size: 11px; font-family: Montserrat; width: 100%; }
-    
-    .filter-reset-btn { border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 6px; background: rgba(255, 255, 255, 0.18); color: white; padding: 0.45rem; font-size: 10px; font-weight: 600; height: 35px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .filter-reset-btn:hover { background: rgba(255, 255, 255, 0.3); }
-    
-    .modern-card { border-radius: 8px; border: 1px solid #f2f4f7; background: #fff; box-shadow: 0px 10px 30px rgba(15, 23, 42, 0.05); overflow: hidden; }
-    .modern-card-header { padding: 1rem; border-bottom: 1px solid #eef0f6; display: flex; align-items: center; justify-content: space-between; background: white; }
-    .section-eyebrow { font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; color: #9ca3af; font-weight: 700; }
-    .card-title-modern { margin: 0; font-size: 0.9rem; font-weight: 700; color: #101828; }
-    
-    .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    .custom-table thead th { background: #fafbfc; color: #475467; font-size: 0.7rem; text-transform: uppercase; font-weight: 700; padding: 0.9rem 1rem; border-bottom: 1px solid #eaecf0; font-family: Montserrat; }
-    .custom-table tbody td { font-size: 0.85rem; padding: 0.9rem 1rem; color: #344054; border-bottom: 1px solid #f2f4f7; font-family: Montserrat; }
-    
-    .btn-lock-leads { background: #434AFA; color: #fff; border: none; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: 700; font-size: 0.75rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s; }
-    .btn-lock-leads:hover { background: #3339d6; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(67, 74, 250, 0.2); }
+
+    .metric-label {
+        display: block;
+        font-size: 0.65rem;
+        color: #000;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.2rem;
+        font-weight: 600;
+        font-family: Montserrat;
+    }
+
+    .metric-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        line-height: 1.2;
+        display: block;
+        color: #101828;
+        font-family: Montserrat;
+    }
+
+    /* Filter Box */
+    .filterBox {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 0.5rem;
+        background: #434AFA;
+        padding: 0.75rem;
+        border-radius: 5px;
+        color: #fff;
+        border: 1px solid #434AFA;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1rem;
+        justify-items: stretch;
+        font-family: Montserrat, sans-serif;
+    }
+
+    .form-label-modern {
+        color: #fff;
+        font-size: 10px;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-family: Montserrat, sans-serif;
+    }
+
+    .form-control-modern {
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 6px;
+        padding: 0.35rem 0.5rem;
+        background: #fff;
+        color: #000;
+        font-size: 10px;
+        font-family: Montserrat, sans-serif;
+        width: 100%;
+    }
+
+    .filter-reset-btn {
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.18);
+        color: white;
+        padding: 0.35rem 0.5rem;
+        font-weight: 600;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        transition: all 0.3s ease;
+    }
+    .filter-reset-btn:hover { background: rgba(255, 255, 255, 0.28); }
+
+    /* Search Section */
+    .table-search-field {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background: #f4f5f7;
+        border: 1px solid #e5e7eb;
+        border-radius: 2px;
+        padding: 0.35rem 0.9rem;
+        margin-bottom: 1rem;
+    }
+    .table-search-field i { color: #9ca3af; font-size: 0.85rem; }
+    .table-search-field input { border: none; background: transparent; font-size: 0.85rem; width: 100%; outline: none; font-family: Montserrat; }
+
+    /* Table System */
+    .data-table-card { border-radius: 5px; border: 1px solid #f2f4f7; background: #fff; box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08); overflow: hidden; margin-bottom: 1rem; }
+    .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; }
+    .custom-table { border-collapse: separate; border-spacing: 0; width: 100%; font-family: Montserrat; }
+    .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; white-space: nowrap; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
+    .custom-table tbody td { font-size: 0.85rem; padding: 0.65rem 0.75rem; color: #1f2937; border-bottom: 1px solid #f4f4f6; white-space: nowrap; }
+    .custom-table tbody tr:hover { background: #f8f9ff; transform: translateY(-1px); }
+
+    .btn-lock-leads { background: #434AFA; color: #fff; border: none; padding: 0.4rem 1rem; border-radius: 4px; font-weight: 700; font-size: 0.7rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s; font-family: Montserrat; }
+    .btn-lock-leads:hover:not(:disabled) { background: #3339d6; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(67, 74, 250, 0.2); }
     .btn-lock-leads:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .chip-btn { border-radius: 6px; border: none; padding: 0.4rem 0.8rem; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.2s; }
+    .chip-btn { border-radius: 4px; border: none; padding: 0.4rem 0.8rem; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.2s; font-family: Montserrat; }
     .chip-btn.ghost { background: #f3f5ff; color: #434afa; }
     .chip-btn.ghost:hover { background: #e8ebff; }
+
+    .pagination .page-link { color: #434afa; border: 2px solid #e0e0e0; border-radius: 6px; padding: 0.25rem 0.5rem; margin: 0 2px; font-size: 10px; font-family: Montserrat; }
+    .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); }
+
+    .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; font-family: Montserrat; }
 </style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 calling-page">
-    <div id="alertContainer"></div>
-
-    <!-- Metrics -->
+    <!-- Hero Metrics -->
     <div class="hero-metrics">
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-sky">
@@ -67,7 +191,7 @@
         </div>
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-emerald">
-                <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Selected">
+                <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Active Campaign">
             </div>
             <div class="hero-metric-content">
                 <span class="metric-label">Active Campaign</span>
@@ -85,7 +209,6 @@
         </div>
     </div>
 
-    <!-- Filters -->
     <div class="filterBox">
         <div>
             <label for="filter_campaign" class="form-label-modern"><i class="bi bi-megaphone"></i> Select Campaign</label>
@@ -106,49 +229,27 @@
             </select>
         </div>
         <div>
+            <label class="form-label-modern" style="visibility: hidden;">Reset</label>
             <button id="resetFilters" class="filter-reset-btn w-100">
                 <i class="bi bi-arrow-counterclockwise"></i> Reset
             </button>
         </div>
     </div>
 
-    <!-- Search & Actions -->
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div class="input-group" style="max-width: 400px;">
-            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-            <input type="text" id="filter_name" class="form-control border-start-0" placeholder="Search by name or phone...">
-        </div>
-        <div class="d-flex gap-2">
-            <button id="selectAllBtn" class="chip-btn ghost">
-                <i class="bi bi-check2-square"></i> Select All
-            </button>
-            <button id="lockLeadsBtn" class="btn-lock-leads" disabled>
-                <i class="bi bi-lock-fill"></i> Lock Selected (<span id="selectedCountText">0</span>)
-            </button>
-        </div>
+    <div class="table-search-field">
+        <i class="bi bi-search"></i>
+        <input type="text" id="filter_name" placeholder="Search by name, contact, or address..." />
     </div>
 
-    <!-- Table -->
-    <div class="modern-card">
-        <div class="modern-card-header">
-            <div>
-                <p class="section-eyebrow mb-1">Lead Navigator</p>
-                <h4 class="card-title-modern mb-0" id="tableTitle">Choose a campaign to start</h4>
-            </div>
-            <div id="selectionBadge" style="display:none;">
-                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2">
-                    <i class="bi bi-shield-check me-1"></i> Ready to Lock
-                </span>
-            </div>
-        </div>
-        <div class="table-responsive">
+    <div class="data-table-card">
+        <div class="table-scroll">
             <table class="table custom-table" id="callingTable">
                 <thead>
                     <tr>
-                        <th style="width: 50px;">
+                        <th style="width: 40px;">
                             <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
                         </th>
-                        <th>Name</th>
+                        <th>Lead Name</th>
                         <th>Email</th>
                         <th>State</th>
                         <th>City</th>
@@ -157,16 +258,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="7" class="text-center p-5 text-muted">Please select a campaign from the dropdown above to view contacts.</td></tr>
+                    <tr><td colspan="7" class="text-center p-5 text-muted">Please select a campaign to view unassigned leads.</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mt-3">
-        <div class="table-range-meta" id="callingRangeInfo">Showing 0-0 from 0 data</div>
-        <div class="pagination-wrapper mb-0">
-            <ul class="pagination" id="paginationFilterLinks"></ul>
+    <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+        <div class="d-flex gap-2">
+           <button id="selectAllBtn" class="chip-btn ghost">
+                <i class="bi bi-check2-square"></i> Select All
+            </button>
+            <button id="lockLeadsBtn" class="btn-lock-leads" disabled>
+                <i class="bi bi-lock-fill"></i> Lock Selected (<span id="selectedCountText">0</span>)
+            </button>
+        </div>
+        <div class="d-flex flex-column align-items-end">
+             <div class="table-range-meta" id="callingRangeInfo">Showing 0-0 from 0 data</div>
+             <ul class="pagination mb-0" id="paginationFilterLinks"></ul>
         </div>
     </div>
 </div>
@@ -175,40 +284,28 @@
 <?php $__env->startPush('scripts'); ?>
 <script>
     $(document).ready(function() {
-        var $tbody = $('#callingTable tbody');
+        const $tbody = $('#callingTable tbody');
         let currentFilterPage = 1;
 
-        $.ajaxSetup({
-            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-        });
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
         function loadFilterData() {
             $.get('<?php echo e(route("calling.campaigns")); ?>', function(campaigns) {
                 var $camp = $('#filter_campaign');
                 $camp.empty().append('<option value="">-- Choose Campaign --</option>');
-                (campaigns || []).forEach(function(c){
-                    $camp.append('<option value="'+c.id+'">'+(c.name || 'Unnamed')+'</option>');
-                });
+                (campaigns || []).forEach(function(c){ $camp.append('<option value="'+c.id+'">'+(c.name || 'Unnamed')+'</option>'); });
             });
-
             $.get('<?php echo e(route("calling.filter-options")); ?>', function(resp) {
-                var $state = $('#filter_state');
-                $state.empty().append('<option value="">All States</option>');
-                (resp.states || []).forEach(function(s){
-                    $state.append('<option value="'+s.id+'">'+s.name+'</option>');
-                });
+                var $state = $('#filter_state'); $state.empty().append('<option value="">All States</option>');
+                (resp.states || []).forEach(function(s){ $state.append('<option value="'+s.id+'">'+s.name+'</option>'); });
             });
         }
 
         function loadCitiesByState(stateId) {
             if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
-            var url = '<?php echo e(route("calling.cities", ["stateId" => 0])); ?>'.replace(/0$/, String(stateId));
-            $.get(url, function(cities){
-                var $city = $('#filter_city');
-                $city.empty().append('<option value="">All Cities</option>');
-                (cities || []).forEach(function(c){
-                    $city.append('<option value="'+c.id+'">'+c.name+'</option>');
-                });
+            $.get('<?php echo e(route("calling.cities", ["stateId" => ":id"])); ?>'.replace(':id', stateId), function(cities){
+                var $city = $('#filter_city'); $city.empty().append('<option value="">All Cities</option>');
+                (cities || []).forEach(function(c){ $city.append('<option value="'+c.id+'">'+c.name+'</option>'); });
             });
         }
 
@@ -216,18 +313,18 @@
             var html = '';
             if (rows && rows.length) {
                 rows.forEach(function(r){
-                    html += '<tr>' +
-                        '<td><input type="checkbox" class="form-check-input row-checkbox" value="' + r.id + '"></td>' +
-                        '<td>' + (r.name || '-') + '</td>' +
-                        '<td>' + (r.email || '-') + '</td>' +
-                        '<td>' + (r.state || '-') + '</td>' +
-                        '<td>' + (r.city || '-') + '</td>' +
-                        '<td>' + (r.address || '-') + '</td>' +
-                        '<td>' + (r.phone || '-') + '</td>' +
-                    '</tr>';
+                    html += `<tr>
+                        <td><input type="checkbox" class="form-check-input row-checkbox" value="${r.id}"></td>
+                        <td>${r.name || '-'}</td>
+                        <td>${r.email || '-'}</td>
+                        <td>${r.state || '-'}</td>
+                        <td>${r.city || '-'}</td>
+                        <td class="text-truncate" style="max-width: 200px;" title="${r.address || ''}">${r.address || '-'}</td>
+                        <td>${r.phone || '-'}</td>
+                    </tr>`;
                 });
             } else {
-                html = '<tr><td colspan="7" class="text-center p-4">No unassigned leads found.</td></tr>';
+                html = '<tr><td colspan="7" class="text-center p-5 text-muted">No unassigned leads found for this scope.</td></tr>';
             }
             $tbody.html(html);
         }
@@ -240,48 +337,33 @@
             var cityId = $('#filter_city').val();
             
             if (!campaignId) {
-                $tbody.html('<tr><td colspan="7" class="text-center p-5 text-muted">Please select a campaign from the dropdown above to continue.</td></tr>');
-                $('#totalCallings').text(0);
-                $('#currentCampaignName').text('None');
-                $('#tableTitle').text('Choose a campaign to start');
-                $('#selectionBadge').hide();
-                $('#paginationFilterLinks').empty();
-                $('#selectAllCheckbox').prop('checked', false);
-                updateSelectedCount();
-                return;
+                $tbody.html('<tr><td colspan="7" class="text-center p-5 text-muted">Please select a campaign to continue.</td></tr>');
+                $('#totalCallings').text(0); $('#currentCampaignName').text('None');
+                $('#paginationFilterLinks').empty(); $('#selectAllCheckbox').prop('checked', false);
+                updateSelectedCount(); return;
             }
 
             const appliedCount = [name, stateId, cityId].filter(Boolean).length;
             $('#activeFilters').text(appliedCount);
 
-            $.post('<?php echo e(route("calling.filter")); ?>?page=' + page, {
-                campaign_id: campaignId,
-                name: name,
-                state_id: stateId,
-                city_id: cityId,
-                _token: '<?php echo e(csrf_token()); ?>'
-            }).done(function(data){
+            $.post('<?php echo e(route("calling.filter")); ?>?page=' + page, { campaign_id: campaignId, name, state_id: stateId, city_id: cityId })
+            .done(function(data){
                 renderRows(data.data || []);
                 buildPagination(data);
-                $('#totalCallings').text(data.total || 0);
-                $('#tableTitle').text($('#filter_campaign option:selected').text());
+                $('#totalCallings').text((data.total || 0).toLocaleString('en-IN'));
                 $('#currentCampaignName').text($('#filter_campaign option:selected').text());
-                $('#selectionBadge').show();
                 $('#selectAllCheckbox').prop('checked', false);
                 updateSelectedCount();
             });
         }
 
         function buildPagination(data) {
-            const $container = $('#paginationFilterLinks');
-            $container.empty();
+            const $container = $('#paginationFilterLinks'); $container.empty();
             if (data.last_page <= 1) return;
-            
-            $container.append('<li class="page-item ' + (data.current_page === 1 ? 'disabled' : '') + '"><a class="page-link" href="#" data-page="' + (data.current_page - 1) + '">Previous</a></li>');
-            $container.append('<li class="page-item active"><span class="page-link">' + data.current_page + ' / ' + data.last_page + '</span></li>');
-            $container.append('<li class="page-item ' + (data.current_page === data.last_page ? 'disabled' : '') + '"><a class="page-link" href="#" data-page="' + (data.current_page + 1) + '">Next</a></li>');
-            
-            $('#callingRangeInfo').text('Showing ' + (data.from || 0) + '-' + (data.to || 0) + ' from ' + (data.total || 0) + ' data');
+            $container.append(`<li class="page-item ${data.current_page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${data.current_page - 1}"><i class="bi bi-chevron-left"></i> Previous</a></li>`);
+            $container.append(`<li class="page-item active"><span class="page-link">${data.current_page} / ${data.last_page}</span></li>`);
+            $container.append(`<li class="page-item ${data.current_page === data.last_page ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${data.current_page + 1}">Next <i class="bi bi-chevron-right"></i></a></li>`);
+            $('#callingRangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
 
         function updateSelectedCount() {
@@ -291,51 +373,24 @@
             $('#lockLeadsBtn').prop('disabled', selectedCount === 0);
         }
 
-        function showAlert(type, message) {
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            const alertHtml = `<div class="alert ${alertClass} alert-dismissible fade show shadow-sm" style="border-radius:8px; border:none;" role="alert">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
-            $('#alertContainer').html(alertHtml);
-            setTimeout(() => { $('#alertContainer .alert').fadeOut(); }, 4000);
-        }
-
-        // Init
         loadFilterData();
 
-        // Events
         $('#filter_campaign').on('change', () => applyFilters(1));
         $('#filter_state').on('change', function(){ loadCitiesByState($(this).val()); applyFilters(1); });
         $('#filter_city').on('change', () => applyFilters(1));
-        $('#filter_name').on('input', debounce(() => applyFilters(1), 300));
-        
+        $('#filter_name').on('input', function() { applyFilters(1); });
         $('#resetFilters').on('click', function() {
-            $('#filter_name').val('');
-            $('#filter_campaign').val('');
-            $('#filter_state').val('');
-            $('#filter_city').html('<option value="">All Cities</option>');
+            $('#filter_name').val(''); $('#filter_campaign').val(''); $('#filter_state').val(''); $('#filter_city').html('<option value="">All Cities</option>');
             applyFilters(1);
         });
 
-        $('#selectAllCheckbox').on('change', function() {
-            $('.row-checkbox').prop('checked', $(this).is(':checked'));
-            updateSelectedCount();
-        });
-
-        $(document).on('change', '.row-checkbox', function() {
-            updateSelectedCount();
-            var total = $('.row-checkbox').length;
-            var checked = $('.row-checkbox:checked').length;
-            $('#selectAllCheckbox').prop('checked', total === checked);
-            $('#selectAllCheckbox').prop('indeterminate', checked > 0 && checked < total);
-        });
+        $('#selectAllCheckbox').on('change', function() { $('.row-checkbox').prop('checked', $(this).is(':checked')); updateSelectedCount(); });
+        $(document).on('change', '.row-checkbox', function() { updateSelectedCount(); });
 
         $('#selectAllBtn').on('click', function() {
-            var total = $('.row-checkbox').length;
-            if (total === 0) return;
-            var checked = $('.row-checkbox:checked').length;
-            var newState = checked !== total;
+            var newState = $('.row-checkbox:not(:checked)').length > 0;
             $('.row-checkbox').prop('checked', newState);
-            $('#selectAllCheckbox').prop('checked', newState).prop('indeterminate', false);
-            $(this).html(newState ? '<i class="bi bi-square"></i> Deselect All' : '<i class="bi bi-check2-square"></i> Select All');
+            $('#selectAllCheckbox').prop('checked', newState);
             updateSelectedCount();
         });
 
@@ -347,37 +402,20 @@
             var $btn = $(this);
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Locking...');
 
-            $.post('<?php echo e(route("calling.lock-leads")); ?>', {
-                campaign_id: campaignId,
-                calling_ids: selectedIds,
-                _token: '<?php echo e(csrf_token()); ?>'
-            }).done(resp => {
+            $.post('<?php echo e(route("calling.lock-leads")); ?>', { campaign_id: campaignId, calling_ids: selectedIds })
+            .done(resp => {
                 if (resp.success) {
-                    showAlert('success', resp.message);
-                    applyFilters(currentFilterPage); // Refresh current view
+                    Swal.fire('Success', resp.message, 'success');
+                    applyFilters(currentFilterPage);
                 } else {
-                    showAlert('error', resp.message);
+                    Swal.fire('Error', resp.message, 'error');
                 }
-            }).fail(xhr => {
-                showAlert('error', 'Critical error during locking process.');
-                console.error(xhr.responseText);
             }).always(() => {
                 $btn.prop('disabled', false).html('<i class="bi bi-lock-fill"></i> Lock Selected (<span id="selectedCountText">0</span>)');
             });
         });
 
-        $(document).on('click', '#paginationFilterLinks .page-link', function(e) {
-            e.preventDefault();
-            const page = $(this).data('page');
-            if (page) applyFilters(page);
-        });
-
-        function debounce(fn, delay) {
-            let t; return function() {
-                clearTimeout(t); const args = arguments; const ctx = this;
-                t = setTimeout(() => { fn.apply(ctx, args); }, delay);
-            };
-        }
+        $(document).on('click', '.page-link', function(e) { e.preventDefault(); applyFilters($(this).data('page')); });
     });
 </script>
 <?php $__env->stopPush(); ?>

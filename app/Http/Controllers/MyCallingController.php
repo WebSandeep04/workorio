@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Calling;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Models\CallingAssignmentLog;
 
 class MyCallingController extends Controller
 {
@@ -32,11 +34,10 @@ class MyCallingController extends Controller
         return response()->json($campaigns);
     }
 
-    /**
-     * Helper to get the base query for My Calls
-     */
     private function getMyCallsQuery($userId)
     {
+        $junkTypeId = \App\Models\CallingType::where('name', 'Junk')->value('id');
+
         // We query from the pivot table to allow same lead in different campaigns
         return DB::table('calling_campaign_calling')
             ->join('callings', 'calling_campaign_calling.calling_id', '=', 'callings.id')
@@ -44,6 +45,12 @@ class MyCallingController extends Controller
             ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
             ->where('calling_campaign_calling.user_id', $userId)
             ->where('calling_campaign_calling.is_locked', 1)
+            ->where(function($q) use ($junkTypeId) {
+                if ($junkTypeId) {
+                    $q->where('calling_campaign_calling.calling_type_id', '!=', $junkTypeId)
+                      ->orWhereNull('calling_campaign_calling.calling_type_id');
+                }
+            })
             ->select(
                 'callings.*',
                 'calling_campaigns.name as campaign_name',
@@ -85,10 +92,16 @@ class MyCallingController extends Controller
             $query->where('calling_campaign_calling.calling_campaign_id', $request->campaign_id);
         }
         if ($request->filled('state_id')) {
-            $query->where('callings.state', 'like', '%' . $request->state_id . '%');
+            $stateName = \App\Models\State::where('id', $request->state_id)->value('state_name');
+            if ($stateName) {
+                $query->where('callings.state', $stateName);
+            }
         }
         if ($request->filled('city_id')) {
-            $query->where('callings.city', 'like', '%' . $request->city_id . '%');
+            $cityName = \App\Models\City::where('id', $request->city_id)->value('city_name');
+            if ($cityName) {
+                $query->where('callings.city', $cityName);
+            }
         }
 
         return response()->json($query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage));
@@ -97,22 +110,90 @@ class MyCallingController extends Controller
     public function getFilterOptions()
     {
         return response()->json([
-            'states' => Calling::distinct()
-                ->whereNotNull('state')
-                ->orderBy('state')
-                ->get(['state as id', 'state as name']),
+            'states' => \App\Models\State::orderBy('state_name')->get([
+                'id', \DB::raw('state_name as name')
+            ]),
+            'calling_types' => \App\Models\CallingType::where('name', '!=', 'Junk')
+                ->orderBy('name')->get([
+                    'id',
+                    'name'
+                ]),
         ]);
     }
 
-    public function getCitiesByState($stateName)
+    public function getCitiesByState($stateId)
     {
         return response()->json(
-            Calling::distinct()
-                ->where('state', $stateName)
-                ->whereNotNull('city')
-                ->orderBy('city')
-                ->get(['city as id', 'city as name'])
+            \App\Models\City::where('state_id', $stateId)
+                ->orderBy('city_name')
+                ->get(['id', 'city_name as name'])
         );
+    }
+
+    /**
+     * Reassign calling to different user/team member
+     */
+    public function reassignCalling(Request $request)
+    {
+        $userId = $this->getCurrentUserId();
+        $callingId = $request->calling_id;
+        $campaignId = $request->campaign_id;
+        $newUserId = $request->new_user_id;
+
+        // Find the pivot record
+        $pivot = DB::table('calling_campaign_calling')
+            ->where('calling_id', $callingId)
+            ->where('calling_campaign_id', $campaignId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$pivot) {
+            return response()->json(['error' => 'Assignment not found or not accessible'], 404);
+        }
+
+        // Update the assignment
+        DB::table('calling_campaign_calling')
+            ->where('calling_id', $callingId)
+            ->where('calling_campaign_id', $campaignId)
+            ->update([
+                'user_id' => $newUserId,
+                'updated_at' => now()
+            ]);
+
+        // Log the assignment
+        CallingAssignmentLog::create([
+            'calling_id' => $callingId,
+            'calling_campaign_id' => $campaignId,
+            'from_user_id' => $userId,
+            'to_user_id' => $newUserId,
+            'assigned_by' => $userId,
+            'remark' => 'Reassigned from My Calling'
+        ]);
+
+        $newUser = User::find($newUserId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Calling reassigned successfully to ' . ($newUser->name ?? 'User'),
+        ]);
+    }
+
+    /**
+     * Get team members for reassignment
+     */
+    public function getTeamMembers()
+    {
+        $userId = $this->getCurrentUserId();
+
+        // Get all members of the same teams or subordinates
+        // To keep it simple for now, let's fetch all active users if the user has permission
+        // Or just subordinates from TeamCalling logic
+        $teamMembers = User::where('id', '!=', $userId)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json($teamMembers);
     }
 
     private function getCurrentUserId(): ?int

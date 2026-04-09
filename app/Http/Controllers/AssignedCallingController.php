@@ -11,6 +11,7 @@ use App\Models\CallingType;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\CallingAssignmentLog;
 
 class AssignedCallingController extends Controller
 {
@@ -19,75 +20,86 @@ class AssignedCallingController extends Controller
         return view('calling.assigned');
     }
 
-    // Get assigned callings with pagination
+    /**
+     * Helper to get assigned query with campaign info
+     */
+    private function getAssignedQuery($userId)
+    {
+        $junkTypeId = \App\Models\CallingType::where('name', 'Junk')->value('id');
+
+        // Join with pivot to get campaign name and current owner
+        return DB::table('calling_campaign_calling')
+            ->join('callings', 'calling_campaign_calling.calling_id', '=', 'callings.id')
+            ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
+            ->leftJoin('users', 'calling_campaign_calling.user_id', '=', 'users.id')
+            ->whereExists(function ($query) use ($userId) {
+                $query->select(DB::raw(1))
+                    ->from('calling_assignment_logs')
+                    ->whereColumn('calling_assignment_logs.calling_id', 'callings.id')
+                    ->where('calling_assignment_logs.assigned_by', $userId);
+            })
+            ->where('calling_campaign_calling.user_id', '!=', $userId) // Assigned to someone else
+            ->where(function($q) use ($junkTypeId) {
+                if ($junkTypeId) {
+                    $q->where('calling_campaign_calling.calling_type_id', '!=', $junkTypeId)
+                      ->orWhereNull('calling_campaign_calling.calling_type_id');
+                }
+            })
+            ->select(
+                'callings.*',
+                'calling_campaigns.name as campaign_name',
+                'calling_campaign_calling.calling_campaign_id',
+                'calling_campaign_calling.user_id as current_owner_id',
+                'users.name as current_owner_name',
+                'calling_types.name as pivot_status',
+                DB::raw('(SELECT remark FROM calling_remarks WHERE calling_id = callings.id ORDER BY id DESC LIMIT 1) as latest_remark')
+            );
+    }
+
     public function getAssignedCallings(Request $request)
     {
         $userId = $this->getCurrentUserId();
-        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
         $perPage = $request->get('per_page', 10);
 
-        $records = Calling::with([
-            'state:id,state_name',
-            'city:id,city_name',
-            'latestRemark',
-            'callingType:id,name',
-            'status:id,status_name'
-        ])
-        ->whereHas('assignmentLogs', function($aq) use ($userId) {
-            $aq->where('assigned_by', $userId);
-        })
-        ->where('user_id', '!=', $userId)
-        ->where('calling_type_id', '!=', $junkTypeId)
-        ->orderBy('created_at', 'desc')
-        ->paginate($perPage);
+        $query = $this->getAssignedQuery($userId);
 
-        return response()->json($records);
+        return response()->json($query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage));
     }
 
-    // Get filtered assigned callings
     public function filterAssignedCallings(Request $request)
     {
         $userId = $this->getCurrentUserId();
-        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
         $perPage = $request->get('per_page', 10);
 
-        $query = Calling::with([
-            'state:id,state_name',
-            'city:id,city_name',
-            'latestRemark',
-            'callingType:id,name',
-            'status:id,status_name'
-        ])
-        ->whereHas('assignmentLogs', function($aq) use ($userId) {
-            $aq->where('assigned_by', $userId);
-        })
-        ->where('user_id', '!=', $userId)
-        ->where('calling_type_id', '!=', $junkTypeId);
+        $query = $this->getAssignedQuery($userId);
 
-        // Apply filters
         if ($request->filled('name')) {
             $term = trim((string) $request->name);
             $query->where(function ($q) use ($term) {
                 $like = '%' . $term . '%';
-                $q->where('name', 'like', $like)
-                  ->orWhere('email', 'like', $like)
-                  ->orWhere('phone', 'like', $like)
-                  ->orWhere('address', 'like', $like);
+                $q->where('callings.name', 'like', $like)
+                  ->orWhere('callings.email', 'like', $like)
+                  ->orWhere('callings.phone', 'like', $like);
             });
         }
         if ($request->filled('state_id')) {
-            $query->where('state_id', $request->state_id);
+            $stateName = \App\Models\State::where('id', $request->state_id)->value('state_name');
+            if ($stateName) {
+                $query->where('callings.state', $stateName);
+            }
         }
         if ($request->filled('city_id')) {
-            $query->where('city_id', $request->city_id);
+            $cityName = \App\Models\City::where('id', $request->city_id)->value('city_name');
+            if ($cityName) {
+                $query->where('callings.city', $cityName);
+            }
         }
         if ($request->filled('calling_type_id')) {
-            $query->where('calling_type_id', $request->calling_type_id);
+            $query->where('calling_campaign_calling.calling_type_id', $request->calling_type_id);
         }
 
-        $records = $query->orderBy('created_at', 'desc')->paginate($perPage);
-
-        return response()->json($records);
+        return response()->json($query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage));
     }
 
     public function getFilterOptions()
@@ -105,21 +117,63 @@ class AssignedCallingController extends Controller
         ]);
     }
 
-    public function updateCallingType(Request $request)
+    public function reassignCalling(Request $request)
     {
-        $request->validate([
-            'calling_id' => 'required|exists:callings,id',
-            'calling_type_id' => 'required|exists:calling_types,id',
+        $userId = $this->getCurrentUserId();
+        $callingId = $request->calling_id;
+        $campaignId = $request->campaign_id;
+        $newUserId = $request->new_user_id;
+
+        // Verify I am the one who assigned it or I have total access
+        $logExists = CallingAssignmentLog::where('calling_id', $callingId)
+            ->where('assigned_by', $userId)
+            ->exists();
+
+        if (!$logExists) {
+            return response()->json(['error' => 'You are not authorized to reassign this calling'], 403);
+        }
+
+        // Get old user id
+        $oldUserId = DB::table('calling_campaign_calling')
+            ->where('calling_id', $callingId)
+            ->where('calling_campaign_id', $campaignId)
+            ->value('user_id');
+
+        // Update the assignment
+        DB::table('calling_campaign_calling')
+            ->where('calling_id', $callingId)
+            ->where('calling_campaign_id', $campaignId)
+            ->update([
+                'user_id' => $newUserId,
+                'updated_at' => now()
+            ]);
+
+        // Log the assignment
+        CallingAssignmentLog::create([
+            'calling_id' => $callingId,
+            'calling_campaign_id' => $campaignId,
+            'from_user_id' => $oldUserId,
+            'to_user_id' => $newUserId,
+            'assigned_by' => $userId,
+            'remark' => 'Re-assigned from Assigned Dashboard'
         ]);
 
-        $calling = \App\Models\Calling::findOrFail($request->calling_id);
-        $calling->calling_type_id = $request->calling_type_id;
-        $calling->save();
+        $newUser = User::find($newUserId);
 
         return response()->json([
             'success' => true,
-            'message' => 'Calling type updated successfully',
+            'message' => 'Calling reassigned successfully to ' . ($newUser->name ?? 'User'),
         ]);
+    }
+
+    public function getTeamMembers()
+    {
+        $userId = $this->getCurrentUserId();
+        $teamMembers = User::where('id', '!=', $userId)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+        return response()->json($teamMembers);
     }
 
     public function getCitiesByState($stateId)
@@ -134,60 +188,44 @@ class AssignedCallingController extends Controller
         );
     }
 
-    /**
-     * Get remarks for a calling record (for the modal)
-     */
-    public function getRemarks(Request $request)
+    public function getLeadDetailsWithRemarks(Request $request)
     {
-        $callingId = $request->input('sales_record_id'); // reuse same param name as the partial expects
+        $callingId = $request->id;
+        
+        $lead = DB::table('callings')
+            ->leftJoin('calling_campaign_calling', 'callings.id', '=', 'calling_campaign_calling.calling_id')
+            ->leftJoin('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
+            ->where('callings.id', $callingId)
+            ->select(
+                'callings.*',
+                'calling_campaigns.name as campaign_name',
+                'calling_types.name as status_name'
+            )
+            ->first();
 
-        if (!$callingId) {
-            return response()->json(['error' => 'Calling ID is required'], 400);
-        }
+        if (!$lead) return response()->json(['error' => 'Not found'], 404);
 
-        $calling = \App\Models\Calling::with(['state', 'city', 'callingType', 'status'])
-            ->find($callingId);
-
-        if (!$calling) {
-            return response()->json(['error' => 'Calling record not found'], 404);
-        }
-
-        $remarks = \App\Models\CallingRemark::where('calling_id', $callingId)
-            ->orderBy('created_at', 'desc')
+        $remarks = DB::table('calling_remarks')
+            ->leftJoin('users', 'calling_remarks.user_id', '=', 'users.id')
+            ->where('calling_id', $callingId)
+            ->orderBy('calling_remarks.created_at', 'desc')
+            ->select('calling_remarks.*', 'users.name as user_name')
             ->get()
-            ->map(function ($remark) {
+            ->map(function($r) {
                 return [
-                    'id'         => $remark->id,
-                    'date'       => $remark->created_at ? $remark->created_at->format('d/m/Y') : 'N/A',
-                    'remark'     => $remark->remark ?? '',
-                    'created_at' => $remark->created_at ? $remark->created_at->format('d/m/Y H:i') : 'N/A',
+                    'date' => Carbon::parse($r->created_at)->format('d M Y, h:i A'),
+                    'remark' => $r->remark,
+                    'user' => $r->user_name
                 ];
             });
 
         return response()->json([
-            'sales_record' => [
-                'id'                 => $calling->id,
-                'leads_name'         => $calling->name ?? '-',
-                'contact_person'     => $calling->name ?? '-',
-                'contact_number'     => $calling->phone ?? '-',
-                'email'              => $calling->email ?? '-',
-                'state_name'         => optional($calling->state)->state_name ?? '-',
-                'city_name'          => optional($calling->city)->city_name ?? '-',
-                'product_name'       => optional($calling->callingType)->name ?? '-',
-                'business_name'      => '-',
-                'status_name'        => optional($calling->status)->status_name ?? '-',
-                'ticket_value'       => '-',
-                'next_follow_up_date' => $calling->next_follow_up_date
-                    ? \Carbon\Carbon::parse($calling->next_follow_up_date)->format('d/m/Y')
-                    : 'N/A',
-            ],
-            'remarks' => $remarks,
+            'lead' => $lead,
+            'remarks' => $remarks
         ]);
     }
 
-    /**
-     * Get current user ID from Auth or session
-     */
     private function getCurrentUserId()
     {
         if (Auth::check()) {

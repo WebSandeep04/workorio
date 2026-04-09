@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Calling;
+use App\Models\City;
+use App\Models\State;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class TodaysCallingController extends Controller
 {
@@ -14,11 +17,10 @@ class TodaysCallingController extends Controller
         return view('calling.todayscalling');
     }
 
-    /**
-     * Helper to get the base query for Today's Calls
-     */
     private function getTodaysCallsQuery($userId, $today)
     {
+        $junkTypeId = \App\Models\CallingType::where('name', 'Junk')->value('id');
+
         return DB::table('calling_campaign_calling')
             ->join('callings', 'calling_campaign_calling.calling_id', '=', 'callings.id')
             ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
@@ -27,11 +29,18 @@ class TodaysCallingController extends Controller
             ->where('calling_campaign_calling.is_locked', 1)
             ->whereNotNull('calling_campaign_calling.next_followup_date')
             ->whereDate('calling_campaign_calling.next_followup_date', '<=', $today)
+            ->where(function($q) use ($junkTypeId) {
+                if ($junkTypeId) {
+                    $q->where('calling_campaign_calling.calling_type_id', '!=', $junkTypeId)
+                      ->orWhereNull('calling_campaign_calling.calling_type_id');
+                }
+            })
             ->select(
                 'callings.*',
                 'calling_campaigns.name as campaign_name',
                 'calling_campaign_calling.calling_campaign_id',
-                'calling_types.name as pivot_status'
+                'calling_types.name as status_name',
+                DB::raw('(SELECT remark FROM calling_remarks WHERE calling_id = callings.id ORDER BY id DESC LIMIT 1) as latest_remark')
             );
     }
 
@@ -60,15 +69,20 @@ class TodaysCallingController extends Controller
                 $like = '%'.$term.'%';
                 $q->where('callings.name', 'like', $like)
                   ->orWhere('callings.email', 'like', $like)
-                  ->orWhere('callings.phone', 'like', $like)
-                  ->orWhere('callings.address', 'like', $like);
+                  ->orWhere('callings.phone', 'like', $like);
             });
         }
         if ($request->filled('state_id')) {
-            $query->where('callings.state', 'like', '%' . $request->state_id . '%');
+            $stateName = State::where('id', $request->state_id)->value('state_name');
+            if ($stateName) {
+                $query->where('callings.state', $stateName);
+            }
         }
         if ($request->filled('city_id')) {
-            $query->where('callings.city', 'like', '%' . $request->city_id . '%');
+            $cityName = City::where('id', $request->city_id)->value('city_name');
+            if ($cityName) {
+                $query->where('callings.city', $cityName);
+            }
         }
 
         return response()->json($query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage));
@@ -77,21 +91,18 @@ class TodaysCallingController extends Controller
     public function getFilterOptions()
     {
         return response()->json([
-            'states' => Calling::distinct()
-                ->whereNotNull('state')
-                ->orderBy('state')
-                ->get(['state as id', 'state as name']),
+            'states' => State::orderBy('state_name')->get([
+                'id', \DB::raw('state_name as name')
+            ]),
         ]);
     }
 
-    public function getCitiesByState($stateName)
+    public function getCitiesByState($stateId)
     {
         return response()->json(
-            Calling::distinct()
-                ->where('state', $stateName)
-                ->whereNotNull('city')
-                ->orderBy('city')
-                ->get(['city as id', 'city as name'])
+            City::where('state_id', $stateId)
+                ->orderBy('city_name')
+                ->get(['id', \DB::raw('city_name as name')])
         );
     }
 

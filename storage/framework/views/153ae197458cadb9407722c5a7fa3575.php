@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', "Today's Calling"); ?>
+<?php $__env->startSection('page_title', "Today's Calling"); ?>
 
-@section('title', 'Team Calling')
-@section('page_title', 'Team Calling')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     .calling-page {
         padding: 0.5rem;
@@ -166,38 +164,29 @@
     .remark-link { color: #434AFA; text-decoration: none; font-weight: 500; }
     .remark-link:hover { text-decoration: underline; }
 
-    .assign-select {
-        font-size: 11px;
-        padding: 4px 6px;
-        border-radius: 4px;
-        border: 1px solid #d0d5dd;
-        font-family: Montserrat;
-        width: 140px;
-    }
-
     .pagination .page-link { color: #434afa; border: 2px solid #e0e0e0; border-radius: 6px; padding: 0.25rem 0.5rem; margin: 0 2px; font-size: 10px; font-family: Montserrat; }
     .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); }
 
     .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; font-family: Montserrat; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 calling-page">
     <!-- Hero Metrics -->
     <div class="hero-metrics">
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-sky">
-                <img src="{{ asset('img/icons/call.png') }}" alt="Total Assigned">
+                <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Due Today">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Team leads assigned</span>
-                <span class="metric-value" id="totalAssigned">0</span>
+                <span class="metric-label">Calls due today</span>
+                <span class="metric-value" id="totalDue">0</span>
             </div>
         </div>
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-amber">
-                <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
+                <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
             </div>
             <div class="hero-metric-content">
                 <span class="metric-label">Active filters</span>
@@ -206,10 +195,10 @@
         </div>
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-emerald">
-                <img src="{{ asset('img/icons/tick.png') }}" alt="Latest Update">
+                <img src="<?php echo e(asset('img/icons/tick.png')); ?>" alt="Latest Update">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Last fetched</span>
+                <span class="metric-label">Last updated</span>
                 <span class="metric-value" id="lastUpdated">--</span>
             </div>
         </div>
@@ -228,12 +217,7 @@
                 <option value="">All Cities</option>
             </select>
         </div>
-        <div>
-            <label for="filter_calling_type" class="form-label-modern"><i class="bi bi-telephone"></i> Calling Type</label>
-            <select id="filter_calling_type" class="form-control-modern">
-                <option value="">All Types</option>
-            </select>
-        </div>
+        <div style="visibility: hidden;"></div>
         <div>
             <label class="form-label-modern" style="visibility: hidden;">Reset</label>
             <button id="resetFilters" class="filter-reset-btn w-100">
@@ -244,7 +228,7 @@
 
     <div class="table-search-field">
         <i class="bi bi-search"></i>
-        <input type="text" id="filter_name" placeholder="Search by name, agent, or campaign..." />
+        <input type="text" id="filter_name" placeholder="Search by name, contact, or campaign..." />
     </div>
 
     <div class="data-table-card">
@@ -254,17 +238,15 @@
                     <tr>
                         <th>Campaign</th>
                         <th>Lead Name</th>
-                        <th>Agent</th>
                         <th>Email</th>
                         <th>State</th>
                         <th>City</th>
                         <th>Phone</th>
-                        <th style="width: 150px;">Handover</th>
                         <th style="width: 160px;">Remarks</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="9" class="text-center p-4 text-muted">Awaiting data stream...</td></tr>
+                    <tr><td colspan="7" class="text-center p-4 text-muted">Scanning today's follow-up list...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -276,11 +258,9 @@
     </div>
 </div>
 
-@include('partials.calling-details-modal')
+<?php $__env->stopSection(); ?>
 
-@endsection
-
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     $(document).ready(function() {
         const $tbody = $('#callingTable tbody');
@@ -288,52 +268,19 @@
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
         function loadFilterData() {
-            $.get('{{ route("calling.team.filter-options") }}', function(resp) {
+            $.get('<?php echo e(route("calling.todays.filter-options")); ?>', function(resp) {
                 var $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
                 (resp.states || []).forEach(function(s){ $state.append('<option value="'+s.id+'">'+s.name+'</option>'); });
-
-                var $type = $('#filter_calling_type');
-                $type.empty().append('<option value="">All Types</option>');
-                (resp.calling_types || []).forEach(function(t){ $type.append('<option value="'+t.id+'">'+t.name+'</option>'); });
             });
-        }
-
-        function loadTeamMembers() {
-            $.get('{{ route("calling.team.team-members") }}', function(resp) { window.teamMembers = resp; });
         }
 
         function loadCitiesByState(stateId) {
             if (!stateId) { $('#filter_city').html('<option value="">All Cities</option>'); return; }
-            $.get('{{ route("calling.team.cities", ["stateId" => ":id"]) }}'.replace(':id', stateId), function(cities){
+            $.get('<?php echo e(route("calling.todays.cities", ["stateId" => ":id"])); ?>'.replace(':id', stateId), function(cities){
                 var $city = $('#filter_city');
                 $city.empty().append('<option value="">All Cities</option>');
                 (cities || []).forEach(function(c){ $city.append('<option value="'+c.id+'">'+c.name+'</option>'); });
-            });
-        }
-
-        function getTeamDropdown(id, campId, currentAgentId) {
-            let options = '<option value="">Handover...</option>';
-            if (window.teamMembers) {
-                window.teamMembers.forEach(m => {
-                    const selected = m.id == currentAgentId ? 'selected' : '';
-                    options += `<option value="${m.id}" ${selected}>${m.name}</option>`;
-                });
-            }
-            return `<select class="assign-select" onchange="performReassign(${id}, ${campId}, this.value)">${options}</select>`;
-        }
-
-        window.performReassign = function(callingId, campId, newUserId) {
-            if (!newUserId) return;
-            $.post('{{ route("calling.team.reassign") }}', {
-                calling_id: callingId,
-                campaign_id: campId,
-                new_user_id: newUserId
-            }).done(function(resp) {
-                if (resp.success) {
-                    Swal.fire({ icon: 'success', title: 'Success', text: resp.message, timer: 1500, showConfirmButton: false });
-                    loadData(1);
-                }
             });
         }
 
@@ -342,25 +289,22 @@
             if (rows && rows.length) {
                 rows.forEach(function(r){
                     let remarkText = r.latest_remark ? r.latest_remark.substring(0, 15) + (r.latest_remark.length > 15 ? '...' : '') : 'Remarks';
-                    let dropdown = getTeamDropdown(r.id, r.calling_campaign_id, r.agent_id);
                     html += `<tr>
                         <td>${r.campaign_name || 'Legacy'}</td>
                         <td>${r.name || '-'}</td>
-                        <td class="text-primary">${r.agent_name || 'Unassigned'}</td>
                         <td>${r.email || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
                         <td>${r.phone || '-'}</td>
-                        <td>${dropdown}</td>
                         <td>
-                            <a href="javascript:void(0)" class="remark-link" onclick="showCallingDetails(${r.id})">
+                            <a href="/calling/${r.id}/remarks?campaign_id=${r.calling_campaign_id}" class="remark-link" title="${r.latest_remark || ''}">
                                 <i class="bi bi-chat-left-dots-fill"></i> ${remarkText}
                             </a>
                         </td>
                     </tr>`;
                 });
             } else {
-                html = '<tr><td colspan="9" class="text-center p-5 text-muted">No subordinate leads found.</td></tr>';
+                html = '<tr><td colspan="7" class="text-center p-5 text-muted">No follow-ups due for today.</td></tr>';
             }
             $tbody.html(html);
         }
@@ -369,16 +313,16 @@
             var name = ($('#filter_name').val() || '').trim();
             var stateId = $('#filter_state').val();
             var cityId = $('#filter_city').val();
-            var typeId = $('#filter_calling_type').val();
-            const appliedCount = [name, stateId, cityId, typeId].filter(Boolean).length;
+            
+            const appliedCount = [name, stateId, cityId].filter(Boolean).length;
             $('#activeFilters').text(appliedCount);
 
-            $.post('{{ route("calling.team.filter") }}?page=' + page, {
-                name: name, state_id: stateId, city_id: cityId, calling_type_id: typeId
+            $.post('<?php echo e(route("calling.todays.filter")); ?>?page=' + page, {
+                name: name, state_id: stateId, city_id: cityId
             }).done(function(data){
                 renderRows(data.data || []);
                 buildPagination(data);
-                $('#totalAssigned').text((data.total || 0).toLocaleString('en-IN'));
+                $('#totalDue').text((data.total || 0).toLocaleString('en-IN'));
                 $('#lastUpdated').text(new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
             });
         }
@@ -392,18 +336,19 @@
             $('#rangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
 
-        loadFilterData(); loadTeamMembers(); loadData(1);
+        loadFilterData(); loadData(1);
 
         $('#filter_state').on('change', function(){ loadCitiesByState($(this).val()); loadData(1); });
         $('#filter_city').on('change', () => loadData(1));
-        $('#filter_calling_type').on('change', () => loadData(1));
         $('#filter_name').on('input', function() { loadData(1); });
         $('#resetFilters').on('click', function() {
             $('#filter_name').val(''); $('#filter_state').val(''); $('#filter_city').html('<option value="">All Cities</option>');
-            $('#filter_calling_type').val(''); loadData(1);
+            loadData(1);
         });
 
         $(document).on('click', '.page-link', function(e) { e.preventDefault(); loadData($(this).data('page')); });
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/calling/todayscalling.blade.php ENDPATH**/ ?>

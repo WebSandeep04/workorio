@@ -19,80 +19,80 @@ class TeamCallingController extends Controller
         return view('calling.team');
     }
 
-    // Get team callings with pagination
+    private function getTeamQuery($userId)
+    {
+        $junkTypeId = \App\Models\CallingType::where('name', 'Junk')->value('id');
+        
+        $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
+            $q->where('manager_id', $userId);
+        })->pluck('id');
+
+        return DB::table('calling_campaign_calling')
+            ->join('callings', 'calling_campaign_calling.calling_id', '=', 'callings.id')
+            ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
+            ->leftJoin('users', 'calling_campaign_calling.user_id', '=', 'users.id')
+            ->whereIn('calling_campaign_calling.user_id', $subordinateIds)
+            ->where(function($q) use ($junkTypeId) {
+                if ($junkTypeId) {
+                    $q->where('calling_campaign_calling.calling_type_id', '!=', $junkTypeId)
+                      ->orWhereNull('calling_campaign_calling.calling_type_id');
+                }
+            })
+            ->select(
+                'callings.*',
+                'calling_campaigns.name as campaign_name',
+                'calling_campaign_calling.calling_campaign_id',
+                'calling_campaign_calling.user_id as agent_id',
+                'users.name as agent_name',
+                'calling_types.name as status_name',
+                'calling_campaign_calling.id as pivot_id',
+                DB::raw('(SELECT remark FROM calling_remarks WHERE calling_id = callings.id ORDER BY id DESC LIMIT 1) as latest_remark')
+            );
+    }
+
     public function getTeamCallings(Request $request)
     {
         $userId = $this->getCurrentUserId();
-        
-        $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
-            $q->where('manager_id', $userId);
-        })->pluck('id');
-
-        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
         $perPage = $request->get('per_page', 10);
+        $query = $this->getTeamQuery($userId);
 
-        // Get only subordinates' callings, NOT manager's own callings
-        $records = Calling::with([
-            'state:id,state_name',
-            'city:id,city_name',
-            'latestRemark',
-            'callingType:id,name',
-            'status:id,status_name'
-        ])
-        ->whereIn('user_id', $subordinateIds)
-        ->where('calling_type_id', '!=', $junkTypeId)
-        ->orderBy('created_at', 'desc')
-        ->paginate($perPage);
-
-        return response()->json($records);
+        return response()->json($query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage));
     }
 
-    // Get filtered team callings
     public function filterTeamCallings(Request $request)
     {
         $userId = $this->getCurrentUserId();
-        
-        $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
-            $q->where('manager_id', $userId);
-        })->pluck('id');
-
-        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
         $perPage = $request->get('per_page', 10);
+        $query = $this->getTeamQuery($userId);
 
-        $query = Calling::with([
-            'state:id,state_name',
-            'city:id,city_name',
-            'latestRemark',
-            'callingType:id,name',
-            'status:id,status_name'
-        ])
-        ->whereIn('user_id', $subordinateIds)
-        ->where('calling_type_id', '!=', $junkTypeId);
-
-        // Apply filters
         if ($request->filled('name')) {
             $term = trim((string) $request->name);
             $query->where(function ($q) use ($term) {
                 $like = '%' . $term . '%';
-                $q->where('name', 'like', $like)
-                  ->orWhere('email', 'like', $like)
-                  ->orWhere('phone', 'like', $like)
-                  ->orWhere('address', 'like', $like);
+                $q->where('callings.name', 'like', $like)
+                  ->orWhere('callings.email', 'like', $like)
+                  ->orWhere('callings.phone', 'like', $like)
+                  ->orWhere('users.name', 'like', $like);
             });
         }
         if ($request->filled('state_id')) {
-            $query->where('state_id', $request->state_id);
+            $stateName = State::where('id', $request->state_id)->value('state_name');
+            if ($stateName) {
+                $query->where('callings.state', $stateName);
+            }
         }
         if ($request->filled('city_id')) {
-            $query->where('city_id', $request->city_id);
+            $cityName = City::where('id', $request->city_id)->value('city_name');
+            if ($cityName) {
+                $query->where('callings.city', $cityName);
+            }
         }
         if ($request->filled('calling_type_id')) {
-            $query->where('calling_type_id', $request->calling_type_id);
+            $query->where('calling_campaign_calling.calling_type_id', $request->calling_type_id);
         }
 
-        $records = $query->orderBy('created_at', 'desc')->paginate($perPage);
-
-        return response()->json($records);
+        return response()->json($query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage));
     }
 
     public function getFilterOptions()
@@ -109,100 +109,82 @@ class TeamCallingController extends Controller
         ]);
     }
 
-    // Reassign calling to different team member
     public function reassignCalling(Request $request)
     {
         $userId = $this->getCurrentUserId();
         $callingId = $request->calling_id;
+        $campaignId = $request->campaign_id;
         $newUserId = $request->new_user_id;
 
-        // Verify the current user is a manager
+        // Verify manager access
         $subordinateIds = User::whereHas('managers', function($q) use ($userId) {
             $q->where('manager_id', $userId);
         })->pluck('id');
 
-        if ($subordinateIds->isEmpty()) {
-            return response()->json(['error' => 'You are not authorized to reassign callings'], 403);
-        }
-
-        // Verify the new user is a subordinate
         if (!$subordinateIds->contains($newUserId)) {
-            return response()->json(['error' => 'Invalid team member selected'], 403);
+            return response()->json(['error' => 'Invalid team member'], 403);
         }
 
-        // Find and update the calling
-        $calling = Calling::where('id', $callingId)
-            ->whereIn('user_id', $subordinateIds)
+        // Get current assignment
+        $pivot = DB::table('calling_campaign_calling')
+            ->where('calling_id', $callingId)
+            ->where('calling_campaign_id', $campaignId)
             ->first();
 
-        if (!$calling) {
-            return response()->json(['error' => 'Calling not found or not accessible'], 404);
+        if (!$pivot || !$subordinateIds->contains($pivot->user_id)) {
+            return response()->json(['error' => 'Unauthorized or missing assignment'], 403);
         }
 
-        // Keep track of the old user id
-        $fromUserId = $calling->user_id;
+        $oldUserId = $pivot->user_id;
 
-        // Update the calling assignment
-        $calling->user_id = $newUserId;
-        $calling->updated_at = now();
-        $calling->save();
+        // Update
+        DB::table('calling_campaign_calling')
+            ->where('id', $pivot->id)
+            ->update([
+                'user_id' => $newUserId,
+                'updated_at' => now()
+            ]);
 
-        // Log the assignment
+        // Log
         \App\Models\CallingAssignmentLog::create([
-            'calling_id' => $calling->id,
-            'from_user_id' => $fromUserId,
+            'calling_id' => $callingId,
+            'calling_campaign_id' => $campaignId,
+            'from_user_id' => $oldUserId,
             'to_user_id' => $newUserId,
             'assigned_by' => $userId,
-            'remark' => 'Calling reassigned by manager'
+            'remark' => 'Manager reassignment'
         ]);
 
-        // Get the new user's name for response
         $newUser = User::find($newUserId);
 
         return response()->json([
             'success' => true,
-            'message' => 'Calling reassigned successfully to ' . $newUser->name,
-            'new_user_name' => $newUser->name
+            'message' => 'Lead reassigned to ' . ($newUser->name ?? 'User')
         ]);
     }
 
-    // Get team members for reassignment dropdowns
     public function getTeamMembers()
     {
         $userId = $this->getCurrentUserId();
-
-        $teamMembers = User::whereHas('managers', function($q) use ($userId) {
+        return response()->json(
+            User::whereHas('managers', function($q) use ($userId) {
                 $q->where('manager_id', $userId);
-            })
-            ->where('id', '!=', $userId) // Exclude self
-            ->select('id', 'name')
-            ->get();
-
-        return response()->json($teamMembers);
+            })->select('id', 'name')->orderBy('name')->get()
+        );
     }
 
     public function getCitiesByState($stateId)
     {
-        $cities = City::where('state_id', $stateId)
-            ->orderBy('city_name')
-            ->get(['id', \DB::raw('city_name as name')]);
-
-        return response()->json($cities);
+        return response()->json(
+            City::where('state_id', $stateId)
+                ->orderBy('city_name')
+                ->get(['id', \DB::raw('city_name as name')])
+        );
     }
-    
-    /**
-     * Get current user ID from Auth or session
-     */
+
     private function getCurrentUserId()
     {
-        if (Auth::check()) {
-            return Auth::id();
-        }
-        
-        if (session()->has('user_id')) {
-            return session('user_id');
-        }
-        
-        return null;
+        if (Auth::check()) return Auth::id();
+        return session('user_id');
     }
 }
