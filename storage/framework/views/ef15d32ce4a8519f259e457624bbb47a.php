@@ -1,3 +1,5 @@
+
+
 <?php $__env->startSection('title', 'Campaign Master'); ?>
 <?php $__env->startSection('page_title', 'Campaign Management'); ?>
 
@@ -54,6 +56,26 @@
     .pagination .page-link { color: #434afa; border: 2px solid #e0e0e0; border-radius: 6px; padding: 0.25rem 0.5rem; margin: 0 2px; font-size: 10px; font-family: Montserrat; }
     .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); }
     .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; font-family: Montserrat; }
+
+    /* Selection Command Center */
+    .selection-command-bar {
+        background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; padding: 0.75rem 1.25rem;
+        margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 100; font-family: Montserrat;
+    }
+    .selection-badge {
+        background: #434AFA; color: #fff; font-weight: 800; font-size: 11px; padding: 0.35rem 0.85rem;
+        border-radius: 40px; letter-spacing: 0.05em; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+    }
+    .selection-action-btn {
+        border-radius: 8px; border: none; padding: 0.5rem 1rem; font-size: 11px; font-weight: 700;
+        display: inline-flex; align-items: center; transition: all 0.2s; font-family: Montserrat;
+    }
+    .selection-action-btn.primary { background: #f0f7ff; color: #007bff; }
+    .selection-action-btn.primary:hover { background: #007bff; color: white; }
+    .selection-action-btn.ghost { background: #fff5f5; color: #e53e3e; }
+    .selection-action-btn.ghost:hover { background: #e53e3e; color: white; }
+    .bg-soft-primary { background-color: #f0f4ff; }
 </style>
 <?php $__env->stopPush(); ?>
 
@@ -126,6 +148,26 @@
         <input type="text" id="filter_name" placeholder="Search by name, contact, or company..." />
     </div>
 
+    <!-- Selection Command Center (Robust Pattern) -->
+    <div id="selectionCommandCenter" class="selection-command-bar shadow-sm animate__animated animate__fadeInDown" style="display: none;">
+        <div class="d-flex align-items-center gap-3">
+            <div class="selection-badge">
+                <span id="selectionCountText">0</span> SELECTED
+            </div>
+            <div id="globalSelectionStatus" class="badge bg-soft-primary text-primary border border-primary px-3 py-2" style="display: none; border-radius: 20px; font-weight: 600;">
+                <i class="bi bi-globe me-1"></i> Global Selection
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button id="selectAllMatchingBtn" class="selection-action-btn primary">
+                <i class="bi bi-lightning-fill me-1"></i> Select All Matching
+            </button>
+            <button id="clearSelectionBtn" class="selection-action-btn ghost">
+                <i class="bi bi-x-lg me-1"></i> Clear
+            </button>
+        </div>
+    </div>
+
     <div class="data-table-card">
         <div class="table-scroll">
             <table class="table custom-table" id="callingTable">
@@ -147,7 +189,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="7" class="text-center p-5 text-muted">Awaiting data stream...</td></tr>
+                    <tr><td colspan="11" class="text-center p-5 text-muted">Awaiting data stream...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -206,7 +248,6 @@
 <script>
     $(document).ready(function() {
         const $tbody = $('#callingTable tbody');
-        let selectedIds = new Set();
         
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
@@ -221,13 +262,6 @@
 
                 var $list = $('#filter_list'); $list.empty().append('<option value="">All Lists</option>');
                 (resp.lists || []).forEach(function(l){ $list.append('<option value="'+l.id+'">'+l.name+'</option>'); });
-
-                // Check URL for pre-filtering
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.has('list_id')) {
-                    $list.val(urlParams.get('list_id'));
-                    loadData(1);
-                }
             });
         }
 
@@ -243,7 +277,7 @@
             var html = '';
             if (rows && rows.length) {
                 rows.forEach(function(r){
-                    let isChecked = selectedIds.has(r.id.toString()) ? 'checked' : '';
+                    let isChecked = r.is_selected ? 'checked' : '';
                     html += `<tr>
                         <td><input type="checkbox" class="form-check-input row-checkbox" value="${r.id}" ${isChecked}></td>
                         <td>${r.name || '-'}</td>
@@ -259,10 +293,10 @@
                     </tr>`;
                 });
             } else {
-                html = '<tr><td colspan="7" class="text-center p-5 text-muted">No records matching your search scope.</td></tr>';
+                html = '<tr><td colspan="11" class="text-center p-5 text-muted">No records matching your search scope.</td></tr>';
             }
             $tbody.html(html);
-            updateGlobalSelectionContext();
+            syncHeaderCheckbox();
         }
 
         function loadData(page = 1) {
@@ -279,9 +313,7 @@
                 renderRows(data.data || []);
                 buildPagination(data);
                 $('#totalCallings').text((data.total || 0).toLocaleString('en-IN'));
-                
-                // Header checkbox state based on current page selection
-                checkHeaderStatus();
+                updateSelectionUI();
             });
         }
 
@@ -294,15 +326,32 @@
             $('#callingRangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
 
-        function updateGlobalSelectionContext() {
-            let count = selectedIds.size;
-            $('#selectedCount, #heroSelected, #modalSelectedCount').text(count);
-            $('#openCampaignModalBtn').prop('disabled', count === 0);
+        function updateSelectionUI() {
+            $.get('<?php echo e(route("calling.selection.status")); ?>', function(resp) {
+                $('#selectedCount, #heroSelected, #modalSelectedCount').text(resp.count);
+                $('#openCampaignModalBtn').prop('disabled', resp.count === 0);
+                
+                if (resp.count > 0) {
+                    $('#selectionCommandCenter').fadeIn(200).css('display', 'flex');
+                    $('#selectionCountText').text(resp.count);
+                    
+                    if (resp.all_matching) {
+                        $('#globalSelectionStatus').show().html(`<i class="bi bi-globe me-1"></i> Global Selection Active`);
+                        $('#selectAllMatchingBtn').hide();
+                    } else {
+                        $('#globalSelectionStatus').hide();
+                        $('#selectAllMatchingBtn').show();
+                    }
+                } else {
+                    $('#selectionCommandCenter').fadeOut(200);
+                }
+                syncHeaderCheckbox();
+            });
         }
 
-        function checkHeaderStatus() {
-            let allOnPageChecked = $('.row-checkbox').length > 0 && $('.row-checkbox:not(:checked)').length === 0;
-            $('#selectAllCheckbox').prop('checked', allOnPageChecked);
+        function syncHeaderCheckbox() {
+            let allChecked = $('.row-checkbox').length > 0 && $('.row-checkbox:not(:checked)').length === 0;
+            $('#selectAllCheckbox').prop('checked', allChecked);
         }
 
         loadFilterData(); loadData(1);
@@ -312,56 +361,62 @@
         $('#filter_name').on('input', function() { loadData(1); });
         $('#resetFilters').on('click', function() {
             $('#filter_name, #filter_campaign, #filter_state, #filter_list').val(''); $('#filter_city').html('<option value="">All Cities</option>');
-            selectedIds.clear();
-            loadData(1);
+            $.post('<?php echo e(route("calling.selection.clear")); ?>', () => loadData(1));
         });
 
         $('#selectAllCheckbox').on('change', function() { 
             let checked = $(this).is(':checked');
-            $('.row-checkbox').each(function() {
-                $(this).prop('checked', checked);
-                let val = $(this).val();
-                if(checked) selectedIds.add(val);
-                else selectedIds.delete(val);
-            });
-            updateGlobalSelectionContext();
+            if (checked) {
+                $('.row-checkbox').prop('checked', true).each(function() {
+                    $.post('<?php echo e(route("calling.selection.toggle")); ?>', { id: $(this).val(), checked: true });
+                });
+            } else {
+                $.post('<?php echo e(route("calling.selection.clear")); ?>', () => {
+                    $('.row-checkbox').prop('checked', false);
+                });
+            }
+            setTimeout(updateSelectionUI, 400);
         });
 
         $(document).on('change', '.row-checkbox', function() { 
-            let val = $(this).val();
-            if($(this).is(':checked')) selectedIds.add(val);
-            else selectedIds.delete(val);
-            
-            checkHeaderStatus();
-            updateGlobalSelectionContext();
+            let id = $(this).val();
+            let checked = $(this).is(':checked');
+            $.post('<?php echo e(route("calling.selection.toggle")); ?>', { id, checked }, () => updateSelectionUI());
         });
 
-        $('#selectAllBtn').on('click', function() {
-            let newState = $('.row-checkbox:not(:checked)').length > 0;
-            $('.row-checkbox').each(function() {
-                $(this).prop('checked', newState);
-                let val = $(this).val();
-                if(newState) selectedIds.add(val);
-                else selectedIds.delete(val);
+        $('#selectAllMatchingBtn, #selectAllBtn').on('click', function() {
+            var filters = {
+                campaign_id: $('#filter_campaign').val(),
+                name: ($('#filter_name').val() || '').trim(),
+                state_id: $('#filter_state').val(),
+                city_id: $('#filter_city').val(),
+                list_id: $('#filter_list').val()
+            };
+            $.post('<?php echo e(route("calling.selection.all-matching")); ?>', { filters }, function() {
+                $('.row-checkbox').prop('checked', true);
+                $('#selectAllCheckbox').prop('checked', true);
+                updateSelectionUI();
             });
-            $('#selectAllCheckbox').prop('checked', newState);
-            updateGlobalSelectionContext();
+        });
+
+        $('#clearSelectionBtn').on('click', function() {
+            $.post('<?php echo e(route("calling.selection.clear")); ?>', () => {
+                $('.row-checkbox, #selectAllCheckbox').prop('checked', false);
+                updateSelectionUI();
+            });
         });
 
         $('#openCampaignModalBtn').on('click', () => $('#campaignModal').modal('show'));
 
         $('#confirmCampaignBtn').on('click', function() {
             var name = ($('#campaignName').val() || '').trim();
-            var ids = Array.from(selectedIds);
-            
             if (!name) { Swal.fire('Wait!', 'Please provide a campaign name.', 'warning'); return; }
 
             var $btn = $(this); $btn.prop('disabled', true).text('Launching...');
-            $.post('<?php echo e(route("calling.create-campaign")); ?>', { campaign_name: name, calling_ids: ids })
+            $.post('<?php echo e(route("calling.create-campaign")); ?>', { campaign_name: name, use_session_selection: true })
             .done(resp => {
                 if (resp.success) {
                     $('#campaignModal').modal('hide'); $('#campaignName').val('');
-                    selectedIds.clear();
                     Swal.fire('Identity Established', resp.message, 'success');
                     loadData(1); loadFilterData();
                 } else {

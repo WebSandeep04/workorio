@@ -9,6 +9,8 @@ use App\Models\CallingType;
 use App\Models\WhatsappTemplate;
 use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\Session;
+
 class CallingController extends Controller
 {
     /**
@@ -106,7 +108,16 @@ class CallingController extends Controller
             $query->where('list_id', $request->list_id);
         }
 
-        return response()->json($query->orderBy('id', 'desc')->paginate($perPage));
+        $paginated = $query->orderBy('id', 'desc')->paginate($perPage);
+
+        // Inject selection status
+        $selection = Session::get('calling_selection', ['ids' => [], 'all_matching' => false, 'filters' => []]);
+        $paginated->getCollection()->transform(function($item) use ($selection) {
+            $item->is_selected = $selection['all_matching'] || in_array($item->id, $selection['ids']);
+            return $item;
+        });
+
+        return response()->json($paginated);
     }
 
     /**
@@ -130,48 +141,109 @@ class CallingController extends Controller
     {
         $request->validate([
             'campaign_name' => 'required|string|max:255',
-            'calling_ids' => 'required|array',
-            'calling_ids.*' => 'integer|exists:callings,id'
+            'use_session_selection' => 'nullable',
+            'calling_ids' => 'nullable|array',
         ]);
 
         try {
             DB::beginTransaction();
-
-            $campaign = CallingCampaign::create([
-                'name' => $request->campaign_name,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-
-            $pivotData = [];
-            foreach ($request->calling_ids as $id) {
-                $pivotData[] = [
-                    'calling_id' => $id,
-                    'calling_campaign_id' => $campaign->id,
-                    'user_id' => null,
-                    'is_locked' => 0,
-                    'calling_type_id' => null,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ];
+            $idList = [];
+            if ($request->use_session_selection) {
+                $selection = Session::get('calling_selection', ['ids' => [], 'all_matching' => false, 'filters' => []]);
+                $idList = $selection['all_matching'] ? $this->getMatchingIds($selection['filters']) : $selection['ids'];
+            } else {
+                $idList = $request->calling_ids;
             }
 
-            DB::table('calling_campaign_calling')->insert($pivotData);
+            if (empty($idList)) return response()->json(['success' => false, 'message' => 'No contacts selected.']);
 
+            $campaign = CallingCampaign::create(['name' => $request->campaign_name]);
+            $pivotData = array_map(fn($id) => [
+                'calling_id' => $id, 'calling_campaign_id' => $campaign->id, 'user_id' => null, 'is_locked' => 0, 'calling_type_id' => null, 'created_at' => now(), 'updated_at' => now()
+            ], $idList);
+
+            foreach (array_chunk($pivotData, 1000) as $chunk) DB::table('calling_campaign_calling')->insert($chunk);
+
+            Session::forget('calling_selection');
             DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => "Campaign '{$campaign->name}' created with " . count($request->calling_ids) . " contacts!"
-            ]);
-
+            return response()->json(['success' => true, 'message' => "Campaign '{$campaign->name}' created with " . count($idList) . " contacts!"]);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create campaign: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    public function toggleSelection(Request $request)
+    {
+        $selection = Session::get('calling_selection', ['ids' => [], 'all_matching' => false, 'filters' => []]);
+        if ($selection['all_matching']) $selection['all_matching'] = false; 
+
+        if ($request->checked) {
+            if (!in_array($request->id, $selection['ids'])) $selection['ids'][] = $request->id;
+        } else {
+            $selection['ids'] = array_values(array_filter($selection['ids'], fn($i) => $i != $request->id));
+        }
+        Session::put('calling_selection', $selection);
+        return response()->json(['success' => true, 'count' => $this->getSelectionCount($selection)]);
+    }
+
+    public function selectAllMatching(Request $request)
+    {
+        Session::put('calling_selection', ['ids' => [], 'all_matching' => true, 'filters' => $request->filters ?? []]);
+        return response()->json(['success' => true, 'count' => $this->getMatchingCount($request->filters ?? [])]);
+    }
+
+    public function clearSelection()
+    {
+        Session::forget('calling_selection');
+        return response()->json(['success' => true, 'count' => 0]);
+    }
+
+    public function getSelectionStatus()
+    {
+        $selection = Session::get('calling_selection', ['ids' => [], 'all_matching' => false]);
+        return response()->json(['count' => $this->getSelectionCount($selection), 'all_matching' => $selection['all_matching']]);
+    }
+
+    private function getSelectionCount($selection)
+    {
+        return $selection['all_matching'] ? $this->getMatchingCount($selection['filters']) : count($selection['ids']);
+    }
+
+    private function getMatchingCount($filters)
+    {
+        $query = Calling::query();
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+        if ($junkTypeId) $query->whereDoesntHave('campaigns', fn($q) => $q->where('calling_campaign_calling.calling_type_id', $junkTypeId));
+        
+        if (!empty($filters['campaign_id'])) $query->whereHas('campaigns', fn($q) => $q->where('calling_campaigns.id', $filters['campaign_id']));
+        if (!empty($filters['name'])) {
+            $term = trim((string) $filters['name']); $like = '%' . $term . '%';
+            $query->where(fn($q) => $q->where('name', 'like', $like)->orWhere('email', 'like', $like)->orWhere('phone', 'like', $like));
+        }
+        if (!empty($filters['state_id'])) $query->where('state', 'like', '%' . $filters['state_id'] . '%');
+        if (!empty($filters['city_id'])) $query->where('city', 'like', '%' . $filters['city_id'] . '%');
+        if (!empty($filters['list_id'])) $query->where('list_id', $filters['list_id']);
+
+        return $query->count();
+    }
+
+    private function getMatchingIds($filters)
+    {
+        $query = Calling::query();
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+        if ($junkTypeId) $query->whereDoesntHave('campaigns', fn($q) => $q->where('calling_campaign_calling.calling_type_id', $junkTypeId));
+        
+        if (!empty($filters['campaign_id'])) $query->whereHas('campaigns', fn($q) => $q->where('calling_campaigns.id', $filters['campaign_id']));
+        if (!empty($filters['name'])) {
+            $term = trim((string) $filters['name']); $like = '%' . $term . '%';
+            $query->where(fn($q) => $q->where('name', 'like', $like)->orWhere('email', 'like', $like)->orWhere('phone', 'like', $like));
+        }
+        if (!empty($filters['state_id'])) $query->where('state', 'like', '%' . $filters['state_id'] . '%');
+        if (!empty($filters['city_id'])) $query->where('city', 'like', '%' . $filters['city_id'] . '%');
+        if (!empty($filters['list_id'])) $query->where('list_id', $filters['list_id']);
+
+        return $query->pluck('id')->toArray();
     }
 
     /**

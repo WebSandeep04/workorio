@@ -973,6 +973,10 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::get('/calling/cities/{stateId}', [CallingController::class, 'getCitiesByState'])->name('calling.cities');
     Route::post('/calling/update-type', [CallingController::class, 'updateCallingType'])->name('calling.update-type');
     Route::post('/calling/create-campaign', [CallingController::class, 'createCampaign'])->name('calling.create-campaign');
+    Route::post('/calling/selection/toggle', [CallingController::class, 'toggleSelection'])->name('calling.selection.toggle');
+    Route::post('/calling/selection/clear', [CallingController::class, 'clearSelection'])->name('calling.selection.clear');
+    Route::get('/calling/selection/status', [CallingController::class, 'getSelectionStatus'])->name('calling.selection.status');
+    Route::post('/calling/selection/all-matching', [CallingController::class, 'selectAllMatching'])->name('calling.selection.all-matching');
     Route::get('/todays-calling', [TodaysCallingController::class, 'index'])->name('todays-calling');
     // Alias for legacy/menu usage
     Route::get('/calling/todays', [TodaysCallingController::class, 'index'])->name('calling.todays');
