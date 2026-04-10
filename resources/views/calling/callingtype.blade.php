@@ -141,7 +141,7 @@
     color: #000;
     font-size: 0.65rem;
     letter-spacing: 0.08em;
-    text-transform: uppercase;
+    /* text-transform: removed */
     font-weight: 700;
     padding: 0.6rem 0.75rem;
     text-align: left;

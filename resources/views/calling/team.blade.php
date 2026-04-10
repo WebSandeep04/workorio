@@ -189,7 +189,7 @@
                 <img src="{{ asset('img/icons/call.png') }}" alt="Total Assigned">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Team leads assigned</span>
+                <span class="metric-label">Team Leads Assigned</span>
                 <span class="metric-value" id="totalAssigned">0</span>
             </div>
         </div>
@@ -198,7 +198,7 @@
                 <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Active filters</span>
+                <span class="metric-label">Active Filters</span>
                 <span class="metric-value" id="activeFilters">0</span>
             </div>
         </div>
@@ -252,8 +252,12 @@
                     <tr>
                         <th>Campaign Name</th>
                         <th>Lead Name</th>
+                        <th>Company</th>
+                        <th>Contact Person</th>
                         <th>Agent Name</th>
-                        <th>Email Identity</th>
+                        <th>Legal Status</th>
+                        <th>GST No</th>
+                        <th>Turnover</th>
                         <th>State</th>
                         <th>City</th>
                         <th>Contact Number</th>
@@ -347,8 +351,12 @@
                     html += `<tr>
                         <td>${r.campaign_name || 'Legacy'}</td>
                         <td>${r.name || '-'}</td>
+                        <td>${r.company_name || '-'}</td>
+                        <td>${r.contact_person || '-'}</td>
                         <td class="text-primary">${r.agent_name || 'Unassigned'}</td>
-                        <td>${r.email || '-'}</td>
+                        <td>${r.legal_status || '-'}</td>
+                        <td>${r.gst_number || '-'}</td>
+                        <td>${r.turnover || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
                         <td>${r.phone || '-'}</td>

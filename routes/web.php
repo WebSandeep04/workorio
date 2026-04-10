@@ -961,6 +961,7 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::get('/calling/list', [CallingListController::class, 'index'])->name('calling.list.index');
     Route::get('/calling/list/data', [CallingListController::class, 'getData'])->name('calling.list.data');
     Route::get('/calling/list/create', [CallingListController::class, 'create'])->name('calling.list.create');
+    Route::get('/calling/list/download-template', [CallingListController::class, 'downloadTemplate'])->name('calling.list.download-template');
     Route::post('/calling/list/store', [CallingListController::class, 'store'])->name('calling.list.store');
     Route::delete('/calling/list/{id}', [CallingListController::class, 'destroy'])->name('calling.list.destroy');
     Route::get('/calling/lock', [CallingController::class, 'lockIndex'])->name('calling.lock');

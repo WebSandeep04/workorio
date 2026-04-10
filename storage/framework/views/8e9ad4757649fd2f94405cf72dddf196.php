@@ -60,7 +60,7 @@
                 <i class="bi bi-trash3-fill text-white fs-4"></i>
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Total junk leads</span>
+                <span class="metric-label">Total Junk Leads</span>
                 <span class="metric-value" id="totalJunk">0</span>
             </div>
         </div>
@@ -69,7 +69,7 @@
                 <i class="bi bi-funnel-fill text-white fs-4"></i>
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Active filters</span>
+                <span class="metric-label">Active Filters</span>
                 <span class="metric-value" id="activeFilters">0</span>
             </div>
         </div>
@@ -78,7 +78,7 @@
                 <i class="bi bi-clock-history text-white fs-4"></i>
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Last update</span>
+                <span class="metric-label">Last Update</span>
                 <span class="metric-value" id="lastUpdated">--</span>
             </div>
         </div>
@@ -114,7 +114,12 @@
                     <tr>
                         <th>Campaign</th>
                         <th>Lead Name</th>
+                        <th>Company</th>
+                        <th>Contact Person</th>
                         <th>Agent</th>
+                        <th>Legal Status</th>
+                        <th>GST No</th>
+                        <th>Turnover</th>
                         <th>State</th>
                         <th>City</th>
                         <th>Phone</th>
@@ -167,7 +172,12 @@
                     html += `<tr>
                         <td>${r.campaign_name || 'Legacy'}</td>
                         <td>${r.name || '-'}</td>
+                        <td>${r.company_name || '-'}</td>
+                        <td>${r.contact_person || '-'}</td>
                         <td class="text-primary">${r.agent_name || 'Unassigned'}</td>
+                        <td>${r.legal_status || '-'}</td>
+                        <td>${r.gst_number || '-'}</td>
+                        <td>${r.turnover || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
                         <td>${r.phone || '-'}</td>

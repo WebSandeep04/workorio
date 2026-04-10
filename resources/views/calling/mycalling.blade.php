@@ -85,7 +85,7 @@
 
     /* View Toggle */
     .view-toggle-wrapper { margin-bottom: 1rem; display: flex; gap: 0.25rem; background: #eaecf0; padding: 4px; border-radius: 8px; width: fit-content; }
-    .view-toggle-btn { border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; transition: all 0.3s ease; background: transparent; color: #475467; font-family: Montserrat; }
+    .view-toggle-btn { border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; /* text-transform: uppercase; removed */ transition: all 0.3s ease; background: transparent; color: #475467; font-family: Montserrat; }
     .view-toggle-btn.active { background: #fff; color: #434afa; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
     /* Filter Box */
@@ -208,7 +208,7 @@
                 <img src="{{ asset('img/icons/call.png') }}" alt="Total Assigned">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Total assigned</span>
+                <span class="metric-label">Total Assigned</span>
                 <span class="metric-value" id="totalAssigned">0</span>
             </div>
         </div>
@@ -217,7 +217,7 @@
                 <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Active filters</span>
+                <span class="metric-label">Active Filters</span>
                 <span class="metric-value" id="activeFilters">0</span>
             </div>
         </div>
@@ -279,7 +279,11 @@
                         <tr>
                             <th>Module</th>
                             <th>Lead Name</th>
-                            <th>Email Identity</th>
+                            <th>Company</th>
+                            <th>Contact Person</th>
+                            <th>Legal Status</th>
+                            <th>GST No</th>
+                            <th>Turnover</th>
                             <th>State</th>
                             <th>City</th>
                             <th>Contact</th>
@@ -315,7 +319,11 @@
                     <thead>
                         <tr>
                             <th>Identity</th>
+                            <th>Company</th>
+                            <th>Contact Person</th>
                             <th>Communication</th>
+                            <th>Legal Status</th>
+                            <th>GST No</th>
                             <th>Region</th>
                             <th>District</th>
                             <th>Phone</th>
@@ -396,7 +404,12 @@
                     let dropdown = getTeamDropdown(r.id, r.calling_campaign_id);
                     html += `<tr id="row-${r.id}-${r.calling_campaign_id}">
                         <td>${r.name || '-'}</td>
+                        <td>${r.company_name || '-'}</td>
+                        <td>${r.contact_person || '-'}</td>
                         <td>${r.email || '-'}</td>
+                        <td>${r.legal_status || '-'}</td>
+                        <td>${r.gst_number || '-'}</td>
+                        <td>${r.turnover || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
                         <td>${r.phone || '-'}</td>
@@ -482,7 +495,11 @@
                     html += `<tr id="row-${r.id}-${r.calling_campaign_id}">
                         <td>${r.campaign_name || 'Legacy'}</td>
                         <td>${r.name || '-'}</td>
-                        <td>${r.email || '-'}</td>
+                        <td>${r.company_name || '-'}</td>
+                        <td>${r.contact_person || '-'}</td>
+                        <td>${r.legal_status || '-'}</td>
+                        <td>${r.gst_number || '-'}</td>
+                        <td>${r.turnover || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
                         <td>${r.phone || '-'}</td>

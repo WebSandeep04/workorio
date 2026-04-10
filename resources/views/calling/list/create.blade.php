@@ -50,7 +50,7 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     .form-group-modern { margin-bottom: 1.5rem; }
-    .form-label-modern { display: block; font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+    .form-label-modern { display: block; font-size: 0.75rem; font-weight: 700; color: #475569; /* text-transform: uppercase; removed */ margin-bottom: 0.5rem; letter-spacing: 0.05em; }
     .form-control-modern { width: 100%; border: 2px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.9rem; transition: all 0.2s; }
     .form-control-modern:focus { border-color: #434AFA; outline: none; box-shadow: 0 0 0 4px rgba(67, 74, 250, 0.1); }
 
@@ -134,9 +134,16 @@
 
                     <div class="template-card">
                         <i class="bi bi-info-circle-fill"></i>
-                        <div>
-                            <p><strong>Required Headers:</strong> Name, Email, Phone, Address, City, State.</p>
-                            <p class="mt-1">Make sure your spreadsheet includes these exact column headers for successful mapping.</p>
+                        <div class="w-100">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p><strong>Recommended Headers:</strong> Name, Email, Phone, Address, City, State, Company Name, Contact Person, Legal Status, GST Number, Turnover.</p>
+                                    <p class="mt-1">While only Name and Phone are mandatory, including these headers ensures all data is successfully mapped.</p>
+                                </div>
+                                <a href="{{ route('calling.list.download-template') }}" class="btn btn-sm btn-outline-primary fw-bold text-nowrap ms-2" style="font-size: 10px; border-radius: 4px;">
+                                    <i class="bi bi-download me-1"></i> Dummy Template
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

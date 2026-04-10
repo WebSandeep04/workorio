@@ -177,9 +177,9 @@
                 <thead>
                     <tr>
                         <th style="width: 80px;">ID</th>
-                        <th>Segment name</th>
-                        <th>Records volume</th>
-                        <th>Created on</th>
+                        <th>Segment Name</th>
+                        <th>Records Volume</th>
+                        <th>Created On</th>
                         <th class="text-end" style="width: 100px;">Actions</th>
                     </tr>
                 </thead>

@@ -277,7 +277,11 @@
                         <tr>
                             <th>Module</th>
                             <th>Lead Name</th>
-                            <th>Email Identity</th>
+                            <th>Company</th>
+                            <th>Contact Person</th>
+                            <th>Legal Status</th>
+                            <th>GST No</th>
+                            <th>Turnover</th>
                             <th>State</th>
                             <th>City</th>
                             <th>Contact</th>
@@ -313,7 +317,11 @@
                     <thead>
                         <tr>
                             <th>Identity</th>
+                            <th>Company</th>
+                            <th>Contact Person</th>
                             <th>Communication</th>
+                            <th>Legal Status</th>
+                            <th>GST No</th>
                             <th>Region</th>
                             <th>District</th>
                             <th>Phone</th>
@@ -394,7 +402,12 @@
                     let dropdown = getTeamDropdown(r.id, r.calling_campaign_id);
                     html += `<tr id="row-${r.id}-${r.calling_campaign_id}">
                         <td>${r.name || '-'}</td>
+                        <td>${r.company_name || '-'}</td>
+                        <td>${r.contact_person || '-'}</td>
                         <td>${r.email || '-'}</td>
+                        <td>${r.legal_status || '-'}</td>
+                        <td>${r.gst_number || '-'}</td>
+                        <td>${r.turnover || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
                         <td>${r.phone || '-'}</td>
@@ -480,7 +493,11 @@
                     html += `<tr id="row-${r.id}-${r.calling_campaign_id}">
                         <td>${r.campaign_name || 'Legacy'}</td>
                         <td>${r.name || '-'}</td>
-                        <td>${r.email || '-'}</td>
+                        <td>${r.company_name || '-'}</td>
+                        <td>${r.contact_person || '-'}</td>
+                        <td>${r.legal_status || '-'}</td>
+                        <td>${r.gst_number || '-'}</td>
+                        <td>${r.turnover || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
                         <td>${r.phone || '-'}</td>

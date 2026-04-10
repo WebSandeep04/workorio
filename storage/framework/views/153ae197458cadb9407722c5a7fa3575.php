@@ -180,7 +180,7 @@
                 <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Due Today">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Calls due today</span>
+                <span class="metric-label">Calls Due Today</span>
                 <span class="metric-value" id="totalDue">0</span>
             </div>
         </div>
@@ -189,7 +189,7 @@
                 <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Active filters</span>
+                <span class="metric-label">Active Filters</span>
                 <span class="metric-value" id="activeFilters">0</span>
             </div>
         </div>
@@ -238,7 +238,11 @@
                     <tr>
                         <th>Campaign</th>
                         <th>Lead Name</th>
-                        <th>Email</th>
+                        <th>Company</th>
+                        <th>Contact Person</th>
+                        <th>Legal Status</th>
+                        <th>GST No</th>
+                        <th>Turnover</th>
                         <th>State</th>
                         <th>City</th>
                         <th>Phone</th>
@@ -292,7 +296,11 @@
                     html += `<tr>
                         <td>${r.campaign_name || 'Legacy'}</td>
                         <td>${r.name || '-'}</td>
-                        <td>${r.email || '-'}</td>
+                        <td>${r.company_name || '-'}</td>
+                        <td>${r.contact_person || '-'}</td>
+                        <td>${r.legal_status || '-'}</td>
+                        <td>${r.gst_number || '-'}</td>
+                        <td>${r.turnover || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
                         <td>${r.phone || '-'}</td>

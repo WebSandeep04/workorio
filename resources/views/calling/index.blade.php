@@ -137,10 +137,14 @@
                             <input type="checkbox" id="selectAllCheckbox" class="form-check-input">
                         </th>
                         <th>Lead Name</th>
+                        <th>Company Name</th>
+                        <th>Contact Person</th>
                         <th>Email</th>
+                        <th>Legal Status</th>
+                        <th>GST No</th>
+                        <th>Turnover</th>
                         <th>State</th>
                         <th>City</th>
-                        <th>Address</th>
                         <th>Phone</th>
                     </tr>
                 </thead>
@@ -245,10 +249,14 @@
                     html += `<tr>
                         <td><input type="checkbox" class="form-check-input row-checkbox" value="${r.id}" ${isChecked}></td>
                         <td>${r.name || '-'}</td>
+                        <td>${r.company_name || '-'}</td>
+                        <td>${r.contact_person || '-'}</td>
                         <td>${r.email || '-'}</td>
+                        <td>${r.legal_status || '-'}</td>
+                        <td>${r.gst_number || '-'}</td>
+                        <td>${r.turnover || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
-                        <td class="text-truncate" style="max-width: 250px;" title="${r.address || ''}">${r.address || '-'}</td>
                         <td>${r.phone || '-'}</td>
                     </tr>`;
                 });

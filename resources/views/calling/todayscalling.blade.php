@@ -68,7 +68,7 @@
         display: block;
         font-size: 0.65rem;
         color: #000;
-        text-transform: uppercase;
+        /* text-transform: uppercase; removed */
         letter-spacing: 0.05em;
         margin-bottom: 0.2rem;
         font-weight: 600;
@@ -108,7 +108,7 @@
         display: flex;
         align-items: center;
         gap: 0.25rem;
-        text-transform: uppercase;
+        /* text-transform: uppercase; removed */
         letter-spacing: 0.05em;
         font-family: Montserrat, sans-serif;
     }
@@ -159,7 +159,7 @@
     .data-table-card { border-radius: 5px; border: 1px solid #f2f4f7; background: #fff; box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08); overflow: hidden; margin-bottom: 1rem; }
     .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; }
     .custom-table { border-collapse: separate; border-spacing: 0; width: 100%; font-family: Montserrat; }
-    .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; white-space: nowrap; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
+    .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; /* text-transform: uppercase; removed */ font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; white-space: nowrap; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
     .custom-table tbody td { font-size: 0.85rem; padding: 0.65rem 0.75rem; color: #1f2937; border-bottom: 1px solid #f4f4f6; white-space: nowrap; }
     .custom-table tbody tr:hover { background: #f8f9ff; transform: translateY(-1px); }
     
@@ -182,7 +182,7 @@
                 <img src="{{ asset('img/icons/call.png') }}" alt="Due Today">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Calls due today</span>
+                <span class="metric-label">Calls Due Today</span>
                 <span class="metric-value" id="totalDue">0</span>
             </div>
         </div>
@@ -191,7 +191,7 @@
                 <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Active filters</span>
+                <span class="metric-label">Active Filters</span>
                 <span class="metric-value" id="activeFilters">0</span>
             </div>
         </div>
@@ -240,7 +240,11 @@
                     <tr>
                         <th>Campaign</th>
                         <th>Lead Name</th>
-                        <th>Email</th>
+                        <th>Company</th>
+                        <th>Contact Person</th>
+                        <th>Legal Status</th>
+                        <th>GST No</th>
+                        <th>Turnover</th>
                         <th>State</th>
                         <th>City</th>
                         <th>Phone</th>
@@ -294,7 +298,11 @@
                     html += `<tr>
                         <td>${r.campaign_name || 'Legacy'}</td>
                         <td>${r.name || '-'}</td>
-                        <td>${r.email || '-'}</td>
+                        <td>${r.company_name || '-'}</td>
+                        <td>${r.contact_person || '-'}</td>
+                        <td>${r.legal_status || '-'}</td>
+                        <td>${r.gst_number || '-'}</td>
+                        <td>${r.turnover || '-'}</td>
                         <td>${r.state || '-'}</td>
                         <td>${r.city || '-'}</td>
                         <td>${r.phone || '-'}</td>

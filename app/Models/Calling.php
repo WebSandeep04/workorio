@@ -12,11 +12,16 @@ class Calling extends Model
     protected $fillable = [
         'list_id',
         'name',
+        'company_name',
+        'contact_person',
         'email',
         'phone',
         'address',
         'city',
         'state',
+        'legal_status',
+        'gst_number',
+        'turnover',
     ];
 
     public function callingList()

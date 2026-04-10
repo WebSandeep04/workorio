@@ -132,9 +132,16 @@
 
                     <div class="template-card">
                         <i class="bi bi-info-circle-fill"></i>
-                        <div>
-                            <p><strong>Required Headers:</strong> Name, Email, Phone, Address, City, State.</p>
-                            <p class="mt-1">Make sure your spreadsheet includes these exact column headers for successful mapping.</p>
+                        <div class="w-100">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p><strong>Recommended Headers:</strong> Name, Email, Phone, Address, City, State, Company Name, Contact Person, Legal Status, GST Number, Turnover.</p>
+                                    <p class="mt-1">While only Name and Phone are mandatory, including these headers ensures all data is successfully mapped.</p>
+                                </div>
+                                <a href="<?php echo e(route('calling.list.download-template')); ?>" class="btn btn-sm btn-outline-primary fw-bold text-nowrap ms-2" style="font-size: 10px; border-radius: 4px;">
+                                    <i class="bi bi-download me-1"></i> Dummy Template
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

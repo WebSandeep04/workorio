@@ -33,6 +33,43 @@ class CallingListController extends Controller
         return view('calling.list.create');
     }
 
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Name', 'Email', 'Phone', 'Address', 'City', 'State', 
+            'Company Name', 'Contact Person', 'Legal Status', 'GST Number', 'Turnover'
+        ];
+
+        $callback = function() use ($headers) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $headers);
+
+            // Dummy Row 1
+            fputcsv($file, [
+                'John Doe', 'john@example.com', '9876543210', '123 Business Park', 'Mumbai', 'Maharashtra',
+                'Global Tech Solutions', 'Ms. Jane Smith', 'Private Ltd', '27AAACG6742D1Z5', '50 Crores'
+            ]);
+            
+            // Dummy Row 2
+            fputcsv($file, [
+                'Robert Wilson', 'robert@corp.com', '9876543211', 'Sector 5, Salt Lake', 'Kolkata', 'West Bengal',
+                'Eastern Enterprises', 'Mr. Amit Das', 'Partnership', '19BBBCG1234E1Z0', '10 Crores'
+            ]);
+
+            fclose($file);
+        };
+
+        $headers_response = [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename=calling_leads_template.csv',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        return response()->stream($callback, 200, $headers_response);
+    }
+
     public function destroy($id)
     {
         try {
@@ -103,11 +140,16 @@ class CallingListController extends Controller
                 $records[] = [
                     'list_id' => $list->id,
                     'name'    => $row['Name'] ?? ($row['name'] ?? null),
+                    'company_name'   => $row['Company Name'] ?? ($row['company_name'] ?? ($row['Company'] ?? ($row['company'] ?? null))),
+                    'contact_person' => $row['Contact Person'] ?? ($row['contact_person'] ?? ($row['Contact person'] ?? null)),
                     'email'   => $row['Email'] ?? ($row['email'] ?? null),
-                    'phone'   => $row['Phone'] ?? ($row['phone'] ?? ($row['Contact'] ?? null)),
+                    'phone'   => $row['Phone'] ?? ($row['phone'] ?? ($row['Contact'] ?? ($row['Mobile'] ?? null))),
                     'address' => $row['Address'] ?? ($row['address'] ?? null),
                     'city'    => $row['City'] ?? ($row['city'] ?? null),
                     'state'   => $row['State'] ?? ($row['state'] ?? null),
+                    'legal_status' => $row['Legal Status'] ?? ($row['legal_status'] ?? null),
+                    'gst_number'   => $row['GST Number'] ?? ($row['gst_number'] ?? ($row['GST'] ?? null)),
+                    'turnover'     => $row['Turnover'] ?? ($row['turnover'] ?? ($row['Turn Over'] ?? null)),
                 ];
                 $total++;
                 

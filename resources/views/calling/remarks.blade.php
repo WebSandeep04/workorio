@@ -18,12 +18,27 @@
             <div class="col-4 text-muted fw-semibold">Name:</div>
             <div class="col-8 fw-bold">{{ $calling->name ?? '--' }}</div>
             
+            <div class="col-4 text-muted fw-semibold">Company:</div>
+            <div class="col-8 fw-bold text-primary">{{ $calling->company_name ?? '--' }}</div>
+
+            <div class="col-4 text-muted fw-semibold">Contact:</div>
+            <div class="col-8">{{ $calling->contact_person ?? '--' }}</div>
+
             <div class="col-4 text-muted fw-semibold">Email:</div>
             <div class="col-8 text-break">{{ $calling->email ?? '--' }}</div>
             
             <div class="col-4 text-muted fw-semibold">Phone:</div>
-            <div class="col-8">{{ $calling->phone ?? '--' }}</div>
+            <div class="col-8 fw-bold">{{ $calling->phone ?? '--' }}</div>
             
+            <div class="col-4 text-muted fw-semibold">GST No:</div>
+            <div class="col-8">{{ $calling->gst_number ?? '--' }}</div>
+
+            <div class="col-4 text-muted fw-semibold">Legal St:</div>
+            <div class="col-8">{{ $calling->legal_status ?? '--' }}</div>
+
+            <div class="col-4 text-muted fw-semibold">Turnover:</div>
+            <div class="col-8">{{ $calling->turnover ?? '--' }}</div>
+
             <div class="col-12"><hr class="my-2"></div>
             
             <div class="col-4 text-muted fw-semibold">Campaign:</div>
@@ -35,10 +50,13 @@
             <div class="col-4 text-muted fw-semibold">Next Date:</div>
             <div class="col-8 fw-bold text-danger" id="display_pivot_date">{{ $pivotData->next_followup_date ?? '--' }}</div>
 
+            <div class="col-4 text-muted fw-semibold">State/City:</div>
+            <div class="col-8">{{ $calling->state ?? '--' }} / {{ $calling->city ?? '--' }}</div>
+
             <div class="col-12"><hr class="my-2"></div>
             
             <div class="col-12 text-muted fw-semibold mb-1">Address:</div>
-            <div class="col-12 text-secondary">{{ $calling->address ?? '--' }}</div>
+            <div class="col-12 text-secondary small">{{ $calling->address ?? '--' }}</div>
           </div>
         </div>
       </div>

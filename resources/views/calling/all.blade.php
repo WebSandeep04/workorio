@@ -101,7 +101,7 @@
         display: block;
         font-size: 0.65rem;
         color: #000;
-        text-transform: uppercase;
+        /* text-transform: uppercase; removed */
         letter-spacing: 0.05em;
         margin-bottom: 0.2rem;
         font-weight: 600;
@@ -148,7 +148,7 @@
         display: flex;
         align-items: center;
         gap: 0.25rem;
-        text-transform: uppercase;
+        /* text-transform: uppercase; removed */
         letter-spacing: 0.05em;
         text-shadow: none;
         font-family: Montserrat, sans-serif;
@@ -225,7 +225,7 @@
     .section-eyebrow {
         font-size: 0.45rem;
         letter-spacing: 0.1em;
-        text-transform: uppercase;
+        /* text-transform: uppercase; removed */
         color: #9ca3af;
         margin-bottom: 0.05rem;
         line-height: 1;
@@ -301,7 +301,7 @@
         color: #000;
         font-size: 0.65rem;
         letter-spacing: 0.08em;
-        text-transform: uppercase;
+        /* text-transform: uppercase; removed */
         font-weight: 700;
         padding: 0.6rem 0.75rem;
         text-align: left;
@@ -448,7 +448,7 @@
                     <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
                 </div>
                 <div class="hero-metric-content">
-                    <span class="metric-label">Active filters</span>
+                    <span class="metric-label">Active Filters</span>
                     <span class="metric-value" id="activeFilters">0</span>
                 </div>
             </div>
@@ -506,12 +506,14 @@
                     <thead>
                         <tr>
                             <th>Name</th>
+                            <th>Company</th>
+                            <th>Contact Person</th>
                             <th>Email</th>
                             <th>Calling Type</th>
-                            <th>Status</th>
+                            <th>Status/Legal</th>
+                            <th>GST / Turnover</th>
                             <th>State</th>
                             <th>City</th>
-                            <th>Address</th>
                             <th>Phone</th>
                             <th>Follow-up Date</th>
                             <th>Remarks</th>
@@ -708,12 +710,20 @@ $(function () {
                 html += `
                 <tr>
                     <td>${r.name || '-'}</td>
+                    <td>${r.company_name || '-'}</td>
+                    <td>${r.contact_person || '-'}</td>
                     <td>${r.email || '-'}</td>
                     <td>${typeHtml}</td>
-                    <td><span class="status-badge">${r.status ? r.status.status_name : 'No Status'}</span></td>
+                    <td>
+                        <span class="status-badge d-block mb-1">${r.status ? r.status.status_name : 'No Status'}</span>
+                        <small class="text-muted">${r.legal_status || '-'}</small>
+                    </td>
+                    <td>
+                        <div class="small fw-bold">${r.gst_number || '-'}</div>
+                        <div class="small text-muted">${r.turnover || '-'}</div>
+                    </td>
                     <td>${stateName}</td>
                     <td>${cityName}</td>
-                    <td>${r.address || '-'}</td>
                     <td>${phone}</td>
                     <td>${r.next_follow_up_date || '-'}</td>
                     <td>${remarkLink}</td>
