@@ -165,12 +165,12 @@ class TeamCallingController extends Controller
 
     public function getTeamMembers()
     {
-        $userId = $this->getCurrentUserId();
-        return response()->json(
-            User::whereHas('managers', function($q) use ($userId) {
-                $q->where('manager_id', $userId);
-            })->select('id', 'name')->orderBy('name')->get()
-        );
+        // Fetch all users available in the current tenant database
+        $teamMembers = User::select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json($teamMembers);
     }
 
     public function getCitiesByState($stateId)

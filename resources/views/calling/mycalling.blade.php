@@ -68,7 +68,6 @@
         display: block;
         font-size: 0.65rem;
         color: #000;
-        text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-bottom: 0.2rem;
         font-weight: 600;
@@ -113,7 +112,6 @@
         display: flex;
         align-items: center;
         gap: 0.25rem;
-        text-transform: uppercase;
         letter-spacing: 0.05em;
         font-family: Montserrat, sans-serif;
     }
@@ -164,7 +162,7 @@
     .data-table-card { border-radius: 5px; border: 1px solid #f2f4f7; background: #fff; box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08); overflow: hidden; margin-bottom: 1rem; }
     .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; }
     .custom-table { border-collapse: separate; border-spacing: 0; width: 100%; font-family: Montserrat; }
-    .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; white-space: nowrap; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
+    .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; white-space: nowrap; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
     .custom-table tbody td { font-size: 0.85rem; padding: 0.6rem 0.75rem; color: #1f2937; border-bottom: 1px solid #f4f4f6; white-space: nowrap; }
     .custom-table tbody tr:hover { background: #f8f9ff; transform: translateY(-1px); }
     
@@ -417,7 +415,7 @@
 
         function getTeamDropdown(id, campId) {
             let options = '<option value="">Assign To...</option>';
-            if (window.teamMembers) {
+            if (window.teamMembers && window.teamMembers.length > 0) {
                 window.teamMembers.forEach(m => {
                     options += `<option value="${m.id}">${m.name}</option>`;
                 });
@@ -459,9 +457,10 @@
             });
         }
 
-        function loadTeamMembers() {
+        function loadTeamMembers(callback) {
             $.get('{{ route("calling.my.team-members") }}', function(resp) {
-                window.teamMembers = resp;
+                window.teamMembers = resp || [];
+                if(callback) callback();
             });
         }
 
@@ -528,7 +527,10 @@
             $('#rangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
 
-        loadFilterData(); loadTeamMembers(); loadData(1);
+        loadFilterData(); 
+        loadTeamMembers(() => {
+            loadData(1);
+        });
 
         $('#filter_state').on('change', function(){ loadCitiesByState($(this).val()); loadData(1); });
         $('#filter_city').on('change', () => loadData(1));

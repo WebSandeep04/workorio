@@ -13,13 +13,40 @@ class CallingListController extends Controller
 {
     public function index()
     {
-        $lists = CallingList::orderBy('id', 'desc')->paginate(15);
-        return view('calling.list.index', compact('lists'));
+        return view('calling.list.index');
+    }
+
+    public function getData(Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        $lists = CallingList::orderBy('id', 'desc')->paginate($perPage);
+        $totalLeads = CallingList::sum('total_records');
+        
+        return response()->json([
+            'lists' => $lists,
+            'total_leads' => $totalLeads
+        ]);
     }
 
     public function create()
     {
         return view('calling.list.create');
+    }
+
+    public function destroy($id)
+    {
+        try {
+            DB::beginTransaction();
+            $list = CallingList::findOrFail($id);
+            // Delete associated leads
+            Calling::where('list_id', $id)->delete();
+            $list->delete();
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'List and associated leads removed successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function store(Request $request)

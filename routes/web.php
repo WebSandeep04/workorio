@@ -46,6 +46,7 @@ use App\Http\Controllers\AssignedCallingController;
 use App\Http\Controllers\TeamCallingController;
 use App\Http\Controllers\JunkCallingController;
 use App\Http\Controllers\TodaysCallingController;
+use App\Http\Controllers\CallingListController;
 use App\Http\Controllers\CallingTypeController;
 use App\Http\Controllers\WhatsappTemplateController;
 use App\Http\Controllers\CallingCampaignController;
@@ -957,8 +958,10 @@ Route::middleware(['auth.or.session'])->group(function () {
 Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::get('/calling', [CallingController::class, 'index'])->name('calling');
     Route::get('/calling/list', [CallingListController::class, 'index'])->name('calling.list.index');
+    Route::get('/calling/list/data', [CallingListController::class, 'getData'])->name('calling.list.data');
     Route::get('/calling/list/create', [CallingListController::class, 'create'])->name('calling.list.create');
     Route::post('/calling/list/store', [CallingListController::class, 'store'])->name('calling.list.store');
+    Route::delete('/calling/list/{id}', [CallingListController::class, 'destroy'])->name('calling.list.destroy');
     Route::get('/calling/lock', [CallingController::class, 'lockIndex'])->name('calling.lock');
     Route::get('/calling/data', [CallingController::class, 'getCallings'])->name('calling.data');
     Route::post('/calling/filter', [CallingController::class, 'filterCallings'])->name('calling.filter');

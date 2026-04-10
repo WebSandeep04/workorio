@@ -183,13 +183,9 @@ class MyCallingController extends Controller
      */
     public function getTeamMembers()
     {
-        $userId = $this->getCurrentUserId();
-
-        // Get all members of the same teams or subordinates
-        // To keep it simple for now, let's fetch all active users if the user has permission
-        // Or just subordinates from TeamCalling logic
-        $teamMembers = User::where('id', '!=', $userId)
-            ->select('id', 'name')
+        // Fetch all users available in the current tenant database
+        // We include everyone to verify that fetching is working correctly
+        $teamMembers = User::select('id', 'name')
             ->orderBy('name')
             ->get();
 

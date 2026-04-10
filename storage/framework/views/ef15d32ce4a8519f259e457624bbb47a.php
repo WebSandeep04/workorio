@@ -202,6 +202,8 @@
 <script>
     $(document).ready(function() {
         const $tbody = $('#callingTable tbody');
+        let selectedIds = new Set();
+        
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
         function loadFilterData() {
@@ -215,6 +217,13 @@
 
                 var $list = $('#filter_list'); $list.empty().append('<option value="">All Lists</option>');
                 (resp.lists || []).forEach(function(l){ $list.append('<option value="'+l.id+'">'+l.name+'</option>'); });
+
+                // Check URL for pre-filtering
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('list_id')) {
+                    $list.val(urlParams.get('list_id'));
+                    loadData(1);
+                }
             });
         }
 
@@ -230,8 +239,9 @@
             var html = '';
             if (rows && rows.length) {
                 rows.forEach(function(r){
+                    let isChecked = selectedIds.has(r.id.toString()) ? 'checked' : '';
                     html += `<tr>
-                        <td><input type="checkbox" class="form-check-input row-checkbox" value="${r.id}"></td>
+                        <td><input type="checkbox" class="form-check-input row-checkbox" value="${r.id}" ${isChecked}></td>
                         <td>${r.name || '-'}</td>
                         <td>${r.email || '-'}</td>
                         <td>${r.state || '-'}</td>
@@ -244,6 +254,7 @@
                 html = '<tr><td colspan="7" class="text-center p-5 text-muted">No records matching your search scope.</td></tr>';
             }
             $tbody.html(html);
+            updateGlobalSelectionContext();
         }
 
         function loadData(page = 1) {
@@ -260,8 +271,9 @@
                 renderRows(data.data || []);
                 buildPagination(data);
                 $('#totalCallings').text((data.total || 0).toLocaleString('en-IN'));
-                $('#selectAllCheckbox').prop('checked', false);
-                updateSelectedCount();
+                
+                // Header checkbox state based on current page selection
+                checkHeaderStatus();
             });
         }
 
@@ -274,10 +286,15 @@
             $('#callingRangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
 
-        function updateSelectedCount() {
-            var selectedCount = $('.row-checkbox:checked').length;
-            $('#selectedCount, #heroSelected, #modalSelectedCount').text(selectedCount);
-            $('#openCampaignModalBtn').prop('disabled', selectedCount === 0);
+        function updateGlobalSelectionContext() {
+            let count = selectedIds.size;
+            $('#selectedCount, #heroSelected, #modalSelectedCount').text(count);
+            $('#openCampaignModalBtn').prop('disabled', count === 0);
+        }
+
+        function checkHeaderStatus() {
+            let allOnPageChecked = $('.row-checkbox').length > 0 && $('.row-checkbox:not(:checked)').length === 0;
+            $('#selectAllCheckbox').prop('checked', allOnPageChecked);
         }
 
         loadFilterData(); loadData(1);
@@ -287,24 +304,48 @@
         $('#filter_name').on('input', function() { loadData(1); });
         $('#resetFilters').on('click', function() {
             $('#filter_name, #filter_campaign, #filter_state, #filter_list').val(''); $('#filter_city').html('<option value="">All Cities</option>');
+            selectedIds.clear();
             loadData(1);
         });
 
-        $('#selectAllCheckbox').on('change', function() { $('.row-checkbox').prop('checked', $(this).is(':checked')); updateSelectedCount(); });
-        $(document).on('change', '.row-checkbox', function() { updateSelectedCount(); });
+        $('#selectAllCheckbox').on('change', function() { 
+            let checked = $(this).is(':checked');
+            $('.row-checkbox').each(function() {
+                $(this).prop('checked', checked);
+                let val = $(this).val();
+                if(checked) selectedIds.add(val);
+                else selectedIds.delete(val);
+            });
+            updateGlobalSelectionContext();
+        });
+
+        $(document).on('change', '.row-checkbox', function() { 
+            let val = $(this).val();
+            if($(this).is(':checked')) selectedIds.add(val);
+            else selectedIds.delete(val);
+            
+            checkHeaderStatus();
+            updateGlobalSelectionContext();
+        });
 
         $('#selectAllBtn').on('click', function() {
-            var newState = $('.row-checkbox:not(:checked)').length > 0;
-            $('.row-checkbox').prop('checked', newState);
+            let newState = $('.row-checkbox:not(:checked)').length > 0;
+            $('.row-checkbox').each(function() {
+                $(this).prop('checked', newState);
+                let val = $(this).val();
+                if(newState) selectedIds.add(val);
+                else selectedIds.delete(val);
+            });
             $('#selectAllCheckbox').prop('checked', newState);
-            updateSelectedCount();
+            updateGlobalSelectionContext();
         });
 
         $('#openCampaignModalBtn').on('click', () => $('#campaignModal').modal('show'));
 
         $('#confirmCampaignBtn').on('click', function() {
             var name = ($('#campaignName').val() || '').trim();
-            var ids = $('.row-checkbox:checked').map(function() { return $(this).val(); }).get();
+            var ids = Array.from(selectedIds);
+            
             if (!name) { Swal.fire('Wait!', 'Please provide a campaign name.', 'warning'); return; }
 
             var $btn = $(this); $btn.prop('disabled', true).text('Launching...');
@@ -312,6 +353,7 @@
             .done(resp => {
                 if (resp.success) {
                     $('#campaignModal').modal('hide'); $('#campaignName').val('');
+                    selectedIds.clear();
                     Swal.fire('Identity Established', resp.message, 'success');
                     loadData(1); loadFilterData();
                 } else {

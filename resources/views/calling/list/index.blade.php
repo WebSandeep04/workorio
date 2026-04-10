@@ -5,119 +5,287 @@
 
 @push('styles')
 <style>
-    .calling-page { padding: 0.5rem; background: #f7f8fc; }
-    
-    .hero-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
-    .hero-metric-card {
-        background: #fff; border-radius: 10px; border: 1px solid #eceef3; padding: 0.75rem 1rem;
-        box-shadow: 0px 4px 4px 0px #0000000A; display: flex; align-items: center; gap: 0.75rem;
+    .calling-page {
+        padding: 0.5rem;
+        background: #f7f8fc;
+        min-height: calc(100vh - 110px);
+        display: flex;
+        flex-direction: column;
     }
-    .hero-metric-icon { width: 40px; height: 40px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; }
+
+    /* Hero Metrics */
+    .hero-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-metric-card {
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #eceef3;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        box-shadow: 0px 4px 4px 0px #0000000A;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s ease;
+    }
+
+    .hero-metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0px 8px 8px 0px #0000000A;
+    }
+
+    .hero-metric-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
     .icon-indigo { background: linear-gradient(135deg, #434AFA, #667eea); }
     .icon-teal { background: linear-gradient(135deg, #0ea5e9, #2dd4bf); }
-    .hero-metric-icon i { color: #fff; font-size: 1.2rem; }
 
-    .metric-label { display: block; font-size: 0.65rem; color: #64748b; text-transform: uppercase; font-weight: 700; font-family: Montserrat; }
-    .metric-value { font-size: 1.2rem; font-weight: 700; color: #1e293b; font-family: Montserrat; }
+    .hero-metric-icon i {
+        color: #fff;
+        font-size: 1.2rem;
+    }
 
-    .data-table-card { border-radius: 8px; border: 1px solid #f1f5f9; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.03); overflow: hidden; }
-    .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; font-family: Montserrat; }
-    .custom-table thead th { background: #f8fafc; padding: 1rem; font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: #475569; border-bottom: 1px solid #e2e8f0; }
-    .custom-table tbody td { padding: 1rem; font-size: 0.85rem; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
-    
-    .btn-create-list { background: #434AFA; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; }
+    .hero-metric-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .metric-label {
+        display: block;
+        font-size: 0.65rem;
+        color: #000;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.2rem;
+        font-weight: 600;
+        font-family: Montserrat;
+    }
+
+    .metric-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        line-height: 1.2;
+        display: block;
+        color: #101828;
+        font-family: Montserrat;
+    }
+
+    /* Table System */
+    .data-table-card { border-radius: 5px; border: 1px solid #f2f4f7; background: #fff; box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08); overflow: hidden; margin-bottom: 1rem; flex-grow: 1; display: flex; flex-direction: column; }
+    .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; flex-grow: 1; }
+    .custom-table { border-collapse: separate; border-spacing: 0; width: 100%; font-family: Montserrat; }
+    .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; white-space: nowrap; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
+    .custom-table tbody td { font-size: 0.85rem; padding: 0.6rem 0.75rem; color: #1f2937; border-bottom: 1px solid #f4f4f6; white-space: nowrap; }
+    .custom-table tbody tr:hover { background: #f8f9ff; transform: translateY(-1px); }
+
+    .btn-create-list { 
+        background: #434AFA; 
+        color: #fff !important; 
+        border: none; 
+        padding: 0.5rem 1rem; 
+        border-radius: 6px; 
+        font-weight: 700; 
+        font-size: 0.75rem; 
+        display: inline-flex; 
+        align-items: center; 
+        gap: 0.5rem; 
+        transition: all 0.2s; 
+        text-decoration: none; 
+        font-family: Montserrat;
+    }
     .btn-create-list:hover { background: #3339d6; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(67, 74, 250, 0.2); }
 
-    .badge-records { background: #f1f5ff; color: #434afa; padding: 0.35rem 0.75rem; border-radius: 20px; font-weight: 700; font-size: 0.75rem; }
-    .list-date { font-size: 0.75rem; color: #94a3b8; }
+    .badge-records { 
+        background: #f1f5ff; 
+        color: #434afa; 
+        padding: 0.25rem 0.6rem; 
+        border-radius: 4px; 
+        font-weight: 700; 
+        font-size: 0.7rem; 
+    }
+    
+    .list-name { font-weight: 700; color: #101828; }
+    .list-date { font-size: 0.75rem; color: #667085; }
+
+    .pagination .page-link { color: #434afa; border: 2px solid #e0e0e0; border-radius: 6px; padding: 0.25rem 0.5rem; margin: 0 2px; font-size: 10px; font-family: Montserrat; }
+    .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); }
+
+    .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; font-family: Montserrat; }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-2 calling-page">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h5 class="fw-bold mb-0" style="font-family: Montserrat;">Your Imported Lists</h5>
-            <p class="text-muted small mb-0">Manage lead segments uploaded via spreadsheets</p>
+            <h5 class="fw-bold mb-0" style="font-family: Montserrat; font-size: 1.1rem; color: #101828;">Lead Segments</h5>
+            <p class="text-muted small mb-0" style="font-size: 0.75rem;">Manage and monitor your imported data lists</p>
         </div>
         <a href="{{ route('calling.list.create') }}" class="btn-create-list">
-            <i class="bi bi-plus-lg"></i> Import New List
+            <i class="bi bi-cloud-arrow-up-fill"></i> Import New List
         </a>
     </div>
 
-    <!-- Metrics -->
     <div class="hero-metrics">
         <div class="hero-metric-card">
-            <div class="hero-metric-icon icon-indigo">
-                <i class="bi bi-layers"></i>
+            <div class="hero-metric-icon icon-sky">
+                <img src="{{ asset('img/icons/all.png') }}" alt="Total Segments">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Total Lists</span>
-                <span class="metric-value">{{ $lists->total() }}</span>
+                <span class="metric-label">Total Segments</span>
+                <span class="metric-value text-primary" id="totalLists">0</span>
             </div>
         </div>
         <div class="hero-metric-card">
-            <div class="hero-metric-icon icon-teal">
-                <i class="bi bi-people"></i>
+            <div class="hero-metric-icon icon-amber">
+                <img src="{{ asset('img/icons/pending.png') }}" alt="Total Leads">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Total Contacts</span>
-                <span class="metric-value">{{ number_format($lists->sum('total_records')) }}</span>
+                <span class="metric-label">Total Leads</span>
+                <span class="metric-value text-warning" id="totalLeads">0</span>
+            </div>
+        </div>
+        <div class="hero-metric-card">
+            <div class="hero-metric-icon icon-emerald">
+                <img src="{{ asset('img/icons/tick.png') }}" alt="Active Status">
+            </div>
+            <div class="hero-metric-content">
+                <span class="metric-label">Latest refresh</span>
+                <span class="metric-value text-success" id="lastRefreshed">--:--</span>
             </div>
         </div>
     </div>
 
     <div class="data-table-card">
-        <table class="custom-table">
-            <thead>
-                <tr>
-                    <th style="width: 80px;">ID</th>
-                    <th>List Name</th>
-                    <th>Records Count</th>
-                    <th>Ingestion Date</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($lists as $list)
+        <div class="table-scroll">
+            <table class="table custom-table" id="listsTable">
+                <thead>
                     <tr>
-                        <td class="fw-bold text-muted">#{{ $list->id }}</td>
-                        <td>
-                            <div class="fw-bold">{{ $list->name }}</div>
-                        </td>
-                        <td><span class="badge-records">{{ number_format($list->total_records) }} Records</span></td>
-                        <td>
-                            <div class="list-date">
-                                <i class="bi bi-clock me-1"></i> {{ $list->created_at->format('d M Y, h:i A') }}
-                            </div>
-                        </td>
-                        <td class="text-end">
-                            <div class="dropdown">
-                                <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                                    <li><a class="dropdown-item small" href="#"><i class="bi bi-eye me-2"></i> View Records</a></li>
-                                    <li><hr class="dropdown-header"></li>
-                                    <li><a class="dropdown-item small text-danger" href="#"><i class="bi bi-trash me-2"></i> Delete List</a></li>
-                                </ul>
-                            </div>
-                        </td>
+                        <th style="width: 80px;">ID</th>
+                        <th>Segment name</th>
+                        <th>Records volume</th>
+                        <th>Created on</th>
+                        <th class="text-end" style="width: 100px;">Actions</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center p-5 text-muted">
-                            <i class="bi bi-cloud-slash d-block fs-1 mb-3"></i>
-                            No lead lists found. <a href="{{ route('calling.list.create') }}">Upload your first one now.</a>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-        
-        @if($lists->hasPages())
-            <div class="p-4 bg-light border-top">
-                {{ $lists->links() }}
-            </div>
-        @endif
+                </thead>
+                <tbody>
+                    <tr><td colspan="5" class="text-center p-5 text-muted">Indexing lead segments...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+        <div class="table-range-meta" id="rangeInfo">
+            Showing 0-0 from 0 segments
+        </div>
+        <ul class="pagination mb-0" id="paginationLinks"></ul>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+
+        function loadData(page = 1) {
+            $.get('{{ route("calling.list.data") }}?page=' + page, function(data) {
+                let listObj = data.lists || {};
+                renderRows(listObj.data || []);
+                buildPagination(listObj);
+                $('#totalLists').text((listObj.total || 0).toLocaleString('en-IN'));
+                $('#totalLeads').text((data.total_leads || 0).toLocaleString('en-IN'));
+                $('#lastRefreshed').text(new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+            });
+        }
+
+        function renderRows(rows) {
+            let html = '';
+            if (rows && rows.length) {
+                rows.forEach(function(r) {
+                    let date = new Date(r.created_at).toLocaleString('en-IN', {
+                        day: '2-digit', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit', hour12: true
+                    });
+                    html += `
+                        <tr id="row-${r.id}">
+                            <td class="fw-bold text-muted">#${r.id}</td>
+                            <td><div class="list-name">${r.name}</div></td>
+                            <td><span class="badge-records">${parseInt(r.total_records).toLocaleString()} Contacts</span></td>
+                            <td>
+                                <div class="list-date">
+                                    <i class="bi bi-clock-history me-1"></i> ${date}
+                                </div>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-link text-danger p-0" onclick="deleteList(${r.id})" title="Remove List">
+                                    <i class="bi bi-trash-fill fs-5"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                });
+            } else {
+                html = '<tr><td colspan="5" class="text-center p-5 text-muted"><i class="bi bi-cloud-slash d-block fs-1 mb-3"></i>No segments found.</td></tr>';
+            }
+            $('#listsTable tbody').html(html);
+        }
+
+        function buildPagination(data) {
+            const $container = $('#paginationLinks'); $container.empty();
+            if (data.last_page <= 1) return;
+            $container.append(`<li class="page-item ${data.current_page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${data.current_page - 1}"><i class="bi bi-chevron-left"></i> Previous</a></li>`);
+            $container.append(`<li class="page-item active"><span class="page-link">${data.current_page} / ${data.last_page}</span></li>`);
+            $container.append(`<li class="page-item ${data.current_page === data.last_page ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${data.current_page + 1}">Next <i class="bi bi-chevron-right"></i></a></li>`);
+            $('#rangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} segments`);
+        }
+
+        window.deleteList = function(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Removing this list will also delete all associated contacts! This action cannot be undone.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#434AFA',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/calling/list/' + id,
+                        type: 'DELETE',
+                        success: function(resp) {
+                            if (resp.success) {
+                                $(`#row-${id}`).fadeOut(300);
+                                Swal.fire('Deleted!', resp.message, 'success');
+                                loadData(1);
+                            } else {
+                                Swal.fire('Error', resp.message, 'error');
+                            }
+                        }
+                    });
+                }
+            })
+        };
+
+        $(document).on('click', '.page-link', function(e) { e.preventDefault(); loadData($(this).data('page')); });
+        
+        loadData(1);
+    });
+</script>
+@endpush

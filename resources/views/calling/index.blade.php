@@ -20,7 +20,7 @@
     .icon-emerald { background: linear-gradient(135deg, #34d399, #10b981); }
     .icon-amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
 
-    .metric-label { display: block; font-size: 0.65rem; color: #000; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; font-weight: 600; font-family: Montserrat; }
+    .metric-label { display: block; font-size: 0.65rem; color: #000; letter-spacing: 0.05em; margin-bottom: 0.2rem; font-weight: 600; font-family: Montserrat; }
     .metric-value { font-size: 1.2rem; font-weight: 700; color: #101828; font-family: Montserrat; }
 
     /* Filter Box */
@@ -29,7 +29,7 @@
         background: #434AFA; padding: 0.75rem; border-radius: 5px; color: #fff; border: 1px solid #434AFA;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); margin-bottom: 1rem; font-family: Montserrat;
     }
-    .form-label-modern { color: #fff; font-size: 10px; font-weight: 600; margin-bottom: 0.25rem; text-transform: uppercase; font-family: Montserrat; }
+    .form-label-modern { color: #fff; font-size: 10px; font-weight: 600; margin-bottom: 0.25rem; font-family: Montserrat; }
     .form-control-modern { border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 6px; padding: 0.35rem 0.5rem; background: #fff; color: #000; font-size: 10px; font-family: Montserrat; width: 100%; }
     .filter-reset-btn { border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 6px; background: rgba(255, 255, 255, 0.18); color: white; padding: 0.35rem 0.5rem; font-weight: 600; font-size: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
 
@@ -44,7 +44,7 @@
     .data-table-card { border-radius: 5px; border: 1px solid #f2f4f7; background: #fff; box-shadow: 0px 30px 60px rgba(15, 23, 42, 0.08); overflow: hidden; margin-bottom: 1rem; }
     .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; }
     .custom-table { border-collapse: separate; border-spacing: 0; width: 100%; font-family: Montserrat; }
-    .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; white-space: nowrap; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
+    .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; white-space: nowrap; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
     .custom-table tbody td { font-size: 0.85rem; padding: 0.65rem 0.75rem; color: #1f2937; border-bottom: 1px solid #f4f4f6; white-space: nowrap; }
     .custom-table tbody tr:hover { background: #f8f9ff; transform: translateY(-1px); }
 
@@ -204,6 +204,8 @@
 <script>
     $(document).ready(function() {
         const $tbody = $('#callingTable tbody');
+        let selectedIds = new Set();
+        
         $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
 
         function loadFilterData() {
@@ -217,6 +219,13 @@
 
                 var $list = $('#filter_list'); $list.empty().append('<option value="">All Lists</option>');
                 (resp.lists || []).forEach(function(l){ $list.append('<option value="'+l.id+'">'+l.name+'</option>'); });
+
+                // Check URL for pre-filtering
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('list_id')) {
+                    $list.val(urlParams.get('list_id'));
+                    loadData(1);
+                }
             });
         }
 
@@ -232,8 +241,9 @@
             var html = '';
             if (rows && rows.length) {
                 rows.forEach(function(r){
+                    let isChecked = selectedIds.has(r.id.toString()) ? 'checked' : '';
                     html += `<tr>
-                        <td><input type="checkbox" class="form-check-input row-checkbox" value="${r.id}"></td>
+                        <td><input type="checkbox" class="form-check-input row-checkbox" value="${r.id}" ${isChecked}></td>
                         <td>${r.name || '-'}</td>
                         <td>${r.email || '-'}</td>
                         <td>${r.state || '-'}</td>
@@ -246,6 +256,7 @@
                 html = '<tr><td colspan="7" class="text-center p-5 text-muted">No records matching your search scope.</td></tr>';
             }
             $tbody.html(html);
+            updateGlobalSelectionContext();
         }
 
         function loadData(page = 1) {
@@ -262,8 +273,9 @@
                 renderRows(data.data || []);
                 buildPagination(data);
                 $('#totalCallings').text((data.total || 0).toLocaleString('en-IN'));
-                $('#selectAllCheckbox').prop('checked', false);
-                updateSelectedCount();
+                
+                // Header checkbox state based on current page selection
+                checkHeaderStatus();
             });
         }
 
@@ -276,10 +288,15 @@
             $('#callingRangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
 
-        function updateSelectedCount() {
-            var selectedCount = $('.row-checkbox:checked').length;
-            $('#selectedCount, #heroSelected, #modalSelectedCount').text(selectedCount);
-            $('#openCampaignModalBtn').prop('disabled', selectedCount === 0);
+        function updateGlobalSelectionContext() {
+            let count = selectedIds.size;
+            $('#selectedCount, #heroSelected, #modalSelectedCount').text(count);
+            $('#openCampaignModalBtn').prop('disabled', count === 0);
+        }
+
+        function checkHeaderStatus() {
+            let allOnPageChecked = $('.row-checkbox').length > 0 && $('.row-checkbox:not(:checked)').length === 0;
+            $('#selectAllCheckbox').prop('checked', allOnPageChecked);
         }
 
         loadFilterData(); loadData(1);
@@ -289,24 +306,48 @@
         $('#filter_name').on('input', function() { loadData(1); });
         $('#resetFilters').on('click', function() {
             $('#filter_name, #filter_campaign, #filter_state, #filter_list').val(''); $('#filter_city').html('<option value="">All Cities</option>');
+            selectedIds.clear();
             loadData(1);
         });
 
-        $('#selectAllCheckbox').on('change', function() { $('.row-checkbox').prop('checked', $(this).is(':checked')); updateSelectedCount(); });
-        $(document).on('change', '.row-checkbox', function() { updateSelectedCount(); });
+        $('#selectAllCheckbox').on('change', function() { 
+            let checked = $(this).is(':checked');
+            $('.row-checkbox').each(function() {
+                $(this).prop('checked', checked);
+                let val = $(this).val();
+                if(checked) selectedIds.add(val);
+                else selectedIds.delete(val);
+            });
+            updateGlobalSelectionContext();
+        });
+
+        $(document).on('change', '.row-checkbox', function() { 
+            let val = $(this).val();
+            if($(this).is(':checked')) selectedIds.add(val);
+            else selectedIds.delete(val);
+            
+            checkHeaderStatus();
+            updateGlobalSelectionContext();
+        });
 
         $('#selectAllBtn').on('click', function() {
-            var newState = $('.row-checkbox:not(:checked)').length > 0;
-            $('.row-checkbox').prop('checked', newState);
+            let newState = $('.row-checkbox:not(:checked)').length > 0;
+            $('.row-checkbox').each(function() {
+                $(this).prop('checked', newState);
+                let val = $(this).val();
+                if(newState) selectedIds.add(val);
+                else selectedIds.delete(val);
+            });
             $('#selectAllCheckbox').prop('checked', newState);
-            updateSelectedCount();
+            updateGlobalSelectionContext();
         });
 
         $('#openCampaignModalBtn').on('click', () => $('#campaignModal').modal('show'));
 
         $('#confirmCampaignBtn').on('click', function() {
             var name = ($('#campaignName').val() || '').trim();
-            var ids = $('.row-checkbox:checked').map(function() { return $(this).val(); }).get();
+            var ids = Array.from(selectedIds);
+            
             if (!name) { Swal.fire('Wait!', 'Please provide a campaign name.', 'warning'); return; }
 
             var $btn = $(this); $btn.prop('disabled', true).text('Launching...');
@@ -314,6 +355,7 @@
             .done(resp => {
                 if (resp.success) {
                     $('#campaignModal').modal('hide'); $('#campaignName').val('');
+                    selectedIds.clear();
                     Swal.fire('Identity Established', resp.message, 'success');
                     loadData(1); loadFilterData();
                 } else {
