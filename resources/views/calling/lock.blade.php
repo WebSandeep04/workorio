@@ -175,6 +175,26 @@
     .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); }
 
     .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; font-family: Montserrat; }
+
+    /* Selection Command Center */
+    .selection-command-bar {
+        background: #fff; border-radius: 12px; border: 1px solid #e0e0e0; padding: 0.75rem 1.25rem;
+        margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 100; font-family: Montserrat;
+    }
+    .selection-badge {
+        background: #434AFA; color: #fff; font-weight: 800; font-size: 11px; padding: 0.35rem 0.85rem;
+        border-radius: 40px; letter-spacing: 0.05em; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+    }
+    .selection-action-btn {
+        border-radius: 8px; border: none; padding: 0.5rem 1rem; font-size: 11px; font-weight: 700;
+        display: inline-flex; align-items: center; transition: all 0.2s; font-family: Montserrat;
+    }
+    .selection-action-btn.primary { background: #f0f7ff; color: #007bff; }
+    .selection-action-btn.primary:hover { background: #007bff; color: white; }
+    .selection-action-btn.ghost { background: #fff5f5; color: #e53e3e; }
+    .selection-action-btn.ghost:hover { background: #e53e3e; color: white; }
+    .bg-soft-primary { background-color: #f0f4ff; }
 </style>
 @endpush
 
@@ -196,17 +216,17 @@
                 <img src="{{ asset('img/icons/tick.png') }}" alt="Active Campaign">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Active Campaign</span>
-                <span class="metric-value" id="currentCampaignName" style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;">None</span>
+                <span class="metric-label">Selected Count</span>
+                <span class="metric-value" id="heroSelected">0</span>
             </div>
         </div>
         <div class="hero-metric-card">
             <div class="hero-metric-icon icon-amber">
-                <img src="{{ asset('img/icons/underprocess.png') }}" alt="Selected Count">
+                <img src="{{ asset('img/icons/underprocess.png') }}" alt="Active Filters">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Selected Leads</span>
-                <span class="metric-value" id="selectedCountMetric">0</span>
+                <span class="metric-label">Active Filters</span>
+                <span class="metric-value" id="activeFilters">0</span>
             </div>
         </div>
     </div>
@@ -239,8 +259,27 @@
     </div>
 
     <div class="table-search-field">
-        <i class="bi bi-search"></i>
         <input type="text" id="filter_name" placeholder="Search by name, contact, or address..." />
+    </div>
+
+    <!-- Selection Command Center (Robust Pattern) -->
+    <div id="selectionCommandCenter" class="selection-command-bar shadow-sm animate__animated animate__fadeInDown" style="display: none;">
+        <div class="d-flex align-items-center gap-3">
+            <div class="selection-badge">
+                <span id="selectionCountDisplay">0</span> SELECTED
+            </div>
+            <div id="globalSelectionStatus" class="badge bg-soft-primary text-primary border border-primary px-3 py-2" style="display: none; border-radius: 20px; font-weight: 600;">
+                <i class="bi bi-globe me-1"></i> Global Selection
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button id="selectAllMatchingBtn" class="selection-action-btn primary">
+                <i class="bi bi-lightning-fill me-1"></i> Select All Matching
+            </button>
+            <button id="clearSelectionBtn" class="selection-action-btn ghost">
+                <i class="bi bi-x-lg me-1"></i> Clear
+            </button>
+        </div>
     </div>
 
     <div class="data-table-card">
@@ -320,8 +359,9 @@
             var html = '';
             if (rows && rows.length) {
                 rows.forEach(function(r){
+                    let isChecked = r.is_selected ? 'checked' : '';
                     html += `<tr>
-                        <td><input type="checkbox" class="form-check-input row-checkbox" value="${r.id}"></td>
+                        <td><input type="checkbox" class="form-check-input row-checkbox" value="${r.id}" ${isChecked}></td>
                         <td>${r.name || '-'}</td>
                         <td>${r.company_name || '-'}</td>
                         <td>${r.contact_person || '-'}</td>
@@ -336,9 +376,10 @@
                     </tr>`;
                 });
             } else {
-                html = '<tr><td colspan="7" class="text-center p-5 text-muted">No unassigned leads found for this scope.</td></tr>';
+                html = '<tr><td colspan="12" class="text-center p-5 text-muted">No unassigned leads found for this scope.</td></tr>';
             }
             $tbody.html(html);
+            syncHeaderCheckbox();
         }
 
         function applyFilters(page = 1) {
@@ -349,10 +390,10 @@
             var cityId = $('#filter_city').val();
             
             if (!campaignId) {
-                $tbody.html('<tr><td colspan="7" class="text-center p-5 text-muted">Please select a campaign to continue.</td></tr>');
-                $('#totalCallings').text(0); $('#currentCampaignName').text('None');
+                $tbody.html('<tr><td colspan="12" class="text-center p-5 text-muted">Please select a campaign to continue.</td></tr>');
+                $('#totalCallings').text(0); 
                 $('#paginationFilterLinks').empty(); $('#selectAllCheckbox').prop('checked', false);
-                updateSelectedCount(); return;
+                updateSelectionUI(); return;
             }
 
             const appliedCount = [name, stateId, cityId].filter(Boolean).length;
@@ -363,9 +404,7 @@
                 renderRows(data.data || []);
                 buildPagination(data);
                 $('#totalCallings').text((data.total || 0).toLocaleString('en-IN'));
-                $('#currentCampaignName').text($('#filter_campaign option:selected').text());
-                $('#selectAllCheckbox').prop('checked', false);
-                updateSelectedCount();
+                updateSelectionUI();
             });
         }
 
@@ -378,11 +417,30 @@
             $('#callingRangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
 
-        function updateSelectedCount() {
-            var selectedCount = $('.row-checkbox:checked').length;
-            $('#selectedCountText').text(selectedCount);
-            $('#selectedCountMetric').text(selectedCount.toLocaleString());
-            $('#lockLeadsBtn').prop('disabled', selectedCount === 0);
+        function updateSelectionUI() {
+            $.get('{{ route("calling.selection.status") }}', function(resp) {
+                $('#selectedCountText, #heroSelected, #selectionCountDisplay').text(resp.count);
+                $('#lockLeadsBtn').prop('disabled', resp.count === 0);
+                
+                if (resp.count > 0) {
+                    $('#selectionCommandCenter').fadeIn(200).css('display', 'flex');
+                    if (resp.all_matching) {
+                        $('#globalSelectionStatus').show().html(`<i class="bi bi-globe me-1"></i> Global Selection Active`);
+                        $('#selectAllMatchingBtn').hide();
+                    } else {
+                        $('#globalSelectionStatus').hide();
+                        $('#selectAllMatchingBtn').show();
+                    }
+                } else {
+                    $('#selectionCommandCenter').fadeOut(200);
+                }
+                syncHeaderCheckbox();
+            });
+        }
+
+        function syncHeaderCheckbox() {
+            let allChecked = $('.row-checkbox').length > 0 && $('.row-checkbox:not(:checked)').length === 0;
+            $('#selectAllCheckbox').prop('checked', allChecked);
         }
 
         loadFilterData();
@@ -393,28 +451,62 @@
         $('#filter_name').on('input', function() { applyFilters(1); });
         $('#resetFilters').on('click', function() {
             $('#filter_name').val(''); $('#filter_campaign').val(''); $('#filter_state').val(''); $('#filter_city').html('<option value="">All Cities</option>');
-            applyFilters(1);
+            $.post('{{ route("calling.selection.clear") }}', () => applyFilters(1));
         });
 
-        $('#selectAllCheckbox').on('change', function() { $('.row-checkbox').prop('checked', $(this).is(':checked')); updateSelectedCount(); });
-        $(document).on('change', '.row-checkbox', function() { updateSelectedCount(); });
+        $('#selectAllCheckbox').on('change', function() { 
+            let checked = $(this).is(':checked');
+            if (checked) {
+                $('.row-checkbox').prop('checked', true).each(function() {
+                    $.post('{{ route("calling.selection.toggle") }}', { id: $(this).val(), checked: true });
+                });
+            } else {
+                $.post('{{ route("calling.selection.clear") }}', () => {
+                    $('.row-checkbox').prop('checked', false);
+                });
+            }
+            setTimeout(updateSelectionUI, 400);
+        });
 
-        $('#selectAllBtn').on('click', function() {
-            var newState = $('.row-checkbox:not(:checked)').length > 0;
-            $('.row-checkbox').prop('checked', newState);
-            $('#selectAllCheckbox').prop('checked', newState);
-            updateSelectedCount();
+        $(document).on('change', '.row-checkbox', function() { 
+            let id = $(this).val();
+            let checked = $(this).is(':checked');
+            $.post('{{ route("calling.selection.toggle") }}', { id, checked }, () => updateSelectionUI());
+        });
+
+        $('#selectAllMatchingBtn, #selectAllBtn').on('click', function() {
+            var campaignId = $('#filter_campaign').val();
+            if (!campaignId) { Swal.fire('Wait!', 'Please select a campaign first.', 'warning'); return; }
+
+            var filters = {
+                campaign_id: campaignId,
+                name: ($('#filter_name').val() || '').trim(),
+                state_id: $('#filter_state').val(),
+                city_id: $('#filter_city').val(),
+                is_locking: true
+            };
+            $.post('{{ route("calling.selection.all-matching") }}', { filters }, function() {
+                $('.row-checkbox').prop('checked', true);
+                $('#selectAllCheckbox').prop('checked', true);
+                updateSelectionUI();
+            });
+        });
+
+        $('#clearSelectionBtn').on('click', function() {
+            $.post('{{ route("calling.selection.clear") }}', () => {
+                $('.row-checkbox, #selectAllCheckbox').prop('checked', false);
+                updateSelectionUI();
+            });
         });
 
         $('#lockLeadsBtn').on('click', function() {
-            var selectedIds = $('.row-checkbox:checked').map(function() { return $(this).val(); }).get();
             var campaignId = $('#filter_campaign').val();
-            if (!campaignId || selectedIds.length === 0) return;
+            if (!campaignId) return;
 
             var $btn = $(this);
             $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Locking...');
 
-            $.post('{{ route("calling.lock-leads") }}', { campaign_id: campaignId, calling_ids: selectedIds })
+            $.post('{{ route("calling.lock-leads") }}', { campaign_id: campaignId, use_session_selection: true })
             .done(resp => {
                 if (resp.success) {
                     Swal.fire('Success', resp.message, 'success');
@@ -424,6 +516,7 @@
                 }
             }).always(() => {
                 $btn.prop('disabled', false).html('<i class="bi bi-lock-fill"></i> Lock Selected (<span id="selectedCountText">0</span>)');
+                updateSelectionUI();
             });
         });
 

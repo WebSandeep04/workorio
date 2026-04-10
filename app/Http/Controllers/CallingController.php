@@ -224,7 +224,14 @@ class CallingController extends Controller
         $junkTypeId = CallingType::where('name', 'Junk')->value('id');
         if ($junkTypeId) $query->whereDoesntHave('campaigns', fn($q) => $q->where('calling_campaign_calling.calling_type_id', $junkTypeId));
         
-        if (!empty($filters['campaign_id'])) $query->whereHas('campaigns', fn($q) => $q->where('calling_campaigns.id', $filters['campaign_id']));
+        if (!empty($filters['campaign_id'])) {
+            $query->whereHas('campaigns', function($q) use ($filters) {
+                $q->where('calling_campaigns.id', $filters['campaign_id']);
+                if (!empty($filters['is_locking'])) {
+                    $q->where('calling_campaign_calling.is_locked', 0);
+                }
+            });
+        }
         if (!empty($filters['name'])) {
             $term = trim((string) $filters['name']); $like = '%' . $term . '%';
             $query->where(fn($q) => $q->where('name', 'like', $like)->orWhere('email', 'like', $like)->orWhere('phone', 'like', $like));
@@ -242,7 +249,14 @@ class CallingController extends Controller
         $junkTypeId = CallingType::where('name', 'Junk')->value('id');
         if ($junkTypeId) $query->whereDoesntHave('campaigns', fn($q) => $q->where('calling_campaign_calling.calling_type_id', $junkTypeId));
         
-        if (!empty($filters['campaign_id'])) $query->whereHas('campaigns', fn($q) => $q->where('calling_campaigns.id', $filters['campaign_id']));
+        if (!empty($filters['campaign_id'])) {
+            $query->whereHas('campaigns', function($q) use ($filters) {
+                $q->where('calling_campaigns.id', $filters['campaign_id']);
+                if (!empty($filters['is_locking'])) {
+                    $q->where('calling_campaign_calling.is_locked', 0);
+                }
+            });
+        }
         if (!empty($filters['name'])) {
             $term = trim((string) $filters['name']); $like = '%' . $term . '%';
             $query->where(fn($q) => $q->where('name', 'like', $like)->orWhere('email', 'like', $like)->orWhere('phone', 'like', $like));
@@ -261,7 +275,8 @@ class CallingController extends Controller
     {
         $request->validate([
             'campaign_id' => 'required|exists:calling_campaigns,id',
-            'calling_ids' => 'required|array',
+            'use_session_selection' => 'nullable',
+            'calling_ids' => 'nullable|array',
             'calling_ids.*' => 'integer|exists:callings,id'
         ]);
 
@@ -280,18 +295,34 @@ class CallingController extends Controller
                 ], 401);
             }
 
+            $idList = [];
+            if ($request->use_session_selection) {
+                $selection = Session::get('calling_selection', ['ids' => [], 'all_matching' => false, 'filters' => []]);
+                // If locking, we must ensure we only lock leads that belong to this campaign and are unassigned.
+                // The filters in the session might already include the campaign_id.
+                $idList = $selection['all_matching'] ? $this->getMatchingIds($selection['filters']) : $selection['ids'];
+            } else {
+                $idList = $request->calling_ids;
+            }
+
+            if (empty($idList)) {
+                return response()->json(['success' => false, 'message' => 'No contacts selected.']);
+            }
+
             DB::table('calling_campaign_calling')
                 ->where('calling_campaign_id', $request->campaign_id)
-                ->whereIn('calling_id', $request->calling_ids)
+                ->whereIn('calling_id', $idList)
                 ->update([
                     'user_id' => $userId,
                     'is_locked' => 1,
                     'updated_at' => now()
                 ]);
 
+            Session::forget('calling_selection');
+
             return response()->json([
                 'success' => true,
-                'message' => count($request->calling_ids) . ' leads have been locked and assigned to you.'
+                'message' => count($idList) . ' leads have been locked and assigned to you.'
             ]);
         } catch (\Exception $e) {
             return response()->json([
