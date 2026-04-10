@@ -41,11 +41,20 @@ class TenantFeatureService
                     'sales.quotation' => 'Sales: Quotation',
                     'sales.payment_followup' => 'Sales: Payment Followup',
                     'sales.leadform' => 'Sales: Lead Form',
-                    'sales.calling' => 'Sales: Calling',
-                    'sales.calling.my' => 'Sales: My Calls',
-                    'sales.calling.junk' => 'Sales: Junk Calls',
-                    'sales.calling.todays' => "Sales: Today's Calls",
                     'sales.setup' => 'Sales Setup Management'
+                ]
+            ],
+            'tele_calling' => [
+                'enabled' => (bool) ($tenant->is_tally_calling_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_tally_calling_setup_enabled ?? false),
+                'permissions' => [
+                    'sales.calling.all' => 'Calling: All Calls',
+                    'sales.calling' => 'Calling: Campaign & List',
+                    'sales.calling.my' => 'Calling: My Calls',
+                    'sales.calling.team' => 'Calling: Team Calls',
+                    'sales.calling.assigned' => 'Calling: Assigned Calls',
+                    'sales.calling.todays' => "Calling: Today's Calls",
+                    'sales.calling.junk' => 'Calling: Junk Calls',
                 ]
             ],
             'lead_generation' => [
