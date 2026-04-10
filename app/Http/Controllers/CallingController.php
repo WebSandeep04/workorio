@@ -18,6 +18,10 @@ class CallingController extends Controller
      */
     public function index()
     {
+        $user = $this->getCurrentUser();
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('sales.calling')) {
+            abort(403, 'Unauthorized');
+        }
         return view('calling.index');
     }
 
@@ -26,6 +30,10 @@ class CallingController extends Controller
      */
     public function lockIndex()
     {
+        $user = $this->getCurrentUser();
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('sales.calling.lock')) {
+            abort(403, 'Unauthorized');
+        }
         return view('calling.lock');
     }
 
@@ -257,6 +265,11 @@ class CallingController extends Controller
             'calling_ids.*' => 'integer|exists:callings,id'
         ]);
 
+        $user = $this->getCurrentUser();
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('sales.calling.lock')) {
+            return response()->json(['success' => false, 'message' => 'Permission denied'], 403);
+        }
+
         try {
             $userId = $this->getCurrentUserId();
             
@@ -294,6 +307,15 @@ class CallingController extends Controller
     private function getCurrentUserId(): ?int
     {
         return auth()->id() ?? (session()->has('user_id') ? (int) session('user_id') : null);
+    }
+
+    /**
+     * Get current user model.
+     */
+    private function getCurrentUser()
+    {
+        $userId = $this->getCurrentUserId();
+        return $userId ? \App\Models\User::find($userId) : null;
     }
 
     /**

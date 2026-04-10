@@ -49,7 +49,9 @@ class TenantFeatureService
                 'setup_enabled' => (bool) ($tenant->is_tally_calling_setup_enabled ?? false),
                 'permissions' => [
                     'sales.calling.all' => 'Calling: All Calls',
-                    'sales.calling' => 'Calling: Campaign & List',
+                    'sales.calling' => 'Calling: Campaign',
+                    'sales.calling.list' => 'Calling: List',
+                    'sales.calling.lock' => 'Calling: Lock Leads',
                     'sales.calling.my' => 'Calling: My Calls',
                     'sales.calling.team' => 'Calling: Team Calls',
                     'sales.calling.assigned' => 'Calling: Assigned Calls',

@@ -13,11 +13,20 @@ class CallingListController extends Controller
 {
     public function index()
     {
+        $user = $this->getCurrentUser();
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('sales.calling.list')) {
+            abort(403, 'Unauthorized');
+        }
         return view('calling.list.index');
     }
 
     public function getData(Request $request)
     {
+        $user = $this->getCurrentUser();
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('sales.calling.list')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         $perPage = $request->get('per_page', 10);
         $lists = CallingList::orderBy('id', 'desc')->paginate($perPage);
         $totalLeads = CallingList::sum('total_records');
@@ -97,6 +106,11 @@ class CallingListController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
+        $user = $this->getCurrentUser();
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('sales.calling.list')) {
+            return back()->with('error', 'Unauthorized access.');
+        }
+
         $list = CallingList::create([
             'name' => $request->name,
             'total_records' => 0
@@ -169,5 +183,16 @@ class CallingListController extends Controller
         $list->update(['total_records' => $total]);
 
         return redirect()->route('calling.list.index')->with('success', "List '$request->name' uploaded successfully with $total records.");
+    }
+
+    private function getCurrentUserId(): ?int
+    {
+        return auth()->id() ?? (session()->has('user_id') ? (int) session('user_id') : null);
+    }
+
+    private function getCurrentUser()
+    {
+        $userId = $this->getCurrentUserId();
+        return $userId ? \App\Models\User::find($userId) : null;
     }
 }
