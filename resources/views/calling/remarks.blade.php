@@ -63,8 +63,8 @@
             </div>
 
             <div class="row g-2 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label-modern text-dark">Stage / Status</label>
+                <div class="col-md-12">
+                    <label class="form-label-modern text-dark">Status</label>
                     <select name="calling_type_id" id="calling_type_id" class="form-select form-select-sm">
                         <option value="">Choose Status...</option>
                         @foreach($callingTypes as $type)
@@ -74,7 +74,17 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-12 mt-2">
+                    <div id="whatsapp_action_container" style="display: none;">
+                        <button type="button" class="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center" id="whatsapp_btn" style="background-color: #434AFA; border: none; padding: 8px;">
+                            <i class="bi bi-whatsapp me-2"></i> Send WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-12">
                     <label class="form-label-modern text-dark">Next Date</label>
                     <input type="date" name="next_followup_date" id="next_followup_date" class="form-control form-control-sm" value="{{ $pivotData->next_followup_date ?? '' }}">
                 </div>
@@ -128,13 +138,40 @@
 </div>
 @endsection
 
+<!-- WhatsApp Template Modal -->
+<div class="modal fade" id="whatsappTemplateModal" tabindex="-1" aria-labelledby="whatsappTemplateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header text-white" style="background-color: #434AFA;">
+        <h5 class="modal-title" id="whatsappTemplateModalLabel">Select WhatsApp Template</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="list-group">
+          @forelse($whatsappTemplates as $template)
+            <button type="button" class="list-group-item list-group-item-action whatsapp-template-item" 
+                    data-text="{{ $template->text }}">
+              <strong>{{ $template->name }}</strong>
+              <p class="mb-0 small text-muted">{{ \Illuminate\Support\Str::limit($template->text, 100) }}</p>
+            </button>
+          @empty
+            <div class="text-center py-3">
+              <p class="text-muted">No templates found. Please add them to the database.</p>
+            </div>
+          @endforelse
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 @push('styles')
 <style>
 .calling-remarks-page { background: #f8f9fa; min-height: calc(100vh - 100px); padding-bottom: 3rem; }
 .ui-card { border-radius: 12px; border: 1px solid #eef0f6; box-shadow: 0 4px 12px rgba(0,0,0,0.03); overflow: hidden; min-height: 500px; }
-.ui-header { background: #434AFA; color: #fff; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 14px 16px; border: none; }
+.ui-header { background: #434AFA; color: #fff; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.05em; padding: 14px 16px; border: none; }
 .ui-body { padding: 1.5rem; }
-.form-label-modern { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; display: block; font-family: Montserrat; color: #667085; }
+.form-label-modern { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.4rem; display: block; font-family: Montserrat; color: #667085; }
 .remark-scroll { max-height: 750px; overflow-y: auto; }
 .remark-scroll::-webkit-scrollbar { width: 4px; }
 .remark-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
@@ -283,6 +320,55 @@ $(document).ready(function() {
         $('#submit_btn').text('Save Interaction');
         $('#reset_form_btn').hide();
     }
+
+    // WhatsApp Logic
+    const whatsappBtnContainer = $('#whatsapp_action_container');
+    const statusSelect = $('#calling_type_id');
+    const leadPhone = "{{ $calling->phone }}";
+
+    function checkStatusForWhatsapp() {
+        const selectedText = statusSelect.find('option:selected').text().trim().toLowerCase();
+        if (selectedText === 'sent details') {
+            whatsappBtnContainer.fadeIn();
+        } else {
+            whatsappBtnContainer.fadeOut();
+        }
+    }
+
+    // Initial check
+    checkStatusForWhatsapp();
+
+    // On status change
+    statusSelect.on('change', function() {
+        checkStatusForWhatsapp();
+    });
+
+    $('#whatsapp_btn').on('click', function() {
+        $('#whatsappTemplateModal').modal('show');
+    });
+
+    $('.whatsapp-template-item').on('click', function() {
+        const templateText = $(this).data('text');
+        if (!leadPhone) {
+            Swal.fire('Error', 'Lead phone number is missing.', 'error');
+            return;
+        }
+
+        // Clean phone number (keep only digits)
+        const cleanPhone = leadPhone.replace(/\D/g, '');
+        
+        // Ensure it has a country code, the user didn't specify, but I'll assume 91 for India if it's 10 digits
+        let finalPhone = cleanPhone;
+        if (cleanPhone.length === 10) {
+            finalPhone = '91' + cleanPhone;
+        }
+
+        const encodedMsg = encodeURIComponent(templateText);
+        const whatsappUrl = `https://wa.me/${finalPhone}?text=${encodedMsg}`;
+        
+        window.open(whatsappUrl, '_blank');
+        $('#whatsappTemplateModal').modal('hide');
+    });
 });
 </script>
 @endpush

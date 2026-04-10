@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Calling;
 use App\Models\CallingCampaign;
 use App\Models\CallingType;
+use App\Models\WhatsappTemplate;
 use Illuminate\Support\Facades\DB;
 
 class CallingController extends Controller
@@ -244,9 +245,10 @@ class CallingController extends Controller
         }
 
         $callingTypes = CallingType::orderBy('name')->get();
+        $whatsappTemplates = WhatsappTemplate::orderBy('name')->get();
         $currentUserId = $this->getCurrentUserId();
 
-        return view('calling.remarks', compact('calling', 'currentCampaign', 'pivotData', 'callingTypes', 'currentUserId'));
+        return view('calling.remarks', compact('calling', 'currentCampaign', 'pivotData', 'callingTypes', 'whatsappTemplates', 'currentUserId'));
     }
 
     /**

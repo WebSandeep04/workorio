@@ -46,8 +46,9 @@ use App\Http\Controllers\AssignedCallingController;
 use App\Http\Controllers\TeamCallingController;
 use App\Http\Controllers\JunkCallingController;
 use App\Http\Controllers\TodaysCallingController;
-use App\Http\Controllers\CallingListController;
 use App\Http\Controllers\CallingTypeController;
+use App\Http\Controllers\WhatsappTemplateController;
+use App\Http\Controllers\CallingCampaignController;
 use App\Http\Controllers\IndiaMartLeadsController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\CalendarController;
@@ -1038,6 +1039,14 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/calling-type/{id}/edit', [CallingTypeController::class, 'edit'])->name('calling-type.edit');
     Route::put('/calling-type/{id}', [CallingTypeController::class, 'update'])->name('calling-type.update');
     Route::delete('/calling-type/{id}', [CallingTypeController::class, 'destroy'])->name('calling-type.destroy');
+
+    // Whatsapp Template routes
+    Route::get('/whatsapp-template', [WhatsappTemplateController::class, 'index'])->name('whatsapp-template.index');
+    Route::get('/whatsapp-template/fetch', [WhatsappTemplateController::class, 'fetch'])->name('whatsapp-template.fetch');
+    Route::post('/whatsapp-template/store', [WhatsappTemplateController::class, 'store'])->name('whatsapp-template.store');
+    Route::get('/whatsapp-template/{id}/edit', [WhatsappTemplateController::class, 'edit'])->name('whatsapp-template.edit');
+    Route::put('/whatsapp-template/{id}', [WhatsappTemplateController::class, 'update'])->name('whatsapp-template.update');
+    Route::delete('/whatsapp-template/{id}', [WhatsappTemplateController::class, 'destroy'])->name('whatsapp-template.destroy');
     Route::get('/getcallingtypes', [CallingTypeController::class, 'getCallingTypes'])->name('getcallingtypes');
 });
 

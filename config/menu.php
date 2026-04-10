@@ -273,6 +273,7 @@ return [
                         ['route' => 'payment-terms', 'title' => 'Payment Terms', 'icon' => 'bi bi-credit-card', 'permission' => 'sales.setup', 'feature_flag' => 'is_sales_setup_enabled'],
                         ['route' => 'business', 'title' => 'Business Type', 'icon' => 'bi bi-briefcase', 'permission' => 'sales.setup', 'feature_flag' => 'is_sales_setup_enabled'],
                         ['route' => 'calling-type.index', 'title' => 'Calling Types', 'icon' => 'bi bi-list-ul', 'permission' => 'sales.setup', 'feature_flag' => 'is_tally_calling_setup_enabled'],
+                        ['route' => 'whatsapp-template.index', 'title' => 'Whatsapp Template', 'icon' => 'bi bi-whatsapp', 'permission' => 'sales.setup', 'feature_flag' => 'is_tally_calling_setup_enabled'],
                         ['route' => 'quotation.setup', 'title' => 'Quotation Setup', 'icon' => 'bi bi-file-earmark-text', 'permission' => 'sales.setup', 'feature_flag' => 'is_sales_setup_enabled'],
                         ['route' => 'expenses.index', 'title' => 'Expenses', 'icon' => 'bi bi-cash-coin', 'permission' => 'petty_cash.setup', 'feature_flag' => 'is_petty_cash_setup_enabled'],
                         ['route' => 'petty-opening-balance.index', 'title' => 'Opening Balance', 'icon' => 'bi bi-wallet2', 'permission' => 'petty_cash.setup', 'feature_flag' => 'is_petty_cash_setup_enabled'],
