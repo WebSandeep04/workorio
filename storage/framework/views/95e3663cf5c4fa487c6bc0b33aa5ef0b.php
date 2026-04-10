@@ -83,7 +83,7 @@
 
     /* View Toggle */
     .view-toggle-wrapper { margin-bottom: 1rem; display: flex; gap: 0.25rem; background: #eaecf0; padding: 4px; border-radius: 8px; width: fit-content; }
-    .view-toggle-btn { border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; transition: all 0.3s ease; background: transparent; color: #475467; font-family: Montserrat; }
+    .view-toggle-btn { border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; /* text-transform: uppercase; removed */ transition: all 0.3s ease; background: transparent; color: #475467; font-family: Montserrat; }
     .view-toggle-btn.active { background: #fff; color: #434afa; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
     /* Filter Box */
@@ -206,7 +206,7 @@
                 <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Total Assigned">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Total assigned</span>
+                <span class="metric-label">Total Assigned</span>
                 <span class="metric-value" id="totalAssigned">0</span>
             </div>
         </div>
@@ -215,7 +215,7 @@
                 <img src="<?php echo e(asset('img/icons/underprocess.png')); ?>" alt="Active Filters">
             </div>
             <div class="hero-metric-content">
-                <span class="metric-label">Active filters</span>
+                <span class="metric-label">Active Filters</span>
                 <span class="metric-value" id="activeFilters">0</span>
             </div>
         </div>

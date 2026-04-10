@@ -67,13 +67,11 @@ class CallingDashboardController extends Controller
     public function underProcessTableData(Request $request)
     {
         $userId = $this->getCurrentUserId();
-        $statusIds = CallingType::where('name', 'like', '%Under Process%')->orWhere('name', 'like', '%In Progress%')->pluck('id');
-        $query = $this->getBaseTableQuery($userId);
-        if ($statusIds->isNotEmpty()) {
-            $query->whereIn('calling_campaign_calling.calling_type_id', $statusIds);
-        } else {
-            return response()->json(['data' => []]);
-        }
+        $today = Carbon::today()->toDateString();
+        $query = $this->getBaseTableQuery($userId)
+            ->whereDate('calling_campaign_calling.updated_at', $today)
+            ->whereDate('calling_campaign_calling.next_followup_date', $today);
+
         return response()->json($query->paginate(10));
     }
 
@@ -83,10 +81,7 @@ class CallingDashboardController extends Controller
         $today = Carbon::today()->toDateString();
         $query = $this->getBaseTableQuery($userId)
             ->whereDate('calling_campaign_calling.updated_at', $today)
-            ->where(function($q) use ($today) {
-                $q->whereDate('calling_campaign_calling.next_followup_date', '>', $today)
-                  ->orWhereNull('calling_campaign_calling.next_followup_date');
-            });
+            ->whereDate('calling_campaign_calling.next_followup_date', '>', $today);
         return response()->json($query->paginate(10));
     }
 
@@ -96,11 +91,8 @@ class CallingDashboardController extends Controller
         $today = Carbon::today()->toDateString();
         $query = $this->getBaseTableQuery($userId)
             ->where(function($q) use ($today) {
-                $q->whereDate('calling_campaign_calling.next_followup_date', '<', $today)
-                  ->orWhere(function($sq) use ($today) {
-                      $sq->whereDate('calling_campaign_calling.next_followup_date', $today)
-                         ->whereDate('calling_campaign_calling.updated_at', '<', $today);
-                  });
+                $q->whereDate('calling_campaign_calling.next_followup_date', '<=', $today)
+                  ->orWhereNull('calling_campaign_calling.next_followup_date');
             });
         return response()->json($query->paginate(10));
     }
@@ -110,8 +102,7 @@ class CallingDashboardController extends Controller
         $userId = $this->getCurrentUserId();
         $today = Carbon::today()->toDateString();
         $query = $this->getBaseTableQuery($userId)
-            ->whereDate('calling_campaign_calling.updated_at', $today)
-            ->whereDate('calling_campaign_calling.created_at', '<=', $today);
+            ->whereDate('calling_campaign_calling.created_at', $today);
         return response()->json($query->paginate(10));
     }
 

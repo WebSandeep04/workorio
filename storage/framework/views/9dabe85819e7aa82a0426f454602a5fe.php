@@ -16,12 +16,27 @@
             <div class="col-4 text-muted fw-semibold">Name:</div>
             <div class="col-8 fw-bold"><?php echo e($calling->name ?? '--'); ?></div>
             
+            <div class="col-4 text-muted fw-semibold">Company:</div>
+            <div class="col-8 fw-bold text-primary"><?php echo e($calling->company_name ?? '--'); ?></div>
+
+            <div class="col-4 text-muted fw-semibold">Contact:</div>
+            <div class="col-8"><?php echo e($calling->contact_person ?? '--'); ?></div>
+
             <div class="col-4 text-muted fw-semibold">Email:</div>
             <div class="col-8 text-break"><?php echo e($calling->email ?? '--'); ?></div>
             
             <div class="col-4 text-muted fw-semibold">Phone:</div>
-            <div class="col-8"><?php echo e($calling->phone ?? '--'); ?></div>
+            <div class="col-8 fw-bold"><?php echo e($calling->phone ?? '--'); ?></div>
             
+            <div class="col-4 text-muted fw-semibold">GST No:</div>
+            <div class="col-8"><?php echo e($calling->gst_number ?? '--'); ?></div>
+
+            <div class="col-4 text-muted fw-semibold">Legal St:</div>
+            <div class="col-8"><?php echo e($calling->legal_status ?? '--'); ?></div>
+
+            <div class="col-4 text-muted fw-semibold">Turnover:</div>
+            <div class="col-8"><?php echo e($calling->turnover ?? '--'); ?></div>
+
             <div class="col-12"><hr class="my-2"></div>
             
             <div class="col-4 text-muted fw-semibold">Campaign:</div>
@@ -33,10 +48,13 @@
             <div class="col-4 text-muted fw-semibold">Next Date:</div>
             <div class="col-8 fw-bold text-danger" id="display_pivot_date"><?php echo e($pivotData->next_followup_date ?? '--'); ?></div>
 
+            <div class="col-4 text-muted fw-semibold">State/City:</div>
+            <div class="col-8"><?php echo e($calling->state ?? '--'); ?> / <?php echo e($calling->city ?? '--'); ?></div>
+
             <div class="col-12"><hr class="my-2"></div>
             
             <div class="col-12 text-muted fw-semibold mb-1">Address:</div>
-            <div class="col-12 text-secondary"><?php echo e($calling->address ?? '--'); ?></div>
+            <div class="col-12 text-secondary small"><?php echo e($calling->address ?? '--'); ?></div>
           </div>
         </div>
       </div>
