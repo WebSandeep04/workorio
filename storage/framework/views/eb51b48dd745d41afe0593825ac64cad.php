@@ -11,6 +11,10 @@
     $firstName = explode(' ', trim($userDisplayName))[0] ?: 'there';
 ?>
 <div class="neo-dashboard">
+    <div class="dashboard-header mb-3">
+        <h4 class="fw-bold" style="font-family: Montserrat; color: #101828;">Sales Intelligence</h4>
+        <p class="text-muted small">Real-time performance metrics for your sales pipeline</p>
+    </div>
     <div class="neo-metric-grid">
         <div class="neo-metric-card">
             <div class="metric-icon icon-sunrise">
@@ -71,6 +75,73 @@
                 <h3 id="allleads">0</h3>
             </div>
             <a href="<?php echo e(route('myleads')); ?>" class="metric-arrow-blue"><i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+
+    <div class="dashboard-header mb-3 mt-5">
+        <h4 class="fw-bold" style="font-family: Montserrat; color: #101828;">Tele-Calling Status</h4>
+        <p class="text-muted small">Daily calling activity and follow-up tracking</p>
+    </div>
+    <div class="neo-metric-grid">
+        <div class="neo-metric-card">
+            <div class="metric-icon" style="background: linear-gradient(135deg, #434AFA, #667eea);">
+                <i class="bi bi-telephone-outbound text-white"></i>
+            </div>
+            <div class="metric-content">
+                <p>Today's Followups</p>
+                <h3 id="c_todayfollowups">0</h3>  
+            </div>
+            <a href="<?php echo e(route('calling.todayfollowupstable')); ?>" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="neo-metric-card">
+            <div class="metric-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+                <i class="bi bi-hourglass-split text-white"></i>
+            </div>
+            <div class="metric-content">
+                <p>Under Process</p>
+                <h3 id="c_underprocess">0</h3>
+            </div>
+            <a href="<?php echo e(route('calling.underprocesstable')); ?>" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="neo-metric-card">
+            <div class="metric-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">
+                <i class="bi bi-check-circle text-white"></i>
+            </div>
+            <div class="metric-content">    
+                <p>Today Completed</p>
+                <h3 id="c_todaycompleted">0</h3>
+            </div>
+            <a href="<?php echo e(route('calling.todaycompletedtable')); ?>" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="neo-metric-card">
+            <div class="metric-icon" style="background: linear-gradient(135deg, #ef4444, #f87171);">
+                <i class="bi bi-exclamation-triangle text-white"></i>
+            </div>
+            <div class="metric-content">
+                <p>Today Pending</p>
+                <h3 id="c_todaypending">0</h3>
+            </div>
+            <a href="<?php echo e(route('calling.todaypendingtable')); ?>" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="neo-metric-card">
+            <div class="metric-icon" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">
+                <i class="bi bi-person-plus text-white"></i>
+            </div>
+            <div class="metric-content">
+                <p>New Followups</p>
+                <h3 id="c_todaynew">0</h3>
+            </div>
+            <a href="<?php echo e(route('calling.todaynewtable')); ?>" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="neo-metric-card-blue">
+            <div class="metric-icon" style="background: #101828;">
+                <i class="bi bi-collection text-white"></i>
+            </div>
+            <div class="metric-content-blue">
+                <p>My All Leads</p>
+                <h3 id="c_allleads">0</h3>
+            </div>
+            <a href="<?php echo e(route('calling.allleadstable')); ?>" class="metric-arrow-blue"><i class="bi bi-arrow-right"></i></a>
         </div>
     </div>
 
@@ -416,12 +487,21 @@
     }
 
     function loadDashboardMetrics() {
+        // Sales Metrics
         fetchMetric('/todayfollowups', 'todayfollowups', 'totalLeads');
         fetchMetric('/underprocess', 'underprocess', 'underprocess');
         fetchMetric('/todaycompleted', 'todaycompleted', 'todaycompleted');
         fetchMetric('/todaypending', 'todaypending', 'todaypending');
         fetchMetric('/todaynew', 'todaynew', 'todaynew');
         fetchMetric('/allleads', 'allleads', 'allleads');
+
+        // Calling Metrics
+        fetchMetric('/calling/todayfollowups', 'c_todayfollowups', 'totalLeads');
+        fetchMetric('/calling/underprocess', 'c_underprocess', 'underprocess');
+        fetchMetric('/calling/todaycompleted', 'c_todaycompleted', 'todaycompleted');
+        fetchMetric('/calling/todaypending', 'c_todaypending', 'todaypending');
+        fetchMetric('/calling/todaynew', 'c_todaynew', 'todaynew');
+        fetchMetric('/calling/allleads', 'c_allleads', 'allleads');
     }
 
     function loadTasks() {

@@ -47,6 +47,7 @@ use App\Http\Controllers\TeamCallingController;
 use App\Http\Controllers\JunkCallingController;
 use App\Http\Controllers\TodaysCallingController;
 use App\Http\Controllers\CallingListController;
+use App\Http\Controllers\CallingDashboardController;
 use App\Http\Controllers\CallingTypeController;
 use App\Http\Controllers\WhatsappTemplateController;
 use App\Http\Controllers\CallingCampaignController;
@@ -1030,6 +1031,32 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::get('/calling/junk/cities/{stateId}', [JunkCallingController::class, 'getCitiesByState'])->name('calling.junk.cities');
     Route::post('/calling/junk/{id}/restore', [JunkCallingController::class, 'restore'])->name('calling.junk.restore');
     Route::delete('/calling/junk/{id}', [JunkCallingController::class, 'destroy'])->name('calling.junk.destroy');
+
+    // Calling Dashboard & Analytics
+    Route::get('/calling/todayfollowups', [CallingDashboardController::class, 'todayFollowups']);
+    Route::get('/calling/underprocess', [CallingDashboardController::class, 'underProcess']);
+    Route::get('/calling/todaycompleted', [CallingDashboardController::class, 'todayCompleted']);
+    Route::get('/calling/todaypending', [CallingDashboardController::class, 'todayPending']);
+    Route::get('/calling/todaynew', [CallingDashboardController::class, 'todayNew']);
+    Route::get('/calling/allleads', [CallingDashboardController::class, 'allLeads']);
+    Route::get('/calling/analytics', [CallingDashboardController::class, 'analytics'])->name('calling.analytics');
+    Route::get('/calling/analytics/data', [CallingDashboardController::class, 'getAnalyticsData'])->name('calling.analytics.data');
+
+    // Calling Status Tables
+    Route::get('/calling/todayfollowupstable', [CallingDashboardController::class, 'todayFollowupsTable'])->name('calling.todayfollowupstable');
+    Route::get('/calling/underprocesstable', [CallingDashboardController::class, 'underProcessTable'])->name('calling.underprocesstable');
+    Route::get('/calling/todaycompletedtable', [CallingDashboardController::class, 'todayCompletedTable'])->name('calling.todaycompletedtable');
+    Route::get('/calling/todaypendingtable', [CallingDashboardController::class, 'todayPendingTable'])->name('calling.todaypendingtable');
+    Route::get('/calling/todaynewtable', [CallingDashboardController::class, 'todayNewTable'])->name('calling.todaynewtable');
+    Route::get('/calling/allleadstable', [CallingDashboardController::class, 'allLeadsTable'])->name('calling.allleadstable');
+
+    // Data endpoints for tables
+    Route::get('/calling/todayfollowupstabledata', [CallingDashboardController::class, 'todayFollowupsTableData'])->name('calling.todayfollowupstabledata');
+    Route::get('/calling/underprocesstabledata', [CallingDashboardController::class, 'underProcessTableData'])->name('calling.underprocesstabledata');
+    Route::get('/calling/todaycompletedtabledata', [CallingDashboardController::class, 'todayCompletedTableData'])->name('calling.todaycompletedtabledata');
+    Route::get('/calling/todaypendingtabledata', [CallingDashboardController::class, 'todayPendingTableData'])->name('calling.todaypendingtabledata');
+    Route::get('/calling/todaynewtabledata', [CallingDashboardController::class, 'todayNewTableData'])->name('calling.todaynewtabledata');
+    Route::get('/calling/allleadstabledata', [CallingDashboardController::class, 'allLeadsTableData'])->name('calling.allleadstabledata');
 
     // removed my-calling and junk-calling routes
 });
