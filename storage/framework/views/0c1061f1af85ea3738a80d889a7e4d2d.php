@@ -61,17 +61,17 @@
     <div class='email-container'>
         <div class='header'>
             <h1>Calling Analytic Report</h1>
-            <p>{{ $tenantName }} | {{ $today }}</p>
+            <p><?php echo e($tenantName); ?> | <?php echo e($today); ?></p>
         </div>
         
         <table class="summary-grid">
             <tr>
-                <td class="summary-card"><span class="card-label">Follow Ups</span><div class="card-value text-blue">{{ collect($userData)->sum('todayFollowups') }}</div></td>
-                <td class="summary-card"><span class="card-label">In Process</span><div class="card-value text-amber">{{ collect($userData)->sum('underProcess') }}</div></td>
-                <td class="summary-card"><span class="card-label">Completed</span><div class="card-value text-emerald">{{ collect($userData)->sum('todayCompleted') }}</div></td>
-                <td class="summary-card"><span class="card-label">Pending</span><div class="card-value text-rose">{{ collect($userData)->sum('todayPending') }}</div></td>
-                <td class="summary-card"><span class="card-label">New Leads</span><div class="card-value text-violet">{{ collect($userData)->sum('todayNew') }}</div></td>
-                <td class="summary-card"><span class="card-label">Locked Leads</span><div class="card-value text-dark">{{ collect($userData)->sum('allLeads') }}</div></td>
+                <td class="summary-card"><span class="card-label">Follow Ups</span><div class="card-value text-blue"><?php echo e(collect($userData)->sum('todayFollowups')); ?></div></td>
+                <td class="summary-card"><span class="card-label">In Process</span><div class="card-value text-amber"><?php echo e(collect($userData)->sum('underProcess')); ?></div></td>
+                <td class="summary-card"><span class="card-label">Completed</span><div class="card-value text-emerald"><?php echo e(collect($userData)->sum('todayCompleted')); ?></div></td>
+                <td class="summary-card"><span class="card-label">Pending</span><div class="card-value text-rose"><?php echo e(collect($userData)->sum('todayPending')); ?></div></td>
+                <td class="summary-card"><span class="card-label">New Leads</span><div class="card-value text-violet"><?php echo e(collect($userData)->sum('todayNew')); ?></div></td>
+                <td class="summary-card"><span class="card-label">Locked Leads</span><div class="card-value text-dark"><?php echo e(collect($userData)->sum('allLeads')); ?></div></td>
             </tr>
         </table>
 
@@ -89,16 +89,16 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($userData as $user)
+                <?php $__currentLoopData = $userData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <tr>
-                    <td class="user-name-cell">{{ $user['name'] }}</td>
-                    <td style="text-align: center;">{{ $user['allLeads'] }}</td>
-                    <td class="count-active">{{ $user['todayFollowups'] }}</td>
-                    <td style="text-align: center; color: #FF0000; font-weight: bold;">{{ $user['todayPending'] }}</td>
-                    <td style="text-align: center; color: #008000; font-weight: bold;">{{ $user['todayCompleted'] }}</td>
-                    <td style="text-align: center;">{{ $user['todayNew'] }}</td>
+                    <td class="user-name-cell"><?php echo e($user['name']); ?></td>
+                    <td style="text-align: center;"><?php echo e($user['allLeads']); ?></td>
+                    <td class="count-active"><?php echo e($user['todayFollowups']); ?></td>
+                    <td style="text-align: center; color: #FF0000; font-weight: bold;"><?php echo e($user['todayPending']); ?></td>
+                    <td style="text-align: center; color: #008000; font-weight: bold;"><?php echo e($user['todayCompleted']); ?></td>
+                    <td style="text-align: center;"><?php echo e($user['todayNew']); ?></td>
                 </tr>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </tbody>
         </table>
         </div>
@@ -109,28 +109,28 @@
             <thead>
                 <tr>
                     <th style="width: 15%;">User Name</th>
-                    @foreach($allCallingTypes as $typeName)
-                        <th style="text-align: center;">{{ $typeName }}</th>
-                    @endforeach
+                    <?php $__currentLoopData = $allCallingTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $typeName): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <th style="text-align: center;"><?php echo e($typeName); ?></th>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </tr>
             </thead>
             <tbody>
-                @foreach($userStatusCounts as $userName => $counts)
+                <?php $__currentLoopData = $userStatusCounts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $userName => $counts): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <tr>
-                    <td class="user-name-cell">{{ $userName }}</td>
-                    @foreach($allCallingTypes as $typeName)
-                        @php $c = $counts[$typeName] ?? 0; @endphp
-                        <td class="{{ $c > 0 ? 'count-active' : 'count-zero' }}">{{ $c }}</td>
-                    @endforeach
+                    <td class="user-name-cell"><?php echo e($userName); ?></td>
+                    <?php $__currentLoopData = $allCallingTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $typeName): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php $c = $counts[$typeName] ?? 0; ?>
+                        <td class="<?php echo e($c > 0 ? 'count-active' : 'count-zero'); ?>"><?php echo e($c); ?></td>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </tr>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </tbody>
         </table>
         </div>
 
         <div class="section-header">Detailed Lead Activity</div>
-        @foreach($userLeads as $userName => $leads)
-            <div class="user-title">Team Member: {{ $userName }}</div>
+        <?php $__currentLoopData = $userLeads; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $userName => $leads): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <div class="user-title">Team Member: <?php echo e($userName); ?></div>
             <div class="table-responsive">
             <table>
                 <thead>
@@ -145,21 +145,22 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($leads as $lead)
+                    <?php $__currentLoopData = $leads; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $lead): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <tr>
-                        <td>{{ $lead->lead_name }}</td>
-                        <td>{{ $lead->phone }}</td>
-                        <td>{{ $lead->city }}</td>
-                        <td>{{ $lead->campaign_name }}</td>
-                        <td class="status-red">{{ $lead->status_name }}</td>
-                        <td class="remark-text">{{ $lead->latest_remark }}</td>
-                        <td style="text-align: center;">{{ $lead->next_followup_date ? \Carbon\Carbon::parse($lead->next_followup_date)->format('d-M-Y') : '-' }}</td>
+                        <td><?php echo e($lead->lead_name); ?></td>
+                        <td><?php echo e($lead->phone); ?></td>
+                        <td><?php echo e($lead->city); ?></td>
+                        <td><?php echo e($lead->campaign_name); ?></td>
+                        <td class="status-red"><?php echo e($lead->status_name); ?></td>
+                        <td class="remark-text"><?php echo e($lead->latest_remark); ?></td>
+                        <td style="text-align: center;"><?php echo e($lead->next_followup_date ? \Carbon\Carbon::parse($lead->next_followup_date)->format('d-M-Y') : '-'); ?></td>
                     </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </tbody>
             </table>
             </div>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 </body>
 </html>
+<?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/emails/calling_analytic_report.blade.php ENDPATH**/ ?>

@@ -50,7 +50,7 @@ class SendCallingAnalyticReport extends Command
             
             // Get recipients
             if ($tenant->id == 1) {
-                $recipientEmails = ['shamshad@triserv360.com'];
+                $recipientEmails = ['sandeep@triserv360.com'];
             } else {
                 $recipientEmails = User::whereHas('employee', function ($q) {
                         $q->where('status', 'active');
