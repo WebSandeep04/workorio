@@ -149,7 +149,7 @@ class GenerateRecurringSubscriptions extends Command
             }
 
             // Determine Due Date
-            $dueDate = $periodEnd->format('Y-m-d'); // Default Postpaid
+            $dueDate = $nextEndDate->format('Y-m-d'); // Default Postpaid (Transition Day)
             if ($subscription->billing_type === 'Prepaid') {
                 $dueDate = $nextStartDate->format('Y-m-d');
             }
