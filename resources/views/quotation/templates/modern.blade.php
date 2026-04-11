@@ -145,15 +145,25 @@
                     <span style="color: #6b7280;">Subtotal:</span>
                     <span style="float: right;">₹{{ number_format($subtotal, 2) }}</span>
                 </div>
-                @if(($quote->data['discount'] ?? 0) > 0)
+                @php 
+                    $discount = $quote->data['discount'] ?? 0;
+                    $taxable = max(0, $subtotal - $discount);
+                    $gst = round($taxable * 0.18, 2);
+                    $grandTotal = $taxable + $gst;
+                @endphp
+                @if($discount > 0)
                     <div style="border-bottom: 1px solid #e5e7eb; padding: 5px 0; color: #ef4444;">
                         <span>Discount:</span>
-                        <span style="float: right;">-₹{{ number_format($quote->data['discount'], 2) }}</span>
+                        <span style="float: right;">-₹{{ number_format($discount, 2) }}</span>
                     </div>
                 @endif
+                <div style="border-bottom: 1px solid #e5e7eb; padding: 5px 0;">
+                    <span style="color: #6b7280;">GST (18%):</span>
+                    <span style="float: right;">₹{{ number_format($gst, 2) }}</span>
+                </div>
                 <div style="padding: 10px 0; font-size: 16px; font-weight: bold; color: {{ $settings->primary_color ?? '#434AFA' }};">
                     <span>Grand Total:</span>
-                    <span style="float: right;">₹{{ number_format($quote->total_amount, 2) }}</span>
+                    <span style="float: right;">₹{{ number_format($grandTotal, 2) }}</span>
                 </div>
             </div>
             <div style="clear: both;"></div>

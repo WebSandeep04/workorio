@@ -267,8 +267,10 @@
                 foreach(($quote->data['products'] ?? []) as $p) {
                     $gross_subtotal += ($p['quantity'] ?? 1) * ($p['price'] ?? 0);
                 }
-                $net_taxable = $quote->total_amount ?? 0;
-                $discount_val = $gross_subtotal - $net_taxable;
+                $discount_val = (float)($quote->data['discount'] ?? 0);
+                $net_taxable = max(0, $gross_subtotal - $discount_val);
+                $gst_val = round($net_taxable * 0.18, 2);
+                $final_total = $net_taxable + $gst_val;
             @endphp
 
             @if($discount_val > 0)
@@ -292,12 +294,12 @@
             <tr>
                 <td colspan="4" style="border: none;"></td>
                 <td class="total-label-cell">GST 18%</td>
-                <td>{{ number_format($net_taxable * 0.18, 2) }}</td>
+                <td>{{ number_format($gst_val, 2) }}</td>
             </tr>
             <tr>
                 <td colspan="4" style="border: none;"></td>
-                <td class="total-label-cell">Total</td>
-                <td>{{ number_format($net_taxable * 1.18, 2) }}</td>
+                <td class="total-label-cell" style="font-size: 14px; background-color: #000;">Total</td>
+                <td style="font-size: 14px; font-weight: bold;">{{ number_format($final_total, 2) }}</td>
             </tr>
             
             {{-- Section B (To be made dynamic later) --}}

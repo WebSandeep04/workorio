@@ -222,15 +222,15 @@
         <table class="w-100">
             <tr>
                 <td style="width: 50%;">
-                    @if(isset($logo_base64) && $logo_base64)
-                        <img src="{{ $logo_base64 }}" class="main-logo">
-                    @else
+                    <?php if(isset($logo_base64) && $logo_base64): ?>
+                        <img src="<?php echo e($logo_base64); ?>" class="main-logo">
+                    <?php else: ?>
                         <img src="https://triserv360.com/wp-content/uploads/2023/04/logo.png" class="main-logo">
-                    @endif
+                    <?php endif; ?>
                 </td>
                 <td style="width: 50%; text-align: right;" class="contact-info">
-                    <span>📞 {{ $settings->phone ?? '' }}</span> &nbsp; &nbsp;
-                    <span>🌐 {{ $settings->website ?? '' }}</span>
+                    <span>📞 <?php echo e($settings->phone ?? ''); ?></span> &nbsp; &nbsp;
+                    <span>🌐 <?php echo e($settings->website ?? ''); ?></span>
                 </td>
             </tr>
         </table>
@@ -240,11 +240,11 @@
         <div class="flyer-hero-content">
             <div class="hero-left">
                 <div class="logo-circle">
-                    @if(isset($logo_base64) && $logo_base64)
-                        <img src="{{ $logo_base64 }}">
-                    @else
+                    <?php if(isset($logo_base64) && $logo_base64): ?>
+                        <img src="<?php echo e($logo_base64); ?>">
+                    <?php else: ?>
                         <img src="https://triserv360.com/wp-content/uploads/2023/04/logo.png">
-                    @endif
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="hero-right">
@@ -257,20 +257,21 @@
                 </div>
                 
                 <div style="font-size: 10px; color: #6D6E71; margin-bottom: 25px; line-height: 1.5; clear: both;">
-                    {{ $settings->company_description ?? 'A leading provider of enterprise technology solutions, helping businesses transform through digital excellence and innovative services.' }}
+                    <?php echo e($settings->company_description ?? 'A leading provider of enterprise technology solutions, helping businesses transform through digital excellence and innovative services.'); ?>
+
                 </div>
 
                 <div class="services-container">
-                    @php 
+                    <?php 
                         $servicesArr = is_string($settings->services ?? []) ? json_decode($settings->services, true) : ($settings->services ?? []);
                         $servicesArr = is_array($servicesArr) ? array_slice($servicesArr, 0, 8) : [];
-                    @endphp
-                    @foreach($servicesArr as $service)
+                    ?>
+                    <?php $__currentLoopData = $servicesArr; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $service): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="service-column">
                             <span class="service-bullet">></span>
-                            <span class="service-tag">{{ $service }}</span>
+                            <span class="service-tag"><?php echo e($service); ?></span>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <div class="clear"></div>
                 </div>
             </div>
@@ -278,8 +279,8 @@
         </div>
         
         <div style="margin-top: 150px; text-align: center; border-top: 1px solid #E6E7E8; padding-top: 20px;">
-            <div style="font-size: 14px; font-weight: bold; color: #0088CC;">{{ strtoupper($settings->company_name ?? 'TRISERV360') }}</div>
-            <div style="font-size: 10px; color: #6D6E71;">{{ $settings->website ?? '' }} | {{ $settings->email ?? '' }}</div>
+            <div style="font-size: 14px; font-weight: bold; color: #0088CC;"><?php echo e(strtoupper($settings->company_name ?? 'TRISERV360')); ?></div>
+            <div style="font-size: 10px; color: #6D6E71;"><?php echo e($settings->website ?? ''); ?> | <?php echo e($settings->email ?? ''); ?></div>
         </div>
     </div>
 
@@ -292,12 +293,12 @@
                 <tr>
                     <td>
                         <div class="doc-title" style="color: #0088CC;">QUOTATION</div>
-                        <div style="font-size: 10px; color: #FF6100; font-weight: bold; letter-spacing: 2px;">{{ strtoupper($quote->data['subject'] ?? 'PROJECT ESTIMATE & SCOPE') }}</div>
+                        <div style="font-size: 10px; color: #FF6100; font-weight: bold; letter-spacing: 2px;"><?php echo e(strtoupper($quote->data['subject'] ?? 'PROJECT ESTIMATE & SCOPE')); ?></div>
                     </td>
                     <td class="text-right" style="font-size: 10px;">
-                        <div><strong>Quote #:</strong> {{ $quote->quotation_number }}</div>
-                        <div style="margin: 2px 0;"><strong>Date:</strong> {{ $quote->created_at->format('M d, Y') }}</div>
-                        <div><strong>Valid Till:</strong> {{ $quote->created_at->addDays(15)->format('M d, Y') }}</div>
+                        <div><strong>Quote #:</strong> <?php echo e($quote->quotation_number); ?></div>
+                        <div style="margin: 2px 0;"><strong>Date:</strong> <?php echo e($quote->created_at->format('M d, Y')); ?></div>
+                        <div><strong>Valid Till:</strong> <?php echo e($quote->created_at->addDays(15)->format('M d, Y')); ?></div>
                     </td>
                 </tr>
             </table>
@@ -307,30 +308,32 @@
                     <td style="width: 50%; vertical-align: top;">
                         <div style="color: #0088CC; font-size: 9px; font-weight: bold; margin-bottom: 3px;">QUOTATION FROM:</div>
                         <div style="font-size: 10px; color: #555;">
-                            <strong>{{ $settings->company_name ?? 'N/A' }}</strong><br>
-                            {{ $settings->office_address ?? '' }}<br>
-                            {{ $settings->office_city ?? '' }}, {{ $settings->office_state ?? '' }} - {{ $settings->office_pincode ?? '' }}<br>
-                            Email: {{ $settings->email ?? '' }}
+                            <strong><?php echo e($settings->company_name ?? 'N/A'); ?></strong><br>
+                            <?php echo e($settings->office_address ?? ''); ?><br>
+                            <?php echo e($settings->office_city ?? ''); ?>, <?php echo e($settings->office_state ?? ''); ?> - <?php echo e($settings->office_pincode ?? ''); ?><br>
+                            Email: <?php echo e($settings->email ?? ''); ?>
+
                         </div>
                     </td>
                     <td style="width: 50%; vertical-align: top;">
                         <div style="color: #0088CC; font-size: 9px; font-weight: bold; margin-bottom: 3px;">PREPARED FOR:</div>
                         <div style="font-size: 10px; color: #555;">
-                            @if($quote->customer_type == 'customer')
-                                <strong>{{ optional($quote->customer)->name ?? 'N/A' }}</strong><br>
-                                {{ optional($quote->customer)->company_name ?? '' }}<br>
-                                {{ optional($quote->customer)->address ?? '' }}
-                            @else
-                                @php 
+                            <?php if($quote->customer_type == 'customer'): ?>
+                                <strong><?php echo e(optional($quote->customer)->name ?? 'N/A'); ?></strong><br>
+                                <?php echo e(optional($quote->customer)->company_name ?? ''); ?><br>
+                                <?php echo e(optional($quote->customer)->address ?? ''); ?>
+
+                            <?php else: ?>
+                                <?php 
                                     $prospect = $quote->prospect ?? \App\Models\Prospectus::find($quote->prospect_id); 
                                     $loc = [];
                                     if ($prospect && $prospect->city) $loc[] = $prospect->city->city_name;
                                     if ($prospect && $prospect->state) $loc[] = $prospect->state->state_name;
-                                @endphp
-                                <strong>{{ optional($prospect)->prospectus_name ?? 'N/A' }}</strong><br>
-                                {{ optional($prospect)->address ?? '' }}<br>
-                                @if(!empty($loc)) {{ implode(', ', $loc) }} @endif
-                            @endif
+                                ?>
+                                <strong><?php echo e(optional($prospect)->prospectus_name ?? 'N/A'); ?></strong><br>
+                                <?php echo e(optional($prospect)->address ?? ''); ?><br>
+                                <?php if(!empty($loc)): ?> <?php echo e(implode(', ', $loc)); ?> <?php endif; ?>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -347,44 +350,44 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @php 
+                    <?php 
                         $products = $quote->data['products'] ?? []; 
                         $subtotal_sum = 0;
                         $tax_sum = 0;
-                    @endphp
-                    @foreach($products as $index => $item)
-                        @php 
+                    ?>
+                    <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php 
                             $price = $item['price'] ?? 0;
                             $qty = $item['quantity'] ?? 1;
                             $lineAmount = $price * $qty;
                             $subtotal_sum += $lineAmount;
-                        @endphp
+                        ?>
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td><?php echo e($index + 1); ?></td>
                             <td>
-                                <strong>{{ optional(\App\Models\SalesProduct::find($item['product_id'] ?? null))->product_name ?? ($item['product_name'] ?? ($item['product_id'] ?? '--')) }}</strong><br>
-                                <span style="font-size: 8.5px; color: #777;">{{ $item['remark'] ?? '' }}</span>
+                                <strong><?php echo e(optional(\App\Models\SalesProduct::find($item['product_id'] ?? null))->product_name ?? ($item['product_name'] ?? ($item['product_id'] ?? '--'))); ?></strong><br>
+                                <span style="font-size: 8.5px; color: #777;"><?php echo e($item['remark'] ?? ''); ?></span>
                             </td>
-                            <td class="text-right">{{ $qty }} {{ $item['unit'] ?? 'Nos' }}</td>
-                            <td class="text-right">{{ number_format($price, 2) }}</td>
-                            <td class="text-right">{{ number_format($lineAmount, 2) }}</td>
+                            <td class="text-right"><?php echo e($qty); ?> <?php echo e($item['unit'] ?? 'Nos'); ?></td>
+                            <td class="text-right"><?php echo e(number_format($price, 2)); ?></td>
+                            <td class="text-right"><?php echo e(number_format($lineAmount, 2)); ?></td>
                         </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="4" class="text-right">Subtotal:</td><td class="text-right">{{ number_format($subtotal_sum, 2) }}</td></tr>
-                    @php 
+                    <tr><td colspan="4" class="text-right">Subtotal:</td><td class="text-right"><?php echo e(number_format($subtotal_sum, 2)); ?></td></tr>
+                    <?php 
                         $discount = $quote->data['discount'] ?? 0;
                         $taxable = max(0, $subtotal_sum - $discount);
                         $gst = round($taxable * 0.18, 2);
                         $grandTotal = $taxable + $gst;
-                    @endphp
-                    @if($discount > 0)
-                        <tr><td colspan="4" class="text-right">Discount:</td><td class="text-right">-{{ number_format($discount, 2) }}</td></tr>
-                        <tr><td colspan="4" class="text-right">Taxable Amount:</td><td class="text-right">{{ number_format($taxable, 2) }}</td></tr>
-                    @endif
-                    <tr><td colspan="4" class="text-right">Tax (GST 18%):</td><td class="text-right">{{ number_format($gst, 2) }}</td></tr>
-                    <tr style="font-size: 13px; color: #0088CC; font-weight: bold;"><td colspan="4" class="text-right" style="border-top: 2px solid #0088CC;">GRAND TOTAL:</td><td class="text-right" style="border-top: 2px solid #0088CC;">{{ number_format($grandTotal, 2) }}</td></tr>
+                    ?>
+                    <?php if($discount > 0): ?>
+                        <tr><td colspan="4" class="text-right">Discount:</td><td class="text-right">-<?php echo e(number_format($discount, 2)); ?></td></tr>
+                        <tr><td colspan="4" class="text-right">Taxable Amount:</td><td class="text-right"><?php echo e(number_format($taxable, 2)); ?></td></tr>
+                    <?php endif; ?>
+                    <tr><td colspan="4" class="text-right">Tax (GST 18%):</td><td class="text-right"><?php echo e(number_format($gst, 2)); ?></td></tr>
+                    <tr style="font-size: 13px; color: #0088CC; font-weight: bold;"><td colspan="4" class="text-right" style="border-top: 2px solid #0088CC;">GRAND TOTAL:</td><td class="text-right" style="border-top: 2px solid #0088CC;"><?php echo e(number_format($grandTotal, 2)); ?></td></tr>
                 </tfoot>
             </table>
 
@@ -394,10 +397,11 @@
                         <!-- Dynamic Payment Terms with Fallback to Request -->
                         <div style="color: #0088CC; font-size: 10px; font-weight: bold; margin-bottom: 5px;">PAYMENT TERMS:</div>
                         <div style="font-size: 9.5px; color: #555; white-space: pre-line; padding-right: 20px;">
-                            @php 
+                            <?php 
                                 $pTerms = $quote->data['payment_terms'] ?? (request('payment_terms') ?? ($settings->payment_terms ?? ''));
-                            @endphp
-                            {!! nl2br(e($pTerms)) !!}
+                            ?>
+                            <?php echo nl2br(e($pTerms)); ?>
+
                         </div>
                     </td>
                     <td style="width: 40%;"></td>
@@ -510,7 +514,7 @@
         </table>
 
         <table style="width: 100%; border-collapse: separate; border-spacing: 5px;">
-            @php 
+            <?php 
                 $logos = [
                     ['url' => 'https://triserv360.com/wp-content/uploads/2023/07/ab-group.png', 'name' => 'AB Group'],
                     ['url' => 'https://triserv360.com/wp-content/uploads/2023/07/acxiom.png', 'name' => 'Acxiom'],
@@ -541,18 +545,19 @@
                     ['url' => 'https://triserv360.com/wp-content/uploads/2025/01/super-house.png', 'name' => 'Super House'],
                     ['url' => 'https://triserv360.com/wp-content/uploads/2023/08/mtt.png', 'name' => 'MTT']
                 ];
-            @endphp
-            @foreach(array_chunk($logos, 7) as $row)
+            ?>
+            <?php $__currentLoopData = array_chunk($logos, 7); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <tr>
-                @foreach($row as $l)
+                <?php $__currentLoopData = $row; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $l): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <td style="background: #f9f9f9; border: 1px solid #E6E7E8; padding: 6px; text-align: center;">
-                        <img src="{{ $l['url'] }}" style="max-width: 60px; max-height: 25px;" alt="{{ $l['name'] }}">
+                        <img src="<?php echo e($l['url']); ?>" style="max-width: 60px; max-height: 25px;" alt="<?php echo e($l['name']); ?>">
                     </td>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </tr>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </table>
     </div>
 
 </body>
 </html>
+<?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/quotation/templates/triserv.blade.php ENDPATH**/ ?>

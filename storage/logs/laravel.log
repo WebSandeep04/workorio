@@ -11172,3 +11172,15 @@ Did you mean one of these?
 #19 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #20 {main}
 "} 
+[2026-04-11 10:18:10] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-11 10:18:10] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-11 10:18:10] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-04-11 10:18:10] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260411-002"} 
+[2026-04-11 10:26:31] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-11 10:26:31] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-11 10:26:31] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-04-11 10:26:31] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260411-001"} 
+[2026-04-11 10:30:32] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-11 10:30:32] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-11 10:30:32] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-04-11 10:30:32] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260411-002"} 
