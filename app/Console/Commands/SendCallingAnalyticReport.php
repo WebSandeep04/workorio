@@ -14,7 +14,7 @@ use Exception;
 
 class SendCallingAnalyticReport extends Command
 {
-    protected $signature = 'calling:send-analytic-report';
+    protected $signature = 'calling:send-analytic-report {--alert=}';
     protected $description = 'Send daily calling analytic reports to admins for all tenants.';
 
     public function handle()
@@ -48,18 +48,14 @@ class SendCallingAnalyticReport extends Command
             // Get all possible calling types for headers
             $allCallingTypes = DB::table('calling_types')->orderBy('name')->pluck('name')->toArray();
             
-            // Get recipients
-            if ($tenant->id == 1) {
-                $recipientEmails = ['sandeep@triserv360.com'];
-            } else {
-                $recipientEmails = User::whereHas('employee', function ($q) {
-                        $q->where('status', 'active');
-                    })
-                    ->where('role_id', 1)
-                    ->whereNotNull('email')
-                    ->pluck('email')
-                    ->toArray();
-            }
+            // Get recipients (Active administrators)
+            $recipientEmails = User::whereHas('employee', function ($q) {
+                    $q->where('status', 'active');
+                })
+                ->where('role_id', 1)
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->toArray();
 
             if (empty($recipientEmails)) {
                 $this->info("  No active admin recipients for {$tenant->tenant_name}.");
@@ -191,7 +187,8 @@ class SendCallingAnalyticReport extends Command
                 $tenant->tenant_name,
                 $userStatusCounts,
                 $userLeads,
-                $allCallingTypes
+                $allCallingTypes,
+                $this->option('alert')
             ));
             $this->info("  ✅ Report sent to: " . implode(', ', $recipientEmails));
 

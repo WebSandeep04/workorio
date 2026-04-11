@@ -19,11 +19,12 @@ class CallingAnalyticReport extends Mailable
     public $userStatusCounts;
     public $userLeads;
     public $allCallingTypes;
+    public $alert_prefix;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($userData, $statusData, $today, $tenantName, $userStatusCounts = [], $userLeads = [], $allCallingTypes = [])
+    public function __construct($userData, $statusData, $today, $tenantName, $userStatusCounts = [], $userLeads = [], $allCallingTypes = [], $alert_prefix = null)
     {
         $this->userData = $userData;
         $this->statusData = $statusData;
@@ -32,6 +33,7 @@ class CallingAnalyticReport extends Mailable
         $this->userStatusCounts = $userStatusCounts;
         $this->userLeads = $userLeads;
         $this->allCallingTypes = $allCallingTypes;
+        $this->alert_prefix = $alert_prefix;
     }
 
     /**
@@ -40,7 +42,7 @@ class CallingAnalyticReport extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Daily Calling Analytic Report - {$this->tenantName} ({$this->today})",
+            subject: ($this->alert_prefix ? "[Workorio Alert : {$this->alert_prefix}] " : "") . "Daily Calling Analytic Report - {$this->tenantName} ({$this->today})",
         );
     }
 
