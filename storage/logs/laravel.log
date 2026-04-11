@@ -11097,3 +11097,24 @@ Did you mean one of these?
 #7 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #8 {main}
 "} 
+[2026-04-11 03:34:32] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-04-11 03:34:36] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-11 03:34:37] local.WARNING: AuthController@login tenant check failed {"tenant_id":1,"error":"SQLSTATE[42S02]: Base table or view not found: 1146 Table 'test.users' doesn't exist (Connection: tenant_1, SQL: select * from `users` where `email` = sandeep@triserv360.com limit 1)"} 
+[2026-04-11 03:34:37] local.ERROR: AuthController@login user lookup result {"found":false,"data":null} 
+[2026-04-11 03:39:08] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-04-11 03:39:08] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-11 03:39:09] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-04-11 03:39:09] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-04-11 03:39:09] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-04-11 03:50:28] local.INFO: getRemarks called with ID: 5578  
+[2026-04-11 03:50:28] local.INFO: Sales record found: 5578  
+[2026-04-11 03:50:28] local.INFO: Remarks count: 2  
+[2026-04-11 03:50:28] local.INFO: Returning response successfully  
+[2026-04-11 03:50:57] local.INFO: getRemarks called with ID: 5578  
+[2026-04-11 03:50:57] local.INFO: Sales record found: 5578  
+[2026-04-11 03:50:57] local.INFO: Remarks count: 2  
+[2026-04-11 03:50:57] local.INFO: Returning response successfully  
+[2026-04-11 04:29:52] local.INFO: getRemarks called with ID: 5578  
+[2026-04-11 04:29:52] local.INFO: Sales record found: 5578  
+[2026-04-11 04:29:52] local.INFO: Remarks count: 2  
+[2026-04-11 04:29:52] local.INFO: Returning response successfully  

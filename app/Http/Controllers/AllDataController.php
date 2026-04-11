@@ -102,13 +102,13 @@ class AllDataController extends Controller
         ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
         ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
         ->leftJoin(DB::raw('(
-            SELECT r1.id, r1.sales_remark_id, r1.remark
+            SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
             FROM remarks r1
             INNER JOIN (
-                SELECT sales_remark_id, MAX(remark_date) as latest_date
+                SELECT sales_remark_id, MAX(id) as max_id
                 FROM remarks
                 GROUP BY sales_remark_id
-            ) r2 ON r1.sales_remark_id = r2.sales_remark_id AND r1.remark_date = r2.latest_date
+            ) r2 ON r1.id = r2.max_id
         ) as latest_remarks'), 'sales_records.id', '=', 'latest_remarks.sales_remark_id')
         ->orderBy('sales_records.createdat', 'desc')
         ->select(
@@ -120,7 +120,8 @@ class AllDataController extends Controller
             'sales_products.product_name',
             'states.state_name',
             'cities.city_name',
-            'latest_remarks.remark as latest_remark'
+            'latest_remarks.remark as latest_remark',
+            'latest_remarks.remark_date as latest_remark_date'
         )
         ->paginate(20);
 
@@ -143,8 +144,8 @@ class AllDataController extends Controller
         ->leftJoin('sales_status', 'sales_records.status_id', '=', 'sales_status.id')
         ->leftJoin('remarks as r', function ($join) {
             $join->on('r.sales_remark_id', '=', 'sales_records.id')
-                 ->whereRaw('r.remark_date = (
-                    SELECT MAX(remark_date) 
+                 ->whereRaw('r.id = (
+                    SELECT MAX(id) 
                     FROM remarks 
                     WHERE sales_remark_id = sales_records.id
                  )');
@@ -211,8 +212,8 @@ public function alldatasearch(Request $request)
         ->leftJoin('sales_status', 'sales_records.status_id', '=', 'sales_status.id')
         ->leftJoin('remarks as r', function ($join) {
             $join->on('r.sales_remark_id', '=', 'sales_records.id')
-                ->whereRaw('r.remark_date = (
-                    SELECT MAX(remark_date)
+                ->whereRaw('r.id = (
+                    SELECT MAX(id)
                     FROM remarks 
                     WHERE sales_remark_id = sales_records.id
                 )');
@@ -271,8 +272,8 @@ public function alldatafilterdate(Request $request)
         ->leftJoin('sales_status', 'sales_records.status_id', '=', 'sales_status.id')
         ->leftJoin('remarks as r', function ($join) {
             $join->on('r.sales_remark_id', '=', 'sales_records.id')
-                 ->whereRaw('r.remark_date = (
-                    SELECT MAX(remark_date) 
+                 ->whereRaw('r.id = (
+                    SELECT MAX(id) 
                     FROM remarks 
                     WHERE sales_remark_id = sales_records.id
                  )');
@@ -443,13 +444,13 @@ public function alldatafilterdate(Request $request)
             ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
             ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
             ->leftJoin(DB::raw('(
-                SELECT r1.id, r1.sales_remark_id, r1.remark
+                SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
                 FROM remarks r1
                 INNER JOIN (
-                    SELECT sales_remark_id, MAX(remark_date) as latest_date
+                    SELECT sales_remark_id, MAX(id) as max_id
                     FROM remarks
                     GROUP BY sales_remark_id
-                ) r2 ON r1.sales_remark_id = r2.sales_remark_id AND r1.remark_date = r2.latest_date
+                ) r2 ON r1.id = r2.max_id
             ) as latest_remarks'), 'sales_records.id', '=', 'latest_remarks.sales_remark_id')
             ->where(function ($query) use ($today) {
                 $query->whereDate('sales_records.next_follow_up_date', '<=', $today)
@@ -469,7 +470,8 @@ public function alldatafilterdate(Request $request)
                 'sales_products.product_name',
                 'states.state_name',
                 'cities.city_name',
-                'latest_remarks.remark as latest_remark'
+                'latest_remarks.remark as latest_remark',
+                'latest_remarks.remark_date as latest_remark_date'
             )->paginate(20);
 
         return response()->json($records);
@@ -493,13 +495,13 @@ public function alldatafilterdate(Request $request)
             ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
             ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
             ->leftJoin(DB::raw('(
-                SELECT r1.id, r1.sales_remark_id, r1.remark
+                SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
                 FROM remarks r1
                 INNER JOIN (
-                    SELECT sales_remark_id, MAX(remark_date) as latest_date
+                    SELECT sales_remark_id, MAX(id) as max_id
                     FROM remarks
                     GROUP BY sales_remark_id
-                ) r2 ON r1.sales_remark_id = r2.sales_remark_id AND r1.remark_date = r2.latest_date
+                ) r2 ON r1.id = r2.max_id
             ) as latest_remarks'), 'sales_records.id', '=', 'latest_remarks.sales_remark_id')
             ->whereDate('sales_records.next_follow_up_date', '=', $today)
             ->whereDate('sales_records.updatedat', '=', $today)
@@ -514,7 +516,8 @@ public function alldatafilterdate(Request $request)
                 'sales_products.product_name',
                 'states.state_name',
                 'cities.city_name',
-                'latest_remarks.remark as latest_remark'
+                'latest_remarks.remark as latest_remark',
+                'latest_remarks.remark_date as latest_remark_date'
             )->paginate(20);
 
         return response()->json($records);
@@ -538,13 +541,13 @@ public function alldatafilterdate(Request $request)
             ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
             ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
             ->leftJoin(DB::raw('(
-                SELECT r1.id, r1.sales_remark_id, r1.remark
+                SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
                 FROM remarks r1
                 INNER JOIN (
-                    SELECT sales_remark_id, MAX(remark_date) as latest_date
+                    SELECT sales_remark_id, MAX(id) as max_id
                     FROM remarks
                     GROUP BY sales_remark_id
-                ) r2 ON r1.sales_remark_id = r2.sales_remark_id AND r1.remark_date = r2.latest_date
+                ) r2 ON r1.id = r2.max_id
             ) as latest_remarks'), 'sales_records.id', '=', 'latest_remarks.sales_remark_id')
             ->whereDate('sales_records.next_follow_up_date', '>', $today)
             ->whereDate('sales_records.updatedat', '=', $today)
@@ -559,7 +562,8 @@ public function alldatafilterdate(Request $request)
                 'sales_products.product_name',
                 'states.state_name',
                 'cities.city_name',
-                'latest_remarks.remark as latest_remark'
+                'latest_remarks.remark as latest_remark',
+                'latest_remarks.remark_date as latest_remark_date'
             )->paginate(20);
 
         return response()->json($records);
@@ -583,13 +587,13 @@ public function alldatafilterdate(Request $request)
             ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
             ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
             ->leftJoin(DB::raw('(
-                SELECT r1.id, r1.sales_remark_id, r1.remark
+                SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
                 FROM remarks r1
                 INNER JOIN (
-                    SELECT sales_remark_id, MAX(remark_date) as latest_date
+                    SELECT sales_remark_id, MAX(id) as max_id
                     FROM remarks
                     GROUP BY sales_remark_id
-                ) r2 ON r1.sales_remark_id = r2.sales_remark_id AND r1.remark_date = r2.latest_date
+                ) r2 ON r1.id = r2.max_id
             ) as latest_remarks'), 'sales_records.id', '=', 'latest_remarks.sales_remark_id')
             ->where(function ($query) use ($today) {
                 $query->whereDate('sales_records.next_follow_up_date', '<=', $today)
@@ -606,7 +610,8 @@ public function alldatafilterdate(Request $request)
                 'sales_products.product_name',
                 'states.state_name',
                 'cities.city_name',
-                'latest_remarks.remark as latest_remark'
+                'latest_remarks.remark as latest_remark',
+                'latest_remarks.remark_date as latest_remark_date'
             )->paginate(20);
 
         return response()->json($records);
@@ -630,13 +635,13 @@ public function alldatafilterdate(Request $request)
             ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
             ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
             ->leftJoin(DB::raw('(
-                SELECT r1.id, r1.sales_remark_id, r1.remark
+                SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
                 FROM remarks r1
                 INNER JOIN (
-                    SELECT sales_remark_id, MAX(remark_date) as latest_date
+                    SELECT sales_remark_id, MAX(id) as max_id
                     FROM remarks
                     GROUP BY sales_remark_id
-                ) r2 ON r1.sales_remark_id = r2.sales_remark_id AND r1.remark_date = r2.latest_date
+                ) r2 ON r1.id = r2.max_id
             ) as latest_remarks'), 'sales_records.id', '=', 'latest_remarks.sales_remark_id')
             ->whereDate('sales_records.createdat', '=', $today)
             ->whereNotIn('sales_records.status_id', [1, 2, 15, 20])
@@ -650,7 +655,8 @@ public function alldatafilterdate(Request $request)
                 'sales_products.product_name',
                 'states.state_name',
                 'cities.city_name',
-                'latest_remarks.remark as latest_remark'
+                'latest_remarks.remark as latest_remark',
+                'latest_remarks.remark_date as latest_remark_date'
             )->paginate(20);
 
         return response()->json($records);
