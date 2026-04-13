@@ -190,7 +190,7 @@ class AssignedCallingController extends Controller
 
     public function getLeadDetailsWithRemarks(Request $request)
     {
-        $callingId = $request->id;
+        $callingId = $request->id ?? $request->sales_record_id;
         
         $lead = DB::table('callings')
             ->leftJoin('calling_campaign_calling', 'callings.id', '=', 'calling_campaign_calling.calling_id')
@@ -222,6 +222,20 @@ class AssignedCallingController extends Controller
 
         return response()->json([
             'lead' => $lead,
+            'sales_record' => [
+                'id' => $lead->id,
+                'leads_name' => $lead->name,
+                'contact_person' => $lead->contact_person,
+                'contact_number' => $lead->phone,
+                'email' => $lead->email,
+                'state_name' => $lead->state,
+                'city_name' => $lead->city,
+                'product_name' => $lead->campaign_name ?? '-',
+                'business_name' => $lead->company_name ?? '-',
+                'status_name' => $lead->status_name ?? '-',
+                'ticket_value' => $lead->turnover ?? '-',
+                'next_follow_up_date' => $lead->next_followup_date ?? '-'
+            ],
             'remarks' => $remarks
         ]);
     }

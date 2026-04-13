@@ -139,7 +139,140 @@ class CallingController extends Controller
                 ->orderBy('state')
                 ->get(['state as id', 'state as name']),
             'lists' => \App\Models\CallingList::orderBy('name')->get(['id', 'name']),
+            'calling_types' => CallingType::where('name', '!=', 'Junk')->orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    /**
+     * Show the page with all callings (admin/manager view).
+     */
+    public function allCallings()
+    {
+        $user = $this->getCurrentUser();
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('sales.calling')) {
+            abort(403, 'Unauthorized');
+        }
+        return view('calling.all');
+    }
+
+    /**
+     * Get all callings data for the 'All' page.
+     */
+    public function getAllCallingsData(Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+
+        $query = DB::table('callings')
+            ->leftJoin('calling_campaign_calling', function($join) {
+                $join->on('callings.id', '=', 'calling_campaign_calling.calling_id')
+                    ->whereRaw('calling_campaign_calling.id = (SELECT MAX(id) FROM calling_campaign_calling WHERE calling_id = callings.id)');
+            })
+            ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
+            ->leftJoin('calling_remarks', function($join) {
+                $join->on('callings.id', '=', 'calling_remarks.calling_id')
+                    ->whereRaw('calling_remarks.id = (SELECT MAX(id) FROM calling_remarks WHERE calling_id = callings.id)');
+            })
+            ->where(function($q) use ($junkTypeId) {
+                if ($junkTypeId) {
+                    $q->where('calling_campaign_calling.calling_type_id', '!=', $junkTypeId)
+                      ->orWhereNull('calling_campaign_calling.calling_type_id');
+                }
+            })
+            ->select(
+                'callings.*',
+                'calling_types.name as calling_type_name',
+                'calling_campaign_calling.calling_type_id',
+                'calling_campaign_calling.next_followup_date as next_follow_up_date',
+                'calling_remarks.remark as latest_remark_text'
+            );
+
+        $paginated = $query->orderBy('callings.id', 'desc')->paginate($perPage);
+
+        // Inject selection status and format for view
+        $selection = Session::get('calling_selection', ['ids' => [], 'all_matching' => false, 'filters' => []]);
+        
+        $paginated->getCollection()->transform(function($item) use ($selection) {
+            $item->is_selected = $selection['all_matching'] || in_array($item->id, $selection['ids']);
+            $item->latest_remark = $item->latest_remark_text ? (object)['remark' => $item->latest_remark_text] : null;
+            $item->calling_type = $item->calling_type_name ? (object)['name' => $item->calling_type_name] : null;
+            $item->status = $item->calling_type_name ? (object)['status_name' => $item->calling_type_name] : null;
+            return $item;
+        });
+
+        return response()->json($paginated);
+    }
+
+    /**
+     * Filter all callings for the 'All' page.
+     */
+    public function filterAllCallings(Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+
+        $query = DB::table('callings')
+            ->leftJoin('calling_campaign_calling', function($join) {
+                $join->on('callings.id', '=', 'calling_campaign_calling.calling_id')
+                    ->whereRaw('calling_campaign_calling.id = (SELECT MAX(id) FROM calling_campaign_calling WHERE calling_id = callings.id)');
+            })
+            ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
+            ->leftJoin('calling_remarks', function($join) {
+                $join->on('callings.id', '=', 'calling_remarks.calling_id')
+                    ->whereRaw('calling_remarks.id = (SELECT MAX(id) FROM calling_remarks WHERE calling_id = callings.id)');
+            })
+            ->where(function($q) use ($junkTypeId) {
+                if ($junkTypeId) {
+                    $q->where('calling_campaign_calling.calling_type_id', '!=', $junkTypeId)
+                      ->orWhereNull('calling_campaign_calling.calling_type_id');
+                }
+            });
+
+        if ($request->filled('name')) {
+            $term = trim((string) $request->name);
+            $query->where(function ($q) use ($term) {
+                $like = '%' . $term . '%';
+                $q->where('callings.name', 'like', $like)
+                  ->orWhere('callings.company_name', 'like', $like)
+                  ->orWhere('callings.email', 'like', $like)
+                  ->orWhere('callings.phone', 'like', $like);
+            });
+        }
+
+        if ($request->filled('state_id')) {
+            $query->where('callings.state', $request->state_id);
+        }
+
+        if ($request->filled('city_id')) {
+            $query->where('callings.city', $request->city_id);
+        }
+
+        if ($request->filled('calling_type_id')) {
+            $query->where('calling_campaign_calling.calling_type_id', $request->calling_type_id);
+        }
+
+        $query->select(
+            'callings.*',
+            'calling_types.name as calling_type_name',
+            'calling_campaign_calling.calling_type_id',
+            'calling_campaign_calling.next_followup_date as next_follow_up_date',
+            'calling_remarks.remark as latest_remark_text'
+        );
+
+        $paginated = $query->orderBy('callings.id', 'desc')->paginate($perPage);
+
+        // Inject selection status and format for view
+        $selection = Session::get('calling_selection', ['ids' => [], 'all_matching' => false, 'filters' => []]);
+        
+        $paginated->getCollection()->transform(function($item) use ($selection) {
+            $item->is_selected = $selection['all_matching'] || in_array($item->id, $selection['ids']);
+            $item->latest_remark = $item->latest_remark_text ? (object)['remark' => $item->latest_remark_text] : null;
+            $item->calling_type = $item->calling_type_name ? (object)['name' => $item->calling_type_name] : null;
+            $item->status = $item->calling_type_name ? (object)['status_name' => $item->calling_type_name] : null;
+            return $item;
+        });
+
+        return response()->json($paginated);
     }
 
     /**

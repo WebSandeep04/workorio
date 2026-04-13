@@ -999,7 +999,7 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::get('/calling/my/team-members', [MyCallingController::class, 'getTeamMembers'])->name('calling.my.team-members');
 
     // calling remarks (tenant DB - needed for modal)
-    Route::get('/calling/remarks', [AssignedCallingController::class, 'getRemarks'])->name('calling.remarks');
+    Route::get('/calling/remarks', [AssignedCallingController::class, 'getLeadDetailsWithRemarks'])->name('calling.remarks');
 
     // assigned calling routes
     Route::get('/calling/assigned', [AssignedCallingController::class, 'index'])->name('calling.assigned');
