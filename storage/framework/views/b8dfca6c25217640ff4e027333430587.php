@@ -28,7 +28,7 @@
         <div class="text-center mb-4">
             <!-- <i class="bi bi-building text-primary" style="font-size: 3rem;"></i> -->
             <h3 class="mt-2">
-  <span class="gradient-text">WELCOME</span> BACK
+  <span class="gradient-text">Welcome</span> Back
 </h3>
             <p style="color: black;"><b>Log in</b> to continue your journey!!</p>
         </div>

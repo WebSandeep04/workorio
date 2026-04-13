@@ -41,6 +41,7 @@ class CallingDashboardController extends Controller
             ->select(
                 'callings.*',
                 'calling_campaigns.name as campaign_name',
+                'calling_campaign_calling.calling_campaign_id',
                 'calling_types.name as status_name',
                 'calling_campaign_calling.next_followup_date as pivot_followup',
                 DB::raw('(SELECT remark FROM calling_remarks WHERE calling_id = callings.id ORDER BY id DESC LIMIT 1) as latest_remark')

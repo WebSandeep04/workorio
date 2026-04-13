@@ -11184,3 +11184,8 @@ Did you mean one of these?
 [2026-04-11 10:30:32] local.INFO: Quotation store: User ID found {"user_id":13} 
 [2026-04-11 10:30:32] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
 [2026-04-11 10:30:32] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260411-002"} 
+[2026-04-13 05:03:16] local.ERROR: AuthController@login start {"email":"anupriya@triserv360.com"} 
+[2026-04-13 05:03:19] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-13 05:03:20] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-04-13 05:03:20] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":5,"name":"Anupriya Singh","email":"anupriya@triserv360.com","role_id":7,"tenant_id":1}} 
+[2026-04-13 05:03:20] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
