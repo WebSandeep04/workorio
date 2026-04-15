@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('calling_id');
             $table->unsignedBigInteger('calling_campaign_id')->nullable();
+            $table->unsignedBigInteger('sales_record_id')->nullable();
+            $table->unsignedBigInteger('prospectus_id')->nullable();
             $table->unsignedBigInteger('assigned_by')->nullable();
             $table->unsignedBigInteger('assigned_to');
             $table->timestamps();

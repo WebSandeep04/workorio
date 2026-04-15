@@ -604,6 +604,8 @@ class CallingController extends Controller
                     DB::table('calling_assign_logs')->insert([
                         'calling_id' => $calling->id,
                         'calling_campaign_id' => $request->campaign_id,
+                        'sales_record_id' => isset($salesRecord) ? $salesRecord->id : null,
+                        'prospectus_id' => isset($prospectus) ? $prospectus->id : null,
                         'assigned_by' => $userId,
                         'assigned_to' => $request->assign_user_id,
                         'created_at' => now(),
@@ -738,6 +740,8 @@ class CallingController extends Controller
                     DB::table('calling_assign_logs')->insert([
                         'calling_id' => $remarkRow->calling_id,
                         'calling_campaign_id' => $request->campaign_id,
+                        'sales_record_id' => isset($salesRecord) ? $salesRecord->id : null,
+                        'prospectus_id' => isset($prospectus) ? $prospectus->id : null,
                         'assigned_by' => $userId,
                         'assigned_to' => $request->assign_user_id,
                         'created_at' => now(),

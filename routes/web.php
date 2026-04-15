@@ -43,6 +43,7 @@ use App\Http\Controllers\SalesAnalyticsController;
 use App\Http\Controllers\CallingController;
 use App\Http\Controllers\MyCallingController;
 use App\Http\Controllers\AssignedCallingController;
+use App\Http\Controllers\ConvertedCallingController;
 use App\Http\Controllers\TeamCallingController;
 use App\Http\Controllers\JunkCallingController;
 use App\Http\Controllers\TodaysCallingController;
@@ -1011,6 +1012,12 @@ Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
     Route::get('/calling/assigned/team-members', [AssignedCallingController::class, 'getTeamMembers'])->name('calling.assigned.team-members');
     Route::post('/calling/assigned/reassign', [AssignedCallingController::class, 'reassignCalling'])->name('calling.assigned.reassign');
     Route::post('/calling/assigned/update-type', [AssignedCallingController::class, 'updateCallingType'])->name('calling.assigned.update-type');
+
+    Route::get('/calling/converted', [ConvertedCallingController::class, 'index'])->name('calling.converted');
+    Route::get('/calling/converted/data', [ConvertedCallingController::class, 'getConvertedCallings'])->name('calling.converted.data');
+    Route::post('/calling/converted/filter', [ConvertedCallingController::class, 'filterConvertedCallings'])->name('calling.converted.filter');
+    Route::get('/calling/converted/filter-options', [ConvertedCallingController::class, 'getFilterOptions'])->name('calling.converted.filter-options');
+    Route::get('/calling/converted/cities/{stateId}', [ConvertedCallingController::class, 'getCitiesByState'])->name('calling.converted.cities');
 
     // team calling routes
     Route::get('/calling/team', [TeamCallingController::class, 'index'])->name('calling.team');
