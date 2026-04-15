@@ -1,5 +1,5 @@
-<?php $__env->startSection('title', 'Converted Leads'); ?>
-<?php $__env->startSection('page_title', 'Converted Leads'); ?>
+<?php $__env->startSection('title', 'Converted Calls'); ?>
+<?php $__env->startSection('page_title', 'Converted Calls'); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Converted Leads')
-@section('page_title', 'Converted Leads')
+@section('title', 'Converted Calls')
+@section('page_title', 'Converted Calls')
 
 @push('styles')
 <style>

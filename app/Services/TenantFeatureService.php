@@ -55,7 +55,7 @@ class TenantFeatureService
                     'sales.calling.my' => 'Calling: My Calls',
                     'sales.calling.team' => 'Calling: Team Calls',
                     'sales.calling.assigned' => 'Calling: Assigned Calls',
-                    'sales.calling.converted' => 'Calling: Converted Leads',
+                    'sales.calling.converted' => 'Calling: Converted Calls',
                     'sales.calling.todays' => "Calling: Today's Calls",
                     'sales.calling.junk' => 'Calling: Junk Calls',
                 ]
