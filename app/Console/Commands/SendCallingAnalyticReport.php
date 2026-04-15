@@ -146,6 +146,7 @@ class SendCallingAnalyticReport extends Command
                         ->leftJoin('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
                         ->where('calling_campaign_calling.user_id', $userId)
                         ->whereDate('calling_campaign_calling.updated_at', $today)
+                        ->where('calling_types.name', 'Interested')
                         ->select(
                             'callings.name as lead_name',
                             'callings.phone',
