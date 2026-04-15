@@ -520,13 +520,65 @@ class CallingController extends Controller
             'remark' => 'required|string',
             'calling_type_id' => 'nullable|exists:calling_types,id',
             'next_followup_date' => 'nullable|date',
-            'campaign_id' => 'nullable|integer|exists:calling_campaigns,id'
+            'campaign_id' => 'nullable|integer|exists:calling_campaigns,id',
+            'assign_user_id' => 'nullable|integer|exists:users,id'
         ]);
 
         $userId = $this->getCurrentUserId();
 
         try {
             DB::beginTransaction();
+
+            $callingStatusName = '';
+            if ($request->calling_type_id) {
+                $callingStatusName = DB::table('calling_types')->where('id', $request->calling_type_id)->value('name');
+            }
+
+            // If interested, Auto Convert
+            if (strtolower(trim($callingStatusName)) === 'interested') {
+                if (!$request->assign_user_id) {
+                    throw new \Exception("Please select a user to assign the lead to.");
+                }
+
+                // 1. Create Prospectus
+                $prospectus = \App\Models\Prospectus::create([
+                    'prospectus_name' => $calling->company_name ?: ($calling->name ?: 'New Prospect (Auto)'),
+                    'contact_person'  => $calling->name,
+                    'contact_number'  => $calling->phone,
+                    'email'           => $calling->email,
+                    'address'         => $calling->address,
+                ]);
+
+                // 2. Create SalesRecord (Lead)
+                $salesRecord = \App\Models\SalesRecord::create([
+                    'prospectus_id'       => $prospectus->id,
+                    'user_id'             => $request->assign_user_id,
+                    'status_id'           => '19',
+                    'leads_name'          => $calling->company_name ?: ($calling->name ?: 'New Prospect (Auto)'),
+                    'contact_person'      => $calling->name,
+                    'contact_number'      => $calling->phone,
+                    'email'               => $calling->email,
+                    'address'             => $calling->address,
+                    'next_follow_up_date' => $request->next_followup_date ?: now()->addDays(1)->toDateString(),
+                    'createdat'           => now(),
+                ]);
+
+                // 3. Create LeadAssignmentLog
+                \App\Models\LeadAssignmentLog::create([
+                    'sales_record_id' => $salesRecord->id,
+                    'from_user_id'    => null,
+                    'to_user_id'      => $request->assign_user_id,
+                    'assigned_by'     => $userId,
+                    'remark'          => 'Auto-assigned from Calling system (Interested)'
+                ]);
+
+                // 4. Create Remark in SalesRecord
+                \App\Models\Remark::create([
+                    'remark_date'     => now()->toDateString(),
+                    'remark'          => $request->remark,
+                    'sales_remark_id' => $salesRecord->id
+                ]);
+            }
 
             // 1. Create the interaction log (global)
             $newRemarkId = DB::table('calling_remarks')->insertGetId([
@@ -540,14 +592,29 @@ class CallingController extends Controller
 
             // 2. Update campaign specific context in pivot table
             if ($request->filled('campaign_id')) {
+                $updateData = [
+                    'calling_type_id' => $request->calling_type_id,
+                    'next_followup_date' => $request->next_followup_date,
+                    'updated_at' => now()
+                ];
+
+                if (strtolower(trim($callingStatusName)) === 'interested' && $request->assign_user_id) {
+                    $updateData['is_assigned'] = 1;
+
+                    DB::table('calling_assign_logs')->insert([
+                        'calling_id' => $calling->id,
+                        'calling_campaign_id' => $request->campaign_id,
+                        'assigned_by' => $userId,
+                        'assigned_to' => $request->assign_user_id,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
                 DB::table('calling_campaign_calling')
                     ->where('calling_id', $calling->id)
                     ->where('calling_campaign_id', $request->campaign_id)
-                    ->update([
-                        'calling_type_id' => $request->calling_type_id,
-                        'next_followup_date' => $request->next_followup_date,
-                        'updated_at' => now()
-                    ]);
+                    ->update($updateData);
             }
 
             DB::commit();
@@ -589,14 +656,65 @@ class CallingController extends Controller
             'remark' => 'required|string',
             'calling_type_id' => 'nullable|exists:calling_types,id',
             'next_followup_date' => 'nullable|date',
-            'campaign_id' => 'nullable|integer|exists:calling_campaigns,id'
+            'campaign_id' => 'nullable|integer|exists:calling_campaigns,id',
+            'assign_user_id' => 'nullable|integer|exists:users,id'
         ]);
+
+        $userId = $this->getCurrentUserId();
 
         try {
             DB::beginTransaction();
 
             $remarkRow = DB::table('calling_remarks')->where('id', $id)->first();
             if (!$remarkRow) throw new \Exception("Remark not found.");
+
+            $calling = Calling::findOrFail($remarkRow->calling_id);
+            $callingStatusName = '';
+            if ($request->calling_type_id) {
+                $callingStatusName = DB::table('calling_types')->where('id', $request->calling_type_id)->value('name');
+            }
+
+            // If interested, Auto Convert
+            if (strtolower(trim($callingStatusName)) === 'interested') {
+                if (!$request->assign_user_id) {
+                    throw new \Exception("Please select a user to assign the lead to.");
+                }
+
+                $prospectus = \App\Models\Prospectus::create([
+                    'prospectus_name' => $calling->company_name ?: ($calling->name ?: 'New Prospect (Auto)'),
+                    'contact_person'  => $calling->name,
+                    'contact_number'  => $calling->phone,
+                    'email'           => $calling->email,
+                    'address'         => $calling->address,
+                ]);
+
+                $salesRecord = \App\Models\SalesRecord::create([
+                    'prospectus_id'       => $prospectus->id,
+                    'user_id'             => $request->assign_user_id,
+                    'status_id'           => '19',
+                    'leads_name'          => $calling->company_name ?: ($calling->name ?: 'New Prospect (Auto)'),
+                    'contact_person'      => $calling->name,
+                    'contact_number'      => $calling->phone,
+                    'email'               => $calling->email,
+                    'address'             => $calling->address,
+                    'next_follow_up_date' => $request->next_followup_date ?: now()->addDays(1)->toDateString(),
+                    'createdat'           => now(),
+                ]);
+
+                \App\Models\LeadAssignmentLog::create([
+                    'sales_record_id' => $salesRecord->id,
+                    'from_user_id'    => null,
+                    'to_user_id'      => $request->assign_user_id,
+                    'assigned_by'     => $userId,
+                    'remark'          => 'Auto-assigned from Calling system (Interested)'
+                ]);
+
+                \App\Models\Remark::create([
+                    'remark_date'     => now()->toDateString(),
+                    'remark'          => $request->remark,
+                    'sales_remark_id' => $salesRecord->id
+                ]);
+            }
 
             // 1. Update the interaction log
             DB::table('calling_remarks')
@@ -608,14 +726,29 @@ class CallingController extends Controller
 
             // 2. Update campaign specific context in pivot table
             if ($request->filled('campaign_id')) {
+                $updateData = [
+                    'calling_type_id' => $request->calling_type_id,
+                    'next_followup_date' => $request->next_followup_date,
+                    'updated_at' => now()
+                ];
+
+                if (strtolower(trim($callingStatusName)) === 'interested' && $request->assign_user_id) {
+                    $updateData['is_assigned'] = 1;
+
+                    DB::table('calling_assign_logs')->insert([
+                        'calling_id' => $remarkRow->calling_id,
+                        'calling_campaign_id' => $request->campaign_id,
+                        'assigned_by' => $userId,
+                        'assigned_to' => $request->assign_user_id,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
                 DB::table('calling_campaign_calling')
                     ->where('calling_id', $remarkRow->calling_id)
                     ->where('calling_campaign_id', $request->campaign_id)
-                    ->update([
-                        'calling_type_id' => $request->calling_type_id,
-                        'next_followup_date' => $request->next_followup_date,
-                        'updated_at' => now()
-                    ]);
+                    ->update($updateData);
             }
 
             DB::commit();

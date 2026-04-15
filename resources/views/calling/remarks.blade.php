@@ -99,6 +99,16 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Interested Status Fields (Hidden by Default) -->
+                <div class="col-md-12 mt-2" id="interested_action_container" style="display: none; background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    <label class="form-label-modern text-primary mb-2" style="font-size: 0.8rem;"><i class="bi bi-person-fill-add me-1"></i> Assign Lead To</label>
+                    <div class="mb-2">
+                        <select name="assign_user_id" id="assign_user_id" class="form-select form-select-sm">
+                            <option value="">Loading Users...</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div class="row g-2 mb-3">
@@ -339,18 +349,58 @@ $(document).ready(function() {
         $('#reset_form_btn').hide();
     }
 
-    // WhatsApp Logic
+    // WhatsApp and Interested Logic
     const whatsappBtnContainer = $('#whatsapp_action_container');
+    const interestedBtnContainer = $('#interested_action_container');
     const statusSelect = $('#calling_type_id');
     const leadPhone = "{{ $calling->phone }}";
+    let interestedUsersFetched = false;
 
     function checkStatusForWhatsapp() {
         const selectedText = statusSelect.find('option:selected').text().trim().toLowerCase();
+        
+        // WhatsApp button logic
         if (selectedText === 'sent details') {
             whatsappBtnContainer.fadeIn();
         } else {
             whatsappBtnContainer.fadeOut();
         }
+
+        // Interested lead conversion logic
+        if (selectedText === 'interested') {
+            interestedBtnContainer.fadeIn();
+            $('#assign_user_id').prop('required', true);
+
+            // Fetch Data only once
+            if (!interestedUsersFetched) {
+                fetchInterestedDropdownData();
+            }
+        } else {
+            interestedBtnContainer.fadeOut();
+            $('#assign_user_id').prop('required', false);
+        }
+    }
+
+    function fetchInterestedDropdownData() {
+        $('#assign_user_id').html('<option value="">Loading Users...</option>');
+        
+        // Fetch Users (sales users)
+        $.get("{{ route('user.sales-users') }}").done(function(resp) {
+            let userOptions = '<option value="">Select Assignee User...</option>';
+            let list = Array.isArray(resp) ? resp : (resp.data || []);
+            if (list.length) {
+                list.forEach(user => {
+                    userOptions += `<option value="${user.id}">${user.name}</option>`;
+                });
+            } else {
+                userOptions += '<option value="">No users found</option>';
+            }
+            $('#assign_user_id').html(userOptions);
+        }).fail(function() {
+            $('#assign_user_id').html('<option value="">Failed to load users</option>');
+        }).always(function() {
+            interestedUsersFetched = true;
+        });
     }
 
     // Initial check

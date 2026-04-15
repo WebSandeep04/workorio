@@ -45,6 +45,10 @@ class MyCallingController extends Controller
             ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
             ->where('calling_campaign_calling.user_id', $userId)
             ->where('calling_campaign_calling.is_locked', 1)
+            ->where(function($q) {
+                $q->where('calling_campaign_calling.is_assigned', 0)
+                  ->orWhereNull('calling_campaign_calling.is_assigned');
+            })
             ->where(function($q) use ($junkTypeId) {
                 if ($junkTypeId) {
                     $q->where('calling_campaign_calling.calling_type_id', '!=', $junkTypeId)
