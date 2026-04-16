@@ -1,0 +1,15 @@
+[2026-04-16 07:49:39] local.INFO: Successfully dropped database for tenant: Triserv  
+[2026-04-16 07:50:04] local.INFO: Successfully created database for tenant: Triserv (ID: 1)  
+[2026-04-16 09:52:20] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-04-16 09:52:21] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-16 09:52:21] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":false,"password_ok":false,"is_login":0} 
+[2026-04-16 09:52:21] local.ERROR: AuthController@login user lookup result {"found":false,"data":null} 
+[2026-04-16 09:57:15] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-04-16 09:57:15] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-16 09:57:15] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-04-16 09:57:15] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-04-16 09:57:15] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-04-16 10:03:04] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-16 10:03:04] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-16 10:03:04] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-04-16 10:03:04] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260416-001"} 

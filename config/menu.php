@@ -127,7 +127,7 @@ return [
             'key' => 'master_section',
             'title' => 'Master',
             'icon' => 'bi bi-person-badge',
-            'feature_flag' => 'is_master_enabled',
+            'feature_flag' => 'is_worklog_enabled',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'employees.index', 'title' => 'Employees', 'icon' => 'bi bi-people', 'permission' => 'master.employees'],

@@ -327,12 +327,12 @@
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="show_payment_terms" name="show_payment_terms" onchange="togglePaymentTerms()">
                         <label class="form-check-label" for="show_payment_terms" style="cursor: pointer; color: #434AFA;">
-                            Show Payment Terms
+                            Show Terms and Conditions  
                         </label>
                     </div>
                     <div id="payment_terms_section" style="display: none;">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="section-title mb-0">Payment Terms</div>
+                            <div class="section-title mb-0">Terms and Conditions</div>
                             <button type="button" class="btn btn-sm btn-outline-primary" style="font-size: 12px; border-color: #434AFA; color: #434AFA;" onclick="saveAsDefaultPaymentTerms(this)">
                                 <i class="bi bi-save"></i> Set as Default
                             </button>
