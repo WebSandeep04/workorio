@@ -22,6 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable()->index();
             
             $table->unsignedBigInteger('calling_type_id')->nullable()->index();
+            $table->string('status')->default('Pending')->index();
             $table->date('next_followup_date')->nullable();
             $table->boolean('is_locked')->default(0);
 
