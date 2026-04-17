@@ -10,6 +10,10 @@ use App\Models\WhatsappTemplate;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NewLeadNotification;
+use App\Models\User;
+use App\Models\SalesLeadSource;
 
 class CallingController extends Controller
 {
@@ -549,6 +553,12 @@ class CallingController extends Controller
                     'address'         => $calling->address,
                 ]);
 
+                // 1.1 Find or Create "Tele Calling" source
+                $leadSourceId = SalesLeadSource::where('source_name', 'Tele Calling')->value('id');
+                if (!$leadSourceId) {
+                    $leadSourceId = SalesLeadSource::create(['source_name' => 'Tele Calling'])->id;
+                }
+
                 // 2. Create SalesRecord (Lead)
                 $salesRecord = \App\Models\SalesRecord::create([
                     'prospectus_id'       => $prospectus->id,
@@ -559,6 +569,7 @@ class CallingController extends Controller
                     'contact_number'      => $calling->phone,
                     'email'               => $calling->email,
                     'address'             => $calling->address,
+                    'lead_source_id'      => $leadSourceId,
                     'next_follow_up_date' => $request->next_followup_date ?: now()->addDays(1)->toDateString(),
                     'createdat'           => now(),
                 ]);
@@ -572,12 +583,14 @@ class CallingController extends Controller
                     'remark'          => 'Auto-assigned from Calling system (Interested)'
                 ]);
 
-                // 4. Create Remark in SalesRecord
                 \App\Models\Remark::create([
                     'remark_date'     => now()->toDateString(),
                     'remark'          => $request->remark,
                     'sales_remark_id' => $salesRecord->id
                 ]);
+
+                // 5. Send Email Notification
+                $this->sendNewLeadEmail($salesRecord, $request->remark);
             }
 
             // 1. Create the interaction log (global)
@@ -690,6 +703,12 @@ class CallingController extends Controller
                     'address'         => $calling->address,
                 ]);
 
+                // 2.1 Find or Create "Tele Calling" source
+                $leadSourceId = SalesLeadSource::where('source_name', 'Tele Calling')->value('id');
+                if (!$leadSourceId) {
+                    $leadSourceId = SalesLeadSource::create(['source_name' => 'Tele Calling'])->id;
+                }
+
                 $salesRecord = \App\Models\SalesRecord::create([
                     'prospectus_id'       => $prospectus->id,
                     'user_id'             => $request->assign_user_id,
@@ -699,6 +718,7 @@ class CallingController extends Controller
                     'contact_number'      => $calling->phone,
                     'email'               => $calling->email,
                     'address'             => $calling->address,
+                    'lead_source_id'      => $leadSourceId,
                     'next_follow_up_date' => $request->next_followup_date ?: now()->addDays(1)->toDateString(),
                     'createdat'           => now(),
                 ]);
@@ -716,6 +736,9 @@ class CallingController extends Controller
                     'remark'          => $request->remark,
                     'sales_remark_id' => $salesRecord->id
                 ]);
+
+                // 5. Send Email Notification
+                $this->sendNewLeadEmail($salesRecord, $request->remark);
             }
 
             // 1. Update the interaction log
@@ -769,6 +792,38 @@ class CallingController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Send email notification for a newly generated lead.
+     */
+    private function sendNewLeadEmail($salesRecord, $remarkText)
+    {
+        $creator = User::find($salesRecord->user_id);
+
+        $recipientEmails = User::whereHas('employee', function ($q) {
+                $q->where('status', 'active');
+            })
+            ->where('is_sales', 1)
+            ->whereNotNull('email')
+            ->pluck('email')
+            ->toArray();
+            
+        if ($creator && $creator->email && !in_array($creator->email, $recipientEmails)) {
+            $recipientEmails[] = $creator->email;
+        }
+
+        $recipientEmails = array_filter($recipientEmails, function($email) {
+            return filter_var($email, FILTER_VALIDATE_EMAIL);
+        });
+
+        if (!empty($recipientEmails)) {
+            try {
+                Mail::to($recipientEmails)->send(new NewLeadNotification($salesRecord, $creator, $remarkText));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to send calling-to-lead conversion email: " . $e->getMessage());
+            }
         }
     }
 
