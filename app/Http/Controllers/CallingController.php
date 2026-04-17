@@ -538,13 +538,23 @@ class CallingController extends Controller
                 $callingStatusName = DB::table('calling_types')->where('id', $request->calling_type_id)->value('name');
             }
 
-            // If interested, Auto Convert
+            // If interested, Auto Convert (Check for duplicates first)
             if (strtolower(trim($callingStatusName)) === 'interested') {
-                if (!$request->assign_user_id) {
-                    throw new \Exception("Please select a user to assign the lead to.");
+                $alreadyAssigned = false;
+                if ($request->filled('campaign_id')) {
+                    $alreadyAssigned = DB::table('calling_campaign_calling')
+                        ->where('calling_id', $calling->id)
+                        ->where('calling_campaign_id', $request->campaign_id)
+                        ->where('is_assigned', 1)
+                        ->exists();
                 }
 
-                // 1. Create Prospectus
+                if (!$alreadyAssigned) {
+                    if (!$request->assign_user_id) {
+                        throw new \Exception("Please select a user to assign the lead to.");
+                    }
+
+                    // 1. Create Prospectus
                 $prospectus = \App\Models\Prospectus::create([
                     'prospectus_name' => $calling->company_name ?: ($calling->name ?: 'New Prospect (Auto)'),
                     'contact_person'  => $calling->name,
@@ -592,6 +602,7 @@ class CallingController extends Controller
                 // 5. Send Email Notification
                 $this->sendNewLeadEmail($salesRecord, $request->remark);
             }
+        }
 
             // 1. Create the interaction log (global)
             $newRemarkId = DB::table('calling_remarks')->insertGetId([
@@ -689,13 +700,23 @@ class CallingController extends Controller
                 $callingStatusName = DB::table('calling_types')->where('id', $request->calling_type_id)->value('name');
             }
 
-            // If interested, Auto Convert
+            // If interested, Auto Convert (Check for duplicates first)
             if (strtolower(trim($callingStatusName)) === 'interested') {
-                if (!$request->assign_user_id) {
-                    throw new \Exception("Please select a user to assign the lead to.");
+                $alreadyAssigned = false;
+                if ($request->filled('campaign_id')) {
+                    $alreadyAssigned = DB::table('calling_campaign_calling')
+                        ->where('calling_id', $calling->id)
+                        ->where('calling_campaign_id', $request->campaign_id)
+                        ->where('is_assigned', 1)
+                        ->exists();
                 }
 
-                $prospectus = \App\Models\Prospectus::create([
+                if (!$alreadyAssigned) {
+                    if (!$request->assign_user_id) {
+                        throw new \Exception("Please select a user to assign the lead to.");
+                    }
+
+                    $prospectus = \App\Models\Prospectus::create([
                     'prospectus_name' => $calling->company_name ?: ($calling->name ?: 'New Prospect (Auto)'),
                     'contact_person'  => $calling->name,
                     'contact_number'  => $calling->phone,
@@ -740,6 +761,7 @@ class CallingController extends Controller
                 // 5. Send Email Notification
                 $this->sendNewLeadEmail($salesRecord, $request->remark);
             }
+        }
 
             // 1. Update the interaction log
             DB::table('calling_remarks')
