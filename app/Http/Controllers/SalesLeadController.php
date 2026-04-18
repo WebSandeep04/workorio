@@ -66,7 +66,8 @@ class SalesLeadController extends Controller
     }
 
     // --- Start Email Notification ---
-    $creator = \App\Models\User::find($salesRecord->user_id);
+    $creator = \App\Models\User::find($currentUserId);
+    $assignedTo = \App\Models\User::find($salesRecord->user_id);
 
     $recipientEmails = \App\Models\User::whereHas('employee', function ($q) {
             $q->where('status', 'active');
@@ -80,6 +81,10 @@ class SalesLeadController extends Controller
         $recipientEmails[] = $creator->email;
     }
 
+    if ($assignedTo && $assignedTo->email && !in_array($assignedTo->email, $recipientEmails)) {
+        $recipientEmails[] = $assignedTo->email;
+    }
+
     $recipientEmails = array_filter($recipientEmails, function($email) {
         return filter_var($email, FILTER_VALIDATE_EMAIL);
     });
@@ -87,7 +92,7 @@ class SalesLeadController extends Controller
     if (!empty($recipientEmails)) {
         try {
             \Illuminate\Support\Facades\Mail::to($recipientEmails)
-                ->send(new \App\Mail\NewLeadNotification($salesRecord, $creator, $remarkText));
+                ->send(new \App\Mail\NewLeadNotification($salesRecord, $creator, $assignedTo, $remarkText));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Failed to send new lead email: " . $e->getMessage());
         }

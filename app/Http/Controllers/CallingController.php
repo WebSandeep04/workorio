@@ -600,7 +600,7 @@ class CallingController extends Controller
                 ]);
 
                 // 5. Send Email Notification
-                $this->sendNewLeadEmail($salesRecord, $request->remark);
+                $this->sendNewLeadEmail($salesRecord, $request->remark, \App\Models\User::find($userId));
             }
         }
 
@@ -759,7 +759,7 @@ class CallingController extends Controller
                 ]);
 
                 // 5. Send Email Notification
-                $this->sendNewLeadEmail($salesRecord, $request->remark);
+                $this->sendNewLeadEmail($salesRecord, $request->remark, \App\Models\User::find($userId));
             }
         }
 
@@ -820,9 +820,14 @@ class CallingController extends Controller
     /**
      * Send email notification for a newly generated lead.
      */
-    private function sendNewLeadEmail($salesRecord, $remarkText)
+    private function sendNewLeadEmail($salesRecord, $remarkText, $creator = null)
     {
-        $creator = User::find($salesRecord->user_id);
+        $assignedTo = User::find($salesRecord->user_id);
+        
+        // If creator wasn't passed, fall back to the assigned user as a safeguard
+        if (!$creator) {
+            $creator = $assignedTo;
+        }
 
         $recipientEmails = User::whereHas('employee', function ($q) {
                 $q->where('status', 'active');
@@ -835,6 +840,10 @@ class CallingController extends Controller
         if ($creator && $creator->email && !in_array($creator->email, $recipientEmails)) {
             $recipientEmails[] = $creator->email;
         }
+        
+        if ($assignedTo && $assignedTo->email && !in_array($assignedTo->email, $recipientEmails)) {
+            $recipientEmails[] = $assignedTo->email;
+        }
 
         $recipientEmails = array_filter($recipientEmails, function($email) {
             return filter_var($email, FILTER_VALIDATE_EMAIL);
@@ -842,7 +851,7 @@ class CallingController extends Controller
 
         if (!empty($recipientEmails)) {
             try {
-                Mail::to($recipientEmails)->send(new NewLeadNotification($salesRecord, $creator, $remarkText));
+                Mail::to($recipientEmails)->send(new NewLeadNotification($salesRecord, $creator, $assignedTo, $remarkText));
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Failed to send calling-to-lead conversion email: " . $e->getMessage());
             }

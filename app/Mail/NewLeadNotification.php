@@ -16,12 +16,14 @@ class NewLeadNotification extends Mailable
 
     public $lead;
     public $creator;
+    public $assignedTo;
     public $remarkText;
 
-    public function __construct(SalesRecord $lead, ?User $creator, ?string $remarkText)
+    public function __construct(SalesRecord $lead, ?User $creator, ?User $assignedTo, ?string $remarkText)
     {
         $this->lead = $lead;
         $this->creator = $creator;
+        $this->assignedTo = $assignedTo;
         $this->remarkText = $remarkText;
     }
 

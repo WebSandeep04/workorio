@@ -54,9 +54,13 @@
                     <td style="padding:6px 8px;font-size:11px;color:#6b7280;font-weight:700;">Created By</td>
                     <td style="padding:6px 8px;font-size:11px;color:#111827;">{{ $creator ? $creator->name : 'Unknown User' }}</td>
                 </tr>
-                <tr style="background:#f9fafb;">
+                <tr style="background:#f9fafb;border-bottom:1px solid #e5e7eb;">
+                    <td style="padding:6px 8px;font-size:11px;color:#6b7280;font-weight:700;">Assigned To</td>
+                    <td style="padding:6px 8px;font-size:11px;color:#111827;">{{ $assignedTo ? $assignedTo->name : 'Unassigned' }}</td>
+                </tr>
+                <tr style="background:#ffffff;">
                     <td style="padding:6px 8px;font-size:11px;color:#6b7280;font-weight:700;">Initial Remark</td>
-                    <td style="padding:6px 8px;font-size:11px;color:#111827;white-space:normal;">{{ $remarkText ? \Illuminate\Support\Str::limit($remarkText, 25, '...') : 'N/A' }}</td>
+                    <td style="padding:6px 8px;font-size:11px;color:#111827;white-space:normal;">{{ $remarkText ?? 'N/A' }}</td>
                 </tr>
             </table>
         </div>
