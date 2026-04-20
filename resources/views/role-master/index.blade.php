@@ -390,6 +390,46 @@
       font-weight: 600;
       font-size: 0.75rem;
   }
+
+  /* Sticky Headers and Search for Permissions */
+  .permissions-search-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #fff;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 1rem;
+  }
+
+  .permission-group h6 {
+      position: sticky;
+      top: 0;
+      background: #f8f9fa;
+      z-index: 5;
+      padding: 8px 12px;
+      margin: -12px -12px 10px -12px;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  }
+
+  .btn-select-all {
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border: 1px solid #434AFA;
+      color: #434AFA;
+      background: transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+
+  .btn-select-all:hover {
+      background: #434AFA;
+      color: #fff;
+  }
 </style>
 @endpush
 
@@ -470,8 +510,14 @@
           </div>
           
           <div class="mb-3">
-            <label class="form-label-modern">Permissions <span class="text-danger">*</span></label>
-            <div class="permissions-container" style="max-height: 400px; overflow-y: auto;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label-modern mb-0">Permissions <span class="text-danger">*</span></label>
+                <div class="input-group input-group-sm" style="width: 200px;">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-filter"></i></span>
+                    <input type="text" class="form-control border-start-0 filter-permissions" placeholder="Filter permissions...">
+                </div>
+            </div>
+            <div class="permissions-container" style="max-height: 450px; overflow-y: auto; padding: 2px;">
               @foreach($tenantFeatures as $feature => $featureData)
                 @php
                   $isEnabled = isset($featureData['enabled']) ? (bool) $featureData['enabled'] : false;
@@ -479,38 +525,23 @@
                   $shouldShow = $isEnabled || $hasSetup;
                 @endphp
                 @if($shouldShow)
-                <div class="permission-group mb-3">
-                  <h6>{{ ucfirst(str_replace('_', ' ', $feature)) }}</h6>
+                <div class="permission-group mb-3" data-feature="{{ $feature }}">
+                  <h6>
+                    <span>{{ ucfirst(str_replace('_', ' ', $feature)) }}</span>
+                    <button type="button" class="btn-select-all" data-target=".group-{{ $feature }}">Select All</button>
+                  </h6>
                   <div class="row">
                     @if($isEnabled && isset($featureData['permissions']))
                       @foreach($featureData['permissions'] as $permission => $description)
-                        @if(!str_contains($permission, '.setup'))
-                        <div class="col-md-6">
+                        <div class="col-md-6 permission-item">
                           <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="permissions[]" 
+                            <input class="form-check-input group-{{ $feature }}" type="checkbox" name="permissions[]" 
                                    value="{{ $permission }}" id="perm_{{ $permission }}">
                             <label class="form-check-label" for="perm_{{ $permission }}">
                               {{ $description }}
                             </label>
                           </div>
                         </div>
-                        @endif
-                      @endforeach
-                    @endif
-                    
-                    @if($hasSetup && isset($featureData['permissions']))
-                      @foreach($featureData['permissions'] as $permission => $description)
-                        @if(str_contains($permission, '.setup'))
-                        <div class="col-md-6">
-                          <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="permissions[]" 
-                                   value="{{ $permission }}" id="perm_{{ $permission }}">
-                            <label class="form-check-label" for="perm_{{ $permission }}">
-                              {{ $description }}
-                            </label>
-                          </div>
-                        </div>
-                        @endif
                       @endforeach
                     @endif
                   </div>
@@ -561,8 +592,14 @@
           </div>
           
           <div class="mb-3">
-            <label class="form-label-modern">Permissions <span class="text-danger">*</span></label>
-            <div class="edit-permissions-container" style="max-height: 400px; overflow-y: auto;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label-modern mb-0">Permissions <span class="text-danger">*</span></label>
+                <div class="input-group input-group-sm" style="width: 200px;">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-filter"></i></span>
+                    <input type="text" class="form-control border-start-0 filter-permissions" placeholder="Filter permissions...">
+                </div>
+            </div>
+            <div class="edit-permissions-container" style="max-height: 450px; overflow-y: auto; padding: 2px;">
               <!-- Permissions will be loaded here -->
             </div>
           </div>
@@ -892,23 +929,25 @@ $(document).ready(function() {
         const container = $('.edit-permissions-container');
         container.empty();
         
-        // Load permissions from the same structure as create form
         $.get('{{ route("role-master.permissions") }}', function(permissions) {
             let html = '';
             
             Object.keys(permissions).forEach(feature => {
                 const featureData = permissions[feature];
-                html += `<div class="permission-group mb-3">`;
-                html += `<h6>${feature.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</h6>`;
+                html += `<div class="permission-group mb-3" data-feature="${feature}">`;
+                html += `<h6>
+                           <span>${feature.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                           <button type="button" class="btn-select-all" data-target=".edit-group-${feature}">Select All</button>
+                         </h6>`;
                 html += `<div class="row">`;
                 
                 Object.keys(featureData).forEach(permission => {
                     const description = featureData[permission];
                     const isChecked = availablePermissions.includes(permission) ? 'checked' : '';
                     
-                    html += `<div class="col-md-6">`;
+                    html += `<div class="col-md-6 permission-item">`;
                     html += `<div class="form-check">`;
-                    html += `<input class="form-check-input" type="checkbox" name="permissions[]" value="${permission}" id="edit_perm_${permission}" ${isChecked}>`;
+                    html += `<input class="form-check-input edit-group-${feature}" type="checkbox" name="permissions[]" value="${permission}" id="edit_perm_${permission}" ${isChecked}>`;
                     html += `<label class="form-check-label" for="edit_perm_${permission}">${description}</label>`;
                     html += `</div></div>`;
                 });
@@ -919,6 +958,31 @@ $(document).ready(function() {
             container.html(html);
         });
     }
+
+    // Permission Filter Logic
+    $(document).on('keyup', '.filter-permissions', function() {
+        const val = $(this).val().toLowerCase();
+        const $modal = $(this).closest('.modal');
+        $modal.find('.permission-group').each(function() {
+            let groupVisible = false;
+            $(this).find('.permission-item').each(function() {
+                const text = $(this).text().toLowerCase();
+                const show = text.includes(val);
+                $(this).toggle(show);
+                if (show) groupVisible = true;
+            });
+            $(this).toggle(groupVisible);
+        });
+    });
+
+    // Select All Logic
+    $(document).on('click', '.btn-select-all', function() {
+        const target = $(this).data('target');
+        const $checks = $(target);
+        const allChecked = $checks.length === $checks.filter(':checked').length;
+        $checks.prop('checked', !allChecked);
+        $(this).text(allChecked ? 'Select All' : 'Deselect All');
+    });
 });
 </script>
 <style>
