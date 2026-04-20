@@ -1,45 +1,65 @@
-@extends('layouts.app')
 
-@section('title', 'All Data - Today New')
-@section('page_title', 'All Data - Today New')
-@push('styles')
+
+<?php $__env->startSection('title', 'All Data - Today\'s Follow Ups'); ?>
+<?php $__env->startSection('page_title', 'All Data - Today\'s Follow Ups'); ?>
+<?php $__env->startPush('styles'); ?>
 <style>
 .data-table-card .custom-table thead th {  
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
    
   }
 </style>
-@endpush
-@section('content')
+<?php $__env->stopPush(); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="sales_table"></div>
 
   <!-- Summary Cards -->
   <div class="summary-cards mb-3">
     <div class="summary-card card-1" style="max-width: 250px;">
-      <div class="summary-card-icon icon-sky">
-        <img src="{{ asset('img/icons/new.png') }}" alt="New" onerror="this.onerror=null;this.src='{{ asset('img/icons/new.png') }}';">
+      <div class="summary-card-icon icon-sunrise">
+        <img src="<?php echo e(asset('img/icons/call.png')); ?>" alt="Followups" onerror="this.onerror=null;this.src='<?php echo e(asset('img/icons/call.png')); ?>';">
       </div>
       <div class="summary-card-content">
-        <div class="summary-card-label">Today New</div>
-        <div class="summary-card-value" id="totalTodayNewCard">0</div>
+        <div class="summary-card-label">Today Follow Ups</div>
+        <div class="summary-card-value" id="totalFollowupsCard">0</div>
       </div>
     </div>
   </div>
 
-  <x-filter-panel :showSearch="false" />
+  <?php if (isset($component)) { $__componentOriginalf3f7946f558699cf27352737986448eb = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalf3f7946f558699cf27352737986448eb = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.filter-panel','data' => ['showSearch' => false]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('filter-panel'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['showSearch' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false)]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginalf3f7946f558699cf27352737986448eb)): ?>
+<?php $attributes = $__attributesOriginalf3f7946f558699cf27352737986448eb; ?>
+<?php unset($__attributesOriginalf3f7946f558699cf27352737986448eb); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginalf3f7946f558699cf27352737986448eb)): ?>
+<?php $component = $__componentOriginalf3f7946f558699cf27352737986448eb; ?>
+<?php unset($__componentOriginalf3f7946f558699cf27352737986448eb); ?>
+<?php endif; ?>
 
   <div class="table-search mb-2">
     <div class="table-search-field">
       <i class="bi bi-search"></i>
-      <input type="text" id="recordSearch" placeholder="Search leads, contacts, emails..." />
+      <input type="text" id="followupSearch" placeholder="Search leads, contacts, emails..." />
     </div>
   </div>
 
   <div class="modern-card data-table-card">
     <div class="modern-card-body">
       <div class="table-responsive">
-        <table class="table custom-table" id="dataTable">
+        <table class="table custom-table" id="followupsTable">
           <thead>
             <tr>
               <th>Status</th>
@@ -82,11 +102,11 @@
   <ul class="pagination" id="paginationsearchLinks"></ul>
 </div>
 
-@include('partials.remarks-modal')
+<?php echo $__env->make('partials.remarks-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   /* Import fonts */
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
@@ -103,7 +123,7 @@
     margin-right: 0;
   }
 
-  /* Summary Card CSS */
+  /* Summary Card CSS matching todayfollowups */
   .summary-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -148,8 +168,8 @@
     object-fit: contain;
   }
 
-  /* Sky gradient for New */
-  .icon-sky { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+  /* Orange gradient for "Follow Ups" */
+  .icon-sunrise { background: linear-gradient(135deg, #f97316, #fb923c); }
 
   .summary-card-content {
     display: flex;
@@ -346,7 +366,7 @@
     white-space: nowrap;
     font-family: Montserrat;
   }
-  
+
   .data-table-card .custom-table thead th:last-child {
     border-right: none;
   }
@@ -421,13 +441,12 @@
     margin: 0.35rem 0 0.75rem;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 let currentPage = 1;
 
-// Filter Toggle
 $(document).ready(function () {
   $('#toggleFiltersBtn').on('click', function () {
     let $filterBox = $('.filterScroll');
@@ -441,10 +460,12 @@ $(document).ready(function () {
   });
 });
 
+
 function updateSummary(meta) {
   const current = meta.current_page || 1;
   const last = meta.last_page || 1;
   const total = meta.total || 0;
+  // If api returns per_page, use it. Otherwise calculate or default.
   const perPage = Number(meta.per_page || 20); 
   const from = (current - 1) * perPage + 1;
   let to = current * perPage;
@@ -458,27 +479,27 @@ function updateSummary(meta) {
 }
 
 $(document).ready(function () {
-  loadData();
+  loadFollowups();
   loadSummaryStats();
 });
 
 function loadSummaryStats() {
   $.ajax({
-    url: '{{ route("alldata.summary-stats") }}',
+    url: '<?php echo e(route("alldata.summary-stats")); ?>',
     method: 'GET',
     success: function(response) {
-      $('#totalTodayNewCard').text(response.today_new || 0);
+      $('#totalFollowupsCard').text(response.today_followups || 0);
     },
     error: function() { console.error('Failed to load summary stats'); }
   });
 }
 
-function loadData(page = 1) {
+function loadFollowups(page = 1) {
   $.ajax({
-    url: `{{ route('alldata.today-new.data') }}?page=${page}`,
+    url: `<?php echo e(route('alldata.today-followups.data')); ?>?page=${page}`,
     method: 'GET',
     success: function (response) {
-      const tbody = $('#dataTable tbody');
+      const tbody = $('#followupsTable tbody');
       tbody.empty();
       let data = response.data || [];
       
@@ -568,29 +589,31 @@ $(document).on('click', '.pagination .page-link', function (e) {
     if (parentId === 'paginationfilterLinks') {
        loadFilteredFollowups(page);
     } else if (parentId === 'paginationsearchLinks') {
-       loadSearchData(page);
+       // Search endpoint usually returns logic within itself, but if paginated:
+       loadSearchFollowups(page);
     } else {
-       loadData(page);
+       loadFollowups(page);
     }
   }
 });
 
 let currentSearch = '';
-$('#recordSearch').on('keyup', function () {
+$('#followupSearch').on('keyup', function () {
   currentSearch = $(this).val();
-  loadSearchData(1);
+  loadSearchFollowups(1);
 });
 
-function loadSearchData(page = 1) {
+function loadSearchFollowups(page = 1) {
   $.ajax({
-    url: '{{ route("alldatasearch") }}?page=' + page,
+    url: '<?php echo e(route("alldatasearch")); ?>?page=' + page,
     method: 'GET',
     data: { search: currentSearch },
     success: function (response) {
-      let tbody = $('#dataTable tbody');
+      let tbody = $('#followupsTable tbody');
       tbody.empty();
       $('#paginationLinks').hide(); 
 
+      // alldatasearch returns paginated object directly
       let data = response.data || [];
 
       if (data.length === 0) {
@@ -599,7 +622,7 @@ function loadSearchData(page = 1) {
         $('#paginationsearchLinks').empty();
       } else {
         data.forEach((item) => {
-          const rawRemark = item.last_remark || ''; 
+          const rawRemark = item.last_remark || ''; // Search uses last_remark alias
           const shortRemark = rawRemark.length > 20 ? rawRemark.substring(0, 20) + '...' : rawRemark;
           const fullRemark = rawRemark.replace(/"/g, '&quot;');
           
@@ -629,7 +652,14 @@ function loadSearchData(page = 1) {
         const $pContainer = $('#paginationsearchLinks');
         $pContainer.show();
         buildSimplePagination($pContainer, response.current_page || 1, response.last_page || 1);
-        updateSummary(response);
+        
+        updateSummary({
+            current_page: response.current_page || 1,
+            last_page: response.last_page || 1,
+            total: response.total ?? data.length,
+            per_page: response.per_page || data.length,
+            data_length: data.length
+        });
       }
     },
     error: function () { console.error('Search failed.'); }
@@ -640,7 +670,7 @@ $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('cont
 
 function loadFilteredFollowups(page = 1) {
   $.ajax({
-    url: '{{ route("alldatafilter") }}?page=' + page,
+    url: '<?php echo e(route("alldatafilter")); ?>?page=' + page,
     type: 'POST',
     data: {
       status: $('#sales_status').val(),
@@ -653,7 +683,7 @@ function loadFilteredFollowups(page = 1) {
     },
     success: function (response) {
       let data = response.data || [];
-      let tbody = $('#dataTable tbody');
+      let tbody = $('#followupsTable tbody');
       tbody.empty();
       
       if (data.length === 0) {
@@ -690,7 +720,14 @@ function loadFilteredFollowups(page = 1) {
       const $pContainer = $('#paginationfilterLinks');
       $pContainer.show();
       buildSimplePagination($pContainer, response.current_page || 1, response.last_page || 1);
-      updateSummary(response);
+      
+      updateSummary({
+        current_page: response.current_page || 1,
+        last_page: response.last_page || 1,
+        total: response.total ?? data.length,
+        per_page: response.per_page || data.length,
+        data_length: data.length
+      });
     }
   });
 }
@@ -704,7 +741,7 @@ $(document).on('change', '#sales_status, #city, #state, #business_type, #lead_so
 // Load filter options (standard boilerplate)
 $(document).ready(function() {
   $.ajax({
-    url: "{{ route('user.sales-users') }}",
+    url: "<?php echo e(route('user.sales-users')); ?>",
     type: "GET",
     success: function (data) {
       $('#user_id').empty().append('<option value="">All Sales Users</option>');
@@ -718,7 +755,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('getbusiness') }}",
+    url: "<?php echo e(route('getbusiness')); ?>",
     type: "GET",
     success: function (data) {
       $('#business_type').empty().append('<option value="">Select</option>');
@@ -730,7 +767,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('getStatuses') }}",
+    url: "<?php echo e(route('getStatuses')); ?>",
     type: 'GET',
     success: function (data) {
       $('#sales_status').empty().append('<option value="">Select</option>');
@@ -742,7 +779,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('state') }}",
+    url: "<?php echo e(route('state')); ?>",
     type: "GET",
     dataType: "json",
     success: function (states) {
@@ -757,7 +794,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('getsource') }}",
+    url: "<?php echo e(route('getsource')); ?>",
     type: "GET",
     success: function (data) {
       $('#lead_source').empty().append('<option value="">Select</option>');
@@ -769,7 +806,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('getproduct') }}",
+    url: "<?php echo e(route('getproduct')); ?>",
     type: "GET",
     success: function (data) {
       $('#product_type').empty().append('<option value="">Select</option>');
@@ -781,7 +818,7 @@ $(document).ready(function() {
   });
 
   $.ajax({
-    url: "{{ route('allcity') }}",
+    url: "<?php echo e(route('allcity')); ?>",
     type: "GET",
     success: function (data) {
       $('#city').empty().append('<option value="">Select</option>');
@@ -813,4 +850,6 @@ $(document).ready(function() {
   });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/alldata/today-followups.blade.php ENDPATH**/ ?>

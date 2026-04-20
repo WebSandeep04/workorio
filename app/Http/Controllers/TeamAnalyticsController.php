@@ -280,13 +280,21 @@ class TeamAnalyticsController extends Controller
 
             // Verify the sales record exists
             $salesRecord = SalesRecord::where('id', $salesRecordId)
-                ->with(['prospectus', 'status', 'city', 'state', 'businessType', 'product'])
+                ->with(['prospectus', 'status', 'city', 'state', 'businessType', 'product', 'user'])
                 ->first();
 
             if (!$salesRecord) {
                 \Log::warning('Sales record not found: ' . $salesRecordId);
                 return response()->json(['error' => 'Sales record not found'], 404);
             }
+
+            // Get the creator name from lead_assignment_logs (first entry)
+            $creator = DB::table('lead_assignment_logs')
+                ->where('sales_record_id', $salesRecordId)
+                ->join('users', 'lead_assignment_logs.assigned_by', '=', 'users.id')
+                ->orderBy('lead_assignment_logs.id', 'asc')
+                ->select('users.name')
+                ->first();
 
             \Log::info('Sales record found: ' . $salesRecord->id);
 
@@ -328,7 +336,9 @@ class TeamAnalyticsController extends Controller
                     'business_name' => optional($salesRecord->businessType)->business_name ?? 'N/A',
                     'status_name' => optional($salesRecord->status)->status_name ?? 'N/A',
                     'ticket_value' => $salesRecord->ticket_value ?? '-',
-                    'next_follow_up_date' => $salesRecord->next_follow_up_date ? Carbon::parse($salesRecord->next_follow_up_date)->format('d/m/Y') : 'N/A'
+                    'next_follow_up_date' => $salesRecord->next_follow_up_date ? Carbon::parse($salesRecord->next_follow_up_date)->format('d/m/Y') : 'N/A',
+                    'owner_name' => optional($salesRecord->user)->name ?? 'N/A',
+                    'created_by_name' => optional($creator)->name ?? 'N/A'
                 ],
                 'remarks' => $remarks
             ];

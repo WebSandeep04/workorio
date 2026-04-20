@@ -1,4 +1,4 @@
-﻿<!-- from the new laptop2 -->
+<!-- from the new laptop2 -->
 @extends('layouts.app')
 
 @section('title', 'Sales Product')
@@ -891,8 +891,10 @@
                 <th>Email</th>
                 <th>Business</th>
                 <th>Source</th>
-                <th>Product</th>
+                <th>Products</th>
                 <th>Ticket</th>
+                <th>Owner</th>
+                <th>Assigned By</th>
                 @if(auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1))
                   <th>Assign To</th>
                 @endif
@@ -901,7 +903,7 @@
             <tbody>
               <tr>
                 <td
-                  colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}"
+                  colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '17' : '16' }}"
                   class="loading-state">
                   <i class="bi bi-arrow-repeat"></i>
                   <p class="mt-2 mb-0">Loading sales records...</p>
@@ -1229,7 +1231,7 @@
     function loadSalesRecords(page = 1) {
       $('#alldatatable tbody').html(`
           <tr>
-            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
+            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '17' : '16' }}" class="loading-state">
               <i class="bi bi-arrow-repeat"></i>
               <p class="mt-2 mb-0">Loading sales records...</p>
             </td>
@@ -1244,7 +1246,7 @@
 
           if (data.data.length === 0) {
             html = `<tr>
-                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
+                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '17' : '16' }}" class="empty-state">
                         <i class="bi bi-inbox"></i>
                         <h5>No Records Found</h5>
                         <p>No sales records available at the moment.</p>
@@ -1292,6 +1294,8 @@
                                 <td>${record.source_name ?? 'N/A'}</td>
                                 <td>${record.product_name ?? 'N/A'}</td>
                                 <td>${record.ticket_value ?? '0'}</td>
+                                <td>${record.owner_name ?? 'N/A'}</td>
+                                <td>${record.creator_name ?? 'N/A'}</td>
                                 ${assignToColumn}
                             </tr>
                         `;
@@ -1306,7 +1310,7 @@
           console.error("Error:", xhr.responseText);
           $('#alldatatable tbody').html(`
                   <tr>
-                    <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="text-danger text-center py-4">
+                    <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '17' : '16' }}" class="text-danger text-center py-4">
                       <i class="bi bi-exclamation-triangle"></i>
                       <p class="mt-2">Failed to load records. Please try again.</p>
                     </td>
@@ -1390,7 +1394,7 @@
 
       $('#alldatatable tbody').html(`
           <tr>
-            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
+            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '17' : '16' }}" class="loading-state">
               <i class="bi bi-arrow-repeat"></i>
               <p class="mt-2 mb-0">Searching...</p>
             </td>
@@ -1407,7 +1411,7 @@
 
           if (data.length === 0) {
             html = `<tr>
-                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
+                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '17' : '16' }}" class="empty-state">
                         <i class="bi bi-search"></i>
                         <h5>No Results Found</h5>
                         <p>Try adjusting your search criteria.</p>
@@ -1451,6 +1455,8 @@
                                 <td>${record.source_name ?? 'N/A'}</td>
                                 <td>${record.product_name ?? 'N/A'}</td>
                                 <td>${record.ticket_value ?? '0'}</td>
+                                <td>${record.owner_name ?? 'N/A'}</td>
+                                <td>${record.creator_name ?? 'N/A'}</td>
                                 ${assignToColumn}
                             </tr>
                         `;
@@ -1639,7 +1645,7 @@
     function loadFilteredTable(page = 1) {
       $('#alldatatable tbody').html(`
           <tr>
-            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
+            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '17' : '16' }}" class="loading-state">
               <i class="bi bi-arrow-repeat"></i>
               <p class="mt-2 mb-0">Filtering records...</p>
             </td>
@@ -1664,7 +1670,7 @@
 
           if (data.length === 0) {
             html = `<tr>
-                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
+                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '17' : '16' }}" class="empty-state">
                         <i class="bi bi-funnel"></i>
                         <h5>No Records Found</h5>
                         <p>Try adjusting your filter criteria.</p>
@@ -1712,6 +1718,8 @@
                                 <td>${record.source_name ?? 'N/A'}</td>
                                 <td>${record.product_name ?? 'N/A'}</td>
                                 <td>${record.ticket_value ?? '0'}</td>
+                                <td>${record.owner_name ?? 'N/A'}</td>
+                                <td>${record.creator_name ?? 'N/A'}</td>
                                 ${assignToColumn}
                             </tr>
                         `;
@@ -1758,7 +1766,7 @@
     function loadDateFilteredTable(from_date = '', to_date = '', page = 1) {
       $('#alldatatable tbody').html(`
           <tr>
-            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="loading-state">
+            <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '17' : '16' }}" class="loading-state">
               <i class="bi bi-arrow-repeat"></i>
               <p class="mt-2 mb-0">Filtering by date...</p>
             </td>
@@ -1779,7 +1787,7 @@
 
           if (data.length === 0) {
             html = `<tr>
-                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '15' : '14' }}" class="empty-state">
+                      <td colspan="{{ auth()->check() && (auth()->user()->subordinates()->exists() || auth()->user()->role_id == 1) ? '17' : '16' }}" class="empty-state">
                         <i class="bi bi-calendar-x"></i>
                         <h5>No Records Found</h5>
                         <p>No records found for the selected date range.</p>
@@ -1827,6 +1835,8 @@
                                 <td>${record.source_name ?? 'N/A'}</td>
                                 <td>${record.product_name ?? 'N/A'}</td>
                                 <td>${record.ticket_value ?? '0'}</td>
+                                <td>${record.owner_name ?? 'N/A'}</td>
+                                <td>${record.creator_name ?? 'N/A'}</td>
                                 ${assignToColumn}
                             </tr>
                         `;

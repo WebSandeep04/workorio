@@ -46,3 +46,59 @@
 [2026-04-20 05:41:51] local.INFO: Quotation store: User ID found {"user_id":13} 
 [2026-04-20 05:41:51] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
 [2026-04-20 05:41:51] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260420-002"} 
+[2026-04-20 07:43:17] local.INFO: getRemarks called with ID: 5593  
+[2026-04-20 07:43:17] local.INFO: Sales record found: 5593  
+[2026-04-20 07:43:17] local.INFO: Remarks count: 1  
+[2026-04-20 07:43:17] local.INFO: Returning response successfully  
+[2026-04-20 07:52:32] local.ERROR: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'workorio.lead_assignment_logs' doesn't exist (Connection: mysql, SQL: select * from `lead_assignment_logs` limit 5) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'workorio.lead_assignment_logs' doesn't exist (Connection: mysql, SQL: select * from `lead_assignment_logs` limit 5) at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:824)
+[stacktrace]
+#0 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(778): Illuminate\\Database\\Connection->runQueryCallback('select * from `...', Array, Object(Closure))
+#1 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(397): Illuminate\\Database\\Connection->run('select * from `...', Array, Object(Closure))
+#2 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3188): Illuminate\\Database\\Connection->select('select * from `...', Array, true)
+#3 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3173): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3763): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3172): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\scratch\\check_db.php(13): Illuminate\\Database\\Query\\Builder->get()
+#7 {main}
+
+[previous exception] [object] (PDOException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'workorio.lead_assignment_logs' doesn't exist at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:406)
+[stacktrace]
+#0 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(406): PDO->prepare('select * from `...')
+#1 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(811): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select * from `...', Array)
+#2 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(778): Illuminate\\Database\\Connection->runQueryCallback('select * from `...', Array, Object(Closure))
+#3 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(397): Illuminate\\Database\\Connection->run('select * from `...', Array, Object(Closure))
+#4 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3188): Illuminate\\Database\\Connection->select('select * from `...', Array, true)
+#5 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3173): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3763): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#7 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3172): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#8 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\scratch\\check_db.php(13): Illuminate\\Database\\Query\\Builder->get()
+#9 {main}
+"} 
+[2026-04-20 08:03:40] local.INFO: getRemarks called with ID: 5593  
+[2026-04-20 08:03:40] local.INFO: Sales record found: 5593  
+[2026-04-20 08:03:40] local.INFO: Remarks count: 1  
+[2026-04-20 08:03:40] local.INFO: Returning response successfully  
+[2026-04-20 08:07:15] local.INFO: getRemarks called with ID: 5593  
+[2026-04-20 08:07:15] local.INFO: Sales record found: 5593  
+[2026-04-20 08:07:15] local.INFO: Remarks count: 1  
+[2026-04-20 08:07:15] local.INFO: Returning response successfully  
+[2026-04-20 08:08:01] local.INFO: getRemarks called with ID: 5230  
+[2026-04-20 08:08:01] local.INFO: Sales record found: 5230  
+[2026-04-20 08:08:01] local.INFO: Remarks count: 4  
+[2026-04-20 08:08:01] local.INFO: Returning response successfully  
+[2026-04-20 08:08:08] local.INFO: getRemarks called with ID: 5230  
+[2026-04-20 08:08:08] local.INFO: Sales record found: 5230  
+[2026-04-20 08:08:08] local.INFO: Remarks count: 4  
+[2026-04-20 08:08:08] local.INFO: Returning response successfully  
+[2026-04-20 08:08:13] local.INFO: getRemarks called with ID: 5253  
+[2026-04-20 08:08:13] local.INFO: Sales record found: 5253  
+[2026-04-20 08:08:13] local.INFO: Remarks count: 4  
+[2026-04-20 08:08:13] local.INFO: Returning response successfully  
+[2026-04-20 08:16:00] local.INFO: getRemarks called with ID: 5230  
+[2026-04-20 08:16:00] local.INFO: Sales record found: 5230  
+[2026-04-20 08:16:00] local.INFO: Remarks count: 4  
+[2026-04-20 08:16:00] local.INFO: Returning response successfully  
+[2026-04-20 08:16:21] local.INFO: getRemarks called with ID: 5578  
+[2026-04-20 08:16:21] local.INFO: Sales record found: 5578  
+[2026-04-20 08:16:21] local.INFO: Remarks count: 3  
+[2026-04-20 08:16:21] local.INFO: Returning response successfully  

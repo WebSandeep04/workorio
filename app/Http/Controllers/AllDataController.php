@@ -101,6 +101,17 @@ class AllDataController extends Controller
         ->leftJoin('sales_products', 'sales_records.products_id', '=', 'sales_products.id')
         ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
         ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
+        ->leftJoin('users as owner', 'sales_records.user_id', '=', 'owner.id')
+        ->leftJoin(DB::raw('(
+            SELECT l1.sales_record_id, u.name as creator_name
+            FROM lead_assignment_logs l1
+            INNER JOIN (
+                SELECT sales_record_id, MIN(id) as first_log_id
+                FROM lead_assignment_logs
+                GROUP BY sales_record_id
+            ) l2 ON l1.id = l2.first_log_id
+            INNER JOIN users u ON l1.assigned_by = u.id
+        ) as creators'), 'sales_records.id', '=', 'creators.sales_record_id')
         ->leftJoin(DB::raw('(
             SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
             FROM remarks r1
@@ -120,6 +131,8 @@ class AllDataController extends Controller
             'sales_products.product_name',
             'states.state_name',
             'cities.city_name',
+            'owner.name as owner_name',
+            'creators.creator_name',
             'latest_remarks.remark as latest_remark',
             'latest_remarks.remark_date as latest_remark_date'
         )
@@ -180,18 +193,31 @@ class AllDataController extends Controller
         $query->where('sales_records.products_id', $request->product);
     }
 
-    $sales = $query->select(
-        'sales_records.*',
-        'prospectuses.prospectus_name',
-        'states.state_name',
-        'cities.city_name',
-        'sales_business_types.business_name',
-        'sales_lead_sources.source_name',
-        'sales_products.product_name',
-        'sales_status.status_name',
-        'r.remark as last_remark',
-        'r.remark_date'
-    )->paginate(20);
+    $sales = $query->leftJoin('users as owner', 'sales_records.user_id', '=', 'owner.id')
+        ->leftJoin(DB::raw('(
+            SELECT l1.sales_record_id, u.name as creator_name
+            FROM lead_assignment_logs l1
+            INNER JOIN (
+                SELECT sales_record_id, MIN(id) as first_log_id
+                FROM lead_assignment_logs
+                GROUP BY sales_record_id
+            ) l2 ON l1.id = l2.first_log_id
+            INNER JOIN users u ON l1.assigned_by = u.id
+        ) as creators'), 'sales_records.id', '=', 'creators.sales_record_id')
+        ->select(
+            'sales_records.*',
+            'prospectuses.prospectus_name',
+            'states.state_name',
+            'cities.city_name',
+            'sales_business_types.business_name',
+            'sales_lead_sources.source_name',
+            'sales_products.product_name',
+            'sales_status.status_name',
+            'owner.name as owner_name',
+            'creators.creator_name',
+            'r.remark as last_remark',
+            'r.remark_date'
+        )->paginate(20);
 
     return response()->json($sales);
 }
@@ -239,21 +265,34 @@ public function alldatasearch(Request $request)
     }
     // no role filter needed here
 
-    $sales = $query->select(
-        'sales_records.*',
-        'prospectuses.prospectus_name',
-        'prospectuses.contact_person',
-        'prospectuses.contact_number',
-        'prospectuses.email',
-        'states.state_name',
-        'cities.city_name',
-        'sales_business_types.business_name',
-        'sales_lead_sources.source_name',
-        'sales_products.product_name',
-        'sales_status.status_name',
-        'r.remark as last_remark',
-        'r.remark_date'
-    )->paginate(20);
+    $sales = $query->leftJoin('users as owner', 'sales_records.user_id', '=', 'owner.id')
+        ->leftJoin(DB::raw('(
+            SELECT l1.sales_record_id, u.name as creator_name
+            FROM lead_assignment_logs l1
+            INNER JOIN (
+                SELECT sales_record_id, MIN(id) as first_log_id
+                FROM lead_assignment_logs
+                GROUP BY sales_record_id
+            ) l2 ON l1.id = l2.first_log_id
+            INNER JOIN users u ON l1.assigned_by = u.id
+        ) as creators'), 'sales_records.id', '=', 'creators.sales_record_id')
+        ->select(
+            'sales_records.*',
+            'prospectuses.prospectus_name',
+            'prospectuses.contact_person',
+            'prospectuses.contact_number',
+            'prospectuses.email',
+            'states.state_name',
+            'cities.city_name',
+            'sales_business_types.business_name',
+            'sales_lead_sources.source_name',
+            'sales_products.product_name',
+            'sales_status.status_name',
+            'owner.name as owner_name',
+            'creators.creator_name',
+            'r.remark as last_remark',
+            'r.remark_date'
+        )->paginate(20);
 
     return response()->json($sales);
 }
@@ -320,18 +359,31 @@ public function alldatafilterdate(Request $request)
         $query->where('sales_records.products_id', $request->product);
     }
 
-    $sales = $query->select(
-        'sales_records.*',
-        'prospectuses.prospectus_name',
-        'states.state_name',
-        'cities.city_name',
-        'sales_business_types.business_name',
-        'sales_lead_sources.source_name',
-        'sales_products.product_name',
-        'sales_status.status_name',
-        'r.remark as last_remark',
-        'r.remark_date'
-    )->paginate(20);
+    $sales = $query->leftJoin('users as owner', 'sales_records.user_id', '=', 'owner.id')
+        ->leftJoin(DB::raw('(
+            SELECT l1.sales_record_id, u.name as creator_name
+            FROM lead_assignment_logs l1
+            INNER JOIN (
+                SELECT sales_record_id, MIN(id) as first_log_id
+                FROM lead_assignment_logs
+                GROUP BY sales_record_id
+            ) l2 ON l1.id = l2.first_log_id
+            INNER JOIN users u ON l1.assigned_by = u.id
+        ) as creators'), 'sales_records.id', '=', 'creators.sales_record_id')
+        ->select(
+            'sales_records.*',
+            'prospectuses.prospectus_name',
+            'states.state_name',
+            'cities.city_name',
+            'sales_business_types.business_name',
+            'sales_lead_sources.source_name',
+            'sales_products.product_name',
+            'sales_status.status_name',
+            'owner.name as owner_name',
+            'creators.creator_name',
+            'r.remark as last_remark',
+            'r.remark_date'
+        )->paginate(20);
 
     return response()->json($sales);
 }
@@ -443,6 +495,17 @@ public function alldatafilterdate(Request $request)
             ->leftJoin('sales_products', 'sales_records.products_id', '=', 'sales_products.id')
             ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
             ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
+            ->leftJoin('users as owner', 'sales_records.user_id', '=', 'owner.id')
+            ->leftJoin(DB::raw('(
+                SELECT l1.sales_record_id, u.name as creator_name
+                FROM lead_assignment_logs l1
+                INNER JOIN (
+                    SELECT sales_record_id, MIN(id) as first_log_id
+                    FROM lead_assignment_logs
+                    GROUP BY sales_record_id
+                ) l2 ON l1.id = l2.first_log_id
+                INNER JOIN users u ON l1.assigned_by = u.id
+            ) as creators'), 'sales_records.id', '=', 'creators.sales_record_id')
             ->leftJoin(DB::raw('(
                 SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
                 FROM remarks r1
@@ -470,6 +533,8 @@ public function alldatafilterdate(Request $request)
                 'sales_products.product_name',
                 'states.state_name',
                 'cities.city_name',
+                'owner.name as owner_name',
+                'creators.creator_name',
                 'latest_remarks.remark as latest_remark',
                 'latest_remarks.remark_date as latest_remark_date'
             )->paginate(20);
@@ -494,6 +559,17 @@ public function alldatafilterdate(Request $request)
             ->leftJoin('sales_products', 'sales_records.products_id', '=', 'sales_products.id')
             ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
             ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
+            ->leftJoin('users as owner', 'sales_records.user_id', '=', 'owner.id')
+            ->leftJoin(DB::raw('(
+                SELECT l1.sales_record_id, u.name as creator_name
+                FROM lead_assignment_logs l1
+                INNER JOIN (
+                    SELECT sales_record_id, MIN(id) as first_log_id
+                    FROM lead_assignment_logs
+                    GROUP BY sales_record_id
+                ) l2 ON l1.id = l2.first_log_id
+                INNER JOIN users u ON l1.assigned_by = u.id
+            ) as creators'), 'sales_records.id', '=', 'creators.sales_record_id')
             ->leftJoin(DB::raw('(
                 SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
                 FROM remarks r1
@@ -516,6 +592,8 @@ public function alldatafilterdate(Request $request)
                 'sales_products.product_name',
                 'states.state_name',
                 'cities.city_name',
+                'owner.name as owner_name',
+                'creators.creator_name',
                 'latest_remarks.remark as latest_remark',
                 'latest_remarks.remark_date as latest_remark_date'
             )->paginate(20);
@@ -540,6 +618,17 @@ public function alldatafilterdate(Request $request)
             ->leftJoin('sales_products', 'sales_records.products_id', '=', 'sales_products.id')
             ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
             ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
+            ->leftJoin('users as owner', 'sales_records.user_id', '=', 'owner.id')
+            ->leftJoin(DB::raw('(
+                SELECT l1.sales_record_id, u.name as creator_name
+                FROM lead_assignment_logs l1
+                INNER JOIN (
+                    SELECT sales_record_id, MIN(id) as first_log_id
+                    FROM lead_assignment_logs
+                    GROUP BY sales_record_id
+                ) l2 ON l1.id = l2.first_log_id
+                INNER JOIN users u ON l1.assigned_by = u.id
+            ) as creators'), 'sales_records.id', '=', 'creators.sales_record_id')
             ->leftJoin(DB::raw('(
                 SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
                 FROM remarks r1
@@ -562,6 +651,8 @@ public function alldatafilterdate(Request $request)
                 'sales_products.product_name',
                 'states.state_name',
                 'cities.city_name',
+                'owner.name as owner_name',
+                'creators.creator_name',
                 'latest_remarks.remark as latest_remark',
                 'latest_remarks.remark_date as latest_remark_date'
             )->paginate(20);
@@ -586,6 +677,17 @@ public function alldatafilterdate(Request $request)
             ->leftJoin('sales_products', 'sales_records.products_id', '=', 'sales_products.id')
             ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
             ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
+            ->leftJoin('users as owner', 'sales_records.user_id', '=', 'owner.id')
+            ->leftJoin(DB::raw('(
+                SELECT l1.sales_record_id, u.name as creator_name
+                FROM lead_assignment_logs l1
+                INNER JOIN (
+                    SELECT sales_record_id, MIN(id) as first_log_id
+                    FROM lead_assignment_logs
+                    GROUP BY sales_record_id
+                ) l2 ON l1.id = l2.first_log_id
+                INNER JOIN users u ON l1.assigned_by = u.id
+            ) as creators'), 'sales_records.id', '=', 'creators.sales_record_id')
             ->leftJoin(DB::raw('(
                 SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
                 FROM remarks r1
@@ -610,6 +712,8 @@ public function alldatafilterdate(Request $request)
                 'sales_products.product_name',
                 'states.state_name',
                 'cities.city_name',
+                'owner.name as owner_name',
+                'creators.creator_name',
                 'latest_remarks.remark as latest_remark',
                 'latest_remarks.remark_date as latest_remark_date'
             )->paginate(20);
@@ -634,6 +738,17 @@ public function alldatafilterdate(Request $request)
             ->leftJoin('sales_products', 'sales_records.products_id', '=', 'sales_products.id')
             ->leftJoin('states', 'sales_records.state_id', '=', 'states.id')
             ->leftJoin('cities', 'sales_records.city_id', '=', 'cities.id')
+            ->leftJoin('users as owner', 'sales_records.user_id', '=', 'owner.id')
+            ->leftJoin(DB::raw('(
+                SELECT l1.sales_record_id, u.name as creator_name
+                FROM lead_assignment_logs l1
+                INNER JOIN (
+                    SELECT sales_record_id, MIN(id) as first_log_id
+                    FROM lead_assignment_logs
+                    GROUP BY sales_record_id
+                ) l2 ON l1.id = l2.first_log_id
+                INNER JOIN users u ON l1.assigned_by = u.id
+            ) as creators'), 'sales_records.id', '=', 'creators.sales_record_id')
             ->leftJoin(DB::raw('(
                 SELECT r1.id, r1.sales_remark_id, r1.remark, r1.remark_date
                 FROM remarks r1
@@ -655,6 +770,8 @@ public function alldatafilterdate(Request $request)
                 'sales_products.product_name',
                 'states.state_name',
                 'cities.city_name',
+                'owner.name as owner_name',
+                'creators.creator_name',
                 'latest_remarks.remark as latest_remark',
                 'latest_remarks.remark_date as latest_remark_date'
             )->paginate(20);

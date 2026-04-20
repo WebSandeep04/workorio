@@ -47,6 +47,16 @@
                                 </div>
 
                                 <div>
+                                    <i class="bi bi-person-badge-fill text-primary"></i>
+                                    Owner: <span id="modalOwner">-</span>
+                                </div>
+
+                                <div>
+                                    <i class="bi bi-person-plus-fill text-success"></i>
+                                    Assigned By: <span id="modalCreatedBy">-</span>
+                                </div>
+
+                                <div>
                                     <i class="bi bi-geo-alt-fill"></i>
                                     <span id="modalCity">-</span>,
                                     <span id="modalState">-</span>
@@ -270,6 +280,8 @@ window.showRemarksModal = function (salesRecordId) {
             $('#modalStatus').text(response.sales_record.status_name || '-');
             $('#modalTicketValue').text(response.sales_record.ticket_value || '-');
             $('#modalNextFollowUp').text(response.sales_record.next_follow_up_date || '-');
+            $('#modalOwner').text(response.sales_record.owner_name || '-');
+            $('#modalCreatedBy').text(response.sales_record.created_by_name || '-');
 
             let remarksHtml = '';
 

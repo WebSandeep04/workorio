@@ -57,6 +57,8 @@
               <th>Source</th>
               <th>Product</th>
               <th>Ticket</th>
+              <th>Owner</th>
+              <th>Assigned By</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -481,7 +483,7 @@ function loadData(page = 1) {
       let data = response.data || [];
       
       if (data.length === 0) {
-        tbody.append(`<tr><td colspan="15" class="text-center">No records found</td></tr>`);
+        tbody.append(`<tr><td colspan="17" class="text-center">No records found</td></tr>`);
         $('#paginationLinks').empty();
         updateSummary({ current_page: 1, last_page: 1, total: 0 });
         return;
@@ -510,6 +512,8 @@ function loadData(page = 1) {
             <td>${item.source_name ?? '-'}</td>
             <td>${item.product_name ?? '-'}</td>
             <td>${item.ticket_value ?? '-'}</td>
+            <td>${item.owner_name ?? '-'}</td>
+            <td>${item.creator_name ?? '-'}</td>
           </tr>
         `);
       });
@@ -590,7 +594,7 @@ function loadSearchData(page = 1) {
       let data = response.data || [];
 
       if (data.length === 0) {
-        tbody.append('<tr><td colspan="15" class="text-center">No records found</td></tr>');
+        tbody.append('<tr><td colspan="17" class="text-center">No records found</td></tr>');
         updateSummary({ total: 0 });
         $('#paginationsearchLinks').empty();
       } else {
@@ -616,6 +620,8 @@ function loadSearchData(page = 1) {
               <td>${item.source_name ?? '-'}</td>
               <td>${item.product_name ?? '-'}</td>
               <td>${item.ticket_value ?? '-'}</td>
+            <td>${item.owner_name ?? '-'}</td>
+            <td>${item.creator_name ?? '-'}</td>
             </tr>
           `);
         });
@@ -642,7 +648,8 @@ function loadFilteredFollowups(page = 1) {
       state: $('#state').val(),
       business: $('#business_type').val(),
       source: $('#lead_source').val(),
-      product: $('#product_type').val()
+      product: $('#product_type').val(),
+      user_id: $('#user_id').val()
     },
     success: function (response) {
       let data = response.data || [];
@@ -650,7 +657,7 @@ function loadFilteredFollowups(page = 1) {
       tbody.empty();
       
       if (data.length === 0) {
-        tbody.append('<tr><td colspan="15" class="text-center">No records found.</td></tr>');
+        tbody.append('<tr><td colspan="17" class="text-center">No records found.</td></tr>');
       } else {
         data.forEach(function (item) {
           const rawRemark = item.last_remark || item.latest_remark || '';
@@ -673,6 +680,8 @@ function loadFilteredFollowups(page = 1) {
               <td>${item.source_name ?? '-'}</td>
               <td>${item.product_name ?? '-'}</td>
               <td>${item.ticket_value ?? '-'}</td>
+            <td>${item.owner_name ?? '-'}</td>
+            <td>${item.creator_name ?? '-'}</td>
             </tr>
           `);
         });
@@ -686,7 +695,7 @@ function loadFilteredFollowups(page = 1) {
   });
 }
 
-$(document).on('change', '#sales_status, #city, #state, #business_type, #lead_source, #product_type', function () {
+$(document).on('change', '#sales_status, #city, #state, #business_type, #lead_source, #product_type, #user_id', function () {
   $('#paginationLinks').hide();
   $('#paginationsearchLinks').hide();
   loadFilteredFollowups(1);
@@ -694,6 +703,20 @@ $(document).on('change', '#sales_status, #city, #state, #business_type, #lead_so
 
 // Load filter options (standard boilerplate)
 $(document).ready(function() {
+  $.ajax({
+    url: "{{ route('user.sales-users') }}",
+    type: "GET",
+    success: function (data) {
+      $('#user_id').empty().append('<option value="">All Sales Users</option>');
+      $.each(data, function (index, user) {
+        $('#user_id').append(`<option value="${user.id}">${user.name}</option>`);
+      });
+    },
+    error: function () {
+      $('#user_id').html('<option value="">Unable to load users</option>');
+    }
+  });
+
   $.ajax({
     url: "{{ route('getbusiness') }}",
     type: "GET",
