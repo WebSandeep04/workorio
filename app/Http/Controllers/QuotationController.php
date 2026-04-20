@@ -363,6 +363,8 @@ class QuotationController extends Controller
             'products.*.quantity'   => 'nullable|numeric|min:0',
             'products.*.unit'       => 'nullable|string|max:50',
             'products.*.remark'     => 'nullable|string',
+            'products.*.discount'   => 'nullable|numeric|min:0',
+            'products.*.discount_type' => 'nullable|string|in:fixed,percentage',
             'discount'           => 'nullable|numeric|min:0',
             'total_amount'       => 'nullable|numeric',
             'status'             => 'nullable|string|max:100',

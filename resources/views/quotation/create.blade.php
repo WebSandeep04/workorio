@@ -479,9 +479,9 @@ function populateAllProductSelects() {
 function addProductRow() {
     const rowId = 'product_' + Date.now();
     const productRow = `
-        <div class="product-card" id="${rowId}">
-            <div class="row product-row">
-                <div class="col-md-2">
+        <div class="product-card" id="${rowId}" style="background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 15px; overflow: hidden;">
+            <div class="row product-row pb-0" style="background: transparent; padding: 15px 15px 0;">
+                <div class="col-md-3">
                     <div class="mb-3">
                         <label class="form-label-modern">
                             <i class="bi bi-box"></i>
@@ -492,7 +492,7 @@ function addProductRow() {
                         </select>
                     </div>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <div class="mb-3">
                         <label class="form-label-modern">
                             Qty
@@ -520,28 +520,38 @@ function addProductRow() {
                 <div class="col-md-2">
                     <div class="mb-3">
                         <label class="form-label-modern">
+                            Disc
+                        </label>
+                        <div class="d-flex">
+                            <input type="number" class="form-control form-control-modern row-discount" name="products[${rowId}][discount]" step="0.01" value="0" placeholder="0" style="border-radius: 4px 0 0 4px;">
+                            <select class="form-control form-control-modern row-discount-type" name="products[${rowId}][discount_type]" style="max-width: 50px; border-radius: 0 4px 4px 0; padding: 0 5px; background: #eee;">
+                                <option value="percentage">%</option>
+                                <option value="fixed">₹</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label-modern">
                             <i class="bi bi-calculator"></i>
                             Amount
                         </label>
                         <input type="text" class="form-control form-control-modern row-amount" name="products[${rowId}][amount]" placeholder="0.00" readonly>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="mb-3">
-                        <label class="form-label-modern">
-                            <i class="bi bi-chat-left-text"></i>
-                            Remark
-                        </label>
-                        <input type="text" class="form-control form-control-modern" name="products[${rowId}][remark]" placeholder="Remark">
-                    </div>
-                </div>
                 <div class="col-md-1">
                     <div class="mb-3">
                         <label class="form-label-modern">&nbsp;</label>
-                        <button type="button" class="btn-remove-product w-100" onclick="removeProductRow('${rowId}')" title="Remove Product">
+                        <button type="button" class="btn-remove-product w-100" onclick="removeProductRow('${rowId}')" title="Remove Product" style="height: 38px;">
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
+                </div>
+            </div>
+            <div class="row px-3 pb-3">
+                <div class="col-md-12">
+                    <input type="text" class="form-control form-control-modern" name="products[${rowId}][remark]" placeholder="Enter Detailed Remark / Product description here..." style="background: #fff; border: 1px solid #ced4da;">
                 </div>
             </div>
         </div>
@@ -634,8 +644,19 @@ function prefillFromQuotation(quotationNumber){
                     last.find('input[name*="[price]"]').val(p.price || '');
                     last.find('input[name*="[remark]"]').val(p.remark || '');
                     
+                    last.find('input[name*="[discount]"]').val(p.discount || 0);
+                    last.find('select[name*="[discount_type]"]').val(p.discount_type || 'percentage');
+                    
                     if(p.price) {
-                        last.find('.row-amount').val(round2(parseFloat(p.price) * (parseFloat(p.quantity) || 1)).toFixed(2));
+                        let baseAmount = parseFloat(p.price) * (parseFloat(p.quantity) || 0);
+                        let disc = parseFloat(p.discount || 0);
+                        let finalLineAmount = baseAmount;
+                        if (p.discount_type === 'percentage') {
+                            finalLineAmount = baseAmount - (baseAmount * (disc / 100));
+                        } else {
+                            finalLineAmount = baseAmount - disc;
+                        }
+                        last.find('.row-amount').val(round2(finalLineAmount).toFixed(2));
                     }
                 });
             }
@@ -687,13 +708,18 @@ function saveQuotation() {
         const unit = row.find('input[name*="[unit]"]').val();
         const remark = row.find('input[name*="[remark]"]').val();
         
+        const discount = row.find('input[name*="[discount]"]').val();
+        const discountType = row.find('select[name*="[discount_type]"]').val();
+        
         if (productId) {
             products.push({
                 product_id: productId,
                 price: (price !== "" && price !== null) ? parseFloat(price) : 0,
                 quantity: (quantity !== "" && quantity !== null) ? parseFloat(quantity) : 0,
                 unit: unit || 'Nos',
-                remark: remark || ''
+                remark: remark || '',
+                discount: (discount !== "" && discount !== null) ? parseFloat(discount) : 0,
+                discount_type: discountType || 'percentage'
             });
         }
     });
@@ -869,7 +895,19 @@ function calculateTotalAmount(products, discountInput = 0){
     products.forEach(p => {
         const price = Number(p.price || 0);
         const qty = Number(p.quantity !== undefined && p.quantity !== null ? p.quantity : 0);
-        subtotal += round2(price * qty);
+        const disc = Number(p.discount || 0);
+        const discType = p.discount_type || 'percentage';
+        
+        let rowBase = round2(price * qty);
+        let rowLineAmount = rowBase;
+        
+        if (discType === 'percentage') {
+            rowLineAmount = rowBase - (rowBase * (disc/100));
+        } else {
+            rowLineAmount = rowBase - disc;
+        }
+        
+        subtotal += round2(rowLineAmount);
     });
     
     const isPercentage = $('.discount-toggle button:first-child').hasClass('active');
@@ -894,6 +932,8 @@ function updateLiveTotals() {
         const row = $(this);
         const price = row.find('input[name*="[price]"]').val();
         const quantity = row.find('input[name*="[quantity]"]').val();
+        const discount = row.find('input[name*="[discount]"]').val();
+        const discountType = row.find('select[name*="[discount_type]"]').val();
         
         const rowAmountInput = row.find('.row-amount');
         const productId = row.find('.product-select').val();
@@ -901,11 +941,23 @@ function updateLiveTotals() {
         if (productId) {
             const parsedPrice = (price !== "" && price !== null) ? parseFloat(price) : 0;
             const parsedQuantity = (quantity !== "" && quantity !== null) ? parseFloat(quantity) : 0;
-            rowAmountInput.val(round2(parsedPrice * parsedQuantity).toFixed(2));
+            const parsedDiscount = (discount !== "" && discount !== null) ? parseFloat(discount) : 0;
+            
+            let rowBase = round2(parsedPrice * parsedQuantity);
+            let rowFinal = rowBase;
+            if (discountType === 'percentage') {
+                rowFinal = rowBase - (rowBase * (parsedDiscount / 100));
+            } else {
+                rowFinal = rowBase - parsedDiscount;
+            }
+            
+            rowAmountInput.val(round2(rowFinal).toFixed(2));
             
             products.push({
                 price: parsedPrice,
-                quantity: parsedQuantity
+                quantity: parsedQuantity,
+                discount: parsedDiscount,
+                discount_type: discountType
             });
         } else {
             rowAmountInput.val('0.00');
@@ -914,7 +966,12 @@ function updateLiveTotals() {
 
     let subtotal = 0;
     products.forEach(p => {
-        subtotal += round2(p.price * p.quantity);
+        let rowBase = round2(p.price * p.quantity);
+        if (p.discount_type === 'percentage') {
+            subtotal += round2(rowBase - (rowBase * (p.discount / 100)));
+        } else {
+            subtotal += round2(rowBase - p.discount);
+        }
     });
 
     const discountVal = parseFloat($('#discount').val() || 0);
@@ -928,7 +985,8 @@ function updateLiveTotals() {
 }
 
 // Add event listeners for inputs
-$(document).on('input', 'input[name*="[price]"], input[name*="[quantity]"]', updateLiveTotals);
+$(document).on('input', 'input[name*="[price]"], input[name*="[quantity]"], input[name*="[discount]"]', updateLiveTotals);
+$(document).on('change', 'select[name*="[discount_type]"]', updateLiveTotals);
 $(document).on('click', '.btn-add', function() {
     setTimeout(updateLiveTotals, 50);
 });

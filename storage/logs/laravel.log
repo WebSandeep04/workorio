@@ -33,3 +33,16 @@
 [2026-04-18 06:22:09] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-04-18 06:22:09] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":20,"name":"Anees Fatma","email":"anees@triserv360.com","role_id":9,"tenant_id":1}} 
 [2026-04-18 06:22:09] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-04-20 05:05:06] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-04-20 05:05:08] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-20 05:05:09] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-04-20 05:05:09] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-04-20 05:05:09] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-04-20 05:34:03] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-20 05:34:03] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-20 05:34:03] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-04-20 05:34:03] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260420-001"} 
+[2026-04-20 05:41:51] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-20 05:41:51] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-20 05:41:51] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-04-20 05:41:51] local.INFO: Starting quotation save transaction {"quote_no":"quote-20260420-002"} 

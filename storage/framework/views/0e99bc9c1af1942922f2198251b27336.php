@@ -67,7 +67,7 @@
             color: #FFFFFF;
             padding: 5px 10px;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 14px;
             float: left;
         }
         .line-text {
@@ -116,7 +116,7 @@
             width: 100%;
         }
         .doc-title {
-            font-size: 28px;
+            font-size: 20px;
             color: #0088CC;
             margin: 0;
             font-weight: bold;
@@ -144,7 +144,7 @@
 
         /* Terms & Conditions (Styled with 5% left/right spacing) */
         .terms-page {
-            padding: 30px 10mm; 
+            padding: 20px 10mm; 
         }
         .term-cat-title {
             color: #0088CC;
@@ -180,11 +180,74 @@
             line-height: 1.2;
         }
         .term-bullet {
-            color: #FF6100;
+            color: #FF6100 !important;
             font-weight: bold;
             position: absolute;
             left: 0;
         }
+
+        .pay-section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 16px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #0d558a;
+    }
+
+    .pay-section-tag::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: #ff7b17;
+      flex-shrink: 0;
+    }
+
+    .pay-terms-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .pay-term-item {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 18px;
+      border: 1px solid #e8eff6;
+      background: linear-gradient(180deg, #ffffff, #f8fbff);
+    }
+
+    .pay-term-badge {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #ff7b17, #ff9a4d);
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 900;
+      box-shadow: 0 10px 18px rgba(255, 123, 23, 0.18);
+    }
+
+    .pay-term-text strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+
+    .pay-term-text span {
+      display: block;
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: #617288;
+    }
 
        .banner-container {
     position: relative;
@@ -203,10 +266,10 @@
 }
 
 
-        .text-overlay {
-             position: absolute;
-    top: 100px;
-    left: 30px;
+    .text-overlay {
+    position: absolute;
+    top: 190px;
+    left: 320px;
     width: 250px;  /* adjust */
         }
 
@@ -241,6 +304,61 @@
             color: #333;
         }
 
+        .terms-page,
+    .payment-page {
+      padding: 14mm;
+    }
+
+    .terms-page::before,
+    .payment-page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.97)),
+        url("quote-bg.jpg") right top / cover no-repeat;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .terms-page::after,
+    .payment-page::after {
+      content: "";
+      position: absolute;
+      right: -10mm;
+      bottom: -10mm;
+      width: 84mm;
+      height: 84mm;
+      background: url("service-bg.jpg") right bottom / contain no-repeat;
+      opacity: 0.08;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .terms-page > *,
+    .payment-page > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .terms-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .pay-card,
+    .payment-card,
+    .scan-card,
+    .address-card {
+      border: 1px solid #d8e4ef;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 12px 24px rgba(18, 33, 61, 0.05);
+      padding: 20px 20px 18px;
+    }
+
         /* Clients Logos */
         .clients-page {
             padding: 5px;
@@ -255,48 +373,55 @@
     <!-- PAGE 1: COVER PAGE (Hero) -->
     <div class="banner-container">
     
-    <img src="https://app.workorio.com/clients/banner.jpeg" class="banner-img">
+        <img src="https://app.workorio.com/clients/hero.webp" class="banner-img">
 
-    <div class="top-bar">
-        <table class="w-100">
-            <tr>
-                <td style="width: 50%;">
-                    <?php if(isset($logo_base64) && $logo_base64): ?>
-                        <img src="<?php echo e($logo_base64); ?>" class="main-logo">
+        <!-- <div class="top-bar">
+            <table class="w-100">
+                <tr>
+                    <td style="width: 50%;">
+                        <?php if(isset($logo_base64) && $logo_base64): ?>
+                            <img src="<?php echo e($logo_base64); ?>" class="main-logo">
+                        <?php else: ?>
+                            <img src="https://triserv360.com/wp-content/uploads/2023/04/logo.png" class="main-logo">
+                        <?php endif; ?>
+                    </td>
+                    <td style="width: 50%; text-align: left;" class="contact-info">
+                        <span>Phone: <?php echo e($settings->phone ?? ''); ?></span> &nbsp; &nbsp;
+                        <span>Website: <?php echo e($settings->website ?? ''); ?></span>
+                    </td>
+                </tr>
+            </table>
+        </div> -->
+
+        <div class="text-overlay" style="width: 400px;">
+            <div style="color: #fff; font-size: 24px; font-weight: bold;">
+                <span>
+                    <?php if($quote->customer_type == 'customer'): ?>
+                        <?php echo e(optional($quote->customer)->name ?? 'N/A'); ?>
+
                     <?php else: ?>
-                        <img src="https://triserv360.com/wp-content/uploads/2023/04/logo.png" class="main-logo">
+                        <?php 
+                            $prospect = $quote->prospect ?? \App\Models\Prospectus::find($quote->prospect_id); 
+                        ?>
+                        <?php echo e(optional($prospect)->prospectus_name ?? 'N/A'); ?>
+
                     <?php endif; ?>
-                </td>
-                <td style="width: 50%; text-align: left;" class="contact-info">
-                    <span>Phone: <?php echo e($settings->phone ?? ''); ?></span> &nbsp; &nbsp;
-                    <span>Website: <?php echo e($settings->website ?? ''); ?></span>
-                </td>
-            </tr>
-        </table>
-    </div>
-
-    <div class="text-overlay" style="width: 400px;">
-        <div style="color: #0088CC; font-size: 12px; font-weight: bold;">
-            Quotation For: 
-            <span style="font-weight: normal; color: #000000;">
-                <?php if($quote->customer_type == 'customer'): ?>
-                    <?php echo e(optional($quote->customer)->name ?? 'N/A'); ?>
-
-                <?php else: ?>
-                    <?php 
-                        $prospect = $quote->prospect ?? \App\Models\Prospectus::find($quote->prospect_id); 
-                    ?>
-                    <?php echo e(optional($prospect)->prospectus_name ?? 'N/A'); ?>
-
-                <?php endif; ?>
-            </span>
+                </span>
+            </div>
         </div>
-    </div>
 
-</div>
+    </div>
                 
                  
     <div class="page-break"></div>
+
+    <div>
+        <img src="https://app.workorio.com/clients/service_page2.png" class="banner-img">
+    </div>
+
+
+    <div class="page-break"></div>
+
 
     <!-- PAGE 2: QUOTATION DETAILS -->
     <div class="">
@@ -304,7 +429,7 @@
             <table class="quote-doc-header">
                 <tr>
                     <td>
-                        <div class="doc-title" style="color: #0088CC;">Quotation</div>
+                        <div class="doc-title" style="color: #0088CC;">Quotation/Proposed Commercials</div>
                         <div style="font-size: 10px; color: #FF6100; font-weight: bold; letter-spacing: 2px;"><?php echo e(strtoupper($quote->data['subject'] ?? 'Project Estimate & Scope')); ?></div>
                     </td>
                     <td class="text-right" style="font-size: 10px;">
@@ -315,63 +440,33 @@
                 </tr>
             </table>
 
-            <table class="w-100" style="margin-bottom: 20px;">
-                <tr>
-                    <td style="width: 50%; vertical-align: top;">
-                        <div style="color: #0088CC; font-size: 9px; font-weight: bold; margin-bottom: 3px;">Quotation Form:</div>
-                        <div style="font-size: 10px; color: #555;">
-                            <strong><?php echo e($settings->company_name ?? 'N/A'); ?></strong><br>
-                            <?php echo e($settings->office_address ?? ''); ?><br>
-                            <?php echo e($settings->office_city ?? ''); ?>, <?php echo e($settings->office_state ?? ''); ?> - <?php echo e($settings->office_pincode ?? ''); ?><br>
-                            Email: <?php echo e($settings->email ?? ''); ?>
-
-                        </div>
-                    </td>
-                    <td style="width: 50%; vertical-align: top;">
-                        <div style="color: #0088CC; font-size: 9px; font-weight: bold; margin-bottom: 3px;">Prepared For:</div>
-                        <div style="font-size: 10px; color: #555;">
-                            <?php if($quote->customer_type == 'customer'): ?>
-                                <strong><?php echo e(optional($quote->customer)->name ?? 'N/A'); ?></strong><br>
-                                <?php echo e(optional($quote->customer)->company_name ?? ''); ?><br>
-                                <?php echo e(optional($quote->customer)->address ?? ''); ?>
-
-                            <?php else: ?>
-                                <?php 
-                                    $prospect = $quote->prospect ?? \App\Models\Prospectus::find($quote->prospect_id); 
-                                    $loc = [];
-                                    if ($prospect && $prospect->city) $loc[] = $prospect->city->city_name;
-                                    if ($prospect && $prospect->state) $loc[] = $prospect->state->state_name;
-                                ?>
-                                <strong><?php echo e(optional($prospect)->prospectus_name ?? 'N/A'); ?></strong><br>
-                                <?php echo e(optional($prospect)->address ?? ''); ?><br>
-                                <?php if(!empty($loc)): ?> <?php echo e(implode(', ', $loc)); ?> <?php endif; ?>
-                            <?php endif; ?>
-                        </div>
-                    </td>
-                </tr>
-            </table>
 
             <table class="formal-quote-table">
                 <thead>
                     <tr>
-                        <th style="width: 40px;">S.No</th>
+                        <th style="width: 30px;">S.No</th>
                         <th>Description of Services</th>
-                        <th style="width: 60px;" class="text-right">Qty</th>
-                        <th style="width: 80px;" class="text-right">Price</th>
-                        <th style="width: 90px;" class="text-right">Amount</th>
+                        <th style="width: 50px;" class="text-right">Qty</th>
+                        <th style="width: 70px;" class="text-right">Price</th>
+                        <th style="width: 60px;" class="text-right">Disc</th>
+                        <th style="width: 80px;" class="text-right">Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php 
                         $products = $quote->data['products'] ?? []; 
                         $subtotal_sum = 0;
-                        $tax_sum = 0;
                     ?>
                     <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <?php 
                             $price = $item['price'] ?? 0;
                             $qty = $item['quantity'] ?? 1;
-                            $lineAmount = $price * $qty;
+                            $disc = $item['discount'] ?? 0;
+                            $discType = $item['discount_type'] ?? 'percentage';
+                            
+                            $rowBase = $price * $qty;
+                            $rowDiscAmount = ($discType === 'percentage') ? ($rowBase * ($disc / 100)) : $disc;
+                            $lineAmount = $rowBase - $rowDiscAmount;
                             $subtotal_sum += $lineAmount;
                         ?>
                         <tr>
@@ -382,12 +477,20 @@
                             </td>
                             <td class="text-right"><?php echo e($qty); ?> <?php echo e($item['unit'] ?? 'Nos'); ?></td>
                             <td class="text-right"><?php echo e(number_format($price, 2)); ?></td>
+                            <td class="text-right">
+                                <?php if($disc > 0): ?>
+                                    <?php echo e($discType === 'percentage' ? $disc.'%' : number_format($disc, 2)); ?>
+
+                                <?php else: ?>
+                                    -
+                                <?php endif; ?>
+                            </td>
                             <td class="text-right"><?php echo e(number_format($lineAmount, 2)); ?></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="4" class="text-right">Subtotal:</td><td class="text-right"><?php echo e(number_format($subtotal_sum, 2)); ?></td></tr>
+                    <tr><td colspan="5" class="text-right">Subtotal:</td><td class="text-right"><?php echo e(number_format($subtotal_sum, 2)); ?></td></tr>
                     <?php 
                         $discount = $quote->data['discount'] ?? 0;
                         $taxable = max(0, $subtotal_sum - $discount);
@@ -395,105 +498,72 @@
                         $grandTotal = $taxable + $gst;
                     ?>
                     <?php if($discount > 0): ?>
-                        <tr><td colspan="4" class="text-right">Discount:</td><td class="text-right">-<?php echo e(number_format($discount, 2)); ?></td></tr>
-                        <tr><td colspan="4" class="text-right">Taxable Amount:</td><td class="text-right"><?php echo e(number_format($taxable, 2)); ?></td></tr>
+                        <tr><td colspan="5" class="text-right">Additional Discount:</td><td class="text-right">-<?php echo e(number_format($discount, 2)); ?></td></tr>
+                        <tr><td colspan="5" class="text-right">Taxable Amount:</td><td class="text-right"><?php echo e(number_format($taxable, 2)); ?></td></tr>
                     <?php endif; ?>
-                    <tr><td colspan="4" class="text-right">Tax (GST 18%):</td><td class="text-right"><?php echo e(number_format($gst, 2)); ?></td></tr>
-                    <tr style="font-size: 13px; color: #0088CC; font-weight: bold;"><td colspan="4" class="text-right" style="border-top: 2px solid #0088CC;">GRAND TOTAL:</td><td class="text-right" style="border-top: 2px solid #0088CC;"><?php echo e(number_format($grandTotal, 2)); ?></td></tr>
+                    <tr><td colspan="5" class="text-right">Tax (GST 18%):</td><td class="text-right"><?php echo e(number_format($gst, 2)); ?></td></tr>
+                    <tr style="font-size: 13px; color: #0088CC; font-weight: bold;"><td colspan="5" class="text-right" style="border-top: 2px solid #0088CC;">GRAND TOTAL:</td><td class="text-right" style="border-top: 2px solid #0088CC;"><?php echo e(number_format($grandTotal, 2)); ?></td></tr>
                 </tfoot>
-            </table>
-
-            <table class="w-100" style="margin-top: 15px;">
-                <tr>
-                    <td style="width: 60%; vertical-align: top;">
-                        <!-- Dynamic Payment Terms with Fallback to Request -->
-                        <div style="color: #0088CC; font-size: 10px; font-weight: bold; margin-bottom: 5px;">Terms and Conditions:</div>
-                        <div style="font-size: 9.5px; color: #555; white-space: pre-line; padding-right: 20px;">
-                            <?php 
-                                $pTerms = $quote->data['payment_terms'] ?? (request('payment_terms') ?? ($settings->payment_terms ?? ''));
-                            ?>
-                            <?php echo nl2br(e($pTerms)); ?>
-
-                        </div>
-                    </td>
-                    <td style="width: 40%;"></td>
-                </tr>
             </table>
         </div>
     </div>
 
     <div class="page-break"></div>
 
-    <div class="terms-section">
-        <div class="blue-box">Payment Details</div>
+    <table style="width:100%; border-collapse: separate; border-spacing: 0 14px; padding: 30px;">
 
-        <div class="content-wrapper">
-            <!-- Left Side -->
-            
-            <table style="width: 100%; border-collapse: separate; border-spacing: 0 5px;">
+    <!-- Title -->
+    <tr>
+        <td colspan="2" style="font-size:16px; font-weight:700; letter-spacing: 0.5px; color: #0088CC;">
+            <span style="display:inline-block; width:10px; height:10px; background: #ff7b17; margin-right:8px;"></span>
+            Terms and Conditions
+        </td>
+    </tr>
+
+    <!-- Card 1 -->
+    <tr>
+        <td colspan="2" style="
+            border:1px solid #e8eff6;
+            border-radius:18px;
+            background:#ffffff;
+            padding:12px;
+        ">
+            <table style="width:100%;">
                 <tr>
-                    <td style="width: 50%; vertical-align: top; padding-right: 20px;">
-                            <h2 class="term-cat-title2 pt-4" style="text-align: left;" >Accounts</h2>
-
-                            <p><strong>Triserv 360 Business Solutions Private Limited</strong></p>
-                            <p><b>Bank </b>- ICICI Bank</p>
-                            <p><b>Branch </b>- Mall Road, Kanpur</p>
-                            <p><b>Account No </b>- 628805026732</p>
-                            <p><b>IFSC Code </b>- ICIC0006288</p>
-                            <p><b>A/C Type </b>- Current</p>
-                            <p><b>SWIFT </b>- ICICINBBCTS</p>
-                        
-
-                            <br>
-
-                        <p><b>PAN </b>- AAJCT3301R</p>
-                        <p><b>TAN </b>- KNPT02038B</p>
-                        <p><b>GST </b>- 09AAJCT3301R1ZV</p>
-                    </td>
-
-                    <!-- Right Side -->
-                    <td style="width: 50%; vertical-align: top; margin-top: 20px !important;">
-                        <h2 class="term-cat-title2">Address</h2>
-
-                        <p>
-                            710, 7th Floor, 15/63 Krishna Tower <br>
-                            opposite Green Park Stadium, <br>
-                            Kanpur INDIA - 208001
-                        </p>
-
-                        <br>
-
-                        <p><strong>Contact Person Name</strong> - Shamshad Ahmad</p>
-                        <p><strong>Contact Number</strong> - +91-9839353494</p>
-                        <p><strong>Email ID</strong> - shamshad@triserv360.com</p>
+                    <!-- Text -->
+                    <td style="padding-left:10px;">
+                        <div style="font-weight:bold; font-size:14px;">
+                            <?php 
+                                $pTerms = $quote->data['payment_terms'] ?? (request('payment_terms') ?? ($settings->payment_terms ?? ''));
+                            ?>
+                            <?php echo nl2br(e($pTerms)); ?></div>
                     </td>
                 </tr>
             </table>
-        </div>
-    </div>
+        </td>
+    </tr>
+
+</table>
 
 
+    <div class="page-break"></div>
 
-    
+        <img src="https://app.workorio.com/clients/account_details.png" class="banner-img">
 
-
-        <div class="page-break"></div>
+    <div class="page-break"></div>
     
 
     <!-- PAGE 4: CLIENTS LIST -->
-        <div class="clients-page" style="padding: 30px">
+        <!-- <div class="clients-page" style="padding: 30px; margin-bottom: 4px !important; ">
             <table style="width: 100%; margin-bottom: 25px;">
                 <tr>
                     <td style="width: 140px; vertical-align: middle;">
-                        <div class="blue-box">Our Clients</div>
-                    </td>
-                    <td style="vertical-align: middle;">
-                        <div style="font-weight: 800; font-size: 14px; text-transform: uppercase; white-space: nowrap;">Story of Our Excelence And More</div>
+                        <div class="blue-box" style="margin-bottom: 4px !important;">Trusted By Businesses & Partners</div>
                     </td>
                 </tr>
             </table>
 
-            <table style="width: 100%; border-collapse: separate; border-spacing: 5px;">
+            <table style="width: 100%; border-collapse: separate; border-spacing: 5px; margin-top: 8px;">
                 <?php 
                     $logos = [
                         ['url' => 'https://app.workorio.com/clients/aa.png', 'name' => 'AA'],
@@ -574,7 +644,7 @@
                         ['url' => 'https://app.workorio.com/clients/wildnet.png', 'name' => 'WildNet'],
                     ];
                 ?>
-                <?php $__currentLoopData = array_chunk($logos, 5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php $__currentLoopData = array_chunk($logos, 6); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <tr>
                     <?php $__currentLoopData = $row; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $l): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <td style="background: #f9f9f9; border: 1px solid #E6E7E8; padding: 6px; text-align: center;">
@@ -584,13 +654,13 @@
                 </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </table>
-        </div>
+        </div> -->
 
 
         <div class="page-break"></div>
 
     <!-- PAGE 3: TERMS & CONDITIONS -->
-    <div class="terms-page">
+    <!-- <div class="terms-page">
         <div>
             <div class="blue-box">Other Terms & Conditions</div>
         </div>
@@ -714,7 +784,7 @@
          <div class="term-cat-title">Acceptance of Proposal</div>
          <p style="font-size: 11px">Approval of this proposal or payment of the advance amount will be considered acceptance of all the terms and conditions mentioned above.</p>
 
-    </div>
+    </div> -->
 
 </body>
 </html>

@@ -109,11 +109,11 @@
                 <thead>
                     <tr>
                         <th style="width: 5%;">#</th>
-                        <th style="width: 40%;">Product/Service</th>
-                        <th style="width: 25%;">Remark</th>
+                        <th style="width: 35%;">Product/Service</th>
+                        <th style="width: 15%;">Qty</th>
                         <th style="width: 15%; text-align: right;">Price</th>
-                        <th style="width: 15%; text-align: right;">Tax (18%)</th>
-                        <th style="width: 15%; text-align: right;">Total</th>
+                        <th style="width: 15%; text-align: right;">Disc</th>
+                        <th style="width: 15%; text-align: right;">Amount</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -124,23 +124,39 @@
                     @foreach($products as $index => $item)
                         @php 
                             $price = $item['price'] ?? 0;
-                            $tax = round($price * 0.18, 2);
-                            $rowTotal = $price + $tax;
-                            $subtotal += $rowTotal;
+                            $qty = $item['quantity'] ?? 1;
+                            $disc = $item['discount'] ?? 0;
+                            $discType = $item['discount_type'] ?? 'percentage';
+                            
+                            $rowBase = $price * $qty;
+                            $rowDiscAmount = ($discType === 'percentage') ? ($rowBase * ($disc / 100)) : $disc;
+                            $lineAmount = $rowBase - $rowDiscAmount;
+                            $subtotal += $lineAmount;
                         @endphp
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ optional(\App\Models\SalesProduct::find($item['product_id']))->product_name ?? $item['product_id'] }}</td>
-                            <td>{{ $item['remark'] ?? '' }}</td>
+                            <td>
+                                <strong>{{ optional(\App\Models\SalesProduct::find($item['product_id'] ?? null))->product_name ?? ($item['product_name'] ?? ($item['product_id'] ?? '--')) }}</strong>
+                                @if(!empty($item['remark']))
+                                    <br><span style="font-size: 9px; color: #6b7280;">{{ $item['remark'] }}</span>
+                                @endif
+                            </td>
+                            <td>{{ $qty }} {{ $item['unit'] ?? 'Nos' }}</td>
                             <td style="text-align: right;">₹{{ number_format($price, 2) }}</td>
-                            <td style="text-align: right;">₹{{ number_format($tax, 2) }}</td>
-                            <td style="text-align: right;">₹{{ number_format($rowTotal, 2) }}</td>
+                            <td style="text-align: right;">
+                                @if($disc > 0)
+                                    {{ $discType === 'percentage' ? $disc.'%' : '₹'.number_format($disc, 2) }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td style="text-align: right;">₹{{ number_format($lineAmount, 2) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
 
-            <div style="float: right; width: 250px;">
+            <div style="float: right; width: 250px; margin-top: 20px;">
                 <div style="border-bottom: 1px solid #e5e7eb; padding: 5px 0;">
                     <span style="color: #6b7280;">Subtotal:</span>
                     <span style="float: right;">₹{{ number_format($subtotal, 2) }}</span>
@@ -153,10 +169,14 @@
                 @endphp
                 @if($discount > 0)
                     <div style="border-bottom: 1px solid #e5e7eb; padding: 5px 0; color: #ef4444;">
-                        <span>Discount:</span>
+                        <span>Addl. Disc:</span>
                         <span style="float: right;">-₹{{ number_format($discount, 2) }}</span>
                     </div>
                 @endif
+                <div style="border-bottom: 1px solid #e5e7eb; padding: 5px 0;">
+                    <span style="color: #6b7280;">Taxable Amount:</span>
+                    <span style="float: right;">₹{{ number_format($taxable, 2) }}</span>
+                </div>
                 <div style="border-bottom: 1px solid #e5e7eb; padding: 5px 0;">
                     <span style="color: #6b7280;">GST (18%):</span>
                     <span style="float: right;">₹{{ number_format($gst, 2) }}</span>

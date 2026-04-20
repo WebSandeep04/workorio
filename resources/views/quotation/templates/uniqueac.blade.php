@@ -232,73 +232,88 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th style="width: 8%;">SR NO.</th>
-                <th style="width: 47%;">DESCRIPTION</th>
-                <th style="width: 10%;">QTY</th>
-                <th style="width: 10%;">UNIT</th>
+                <th style="width: 6%;">SR NO.</th>
+                <th style="width: 40%;">DESCRIPTION</th>
+                <th style="width: 8%;">QTY</th>
+                <th style="width: 8%;">UNIT</th>
                 <th style="width: 12%;">RATE</th>
-                <th style="width: 13%;">AMOUNT</th>
+                <th style="width: 12%;">DISC</th>
+                <th style="width: 14%;">AMOUNT</th>
             </tr>
         </thead>
         <tbody>
-            @php $sr = 1; @endphp
+            @php $sr = 1; $subtotal_sum = 0; @endphp
             @if(isset($quote->data['products']) && count($quote->data['products']) > 0)
                 @foreach($quote->data['products'] as $p)
+                @php
+                    $price = $p['price'] ?? 0;
+                    $qty = $p['quantity'] ?? 1;
+                    $disc = $p['discount'] ?? 0;
+                    $discType = $p['discount_type'] ?? 'percentage';
+                    
+                    $rowBase = $price * $qty;
+                    $rowDiscAmount = ($discType === 'percentage') ? ($rowBase * ($disc / 100)) : $disc;
+                    $lineAmount = $rowBase - $rowDiscAmount;
+                    $subtotal_sum += $lineAmount;
+                @endphp
                 <tr>
                     <td>{{ $sr++ }}</td>
                     <td class="text-left">
-                        {{ $p['product_name'] ?? ($p['name'] ?? '--') }}
+                        {{ optional(\App\Models\SalesProduct::find($p['product_id'] ?? null))->product_name ?? ($p['product_name'] ?? ($p['name'] ?? '--')) }}
                         @if(!empty($p['remark']))
                             <br><small style="font-size: 9px; color: #666;">({{ $p['remark'] }})</small>
                         @endif
                     </td>
-                    <td>{{ $p['quantity'] ?? 1 }}</td>
+                    <td>{{ $qty }}</td>
                     <td>{{ $p['unit'] ?? 'Nos' }}</td>
-                    <td>{{ number_format($p['price'] ?? 0, 2) }}</td>
-                    <td>{{ number_format(($p['quantity'] ?? 1) * ($p['price'] ?? 0), 2) }}</td>
+                    <td>{{ number_format($price, 2) }}</td>
+                    <td>
+                        @if($disc > 0)
+                            {{ $discType === 'percentage' ? $disc.'%' : number_format($disc, 2) }}
+                        @else
+                            -
+                        @endif
+                    </td>
+                    <td>{{ number_format($lineAmount, 2) }}</td>
                 </tr>
                 @endforeach
             @else
-                <tr><td colspan="6" style="padding: 20px; color: #999;">No products listed</td></tr>
+                <tr><td colspan="7" style="padding: 20px; color: #999;">No products listed</td></tr>
             @endif
 
             @php
-                $gross_subtotal = 0;
-                foreach(($quote->data['products'] ?? []) as $p) {
-                    $gross_subtotal += ($p['quantity'] ?? 1) * ($p['price'] ?? 0);
-                }
                 $discount_val = (float)($quote->data['discount'] ?? 0);
-                $net_taxable = max(0, $gross_subtotal - $discount_val);
+                $net_taxable = max(0, $subtotal_sum - $discount_val);
                 $gst_val = round($net_taxable * 0.18, 2);
                 $final_total = $net_taxable + $gst_val;
             @endphp
 
             @if($discount_val > 0)
             <tr>
-                <td colspan="4" style="border: none;"></td>
-                <td class="total-label-cell">Gross Total</td>
-                <td>{{ number_format($gross_subtotal, 2) }}</td>
+                <td colspan="5" style="border: none;"></td>
+                <td class="total-label-cell">Subtotal</td>
+                <td>{{ number_format($subtotal_sum, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="4" style="border: none;"></td>
-                <td class="total-label-cell">Discount</td>
+                <td colspan="5" style="border: none;"></td>
+                <td class="total-label-cell">Addl. Discount</td>
                 <td>{{ number_format($discount_val, 2) }}</td>
             </tr>
             @endif
 
             <tr>
-                <td colspan="4" style="border: none;"></td>
-                <td class="total-label-cell">Basic</td>
+                <td colspan="5" style="border: none;"></td>
+                <td class="total-label-cell">Taxable Amount</td>
                 <td>{{ number_format($net_taxable, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="4" style="border: none;"></td>
+                <td colspan="5" style="border: none;"></td>
                 <td class="total-label-cell">GST 18%</td>
                 <td>{{ number_format($gst_val, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="4" style="border: none;"></td>
-                <td class="total-label-cell" style="font-size: 14px; background-color: #000;">Total</td>
+                <td colspan="5" style="border: none;"></td>
+                <td class="total-label-cell" style="font-size: 14px; background-color: #000;">Total Amount</td>
                 <td style="font-size: 14px; font-weight: bold;">{{ number_format($final_total, 2) }}</td>
             </tr>
             
