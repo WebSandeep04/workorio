@@ -9,8 +9,15 @@
         ? auth()->user()->name
         : (session('user_name') ?? 'there');
     $firstName = explode(' ', trim($userDisplayName))[0] ?: 'there';
+
+    // Resolve tenant for feature flags
+    $tenant = null;
+    if (session()->has('tenant_id')) {
+        $tenant = \App\Models\Tenant::find(session('tenant_id'));
+    }
 ?>
 <div class="neo-dashboard">
+    <?php if(!$tenant || $tenant->is_sales_enabled): ?>
     <div class="dashboard-header mb-3">
         <h4 class="fw-bold" style="font-family: Montserrat; color: #101828;">Sales Intelligence</h4>
         <p class="text-muted small">Real-time performance metrics for your sales pipeline</p>
@@ -77,7 +84,9 @@
             <a href="<?php echo e(route('myleads')); ?>" class="metric-arrow-blue"><i class="bi bi-arrow-right"></i></a>
         </div>
     </div>
+    <?php endif; ?>
 
+    <?php if(!$tenant || $tenant->is_tally_calling_enabled): ?>
     <div class="dashboard-header mb-3 mt-5">
         <h4 class="fw-bold" style="font-family: Montserrat; color: #101828;">Tele-Calling Status</h4>
         <p class="text-muted small">Daily calling activity and follow-up tracking</p>
@@ -144,6 +153,7 @@
             <a href="<?php echo e(route('calling.allleadstable')); ?>" class="metric-arrow-blue"><i class="bi bi-arrow-right"></i></a>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- <div class="neo-panel">
         <div class="neo-panel-header">

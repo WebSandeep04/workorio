@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'User Management')
-@section('page_title', 'User Management')
 
-@push('styles')
+<?php $__env->startSection('title', 'User Management'); ?>
+<?php $__env->startSection('page_title', 'User Management'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -436,9 +436,9 @@
 </style>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
@@ -721,9 +721,9 @@
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 function initSelect2() {
@@ -819,7 +819,7 @@ $(function () {
       </tr>
     `);
 
-    $.get(`{{ route('fetchuser') }}?page=${page}&search=${search}`, function (data) {
+    $.get(`<?php echo e(route('fetchuser')); ?>?page=${page}&search=${search}`, function (data) {
       if (!data.data || data.data.length === 0) {
         $('#usersTable tbody').html(`
           <tr>
@@ -930,7 +930,7 @@ function deleteUser(id) {
       url: `/user/delete/${id}`,
       method: 'DELETE',
       headers: {
-        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
       },
       success: function () {
         showAlert('success', 'User deleted successfully.');
@@ -959,7 +959,7 @@ function openEditModal(user) {
 
   // Load roles dropdown
   $.ajax({
-    url: '{{ route("fetchrole") }}',
+    url: '<?php echo e(route("fetchrole")); ?>',
     method: 'GET',
     success: function (roles) {
       let roleSelect = $('#edit_role');
@@ -973,7 +973,7 @@ function openEditModal(user) {
 
       // Load employees dropdown
       $.ajax({
-        url: '{{ route("user.fetch-employees") }}',
+        url: '<?php echo e(route("user.fetch-employees")); ?>',
         method: 'GET',
         success: function (employees) {
           let employeeSelect = $('#edit_employee');
@@ -991,7 +991,7 @@ function openEditModal(user) {
 
       // Load users for manager dropdown
       $.ajax({
-        url: '{{ route("fetchUsersForManager") }}',
+        url: '<?php echo e(route("fetchUsersForManager")); ?>',
         method: 'GET',
         success: function (users) {
           let managerSelect = $('#edit_managers');
@@ -1032,7 +1032,7 @@ $('#changePasswordForm').submit(function (e) {
         url: `/user/change-password/${userId}`,
         method: 'PUT',
         headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
         },
         data: {
             password: $('#new_password').val(),
@@ -1062,7 +1062,7 @@ $('#editUserForm').submit(function (e) {
     url: `/user/update/${userId}`,
     method: 'PUT',
     headers: {
-      'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
     },
     data: {
       name: $('#edit_name').val(),
@@ -1105,7 +1105,7 @@ $('#createUserModal').on('show.bs.modal', function () {
 
   // Load roles dropdown
   $.ajax({
-    url: '{{ route("fetchrole") }}',
+    url: '<?php echo e(route("fetchrole")); ?>',
     method: 'GET',
     success: function (roles) {
       let roleSelect = $('#create_role');
@@ -1124,7 +1124,7 @@ $('#createUserModal').on('show.bs.modal', function () {
 
   // Load employees dropdown
   $.ajax({
-    url: '{{ route("user.fetch-employees") }}',
+    url: '<?php echo e(route("user.fetch-employees")); ?>',
     method: 'GET',
     success: function (employees) {
       let employeeSelect = $('#create_employee');
@@ -1139,7 +1139,7 @@ $('#createUserModal').on('show.bs.modal', function () {
 
   // Load users for manager dropdown
   $.ajax({
-    url: '{{ route("fetchUsersForManager") }}',
+    url: '<?php echo e(route("fetchUsersForManager")); ?>',
     method: 'GET',
     success: function (users) {
       let managerSelect = $('#create_managers');
@@ -1160,10 +1160,10 @@ $('#createUserForm').submit(function (e) {
   $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Creating...');
 
   $.ajax({
-    url: '{{ route("user.store") }}',
+    url: '<?php echo e(route("user.store")); ?>',
     method: 'POST',
     headers: {
-      'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
     },
     data: {
       name: $('#create_name').val(),
@@ -1204,4 +1204,6 @@ $('#createUserForm').submit(function (e) {
     to { transform: rotate(360deg); }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/user.blade.php ENDPATH**/ ?>

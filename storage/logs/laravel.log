@@ -102,3 +102,17 @@
 [2026-04-20 08:16:21] local.INFO: Sales record found: 5578  
 [2026-04-20 08:16:21] local.INFO: Remarks count: 3  
 [2026-04-20 08:16:21] local.INFO: Returning response successfully  
+[2026-04-20 09:13:02] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-04-20 09:13:02] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-20 09:13:02] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-04-20 09:13:02] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-04-20 09:13:02] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-04-20 09:13:44] local.ERROR: AuthController@login start {"email":"ravi@triserv360.com"} 
+[2026-04-20 09:13:44] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-20 09:13:45] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":false,"is_login":1} 
+[2026-04-20 09:13:45] local.ERROR: AuthController@login user lookup result {"found":false,"data":null} 
+[2026-04-20 09:14:11] local.ERROR: AuthController@login start {"email":"ravi@triserv360.com"} 
+[2026-04-20 09:14:11] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-20 09:14:12] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-04-20 09:14:12] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":3,"name":"Ravi Sharma","email":"ravi@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-04-20 09:14:12] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

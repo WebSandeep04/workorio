@@ -508,6 +508,7 @@ Route::get('/user/sales-users', [UserController::class, 'fetchSalesUsers'])->nam
 Route::get('/user/fetch-employees', [UserController::class, 'fetchEmployees'])->name('user.fetch-employees');
 Route::get('/fetchrole', [RoleController::class, 'fetchrole'])->name('fetchrole');
 Route::put('/user/update/{id}', [UserController::class, 'update'])->name('user.update');
+Route::put('/user/change-password/{id}', [UserController::class, 'changePassword'])->name('user.change-password');
 Route::post('/user/store', [UserController::class, 'store'])->name('user.store');
 Route::delete('/user/delete/{id}', [UserController::class, 'destroy'])->name('user.destroy');
 });

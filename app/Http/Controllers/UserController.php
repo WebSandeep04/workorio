@@ -231,4 +231,17 @@ public function destroy($id)
 }
 
 
+    public function changePassword(Request $request, $id)
+    {
+        $request->validate([
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->update([
+            'password' => bcrypt($request->password)
+        ]);
+
+        return response()->json(['message' => 'Password updated successfully']);
+    }
 }
