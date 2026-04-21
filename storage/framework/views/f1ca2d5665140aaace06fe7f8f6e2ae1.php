@@ -263,6 +263,9 @@
             <button class="tab-btn" data-tab="pattern">
                 <i class="bi bi-palette"></i> Quotes Pattern
             </button>
+            <button class="tab-btn" data-tab="terms">
+                <i class="bi bi-file-earmark-check"></i> Terms & Conditions
+            </button>
         </div>
 
         <form id="quotationSetupForm">
@@ -457,6 +460,18 @@
                             <small class="text-muted mt-1 d-block">Used for dividers, icons, and highlights.</small>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Terms & Conditions Tab -->
+            <div class="tab-content" id="tab-terms">
+                <h5 class="mb-3" style="color: #434AFA; font-weight: 600;">Default Terms and Conditions</h5>
+                <p class="text-muted mb-4 small">Set the default terms that appear when creating a new quotation. You can still customize them for individual quotes.</p>
+                
+                <div class="form-group">
+                    <label class="form-label-modern">Terms and Conditions</label>
+                    <textarea class="form-control-modern" id="payment_terms" name="payment_terms" rows="12" placeholder="Enter terms separated by new lines..."></textarea>
+                    <small class="text-muted">These will be pre-filled in the "Terms and Conditions" section of the quotation builder.</small>
                 </div>
             </div>
 

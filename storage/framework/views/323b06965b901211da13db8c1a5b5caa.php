@@ -10,7 +10,7 @@
     }
 
     .page-wrapper {
-        max-width: 1100px;
+        max-width: 1450px;
         margin: 0 auto;
         padding: 16px;
     }
@@ -324,13 +324,7 @@
             
             <div class="row mt-4">
                 <div class="col-md-12">
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="show_payment_terms" name="show_payment_terms" onchange="togglePaymentTerms()">
-                        <label class="form-check-label" for="show_payment_terms" style="cursor: pointer; color: #434AFA;">
-                            Show Terms and Conditions  
-                        </label>
-                    </div>
-                    <div id="payment_terms_section" style="display: none;">
+                    <div id="payment_terms_section">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div class="section-title mb-0">Terms and Conditions</div>
                             <button type="button" class="btn btn-sm btn-outline-primary" style="font-size: 12px; border-color: #434AFA; color: #434AFA;" onclick="saveAsDefaultPaymentTerms(this)">
@@ -396,7 +390,7 @@ $(document).ready(function() {
 
     // Initial calculation
     updateLiveTotals();
-
+    
     // Load settings early for pre-filling payment terms
     loadQuotationSettings().done(function() {
         if (quotationSettings && quotationSettings.payment_terms) {
@@ -405,13 +399,7 @@ $(document).ready(function() {
     });
 });
 
-function togglePaymentTerms() {
-    if ($('#show_payment_terms').is(':checked')) {
-        $('#payment_terms_section').slideDown();
-    } else {
-        $('#payment_terms_section').slideUp();
-    }
-}
+
 
 function saveAsDefaultPaymentTerms(btn) {
     const terms = $('#payment_terms').val();
@@ -480,78 +468,51 @@ function addProductRow() {
     const rowId = 'product_' + Date.now();
     const productRow = `
         <div class="product-card" id="${rowId}" style="background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 15px; overflow: hidden;">
-            <div class="row product-row pb-0" style="background: transparent; padding: 15px 15px 0;">
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label-modern">
-                            <i class="bi bi-box"></i>
-                            Product
-                        </label>
-                        <select class="form-control form-control-modern product-select" name="products[${rowId}][product_id]" required>
-                            <option value="">Select Product</option>
+            <div class="row px-3 pt-3">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label-modern"><i class="bi bi-box"></i> Product</label>
+                    <select class="form-control form-control-modern product-select" name="products[${rowId}][product_id]" required>
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+                <div class="col-md-1 col-6 mb-3">
+                    <label class="form-label-modern">Qty</label>
+                    <input type="number" class="form-control form-control-modern text-center" name="products[${rowId}][quantity]" step="0.01" value="0">
+                </div>
+                <div class="col-md-1 col-6 mb-3">
+                    <label class="form-label-modern">Unit</label>
+                    <input type="text" class="form-control form-control-modern text-center" name="products[${rowId}][unit]" value="Nos">
+                </div>
+                <div class="col-md-2 col-6 mb-3">
+                    <label class="form-label-modern"><i class="bi bi-currency-rupee"></i> Price</label>
+                    <input type="number" class="form-control form-control-modern" name="products[${rowId}][price]" step="0.01" value="0" required>
+                </div>
+                <div class="col-md-2 col-6 mb-3">
+                    <label class="form-label-modern">Discount</label>
+                    <div class="d-flex">
+                        <input type="number" class="form-control form-control-modern row-discount" name="products[${rowId}][discount]" step="0.01" value="0" style="border-radius: 4px 0 0 4px;">
+                        <select class="form-control form-control-modern row-discount-type" name="products[${rowId}][discount_type]" style="max-width: 45px; border-radius: 0 4px 4px 0; padding: 0 5px; background: #eee; font-size: 12px;">
+                            <option value="percentage">%</option>
+                            <option value="fixed">₹</option>
                         </select>
                     </div>
                 </div>
-                <div class="col-md-1">
-                    <div class="mb-3">
-                        <label class="form-label-modern">
-                            Qty
-                        </label>
-                        <input type="number" class="form-control form-control-modern" name="products[${rowId}][quantity]" step="0.01" value="0" placeholder="Qty">
-                    </div>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label-modern"><i class="bi bi-calculator"></i> Amount</label>
+                    <input type="text" class="form-control form-control-modern row-amount" name="products[${rowId}][amount]" placeholder="0.00" readonly style="background: #f0f1ff; font-weight: 700; color: #434AFA;">
                 </div>
-                <div class="col-md-1">
-                    <div class="mb-3">
-                        <label class="form-label-modern">
-                            Unit
-                        </label>
-                        <input type="text" class="form-control form-control-modern" name="products[${rowId}][unit]" value="Nos" placeholder="Unit">
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="mb-3">
-                        <label class="form-label-modern">
-                            <i class="bi bi-currency-rupee"></i>
-                            Price
-                        </label>
-                        <input type="number" class="form-control form-control-modern" name="products[${rowId}][price]" step="0.01" value="0" placeholder="Price" required>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="mb-3">
-                        <label class="form-label-modern">
-                            Disc
-                        </label>
-                        <div class="d-flex">
-                            <input type="number" class="form-control form-control-modern row-discount" name="products[${rowId}][discount]" step="0.01" value="0" placeholder="0" style="border-radius: 4px 0 0 4px;">
-                            <select class="form-control form-control-modern row-discount-type" name="products[${rowId}][discount_type]" style="max-width: 50px; border-radius: 0 4px 4px 0; padding: 0 5px; background: #eee;">
-                                <option value="percentage">%</option>
-                                <option value="fixed">₹</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="mb-3">
-                        <label class="form-label-modern">
-                            <i class="bi bi-calculator"></i>
-                            Amount
-                        </label>
-                        <input type="text" class="form-control form-control-modern row-amount" name="products[${rowId}][amount]" placeholder="0.00" readonly>
-                    </div>
-                </div>
-                <div class="col-md-1">
-                    <div class="mb-3">
-                        <label class="form-label-modern">&nbsp;</label>
-                        <button type="button" class="btn-remove-product w-100" onclick="removeProductRow('${rowId}')" title="Remove Product" style="height: 38px;">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
+                <div class="col-md-1 mb-3">
+                    <label class="form-label-modern">&nbsp;</label>
+                    <button type="button" class="btn-remove-product w-100" onclick="removeProductRow('${rowId}')" style="height: 38px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>
             </div>
+
             <div class="row px-3 pb-3">
                 <div class="col-md-12">
-                    <input type="text" class="form-control form-control-modern" name="products[${rowId}][remark]" placeholder="Enter Detailed Remark / Product description here..." style="background: #fff; border: 1px solid #ced4da;">
+                    <label class="form-label-modern">Detailed Remark / Product Description</label>
+                    <input type="text" class="form-control form-control-modern" name="products[${rowId}][remark]" placeholder="Enter specifics for this item..." style="background: #fff; border: 1px solid #ced4da;">
                 </div>
             </div>
         </div>
@@ -671,13 +632,7 @@ function prefillFromQuotation(quotationNumber){
             if (q.data && q.data.payment_terms) {
                 $('#payment_terms').val(q.data.payment_terms);
             }
-            if (q.data && q.data.show_payment_terms) {
-                $('#show_payment_terms').prop('checked', true);
-                $('#payment_terms_section').show();
-            } else {
-                $('#show_payment_terms').prop('checked', false);
-                $('#payment_terms_section').hide();
-            }
+            $('#payment_terms_section').show();
         });
 }
 
@@ -731,7 +686,7 @@ function saveQuotation() {
         products: products,
         discount: parseFloat($('#discount').val() || 0),
         payment_terms: $('#payment_terms').val(),
-        show_payment_terms: $('#show_payment_terms').is(':checked')
+        show_payment_terms: true
     };
     
     console.log('Saving quotation:', formData);

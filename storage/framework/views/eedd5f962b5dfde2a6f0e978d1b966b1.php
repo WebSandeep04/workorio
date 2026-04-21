@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Payment Terms Management')
-@section('page_title', 'Payment Terms Management')
 
-@push('styles')
+<?php $__env->startSection('title', 'Payment Terms Management'); ?>
+<?php $__env->startSection('page_title', 'Payment Terms Management'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -404,9 +404,9 @@
      font-size: 0.75rem;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
@@ -468,7 +468,7 @@
       </div>
       <form id="createPaymentTermForm">
         <div class="modal-body pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <div class="row">
             <div class="col-md-12">
               <div class="mb-3">
@@ -479,7 +479,11 @@
           </div>
           <div class="mb-3">
             <label for="description" class="form-label-modern">Description</label>
-            <textarea class="form-control form-control-modern" id="description" name="description" rows="2" placeholder="Enter description"></textarea>
+            <textarea class="form-control form-control-modern" id="description" name="description" rows="2" placeholder="Enter short description"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="terms_and_conditions" class="form-label-modern">Terms & Conditions Text</label>
+            <textarea class="form-control form-control-modern" id="terms_and_conditions" name="terms_and_conditions" rows="5" placeholder="Enter full terms text that will appear on the PDF..."></textarea>
           </div>
           
           <h6 class="mb-3 text-primary"><strong>Payment Percentages (Must total 100%)</strong></h6>
@@ -535,7 +539,7 @@
       </div>
       <form id="editPaymentTermForm">
         <div class="modal-body pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <input type="hidden" id="edit_id" name="id">
           <div class="mb-3">
             <label for="edit_name" class="form-label-modern">Payment Terms Name <span class="text-danger">*</span></label>
@@ -544,6 +548,10 @@
           <div class="mb-3">
             <label for="edit_description" class="form-label-modern">Description</label>
             <textarea class="form-control form-control-modern" id="edit_description" name="description" rows="2"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="edit_terms_and_conditions" class="form-label-modern">Terms & Conditions Text</label>
+            <textarea class="form-control form-control-modern" id="edit_terms_and_conditions" name="terms_and_conditions" rows="5"></textarea>
           </div>
           
           <h6 class="mb-3 text-primary"><strong>Payment Percentages (Must total 100%)</strong></h6>
@@ -610,9 +618,9 @@
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -697,7 +705,7 @@ $(document).ready(function() {
         `);
         
         $.ajax({
-            url: `{{ route("payment-terms.fetch") }}?page=${page}&search=${search}`,
+            url: `<?php echo e(route("payment-terms.fetch")); ?>?page=${page}&search=${search}`,
             method: 'GET',
             success: function(response) {
                 // If response is array (old format) or paginated object (new format)
@@ -805,7 +813,7 @@ $(document).ready(function() {
         $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Creating...');
         
         $.ajax({
-            url: '{{ route("payment-terms.store") }}',
+            url: '<?php echo e(route("payment-terms.store")); ?>',
             method: 'POST',
             data: $(this).serialize(),
             success: function(response) {
@@ -844,7 +852,7 @@ $(document).ready(function() {
         const id = $('#edit_id').val();
         
         $.ajax({
-            url: '{{ route("payment-terms.update", ":id") }}'.replace(':id', id),
+            url: '<?php echo e(route("payment-terms.update", ":id")); ?>'.replace(':id', id),
             method: 'PUT',
             data: $(this).serialize(),
             success: function(response) {
@@ -880,7 +888,7 @@ $(document).ready(function() {
         $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Deleting...');
         
         $.ajax({
-            url: '{{ route("payment-terms.destroy", ":id") }}'.replace(':id', id),
+            url: '<?php echo e(route("payment-terms.destroy", ":id")); ?>'.replace(':id', id),
             method: 'DELETE',
             success: function(response) {
                 if (response.success) {
@@ -904,7 +912,7 @@ $(document).ready(function() {
 // Exposed functions for onclick events
 window.editPaymentTerm = function(id) {
     $.ajax({
-        url: '{{ route("payment-terms.show", ":id") }}'.replace(':id', id),
+        url: '<?php echo e(route("payment-terms.show", ":id")); ?>'.replace(':id', id),
         method: 'GET',
         success: function(response) {
             $('#edit_id').val(response.id);
@@ -913,6 +921,7 @@ window.editPaymentTerm = function(id) {
             $('#edit_advance_percentage').val(response.advance_percentage);
             $('#edit_design_dev_percentage').val(response.design_dev_percentage);
             $('#edit_completion_percentage').val(response.completion_percentage);
+            $('#edit_terms_and_conditions').val(response.terms_and_conditions);
             $('#edit_is_active').prop('checked', response.is_active);
             
             $('#editPaymentTermModal').modal('show');
@@ -930,7 +939,7 @@ window.deletePaymentTerm = function(id) {
 
 window.toggleStatus = function(id) {
     $.ajax({
-        url: '{{ route("payment-terms.toggle-status", ":id") }}'.replace(':id', id),
+        url: '<?php echo e(route("payment-terms.toggle-status", ":id")); ?>'.replace(':id', id),
         method: 'PATCH',
         success: function(response) {
             if (response.success) {
@@ -966,4 +975,6 @@ window.toggleStatus = function(id) {
     to { transform: rotate(360deg); }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/setup/payment-terms.blade.php ENDPATH**/ ?>

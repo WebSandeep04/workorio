@@ -723,17 +723,6 @@ Route::middleware(['auth.or.session'])->group(function () {
 
 
 
-    // Payment Terms routes
-    Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
-        Route::get('/payment-terms', [\App\Http\Controllers\PaymentTermController::class, 'index'])->name('payment-terms');
-        Route::get('/payment-terms/fetch', [\App\Http\Controllers\PaymentTermController::class, 'fetch'])->name('payment-terms.fetch');
-        Route::post('/payment-terms/store', [\App\Http\Controllers\PaymentTermController::class, 'store'])->name('payment-terms.store');
-        Route::get('/payment-terms/{id}', [\App\Http\Controllers\PaymentTermController::class, 'show'])->name('payment-terms.show');
-        Route::put('/payment-terms/{id}', [\App\Http\Controllers\PaymentTermController::class, 'update'])->name('payment-terms.update');
-        Route::delete('/payment-terms/{id}', [\App\Http\Controllers\PaymentTermController::class, 'destroy'])->name('payment-terms.destroy');
-        Route::patch('/payment-terms/{id}/toggle-status', [\App\Http\Controllers\PaymentTermController::class, 'toggleStatus'])->name('payment-terms.toggle-status');
-    });
-
     // Quotation helper routes (tenant context) - align with customers/products fetch
     // (payment terms route defined earlier)
     

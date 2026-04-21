@@ -271,7 +271,6 @@ return [
                         ['route' => 'status', 'title' => 'Sales Status', 'icon' => 'bi bi-check2-circle', 'permission' => 'setup.sales_status', 'feature_flag' => 'is_sales_setup_enabled'],
                         ['route' => 'source', 'title' => 'Lead Source', 'icon' => 'bi bi-diagram-3', 'permission' => 'setup.lead_source', 'feature_flag' => 'is_sales_setup_enabled'],
                         ['route' => 'product', 'title' => 'Product', 'icon' => 'bi bi-box2', 'permission' => 'setup.products', 'feature_flag' => 'is_sales_setup_enabled'],
-                        ['route' => 'payment-terms', 'title' => 'Payment Terms', 'icon' => 'bi bi-credit-card', 'permission' => 'setup.payment_terms', 'feature_flag' => 'is_sales_setup_enabled'],
                         ['route' => 'business', 'title' => 'Business Type', 'icon' => 'bi bi-briefcase', 'permission' => 'setup.business_types', 'feature_flag' => 'is_sales_setup_enabled'],
                         ['route' => 'calling-type.index', 'title' => 'Calling Types', 'icon' => 'bi bi-list-ul', 'permission' => 'setup.calling_types', 'feature_flag' => 'is_tally_calling_setup_enabled'],
                         ['route' => 'whatsapp-template.index', 'title' => 'Whatsapp Template', 'icon' => 'bi bi-whatsapp', 'permission' => 'setup.whatsapp_templates', 'feature_flag' => 'is_tally_calling_setup_enabled'],
