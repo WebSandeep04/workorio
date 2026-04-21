@@ -423,6 +423,7 @@ Route::get('/quotation/create', [\App\Http\Controllers\QuotationController::clas
 Route::get('/quotation/customers', [\App\Http\Controllers\QuotationController::class, 'getCustomers'])->name('quotation.customers');
 Route::get('/quotation/prospects', [\App\Http\Controllers\QuotationController::class, 'getProspects'])->name('quotation.prospects');
 Route::get('/quotation/products', [\App\Http\Controllers\QuotationController::class, 'getSalesProducts'])->name('quotation.products');
+Route::get('/quotation/users', [\App\Http\Controllers\QuotationController::class, 'getUsers'])->name('quotation.users');
 Route::get('/quotation/generate-number', [\App\Http\Controllers\QuotationController::class, 'generateQuotationNumber'])->name('quotation.generate-number');
 Route::get('/quotation/current-date', [\App\Http\Controllers\QuotationController::class, 'getCurrentDate'])->name('quotation.current-date');
 Route::post('/quotation/store', [\App\Http\Controllers\QuotationController::class, 'store'])->name('quotation.store');

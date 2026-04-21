@@ -38,8 +38,10 @@ class QuotationController extends Controller
 
         // Fetch latest 200 quotations and compute display name from source table
         $rows = DB::table('quotations as q')
+            ->leftJoin('users as u', 'q.created_by', '=', 'u.id')
             ->select(
                 'q.*',
+                'u.name as creator_name',
                 DB::raw("CASE 
                     WHEN q.customer_type = 'customer' THEN (
                         SELECT CONCAT_WS(' ', c.name, CASE WHEN c.company_name IS NULL OR c.company_name = '' THEN '' ELSE CONCAT('(', c.company_name, ')') END)
@@ -130,6 +132,15 @@ class QuotationController extends Controller
             ->get();
         
         return response()->json($products);
+    }
+
+    /**
+     * Get users for quotation filter
+     */
+    public function getUsers()
+    {
+        $users = DB::table('users')->select('id', 'name')->orderBy('name')->get();
+        return response()->json($users);
     }
 
     /**
