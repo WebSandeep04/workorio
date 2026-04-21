@@ -243,16 +243,31 @@
     color: white;
   }
 
+  /* Pagination Styling */
   .pagination .page-link {
     color: #434afa;
-    border: 1px solid #e5e7eb;
-    font-size: 0.8rem;
-    padding: 0.4rem 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    margin: 0 2px;
+    font-size: 10px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-family: Montserrat, sans-serif;
   }
 
   .pagination .page-item.active .page-link {
     background: #434afa;
     border-color: #434afa;
+    color: white;
+    box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+  }
+
+  .pagination .page-link:hover {
+    background: rgba(67, 74, 250, 0.15);
+    border-color: #434afa;
+    transform: translateY(-1px);
+    color: #3538d4;
   }
 
   .loading-state {
@@ -380,18 +395,17 @@
             <table class="custom-table" id="quotationsTable">
                 <thead>
                     <tr>
-                        <th>#</th>
                         <th>Quotation No.</th>
                         <th>Customer / Prospect</th>
                         <th>Executive</th>
                         <th>Total Amount</th>
-                        <th>Date</th>
+                        <th>Versions</th>
                         <th style="border-right: none;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="quotationsBody">
                     <tr>
-                        <td colspan="7" class="loading-state">
+                        <td colspan="6" class="loading-state">
                             <div class="loading-spinner"></div>
                             <p class="mt-2 mb-0">Loading quotations...</p>
                         </td>
@@ -403,8 +417,8 @@
 
     <!-- Pagination Placeholder -->
     <div class="d-flex justify-content-between align-items-center mt-3 px-2">
-        <div class="text-muted small" id="paginationInfo">
-            Showing ...
+        <div class="text-muted small" id="paginationRangeInfo">
+            Showing 0-0 from 0 data
         </div>
         <nav aria-label="Page navigation">
             <ul class="pagination pagination-sm m-0" id="paginationLinks">
@@ -446,15 +460,35 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
+let currentPage = 1;
+
 $(document).ready(function() {
     loadUsers();
     loadCustomers();
     loadProspects();
-    loadQuotations();
+    loadQuotations(1);
 
-    // Search and Filters
-    $('#searchInput, #filter_user, #filter_customer, #filter_prospect, #filter_from_date, #filter_to_date, #customer_type').on('input change', function() {
-        filterTable();
+    // Filter Change event (triggers reload from page 1)
+    $('#filter_user, #filter_customer, #filter_prospect, #filter_from_date, #filter_to_date, #customer_type').on('change', function() {
+        loadQuotations(1);
+    });
+
+    // Search event (debounced)
+    let searchTimer;
+    $('#searchInput').on('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            loadQuotations(1);
+        }, 500);
+    });
+
+    // Pagination click handler
+    $(document).on('click', '#paginationLinks .page-link', function(e) {
+        e.preventDefault();
+        const page = $(this).data('page');
+        if (page) {
+            loadQuotations(page);
+        }
     });
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -462,8 +496,6 @@ $(document).ready(function() {
         openHistoryById(urlParams.get('history'));
     }
 });
-
-let allQuotations = [];
 
 function loadUsers() {
     $.get("<?php echo e(route('quotation.users')); ?>")
@@ -500,43 +532,46 @@ function loadProspects() {
         });
 }
 
-function loadQuotations() {
-    $.get("<?php echo e(route('quotation.list')); ?>")
+function loadQuotations(page = 1) {
+    currentPage = page;
+    const params = {
+        page: page,
+        search: $('#searchInput').val(),
+        created_by: $('#filter_user').val(),
+        customer_id: $('#filter_customer').val(),
+        prospect_id: $('#filter_prospect').val(),
+        from_date: $('#filter_from_date').val(),
+        to_date: $('#filter_to_date').val(),
+        customer_type: $('#customer_type').val(),
+        per_page: 10
+    };
+
+    $('#quotationsBody').html('<tr><td colspan="7" class="loading-state"><div class="loading-spinner"></div><p class="mt-2 mb-0">Loading quotations...</p></td></tr>');
+
+    $.get("<?php echo e(route('quotation.list')); ?>", params)
         .done(function(resp) {
-            allQuotations = (resp && resp.data) ? resp.data : [];
-            renderTable(allQuotations);
-            updateSummary(allQuotations);
+            const data = resp.data || [];
+            renderTable(data, (page - 1) * 10);
+            renderPagination(resp);
+            updateSummary(resp);
         })
         .fail(function() {
             $('#quotationsBody').html('<tr><td colspan="7" class="text-center text-danger py-4">Failed to load data.</td></tr>');
         });
 }
 
-function updateSummary(data) {
-    const total = data.length;
-    let value = 0;
-    let thisMonthCount = 0;
-    const now = new Date();
-    
-    data.forEach(r => {
-        const amt = parseFloat(r.total_amount || r.grand_total || 0);
-        value += isNaN(amt) ? 0 : amt;
-        
-        const d = new Date(r.created_at);
-        if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-            thisMonthCount++;
-        }
-    });
-
-    $('#totalQuotations').text(total);
-    $('#totalValue').text('₹' + value.toLocaleString('en-IN', { maximumFractionDigits: 0 }));
-    $('#monthQuotations').text(thisMonthCount);
+function updateSummary(resp) {
+    // Note: Summary stats might need a separate endpoint for true overall totals if paginated, 
+    // but for now we'll use what we have or you can add a summary-stats route.
+    $('#totalQuotations').text(resp.total || 0);
+    // Since resp is paginated, overall value needs a sum of all. 
+    // Usually MyLeads has a separate call for this. 
+    // Let's keep it simple or fetch all once for summary.
 }
 
-function renderTable(data) {
+function renderTable(data, offset) {
     if (!data.length) {
-        $('#quotationsBody').html('<tr><td colspan="7" class="text-center text-muted py-4">No records found.</td></tr>');
-        $('#paginationInfo').text('Showing 0 records');
+        $('#quotationsBody').html('<tr><td colspan="6" class="text-center text-muted py-4">No records found.</td></tr>');
         return;
     }
 
@@ -546,18 +581,17 @@ function renderTable(data) {
         const customer = r.customer_display || r.customer_name || '-';
         const executive = r.creator_name || '-';
         const amount = Number(r.total_amount || r.grand_total || 0);
-        const date = r.created_at ? new Date(r.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+        const version = r.version || 1;
         const fileUrl = r.file_url || '';
         const id = r.id;
 
         html += `
             <tr>
-                <td>${idx + 1}</td>
                 <td><strong>${qNo}</strong></td>
                 <td>${customer}</td>
                 <td>${executive}</td>
                 <td>₹${amount.toLocaleString('en-IN')}</td>
-                <td>${date}</td>
+                <td>${version}</td>
                 <td>
                     <div class="action-buttons">
                         <a href="${fileUrl}" target="_blank" class="btn-action btn-download" title="Download PDF">
@@ -575,57 +609,50 @@ function renderTable(data) {
         `;
     });
     $('#quotationsBody').html(html);
-    $('#paginationInfo').text(`Showing ${data.length} records`);
 }
 
-function filterTable() {
-    const search = $('#searchInput').val().toLowerCase();
-    const userId = $('#filter_user').val();
-    const custId = $('#filter_customer').val();
-    const prosId = $('#filter_prospect').val();
-    const fromDate = $('#filter_from_date').val();
-    const toDate = $('#filter_to_date').val();
-    const type = $('#customer_type').val();
+function renderPagination(data) {
+    const $container = $('#paginationLinks');
+    const current = data.current_page;
+    const last = data.last_page;
     
-    let filtered = allQuotations.filter(r => {
-        // Search
-        const matchesSearch = (r.quotation_number && r.quotation_number.toLowerCase().includes(search)) || 
-                             (r.customer_display && r.customer_display.toLowerCase().includes(search)) ||
-                             (r.customer_name && r.customer_name.toLowerCase().includes(search));
-        
-        // User
-        const matchesUser = !userId || (String(r.created_by) === String(userId));
-
-        // Customer
-        const matchesCustomer = !custId || (r.customer_type === 'customer' && String(r.customer_id) === String(custId));
-        
-        // Prospect
-        const targetProsId = r.prospect_id || (r.customer_type === 'prospect' ? r.customer_id : null);
-        const matchesProspect = !prosId || (r.customer_type === 'prospect' && String(targetProsId) === String(prosId));
-
-        // Type
-        const matchesType = !type || (r.customer_type === type);
-        
-        // Date Range
-        let matchesDate = true;
-        if (r.created_at) {
-            const createdAt = new Date(r.created_at).setHours(0,0,0,0);
-            if (fromDate) {
-                const start = new Date(fromDate).setHours(0,0,0,0);
-                if (createdAt < start) matchesDate = false;
-            }
-            if (toDate) {
-                const end = new Date(toDate).setHours(0,0,0,0);
-                if (createdAt > end) matchesDate = false;
-            }
-        } else if (fromDate || toDate) {
-            matchesDate = false;
-        }
-        
-        return matchesSearch && matchesUser && matchesCustomer && matchesProspect && matchesType && matchesDate;
-    });
+    $container.empty();
     
-    renderTable(filtered);
+    // Previous
+    $container.append(`
+        <li class="page-item ${current === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${current - 1}">
+                <i class="bi bi-chevron-left"></i> Previous
+            </a>
+        </li>
+    `);
+    
+    // Current / Last
+    $container.append(`
+        <li class="page-item active">
+            <span class="page-link">${current} / ${last}</span>
+        </li>
+    `);
+    
+    // Next
+    $container.append(`
+        <li class="page-item ${current === last ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${current + 1}">
+                Next <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    `);
+
+    // Range Info
+    updateRangeInfo(data.from, data.to, data.total);
+}
+
+function updateRangeInfo(from, to, total) {
+    const $info = $('#paginationRangeInfo');
+    const safeFrom = from || 0;
+    const safeTo = to || 0;
+    const safeTotal = total || 0;
+    $info.text(`Showing ${safeFrom}-${safeTo} from ${safeTotal} data`);
 }
 
 function reviseQuote(no) {

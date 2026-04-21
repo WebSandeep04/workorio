@@ -36,8 +36,8 @@ class QuotationController extends Controller
             return response()->json(['data' => []]);
         }
 
-        // Fetch latest 200 quotations and compute display name from source table
-        $rows = DB::table('quotations as q')
+        // Paginate results (default 10 per page)
+        $query = DB::table('quotations as q')
             ->leftJoin('users as u', 'q.created_by', '=', 'u.id')
             ->select(
                 'q.*',
@@ -52,16 +52,58 @@ class QuotationController extends Controller
                         FROM prospectuses p WHERE p.id = COALESCE(q.prospect_id, q.customer_id)
                     )
                     ELSE NULL END as customer_display_raw")
-            )
-            ->orderByDesc('q.id')
-            ->limit(200)
-            ->get();
+            );
 
-        // Post-process to include names and file URL
-        $rows = $rows->map(function ($r) {
+        // Apply Filters
+        if ($userId = request('created_by')) {
+            $query->where('q.created_by', $userId);
+        }
+        if ($custId = request('customer_id')) {
+            $query->where('q.customer_type', 'customer')->where('q.customer_id', $custId);
+        }
+        if ($prosId = request('prospect_id')) {
+            $query->where('q.customer_type', 'prospect')->where(function($qq) use ($prosId) {
+                $qq->where('q.prospect_id', $prosId)->orWhere('q.customer_id', $prosId);
+            });
+        }
+        if ($type = request('customer_type')) {
+            $query->where('q.customer_type', $type);
+        }
+        if ($from = request('from_date')) {
+            $query->whereDate('q.created_at', '>=', $from);
+        }
+        if ($to = request('to_date')) {
+            $query->whereDate('q.created_at', '<=', $to);
+        }
+        if ($search = request('search')) {
+            $query->where(function($qq) use ($search) {
+                $qq->where('q.quotation_number', 'like', "%{$search}%")
+                   ->orWhereExists(function($sq) use ($search) {
+                       $sq->select(DB::raw(1))
+                          ->from('customers as c2')
+                          ->whereColumn('c2.id', 'q.customer_id')
+                          ->where('q.customer_type', 'customer')
+                          ->where('c2.name', 'like', "%{$search}%");
+                   })
+                   ->orWhereExists(function($sq) use ($search) {
+                       $sq->select(DB::raw(1))
+                          ->from('prospectuses as p2')
+                          ->where(function($p2q) {
+                              $p2q->whereColumn('p2.id', 'q.prospect_id')
+                                  ->orWhereColumn('p2.id', 'q.customer_id');
+                          })
+                          ->where('q.customer_type', 'prospect')
+                          ->where('p2.prospectus_name', 'like', "%{$search}%");
+                   });
+            });
+        }
+
+        $rows = $query->orderByDesc('q.id')->paginate(request('per_page', 10));
+
+        // Post-process the collection inside the paginator
+        $rows->getCollection()->transform(function ($r) {
             $display = $r->customer_display_raw;
 
-            // Fallback if raw display is empty but we have IDs
             if (empty($display)) {
                 if ($r->customer_type == 'customer' && !empty($r->customer_id)) {
                     $c = DB::table('customers')->find($r->customer_id);
@@ -81,13 +123,11 @@ class QuotationController extends Controller
 
             $r->customer_display = $display ?: '-';
             unset($r->customer_display_raw);
-            
-            // Add file URL for download
             $r->file_url = $this->quoteFileUrl($r);
             return $r;
         });
 
-        return response()->json(['data' => $rows]);
+        return response()->json($rows);
     }
 
     /**

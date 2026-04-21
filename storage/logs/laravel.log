@@ -287,3 +287,11 @@
 [2026-04-21 10:56:22] local.INFO: Quotation store: User ID found {"user_id":13} 
 [2026-04-21 10:56:22] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","payment_terms","show_payment_terms","products"]} 
 [2026-04-21 10:56:22] local.INFO: Starting quotation save transaction {"quote_no":"ADDO-20260421-001"} 
+[2026-04-21 11:17:40] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-21 11:17:40] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-21 11:17:40] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","global_discount_type","status","payment_terms","show_payment_terms","products"]} 
+[2026-04-21 11:17:40] local.INFO: Starting quotation save transaction {"quote_no":"AEYA-20260421-001"} 
+[2026-04-21 11:27:12] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-21 11:27:12] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-21 11:27:12] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","global_discount_type","status","payment_terms","show_payment_terms","products"]} 
+[2026-04-21 11:27:12] local.INFO: Starting quotation save transaction {"quote_no":"AEYA-20260421-001"} 
