@@ -450,7 +450,7 @@
             </table>
         </div> -->
 
-        <div class ="text-overlay2" style="font-size: 22px; color: #000; font-weight: 700; letter-spacing: 0.5px;"><?php echo e(strtoupper($quote->data['subject'] ?? 'Project Estimate & Scope')); ?></div>
+        <div class ="text-overlay2" style="font-size: 22px; color: #000; font-weight: 700; letter-spacing: 0.5px;"><?php echo e(ucwords(strtolower($quote->data['subject'] ?? 'Project Estimate & Scope'))); ?></div>
 
         <div class="text-overlay" style="width: 400px;">
             <div style="color: #fff; font-size: 24px; font-weight: bold;">
@@ -532,7 +532,7 @@
                             <td><?php echo e($index + 1); ?></td>
                             <td>
                                 <strong><?php echo e(optional(\App\Models\SalesProduct::find($item['product_id'] ?? null))->product_name ?? ($item['product_name'] ?? ($item['product_id'] ?? '--'))); ?></strong><br>
-                                <span style="font-size: 8.5px; color: #777;"><?php echo e($item['remark'] ?? ''); ?></span>
+                                <div style="font-size: 8.5px; color: #777; word-wrap: break-word; word-break: break-all; line-height: 1.2; max-width: 350px;"><?php echo e($item['remark'] ?? ''); ?></div>
                             </td>
                             <td class="text-right"><?php echo e($qty); ?> <?php echo e($item['unit'] ?? 'Nos'); ?></td>
                             <td class="text-right"><?php echo e(number_format($price, 2)); ?></td>
@@ -846,8 +846,10 @@
             </tr>
         </table>
 
-         <div class="term-cat-title">Acceptance of Proposal</div>
-         <p style="font-size: 11px">Approval of this proposal or payment of the advance amount will be considered acceptance of all the terms and conditions mentioned above.</p>
+         <div style="text-align: center; margin-top: 20px;">
+            <div class="term-cat-title">Acceptance of Proposal</div>
+            <p style="font-size: 11px">Approval of this proposal or payment of the advance amount will be considered acceptance of all the terms and conditions mentioned above.</p>
+         </div>
 
     </div>
 

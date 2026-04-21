@@ -450,7 +450,7 @@
             </table>
         </div> -->
 
-        <div class ="text-overlay2" style="font-size: 22px; color: #000; font-weight: 700; letter-spacing: 0.5px;">{{ strtoupper($quote->data['subject'] ?? 'Project Estimate & Scope') }}</div>
+        <div class ="text-overlay2" style="font-size: 22px; color: #000; font-weight: 700; letter-spacing: 0.5px;">{{ ucwords(strtolower($quote->data['subject'] ?? 'Project Estimate & Scope')) }}</div>
 
         <div class="text-overlay" style="width: 400px;">
             <div style="color: #fff; font-size: 24px; font-weight: bold;">
@@ -530,7 +530,7 @@
                             <td>{{ $index + 1 }}</td>
                             <td>
                                 <strong>{{ optional(\App\Models\SalesProduct::find($item['product_id'] ?? null))->product_name ?? ($item['product_name'] ?? ($item['product_id'] ?? '--')) }}</strong><br>
-                                <span style="font-size: 8.5px; color: #777;">{{ $item['remark'] ?? '' }}</span>
+                                <div style="font-size: 8.5px; color: #777; word-wrap: break-word; word-break: break-all; line-height: 1.2; max-width: 350px;">{{ $item['remark'] ?? '' }}</div>
                             </td>
                             <td class="text-right">{{ $qty }} {{ $item['unit'] ?? 'Nos' }}</td>
                             <td class="text-right">{{ number_format($price, 2) }}</td>
@@ -842,8 +842,10 @@
             </tr>
         </table>
 
-         <div class="term-cat-title">Acceptance of Proposal</div>
-         <p style="font-size: 11px">Approval of this proposal or payment of the advance amount will be considered acceptance of all the terms and conditions mentioned above.</p>
+         <div style="text-align: center; margin-top: 20px;">
+            <div class="term-cat-title">Acceptance of Proposal</div>
+            <p style="font-size: 11px">Approval of this proposal or payment of the advance amount will be considered acceptance of all the terms and conditions mentioned above.</p>
+         </div>
 
     </div>
 

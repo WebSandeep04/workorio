@@ -138,7 +138,7 @@
                             <td>
                                 <strong>{{ optional(\App\Models\SalesProduct::find($item['product_id'] ?? null))->product_name ?? ($item['product_name'] ?? ($item['product_id'] ?? '--')) }}</strong>
                                 @if(!empty($item['remark']))
-                                    <br><span style="font-size: 9px; color: #6b7280;">{{ $item['remark'] }}</span>
+                                    <div style="font-size: 9px; color: #6b7280; word-wrap: break-word; word-break: break-all; line-height: 1.2; max-width: 300px;">{{ $item['remark'] }}</div>
                                 @endif
                             </td>
                             <td>{{ $qty }} {{ $item['unit'] ?? 'Nos' }}</td>

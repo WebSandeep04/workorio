@@ -256,3 +256,22 @@
 [2026-04-21 08:18:12] local.INFO: Quotation store: User ID found {"user_id":13} 
 [2026-04-21 08:18:12] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
 [2026-04-21 08:18:12] local.INFO: Starting quotation save transaction {"quote_no":"ASOF-20260421-001"} 
+[2026-04-21 10:07:36] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-21 10:07:36] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-21 10:07:36] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-04-21 10:07:36] local.INFO: Starting quotation save transaction {"quote_no":"AIRO-20260421-001"} 
+[2026-04-21 10:15:53] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-21 10:15:53] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-21 10:15:53] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","products"]} 
+[2026-04-21 10:15:53] local.INFO: Starting quotation save transaction {"quote_no":"ASOF-20260421-001"} 
+[2026-04-21 10:20:40] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-21 10:20:40] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-21 10:20:40] local.ERROR: Quotation validation failed {"errors":{"show_payment_terms":["The show payment terms field must be a string."]}} 
+[2026-04-21 10:22:32] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-21 10:22:32] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-21 10:22:32] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","payment_terms","show_payment_terms","products"]} 
+[2026-04-21 10:22:32] local.INFO: Starting quotation save transaction {"quote_no":"ASOF-20260421-002"} 
+[2026-04-21 10:27:10] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-21 10:27:10] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-21 10:27:10] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","payment_terms","show_payment_terms","products"]} 
+[2026-04-21 10:27:10] local.INFO: Starting quotation save transaction {"quote_no":"ASOF-20260421-003"} 

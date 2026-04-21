@@ -327,12 +327,9 @@
                     <div id="payment_terms_section">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div class="section-title mb-0">Terms and Conditions</div>
-                            <button type="button" class="btn btn-sm btn-outline-primary" style="font-size: 12px; border-color: #434AFA; color: #434AFA;" onclick="saveAsDefaultPaymentTerms(this)">
-                                <i class="bi bi-save"></i> Set as Default
-                            </button>
                         </div>
                         <textarea class="form-control form-control-modern" id="payment_terms" name="payment_terms" rows="6" placeholder="Enter terms separated by new lines..."></textarea>
-                        <small class="text-muted">Edits here apply only to this quote. Click "Set as Default" to update your template.</small>
+                        <small class="text-muted">Edits here apply only to this quotation.</small>
                     </div>
                 </div>
             </div>
@@ -401,35 +398,6 @@ $(document).ready(function() {
 
 
 
-function saveAsDefaultPaymentTerms(btn) {
-    const terms = $('#payment_terms').val();
-    const $btn = $(btn);
-    const originalContent = $btn.html();
-    
-    $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i>');
-    
-    $.ajax({
-        url: "{{ route('quotation.setup.store') }}",
-        type: 'POST',
-        data: {
-            payment_terms: terms
-        },
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            showAlert('success', 'Payment terms updated as default');
-            // Refresh local quotationSettings
-            loadQuotationSettings();
-        },
-        error: function(xhr) {
-            showAlert('error', 'Failed to save default terms');
-        },
-        complete: function() {
-            $btn.prop('disabled', false).html(originalContent);
-        }
-    });
-}
 
 // Global variables to store data
 let productsData = [];
@@ -812,6 +780,8 @@ function generatePDF(data) {
         products: data.products,
         discount: totals.discountAmount,
         total_amount: totals.total,
+        payment_terms: data.payment_terms,
+        show_payment_terms: true,
         status: 'Draft'
     };
 

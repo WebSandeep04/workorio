@@ -404,7 +404,7 @@ class QuotationController extends Controller
             'payment_term_id'    => 'nullable|integer',
             'project_timeline'   => 'nullable|string|max:255',
             'payment_terms'      => 'nullable|string',
-            'show_payment_terms' => 'nullable|boolean|string', // frontend might send "true"/"false" as strings occasionally
+            'show_payment_terms' => 'nullable|boolean', // Removed 'string' to avoid conflict with boolean type
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Quotation validation failed', ['errors' => $e->errors()]);

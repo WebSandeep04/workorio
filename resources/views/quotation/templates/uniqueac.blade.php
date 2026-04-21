@@ -261,7 +261,7 @@
                     <td class="text-left">
                         {{ optional(\App\Models\SalesProduct::find($p['product_id'] ?? null))->product_name ?? ($p['product_name'] ?? ($p['name'] ?? '--')) }}
                         @if(!empty($p['remark']))
-                            <br><small style="font-size: 9px; color: #666;">({{ $p['remark'] }})</small>
+                            <div style="font-size: 9px; color: #666; word-wrap: break-word; word-break: break-all; line-height: 1.2; max-width: 250px;">({{ $p['remark'] }})</div>
                         @endif
                     </td>
                     <td>{{ $qty }}</td>
