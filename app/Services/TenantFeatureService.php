@@ -15,9 +15,18 @@ class TenantFeatureService
                 'enabled' => true,
                 'setup_enabled' => (bool) ($tenant->is_core_setup_enabled ?? true),
                 'permissions' => [
-                    'core.setup' => 'Core: Setup (States, Cities, Countries)',
                     'master.employees' => 'Master: Employee Management',
-                    'master.setup' => 'Master: Setup (Branches, Shifts, Depts)'
+                    'setup.state' => 'Setup: States',
+                    'setup.city' => 'Setup: Cities',
+                    'setup.countries' => 'Setup: Countries',
+                    'setup.branches' => 'Setup: Branches',
+                    'setup.shifts' => 'Setup: Shifts',
+                    'setup.departments' => 'Setup: Departments',
+                    'setup.designations' => 'Setup: Designations',
+                    'setup.employment_types' => 'Setup: Employment Types',
+                    'setup.leave_types' => 'Setup: Leave Types',
+                    'setup.late_reasons' => 'Setup: Late Reasons',
+                    'setup.places' => 'Setup: Places',
                 ]
             ],
             'sales_crm' => [
@@ -34,7 +43,12 @@ class TenantFeatureService
                     'sales.leadform' => 'Sales: Lead Form Builder',
                     'sales.indiamart' => 'Sales: IndiaMART Leads',
                     'sales.indiamart.junk' => 'Sales: IndiaMART Junk',
-                    'sales.setup' => 'Sales: Setup Management'
+                    'setup.sales_status' => 'Setup: Sales Status',
+                    'setup.lead_source' => 'Setup: Lead Source',
+                    'setup.products' => 'Setup: Products',
+                    'setup.payment_terms' => 'Setup: Payment Terms',
+                    'setup.business_types' => 'Setup: Business Types',
+                    'setup.quotation' => 'Setup: Quotation Settings',
                 ]
             ],
             'tele_calling' => [
@@ -43,12 +57,15 @@ class TenantFeatureService
                 'permissions' => [
                     'sales.calling.all' => 'Tele-Calling: View All',
                     'sales.calling.list' => 'Tele-Calling: List View',
-                    'sales.calling.todayfollowups' => 'Tele-Calling: Today Followups',
-                    'sales.calling.todaynew' => 'Tele-Calling: Today New',
-                    'sales.calling.todaycompleted' => 'Tele-Calling: Today Completed',
-                    'sales.calling.todaypending' => 'Tele-Calling: Today Pending',
-                    'sales.calling.underprocess' => 'Tele-Calling: Under Process',
-                    'sales.calling.allleadstable' => 'Tele-Calling: Leads Table'
+                    'sales.calling.my' => 'Tele-Calling: My Calls',
+                    'sales.calling.team' => 'Tele-Calling: Team Calls',
+                    'sales.calling.assigned' => 'Tele-Calling: Assigned Calls',
+                    'sales.calling.converted' => 'Tele-Calling: Converted',
+                    'sales.calling.todays' => 'Tele-Calling: Today\'s Calls',
+                    'sales.calling.junk' => 'Tele-Calling: Junk Calls',
+                    'sales.calling.lock' => 'Tele-Calling: Lock Calling',
+                    'setup.calling_types' => 'Setup: Calling Types',
+                    'setup.whatsapp_templates' => 'Setup: Whatsapp Templates',
                 ]
             ],
             'lead_generation' => [
@@ -62,10 +79,11 @@ class TenantFeatureService
                 'enabled' => (bool) ($tenant->is_worklog_enabled ?? true),
                 'setup_enabled' => (bool) ($tenant->is_work_setup_enabled ?? true),
                 'permissions' => [
-                    'worklog.entry' => 'Worklog: Daily Entries',
-                    'worklog.leave' => 'Worklog: Leave Requests',
-                    'worklog.missing_summary' => 'Worklog: Missing Summary',
-                    'worklog.setup' => 'Worklog: Setup Management'
+                    'worklog.entry' => 'Timesheet: Daily Entries',
+                    'worklog.history' => 'Timesheet: Personal History',
+                    'worklog.missing_summary' => 'Timesheet: Missing Summary',
+                    'setup.customers' => 'Setup: Customers',
+                    'setup.worklog_entry_types' => 'Setup: Entry Types',
                 ]
             ],
             'tasks' => [
@@ -73,22 +91,20 @@ class TenantFeatureService
                 'setup_enabled' => (bool) ($tenant->is_task_setup_enabled ?? true),
                 'permissions' => [
                     'task.view' => 'Tasks: View All',
-                    'task.create' => 'Tasks: Create & Assign',
-                    'task.edit' => 'Tasks: Edit Details',
-                    'task.delete' => 'Tasks: Delete',
-                    'task.toggle' => 'Tasks: Update Status',
                     'task.my_tasks' => 'Tasks: Assigned to Me',
                     'task.my_created' => 'Tasks: Created by Me',
-                    'task.setup' => 'Tasks: Status Setup'
+                    'setup.task_status' => 'Setup: Task Status',
                 ]
             ],
             'approvals' => [
                 'enabled' => (bool) ($tenant->is_approval_enabled ?? true),
                 'setup_enabled' => false,
                 'permissions' => [
-                    'worklog.approvals' => 'Approvals: Timesheets & Leaves',
-                    'attendance.approval' => 'Approvals: Attendance Records',
-                    'approvals.petty' => 'Approvals: Petty Cash Claims'
+                    'approvals.worklog' => 'Approvals: Timesheets',
+                    'approvals.attendance' => 'Approvals: Attendance',
+                    'approvals.leave' => 'Approvals: Leaves',
+                    'approvals.petty' => 'Approvals: Petty Cash',
+                    'approvals.unlock_attendance' => 'Approvals: Unlock Attendance',
                 ]
             ],
             'workflow' => [
@@ -105,40 +121,80 @@ class TenantFeatureService
                 'setup_enabled' => (bool) ($tenant->is_attendance_setup_enabled ?? false),
                 'permissions' => [
                     'attendance.entry' => 'Attendance: Daily Check-in',
-                    'attendance.setup' => 'Attendance: Setup Management'
+                    'attendance.history' => 'Attendance: Personal History',
+                    'attendance.leave' => 'Attendance: Apply Leave',
+                    'setup.holidays' => 'Setup: Holidays',
                 ]
             ],
             'reports' => [
                 'enabled' => (bool) ($tenant->is_reports_enabled ?? true),
                 'setup_enabled' => (bool) ($tenant->is_reports_setup_enabled ?? false),
                 'permissions' => [
-                    'attendance.stats' => 'Reports: Attendance Stats',
-                    'attendance.report' => 'Reports: Attendance History',
-                    'reports.worklog' => 'Reports: Timesheet Summary',
-                    'worklog.history' => 'Reports: Detailed History',
-                    'reports.setup' => 'Reports: Setup Management'
+                    'attendance.report' => 'Reports: Attendance Report',
+                    'reports.worklog' => 'Reports: Timesheet Report',
                 ]
             ],
             'user_rbac' => [
                 'enabled' => (bool) ($tenant->is_user_setup_enabled ?? true),
                 'setup_enabled' => false,
                 'permissions' => [
-                    'user.view' => 'Users: View & Manage',
-                    'role.manage' => 'Users: Roles & Permissions'
+                    'setup.users' => 'Setup: User Management',
+                    'setup.roles' => 'Setup: Role Master',
+                ]
+            ],
+            'calendar' => [
+                'enabled' => (bool) ($tenant->is_calendar_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_calendar_setup_enabled ?? true),
+                'permissions' => [
+                    'calendar.view' => 'Calendar: View',
+                    'calendar.client_event_links' => 'Calendar: Manage Links',
+                    'setup.calendar_events' => 'Setup: Calendar Events',
+                    'setup.calendar_missed_reasons' => 'Setup: Missed Reasons',
+                    'setup.calendar_status' => 'Setup: Status',
+                    'setup.calendar_status_checklist' => 'Setup: Status Checklist',
+                    'setup.calendar_common_events' => 'Setup: Common Events',
+                    'setup.calendar_social_handles' => 'Setup: Social Handles',
+                    'setup.calendar_clients' => 'Setup: Clients',
+                    'setup.calendar_client_social' => 'Setup: Client Social',
+                    'setup.checklist' => 'Setup: Checklists',
+                ]
+            ],
+            'assets' => [
+                'enabled' => (bool) ($tenant->is_asset_management_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_asset_management_setup_enabled ?? true),
+                'permissions' => [
+                    'asset_management.access' => 'Assets: Access',
+                    'setup.asset_types' => 'Setup: Asset Types',
+                    'setup.asset_categories' => 'Setup: Asset Categories',
+                    'setup.asset_status' => 'Setup: Asset Status',
+                    'setup.asset_suppliers' => 'Setup: Asset Suppliers',
+                    'setup.open_assets' => 'Setup: Manage Assets',
+                ]
+            ],
+            'petty_cash' => [
+                'enabled' => (bool) ($tenant->is_petty_cash_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_petty_cash_setup_enabled ?? true),
+                'permissions' => [
+                    'petty_cash.view' => 'Petty Cash: Access',
+                    'setup.expenses' => 'Setup: Expense Types',
+                    'setup.petty_opening_balance' => 'Setup: Opening Balances',
                 ]
             ],
             'other_modules' => [
                 'enabled' => true,
                 'setup_enabled' => true,
                 'permissions' => [
-                    'projects.view' => 'Others: Projects View',
-                    'subscription.view' => 'Others: Subscriptions View',
-                    'tracking.view' => 'Others: Live Tracking View',
-                    'documents.manage' => 'Others: Document Management',
-                    'calendar.view' => 'Others: Social Calendar View',
-                    'petty_cash.view' => 'Others: Petty Cash Access',
-                    'contact_management.access' => 'Others: Contacts Access',
-                    'asset_management.access' => 'Others: Assets Access'
+                    'projects.view' => 'Projects: View',
+                    'setup.project_services' => 'Setup: Project Services',
+                    'setup.project_modules' => 'Setup: Project Modules',
+                    'setup.open_projects' => 'Setup: Open Projects',
+                    'subscription.view' => 'Subscriptions: View',
+                    'setup.subscription_status' => 'Setup: Subscription Status',
+                    'tracking.view' => 'Tracking: Live View',
+                    'documents.manage' => 'Documents: Manage',
+                    'documents.my_documents' => 'Documents: My Files',
+                    'contact_management.access' => 'Contacts: Access',
+                    'email_marketing.view' => 'Email Marketing: View',
                 ]
             ]
         ];

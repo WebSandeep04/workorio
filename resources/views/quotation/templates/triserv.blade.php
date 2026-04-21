@@ -384,6 +384,7 @@
     @php
         if (!function_exists('amountToWords')) {
             function amountToWords($number) {
+                $number = round($number, 2);
                 $decimal = round($number - ($no = floor($number)), 2) * 100;
                 $hundred = null;
                 $digits_length = strlen($no);
@@ -411,15 +412,25 @@
                     } else $str[] = null;
                 }
                 $Rupees = implode('', array_reverse($str));
-                $paise = ($decimal > 0) ? ($words[$decimal / 10] . " " . $words[$decimal % 10]) . ' Paise' : '';
-                return ($Rupees ? 'INR ' . ucwords($Rupees) . 'Only ' : '');
+                
+                $paise = '';
+                if ($decimal > 0) {
+                    if ($decimal < 21) {
+                        $paise = $words[$decimal];
+                    } else {
+                        $paise = $words[floor($decimal / 10) * 10] . " " . $words[$decimal % 10];
+                    }
+                    $paise = " and " . $paise . ' Paise';
+                }
+                
+                return ($Rupees ? 'INR ' . ucwords($Rupees) : '') . ucwords($paise) . ' Only';
             }
         }
     @endphp
     <!-- PAGE 1: COVER PAGE (Hero) -->
     <div class="banner-container">
     
-        <img src="https://app.workorio.com/clients/hero.webp" class="banner-img">
+        <img src="https://app.workorio.com/clients/hero.jpeg" class="banner-img">
 
         <!-- <div class="top-bar">
             <table class="w-100">
@@ -606,7 +617,7 @@
 
     <div class="page-break"></div>
 
-        <img src="https://app.workorio.com/clients/account_details.png" class="banner-img">
+        <img src="https://app.workorio.com/clients/account_details.jpeg" class="banner-img">
 
     <div class="page-break"></div>
     

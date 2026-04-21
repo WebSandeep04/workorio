@@ -938,6 +938,10 @@ class AttendanceController extends Controller
 
     public function history()
     {
+        $user = $this->getCurrentUser();
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('attendance.history')) {
+            abort(403, 'Unauthorized');
+        }
         return view('attendance.history');
     }
 
@@ -947,6 +951,10 @@ class AttendanceController extends Controller
         
         if (!$user) {
             return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('attendance.history')) {
+            return response()->json(['error' => 'Unauthorized'], 403);
         }
         
         
