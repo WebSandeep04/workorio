@@ -179,9 +179,15 @@ class QuotationController extends Controller
         $today = Carbon::now();
         $datePrefix = $today->format('Ymd');
         
-        // Get the last quotation number for today
-        $lastQuotation = \DB::table('quotations')
-            ->where('quotation_number', 'like', "quote-{$datePrefix}%")
+        $settings = DB::table('quotation_settings')->first();
+        $compPrefix = strtoupper(substr($settings->company_name ?? 'TRIS', 0, 4));
+
+        // Get the last quotation number for today (check for both old 'quote-' and new prefix)
+        $lastQuotation = DB::table('quotations')
+            ->where(function($query) use ($datePrefix, $compPrefix) {
+                $query->where('quotation_number', 'like', "quote-{$datePrefix}%")
+                      ->orWhere('quotation_number', 'like', "{$compPrefix}-{$datePrefix}%");
+            })
             ->orderBy('quotation_number', 'desc')
             ->first();
         
@@ -192,7 +198,7 @@ class QuotationController extends Controller
             $newNumber = 1;
         }
         
-        $quotationNumber = "quote-{$datePrefix}-" . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+        $quotationNumber = "{$compPrefix}-{$datePrefix}-" . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
         
         return response()->json(['quotation_number' => $quotationNumber]);
     }
@@ -386,12 +392,22 @@ class QuotationController extends Controller
             // fallback to generated number
             $today = Carbon::now();
             $datePrefix = $today->format('Ymd');
-            $last = DB::table('quotations')->where('quotation_number', 'like', "quote-{$datePrefix}%")->orderByDesc('quotation_number')->first();
+            $settings = DB::table('quotation_settings')->first();
+            $compPrefix = strtoupper(substr($settings->company_name ?? 'TRIS', 0, 4));
+
+            $last = DB::table('quotations')
+                ->where(function($query) use ($datePrefix, $compPrefix) {
+                    $query->where('quotation_number', 'like', "quote-{$datePrefix}%")
+                          ->orWhere('quotation_number', 'like', "{$compPrefix}-{$datePrefix}%");
+                })
+                ->orderByDesc('quotation_number')
+                ->first();
+
             if ($last) {
                 $n = (int) substr($last->quotation_number, -3);
-                $quoteNo = "quote-{$datePrefix}-" . str_pad($n + 1, 3, '0', STR_PAD_LEFT);
+                $quoteNo = "{$compPrefix}-{$datePrefix}-" . str_pad($n + 1, 3, '0', STR_PAD_LEFT);
             } else {
-                $quoteNo = "quote-{$datePrefix}-001";
+                $quoteNo = "{$compPrefix}-{$datePrefix}-001";
             }
         }
 
@@ -487,7 +503,8 @@ class QuotationController extends Controller
             'subject'       => $quotation->data['subject'] ?? '',
         ];
 
-        $binary = $this->generatePdfBinary($data, $quotation->quotation_number);
+        $formattedName = $this->getFormattedQuoteNum($quotation);
+        $binary = $this->generatePdfBinary($data, $formattedName);
 
         if (is_array($binary) && isset($binary['error'])) {
             abort(500, 'PDF generation failed: ' . $binary['error']);
@@ -495,7 +512,7 @@ class QuotationController extends Controller
 
         return response($binary)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="' . $quotation->quotation_number . '.pdf"');
+            ->header('Content-Disposition', 'inline; filename="' . $formattedName . '.pdf"');
     }
 
     /**
@@ -526,7 +543,9 @@ class QuotationController extends Controller
             $data['total_amount'] = $total - (float)$data['discount'];
         }
 
-        $binary = $this->generatePdfBinary($data, $quotation->quotation_number . '_v' . $revision->version);
+        $formattedName = $this->getFormattedQuoteNum($quotation);
+        $revisionName = $formattedName . '_v' . $revision->version;
+        $binary = $this->generatePdfBinary($data, $revisionName);
 
         if (is_array($binary) && isset($binary['error'])) {
             abort(500, 'PDF generation failed: ' . $binary['error']);
@@ -534,7 +553,7 @@ class QuotationController extends Controller
 
         return response($binary)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="' . $quotation->quotation_number . '_v' . $revision->version . '.pdf"');
+            ->header('Content-Disposition', 'inline; filename="' . $revisionName . '.pdf"');
     }
 
     /**
@@ -553,6 +572,24 @@ class QuotationController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Helper to get common formatted quote number
+     */
+    private function getFormattedQuoteNum($quote)
+    {
+        $settings = DB::table('quotation_settings')->first();
+        $compPrefix = strtoupper(substr($settings->company_name ?? 'TRIS', 0, 4));
+        $datePart = $quote->created_at->format('Ymd');
+        
+        // Extract version from existing number if it exists, or use ID
+        $version = substr($quote->quotation_number, -3);
+        if (!is_numeric($version)) {
+            $version = str_pad($quote->id % 1000, 3, '0', STR_PAD_LEFT);
+        }
+        
+        return "{$compPrefix}-{$datePart}-{$version}";
     }
 
     /**

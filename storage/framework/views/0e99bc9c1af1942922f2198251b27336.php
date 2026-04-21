@@ -153,7 +153,7 @@
             border-bottom: 2px solid #FF6100;
             padding-bottom: 2px;
             display: inline-block;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
 
         .term-cat-title2 {
@@ -169,12 +169,12 @@
         .term-list {
             list-style: none;
             padding-left: 0;
-            margin: 0 0 15px 0;
+            margin: 0 0 10px 0;
         }
         .term-list li {
-            font-size: 11px;
+            font-size: 10.5px;
             color: #444444;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             padding-left: 12px;
             position: relative;
             line-height: 1.2;
@@ -269,8 +269,19 @@
     .text-overlay {
     position: absolute;
     top: 190px;
-    left: 320px;
-    width: 250px;  /* adjust */
+    left: 56%;
+    width: 500px; /* same as orange bar */
+    margin-left: -250px; /* half of width */
+    text-align: center;
+}
+
+        .text-overlay2 {
+    position: absolute;
+    top: 143px;
+    left: 0px;
+    width: 100%;  /* adjust */
+    text-align: center;
+  
         }
 
         .about-content{
@@ -370,6 +381,41 @@
 </head>
 <body>
 
+    <?php
+        if (!function_exists('amountToWords')) {
+            function amountToWords($number) {
+                $decimal = round($number - ($no = floor($number)), 2) * 100;
+                $hundred = null;
+                $digits_length = strlen($no);
+                $i = 0;
+                $str = array();
+                $words = array(0 => '', 1 => 'one', 2 => 'two',
+                    3 => 'three', 4 => 'four', 5 => 'five', 6 => 'six',
+                    7 => 'seven', 8 => 'eight', 9 => 'nine',
+                    10 => 'ten', 11 => 'eleven', 12 => 'twelve',
+                    13 => 'thirteen', 14 => 'fourteen', 15 => 'fifteen',
+                    16 => 'sixteen', 17 => 'seventeen', 18 => 'eighteen',
+                    19 => 'nineteen', 20 => 'twenty', 30 => 'thirty',
+                    40 => 'forty', 50 => 'fifty', 60 => 'sixty',
+                    70 => 'seventy', 80 => 'eighty', 90 => 'ninety');
+                $digits = array('', 'hundred','thousand','lakh', 'crore');
+                while( $i < $digits_length ) {
+                    $divider = ($i == 2) ? 10 : 100;
+                    $number = floor($no % $divider);
+                    $no = floor($no / $divider);
+                    $i += $divider == 10 ? 1 : 2;
+                    if ($number) {
+                        $plural = (($counter = count($str)) && $number > 9) ? 's' : null;
+                        $hundred = ($counter == 1 && $str[0]) ? ' and ' : null;
+                        $str [] = ($number < 21) ? $words[$number].' '. $digits[$counter]. $plural.' '.$hundred:$words[floor($number / 10) * 10].' '.$words[$number % 10]. ' '.$digits[$counter].$plural.' '.$hundred;
+                    } else $str[] = null;
+                }
+                $Rupees = implode('', array_reverse($str));
+                $paise = ($decimal > 0) ? ($words[$decimal / 10] . " " . $words[$decimal % 10]) . ' Paise' : '';
+                return ($Rupees ? 'INR ' . ucwords($Rupees) . 'Only ' : '');
+            }
+        }
+    ?>
     <!-- PAGE 1: COVER PAGE (Hero) -->
     <div class="banner-container">
     
@@ -393,9 +439,11 @@
             </table>
         </div> -->
 
+        <div class ="text-overlay2" style="font-size: 22px; color: #000; font-weight: 700; letter-spacing: 0.5px;"><?php echo e(strtoupper($quote->data['subject'] ?? 'Project Estimate & Scope')); ?></div>
+
         <div class="text-overlay" style="width: 400px;">
             <div style="color: #fff; font-size: 24px; font-weight: bold;">
-                <span>
+                <span >
                     <?php if($quote->customer_type == 'customer'): ?>
                         <?php echo e(optional($quote->customer)->name ?? 'N/A'); ?>
 
@@ -430,10 +478,18 @@
                 <tr>
                     <td>
                         <div class="doc-title" style="color: #0088CC;">Quotation/Proposed Commercials</div>
-                        <div style="font-size: 10px; color: #FF6100; font-weight: bold; letter-spacing: 2px;"><?php echo e(strtoupper($quote->data['subject'] ?? 'Project Estimate & Scope')); ?></div>
+                        
                     </td>
                     <td class="text-right" style="font-size: 10px;">
-                        <div><strong>Quote #:</strong> <?php echo e($quote->quotation_number); ?></div>
+                        <?php
+                            $compPrefix = strtoupper(substr($settings->company_name ?? 'TRIS', 0, 4));
+                            $datePart = $quote->created_at->format('Ymd');
+                            // Extract version from existing number if it exists, or use ID
+                            $version = substr($quote->quotation_number, -3);
+                            if (!is_numeric($version)) $version = sprintf('%02d', $quote->id % 100);
+                            $formattedQuoteNum = $compPrefix . '-' . $datePart . '-' . $version;
+                        ?>
+                        <div><strong>Quote #:</strong> <?php echo e($formattedQuoteNum); ?></div>
                         <div style="margin: 2px 0;"><strong>Date:</strong> <?php echo e($quote->created_at->format('M d, Y')); ?></div>
                         <div><strong>Valid Till:</strong> <?php echo e($quote->created_at->addDays(15)->format('M d, Y')); ?></div>
                     </td>
@@ -503,12 +559,18 @@
                     <?php endif; ?>
                     <tr><td colspan="5" class="text-right">Tax (GST 18%):</td><td class="text-right"><?php echo e(number_format($gst, 2)); ?></td></tr>
                     <tr style="font-size: 13px; color: #0088CC; font-weight: bold;"><td colspan="5" class="text-right" style="border-top: 2px solid #0088CC;">GRAND TOTAL:</td><td class="text-right" style="border-top: 2px solid #0088CC;"><?php echo e(number_format($grandTotal, 2)); ?></td></tr>
+                    <tr style="font-size: 10px; font-weight: bold;">
+                        <td colspan="6" class="text-right" style="padding-top: 5px;">
+                            <span style="color: #555;">Amount in Words:</span> <?php echo e(amountToWords($grandTotal)); ?>
+
+                        </td>
+                    </tr>
                 </tfoot>
             </table>
         </div>
     </div>
 
-    <div class="page-break"></div>
+    
 
     <table style="width:100%; border-collapse: separate; border-spacing: 0 14px; padding: 30px;">
 
@@ -657,10 +719,10 @@
         </div> -->
 
 
-        <div class="page-break"></div>
+    <!--  <div class="page-break"></div> -->
 
     <!-- PAGE 3: TERMS & CONDITIONS -->
-    <!-- <div class="terms-page">
+    <div class="terms-page">
         <div>
             <div class="blue-box">Other Terms & Conditions</div>
         </div>
@@ -706,7 +768,7 @@
                                 required for their business.</li>
                     </ul>
 
-                    <div class="term-cat-title" style="margin-bottom: 20px;">4. Third-Party Services</div>
+                    <div class="term-cat-title">4. Third-Party Services</div>
                     <ul class="term-list">
                         <li><span class="term-bullet">•</span>Any third-party tools, plugins, APIs, payment gateways, or integrations will be subject
                                 to their own pricing and policies.</li>
@@ -784,7 +846,11 @@
          <div class="term-cat-title">Acceptance of Proposal</div>
          <p style="font-size: 11px">Approval of this proposal or payment of the advance amount will be considered acceptance of all the terms and conditions mentioned above.</p>
 
-    </div> -->
+    </div>
+
+    <div style="text-align: center; margin-top: 15px; font-size: 11px; color: #777; width: 100%;">
+        --- END OF DOCUMENT ---
+    </div>
 
 </body>
 </html>

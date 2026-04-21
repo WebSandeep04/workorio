@@ -116,3 +116,7 @@
 [2026-04-20 09:14:12] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
 [2026-04-20 09:14:12] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":3,"name":"Ravi Sharma","email":"ravi@triserv360.com","role_id":5,"tenant_id":1}} 
 [2026-04-20 09:14:12] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-04-21 05:19:49] local.ERROR: Maximum execution time of 60 seconds exceeded {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 60 seconds exceeded at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\dompdf\\dompdf\\lib\\Cpdf.php:6142)
+[stacktrace]
+#0 {main}
+"} 
