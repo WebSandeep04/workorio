@@ -443,7 +443,7 @@
                         <?php endif; ?>
                     </td>
                     <td style="width: 50%; text-align: left;" class="contact-info">
-                        <span>Phone: <?php echo e($settings->phone ?? ''); ?></span> &nbsp; &nbsp;
+                        Qut. No.: <?php echo e($quote->quotation_number ?? ''); ?> <?php if($quote->version > 1): ?> (v<?php echo e($quote->version); ?>) <?php endif; ?><br>
                         <span>Website: <?php echo e($settings->website ?? ''); ?></span>
                     </td>
                 </tr>
@@ -492,15 +492,7 @@
                         
                     </td>
                     <td class="text-right" style="font-size: 10px;">
-                        <?php
-                            $compPrefix = strtoupper(substr($settings->company_name ?? 'TRIS', 0, 4));
-                            $datePart = $quote->created_at->format('Ymd');
-                            // Extract version from existing number if it exists, or use ID
-                            $version = substr($quote->quotation_number, -3);
-                            if (!is_numeric($version)) $version = sprintf('%02d', $quote->id % 100);
-                            $formattedQuoteNum = $compPrefix . '-' . $datePart . '-' . $version;
-                        ?>
-                        <div><strong>Quote #:</strong> <?php echo e($formattedQuoteNum); ?></div>
+                        <div><strong>Quote #:</strong> <?php echo e($quote->quotation_number); ?> <?php if($quote->version > 1): ?> (v<?php echo e($quote->version); ?>) <?php endif; ?></div>
                         <div style="margin: 2px 0;"><strong>Date:</strong> <?php echo e($quote->created_at->format('M d, Y')); ?></div>
                         <div><strong>Valid Till:</strong> <?php echo e($quote->created_at->addDays(15)->format('M d, Y')); ?></div>
                     </td>

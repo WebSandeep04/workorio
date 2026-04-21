@@ -66,7 +66,7 @@
             <div style="margin-bottom: 30px;">
                 <div style="float: left; width: 50%;">
                     <h1 style="color: {{ $settings->primary_color ?? '#434AFA' }}; margin: 0;">QUOTATION</h1>
-                    <p style="margin: 5px 0; font-size: 12px;">#{{ $quote->quotation_number }}</p>
+                    <p style="margin: 5px 0; font-size: 12px;">#{{ $quote->quotation_number }} @if($quote->version > 1) (v{{ $quote->version }}) @endif</p>
                     <p style="margin: 0; font-size: 12px;">Date: {{ $quote->created_at->format('d M, Y') }}</p>
                 </div>
                 <div style="float: right; width: 50%; text-align: right;">

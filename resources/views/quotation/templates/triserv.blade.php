@@ -443,7 +443,7 @@
                         @endif
                     </td>
                     <td style="width: 50%; text-align: left;" class="contact-info">
-                        <span>Phone: {{ $settings->phone ?? '' }}</span> &nbsp; &nbsp;
+                        Qut. No.: {{ $quote->quotation_number ?? '' }} @if($quote->version > 1) (v{{ $quote->version }}) @endif<br>
                         <span>Website: {{ $settings->website ?? '' }}</span>
                     </td>
                 </tr>
@@ -490,15 +490,7 @@
                         
                     </td>
                     <td class="text-right" style="font-size: 10px;">
-                        @php
-                            $compPrefix = strtoupper(substr($settings->company_name ?? 'TRIS', 0, 4));
-                            $datePart = $quote->created_at->format('Ymd');
-                            // Extract version from existing number if it exists, or use ID
-                            $version = substr($quote->quotation_number, -3);
-                            if (!is_numeric($version)) $version = sprintf('%02d', $quote->id % 100);
-                            $formattedQuoteNum = $compPrefix . '-' . $datePart . '-' . $version;
-                        @endphp
-                        <div><strong>Quote #:</strong> {{ $formattedQuoteNum }}</div>
+                        <div><strong>Quote #:</strong> {{ $quote->quotation_number }} @if($quote->version > 1) (v{{ $quote->version }}) @endif</div>
                         <div style="margin: 2px 0;"><strong>Date:</strong> {{ $quote->created_at->format('M d, Y') }}</div>
                         <div><strong>Valid Till:</strong> {{ $quote->created_at->addDays(15)->format('M d, Y') }}</div>
                     </td>

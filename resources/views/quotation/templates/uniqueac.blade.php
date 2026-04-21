@@ -218,7 +218,7 @@
                 @endif
             </td>
             <td style="width: 40%;">
-                Qut. No.: {{ $quote->quotation_number ?? '' }}<br>
+                Qut. No.: {{ $quote->quotation_number ?? '' }} @if($quote->version > 1) (v{{ $quote->version }}) @endif<br>
                 DATE - {{ optional($quote->created_at)->format('d-M-Y') ?? '' }}
             </td>
         </tr>

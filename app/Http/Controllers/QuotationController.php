@@ -176,11 +176,41 @@ class QuotationController extends Controller
      */
     public function generateQuotationNumber()
     {
+        $type = request('customer_type');
+        $id = request('customer_id');
+        $quotationNumber = $this->calculateNextQuotationNumber($type, $id);
+        return response()->json(['quotation_number' => $quotationNumber]);
+    }
+
+    /**
+     * Unified logic for calculating the next quotation number based on client prefix.
+     */
+    private function calculateNextQuotationNumber($type, $id)
+    {
         $today = Carbon::now();
         $datePrefix = $today->format('Ymd');
-        
-        $settings = DB::table('quotation_settings')->first();
-        $compPrefix = strtoupper(substr($settings->company_name ?? 'TRIS', 0, 4));
+        $compPrefix = 'TRIS'; // Default
+
+        if ($type && $id) {
+            $name = '';
+            if ($type === 'customer') {
+                $customer = \App\Models\Customer::find($id);
+                $name = $customer->company_name ?? '';
+            } else if ($type === 'prospect') {
+                $prospect = \App\Models\Prospectus::find($id);
+                $name = $prospect->prospectus_name ?? '';
+            }
+
+            if (!empty(trim($name))) {
+                // Remove spaces and special characters for a clean prefix
+                $cleanName = preg_replace('/[^A-Za-z0-9]/', '', $name);
+                $compPrefix = strtoupper(substr($cleanName, 0, 4));
+            }
+        }
+
+        if (empty($compPrefix)) {
+            $compPrefix = 'TRIS';
+        }
 
         // Get the last quotation number for today (check for both old 'quote-' and new prefix)
         $lastQuotation = DB::table('quotations')
@@ -191,16 +221,13 @@ class QuotationController extends Controller
             ->orderBy('quotation_number', 'desc')
             ->first();
         
+        $newNumber = 1;
         if ($lastQuotation) {
             $lastNumber = (int) substr($lastQuotation->quotation_number, -3);
             $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
         }
         
-        $quotationNumber = "{$compPrefix}-{$datePrefix}-" . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
-        
-        return response()->json(['quotation_number' => $quotationNumber]);
+        return "{$compPrefix}-{$datePrefix}-" . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -389,26 +416,7 @@ class QuotationController extends Controller
         // Ensure we have a quotation number
         $quoteNo = $data['quotation_number'] ?? null;
         if (!$quoteNo) {
-            // fallback to generated number
-            $today = Carbon::now();
-            $datePrefix = $today->format('Ymd');
-            $settings = DB::table('quotation_settings')->first();
-            $compPrefix = strtoupper(substr($settings->company_name ?? 'TRIS', 0, 4));
-
-            $last = DB::table('quotations')
-                ->where(function($query) use ($datePrefix, $compPrefix) {
-                    $query->where('quotation_number', 'like', "quote-{$datePrefix}%")
-                          ->orWhere('quotation_number', 'like', "{$compPrefix}-{$datePrefix}%");
-                })
-                ->orderByDesc('quotation_number')
-                ->first();
-
-            if ($last) {
-                $n = (int) substr($last->quotation_number, -3);
-                $quoteNo = "{$compPrefix}-{$datePrefix}-" . str_pad($n + 1, 3, '0', STR_PAD_LEFT);
-            } else {
-                $quoteNo = "{$compPrefix}-{$datePrefix}-001";
-            }
+            $quoteNo = $this->calculateNextQuotationNumber($data['customer_type'], $data['customer_id']);
         }
 
         Log::info('Starting quotation save transaction', ['quote_no' => $quoteNo]);
@@ -498,12 +506,16 @@ class QuotationController extends Controller
             'customer_type' => $quotation->customer_type,
             'customer_id'   => $quotation->customer_id ?? $quotation->prospect_id,
             'total_amount'  => $quotation->total_amount,
+            'version'       => $quotation->version,
             'products'      => $quotation->data['products'] ?? [],
             'discount'      => $quotation->data['discount'] ?? 0,
             'subject'       => $quotation->data['subject'] ?? '',
+            'payment_terms' => $quotation->data['payment_terms'] ?? null,
+            'show_payment_terms' => (bool)($quotation->data['show_payment_terms'] ?? false),
         ];
 
         $formattedName = $this->getFormattedQuoteNum($quotation);
+        $fileName = $formattedName . ($quotation->version > 1 ? '_v' . $quotation->version : '');
         $binary = $this->generatePdfBinary($data, $formattedName);
 
         if (is_array($binary) && isset($binary['error'])) {
@@ -512,7 +524,7 @@ class QuotationController extends Controller
 
         return response($binary)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="' . $formattedName . '.pdf"');
+            ->header('Content-Disposition', 'inline; filename="' . $fileName . '.pdf"');
     }
 
     /**
@@ -527,9 +539,12 @@ class QuotationController extends Controller
             'customer_type' => $quotation->customer_type,
             'customer_id'   => $quotation->customer_id ?? $quotation->prospect_id,
             'total_amount'  => $revision->data['total_amount'] ?? 0,
+            'version'       => $revision->version,
             'products'      => $revision->data['products'] ?? [],
             'discount'      => $revision->data['discount'] ?? 0,
             'subject'       => $revision->data['subject'] ?? '',
+            'payment_terms' => $revision->data['payment_terms'] ?? null,
+            'show_payment_terms' => (bool)($revision->data['show_payment_terms'] ?? false),
         ];
         
         // If total_amount wasn't stored in data (for very old revisions), fallback to re-calculating subtotal
@@ -545,7 +560,7 @@ class QuotationController extends Controller
 
         $formattedName = $this->getFormattedQuoteNum($quotation);
         $revisionName = $formattedName . '_v' . $revision->version;
-        $binary = $this->generatePdfBinary($data, $revisionName);
+        $binary = $this->generatePdfBinary($data, $formattedName);
 
         if (is_array($binary) && isset($binary['error'])) {
             abort(500, 'PDF generation failed: ' . $binary['error']);
@@ -579,17 +594,8 @@ class QuotationController extends Controller
      */
     private function getFormattedQuoteNum($quote)
     {
-        $settings = DB::table('quotation_settings')->first();
-        $compPrefix = strtoupper(substr($settings->company_name ?? 'TRIS', 0, 4));
-        $datePart = $quote->created_at->format('Ymd');
-        
-        // Extract version from existing number if it exists, or use ID
-        $version = substr($quote->quotation_number, -3);
-        if (!is_numeric($version)) {
-            $version = str_pad($quote->id % 1000, 3, '0', STR_PAD_LEFT);
-        }
-        
-        return "{$compPrefix}-{$datePart}-{$version}";
+        // Consistency: Always return the saved number from the database record
+        return $quote->quotation_number;
     }
 
     /**
@@ -626,6 +632,7 @@ class QuotationController extends Controller
         // Create a temporary quotation object for the view
         $quote = new Quotation();
         $quote->quotation_number = $quoteNumber;
+        $quote->version = $data['version'] ?? 1;
         $quote->customer_type = $data['customer_type'];
         $quote->customer_id = ($data['customer_type'] === 'customer') ? $data['customer_id'] : null;
         $quote->prospect_id = ($data['customer_type'] === 'prospect') ? $data['customer_id'] : null;
@@ -645,7 +652,9 @@ class QuotationController extends Controller
         $quote->data = [
             'products' => $products,
             'discount' => $data['discount'] ?? 0,
-            'subject'  => $data['subject'] ?? ''
+            'subject'  => $data['subject'] ?? '',
+            'payment_terms' => $data['payment_terms'] ?? null,
+            'show_payment_terms' => $data['show_payment_terms'] ?? false,
         ];
 
         // Eager load customer if exists

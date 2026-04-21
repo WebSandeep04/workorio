@@ -731,7 +731,10 @@ function saveQuotation() {
     }
 
     // Otherwise ask backend to generate a fresh number
-    $.get("{{ route('quotation.generate-number') }}")
+    $.get("{{ route('quotation.generate-number') }}", {
+        customer_type: $('#customer_type').val(),
+        customer_id: $('#customer_id').val()
+    })
         .done(function(resp){
             const qno = (resp && resp.quotation_number) ? resp.quotation_number : null;
             if (!qno) { 

@@ -682,7 +682,6 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>QUOTATION NO</th>
                                     <th>CUSTOMER/PROSPECT</th>
                                     <th>TOTAL AMOUNT</th>
                                     <th>CREATED AT</th>
@@ -691,7 +690,7 @@
                             </thead>
                             <tbody id="quotationsBody">
                                 <tr>
-                                    <td colspan="6" class="loading-state">
+                                    <td colspan="5" class="loading-state">
                                         <div class="loading-spinner"></div>
                                         <p class="mt-2 mb-0">Loading quotations…</p>
                                     </td>
@@ -823,7 +822,7 @@ function animateValue(element, start, end, duration, prefix = '') {
 function loadQuotations(){
     $('#quotationsBody').html(`
         <tr>
-            <td colspan="6" class="loading-state">
+            <td colspan="5" class="loading-state">
                 <div class="loading-spinner"></div>
                 <p class="mt-2 mb-0">Loading quotations…</p>
             </td>
@@ -833,14 +832,14 @@ function loadQuotations(){
         .done(function(resp){
             const rows = (resp && resp.data) ? resp.data : [];
             if (!rows.length) {
-                $('#quotationsBody').html('<tr><td colspan="6" class="text-center text-muted py-4">No quotations found.</td></tr>');
+                $('#quotationsBody').html('<tr><td colspan="5" class="text-center text-muted py-4">No quotations found.</td></tr>');
                 $('#totalQuotations').text('0');
                 $('#totalValue').text('₹0');
                 return;
             }
 
             // Update colspan for loading state
-            $('#quotationsBody').find('td[colspan]').attr('colspan', '6');
+            $('#quotationsBody').find('td[colspan]').attr('colspan', '5');
 
             // Calculate totals
             let totalCount = rows.length;
@@ -870,23 +869,22 @@ function loadQuotations(){
                 html += `
                     <tr>
                         <td>${idx + 1}</td>
-                        <td><strong>${quotationNo}</strong></td>
                         <td>${customer}</td>
                         <td><strong>${fmtCurrency(totalAmount)}</strong></td>
                         <td>${createdDate}</td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn-action btn-download" onclick="event.stopPropagation(); downloadQuotation('${fileUrl}', '${quotationNo}')" title="Download">
-                                    <i class="bi bi-download"></i>
-                                    <span>Download</span>
+                                     <i class="bi bi-download"></i>
+                                     <span>Download</span>
                                 </button>
                                 <button class="btn-action btn-revise" onclick="event.stopPropagation(); reviseQuotation('${quoteId}', '${quotationNo}')" title="Revise">
-                                    <i class="bi bi-arrow-repeat"></i>
-                                    <span>Revise</span>
+                                     <i class="bi bi-arrow-repeat"></i>
+                                     <span>Revise</span>
                                 </button>
                                 <button class="btn-action btn-history" onclick="event.stopPropagation(); openRevisionHistory('${quoteId}', '${quotationNo}')" title="History">
-                                    <i class="bi bi-clock-history"></i>
-                                    <span>History</span>
+                                     <i class="bi bi-clock-history"></i>
+                                     <span>History</span>
                                 </button>
                             </div>
                         </td>
@@ -899,7 +897,7 @@ function loadQuotations(){
         })
         .fail(function(xhr){
             console.error('Failed to load quotations', xhr.responseText);
-            $('#quotationsBody').html('<tr><td colspan="6" class="text-danger text-center py-4">Failed to load quotations.</td></tr>');
+            $('#quotationsBody').html('<tr><td colspan="5" class="text-danger text-center py-4">Failed to load quotations.</td></tr>');
         });
 }
 
