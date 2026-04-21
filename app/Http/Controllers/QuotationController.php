@@ -411,6 +411,7 @@ class QuotationController extends Controller
             'products.*.discount_type' => 'nullable|string|in:fixed,percentage',
             'discount'           => 'nullable|numeric|min:0',
             'total_amount'       => 'nullable|numeric',
+            'global_discount_type' => 'nullable|string|in:fixed,percentage',
             'status'             => 'nullable|string|max:100',
             'payment_term_id'    => 'nullable|integer',
             'project_timeline'   => 'nullable|string|max:255',
@@ -460,6 +461,7 @@ class QuotationController extends Controller
                     'data'             => [
                         'products' => $data['products'] ?? [],
                         'discount' => $data['discount'] ?? 0,
+                        'global_discount_type' => $data['global_discount_type'] ?? 'percentage',
                         'subject'  => $data['subject'] ?? null,
                         'payment_terms' => $data['payment_terms'] ?? null,
                         'show_payment_terms' => filter_var($data['show_payment_terms'] ?? false, FILTER_VALIDATE_BOOLEAN),
@@ -487,6 +489,7 @@ class QuotationController extends Controller
                 'data'               => [
                     'products' => $data['products'] ?? [],
                     'discount' => $data['discount'] ?? 0,
+                    'global_discount_type' => $data['global_discount_type'] ?? 'percentage',
                     'subject'  => $data['subject'] ?? null,
                     'payment_terms' => $data['payment_terms'] ?? null,
                     'show_payment_terms' => filter_var($data['show_payment_terms'] ?? false, FILTER_VALIDATE_BOOLEAN),

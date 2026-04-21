@@ -593,7 +593,18 @@ function prefillFromQuotation(quotationNumber){
             // Discount
             try {
                 const discount = (q.data && q.data.discount) ? q.data.discount : 0;
+                // For old records, if discount is large (> 100), it's almost certainly a fixed amount.
+                // But generally, defaulting to 'fixed' for old records is safer to avoid massive calculations.
+                const discType = (q.data && q.data.global_discount_type) ? q.data.global_discount_type : (discount > 100 ? 'fixed' : 'percentage');
                 $('#discount').val(discount || 0);
+                
+                // Set active toggle
+                $('.discount-toggle button').removeClass('active');
+                if (discType === 'percentage') {
+                    $('.discount-toggle button:first-child').addClass('active');
+                } else {
+                    $('.discount-toggle button:last-child').addClass('active');
+                }
             } catch(e){}
 
             // Payment Terms
@@ -601,6 +612,8 @@ function prefillFromQuotation(quotationNumber){
                 $('#payment_terms').val(q.data.payment_terms);
             }
             $('#payment_terms_section').show();
+            // Important: Recalculate everything once loaded
+            updateLiveTotals();
         });
 }
 
@@ -653,6 +666,7 @@ function saveQuotation() {
         subject: $('#subject').val(),
         products: products,
         discount: parseFloat($('#discount').val() || 0),
+        global_discount_type: $('.discount-toggle button:first-child').hasClass('active') ? 'percentage' : 'fixed',
         payment_terms: $('#payment_terms').val(),
         show_payment_terms: true
     };
@@ -778,7 +792,8 @@ function generatePDF(data) {
         customer_id: data.customer_id,
         subject: data.subject,
         products: data.products,
-        discount: totals.discountAmount,
+        discount: parseFloat($('#discount').val() || 0),
+        global_discount_type: $('.discount-toggle button:first-child').hasClass('active') ? 'percentage' : 'fixed',
         total_amount: totals.total,
         payment_terms: data.payment_terms,
         show_payment_terms: true,

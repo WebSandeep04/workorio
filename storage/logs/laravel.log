@@ -275,3 +275,15 @@
 [2026-04-21 10:27:10] local.INFO: Quotation store: User ID found {"user_id":13} 
 [2026-04-21 10:27:10] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","payment_terms","show_payment_terms","products"]} 
 [2026-04-21 10:27:10] local.INFO: Starting quotation save transaction {"quote_no":"ASOF-20260421-003"} 
+[2026-04-21 10:47:50] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-21 10:47:50] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-21 10:47:50] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","payment_terms","show_payment_terms","products"]} 
+[2026-04-21 10:47:50] local.INFO: Starting quotation save transaction {"quote_no":"BROT-20260421-001"} 
+[2026-04-21 10:49:02] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-21 10:49:02] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-21 10:49:02] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","payment_terms","show_payment_terms","products"]} 
+[2026-04-21 10:49:02] local.INFO: Starting quotation save transaction {"quote_no":"BROT-20260421-001"} 
+[2026-04-21 10:56:22] local.INFO: Quotation store called {"connection":"test","has_session":true,"session_tenant":1} 
+[2026-04-21 10:56:22] local.INFO: Quotation store: User ID found {"user_id":13} 
+[2026-04-21 10:56:22] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","status","payment_terms","show_payment_terms","products"]} 
+[2026-04-21 10:56:22] local.INFO: Starting quotation save transaction {"quote_no":"ADDO-20260421-001"} 
