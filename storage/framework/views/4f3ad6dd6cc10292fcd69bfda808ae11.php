@@ -1436,6 +1436,7 @@ function handleLateReasonSave(e) {
                 late_reason: finalReason,
                 latitude: lat,
                 longitude: long,
+                work_from_home: $('#is_wfh_toggle').is(':checked') ? 1 : 0,
                 _token: '<?php echo e(csrf_token()); ?>'
             },
             success: function(resp) {
