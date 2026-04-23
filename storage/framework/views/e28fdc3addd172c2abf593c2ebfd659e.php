@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Shifts'); ?>
+<?php $__env->startSection('page_title', 'Shifts'); ?>
 
-@section('title', 'Shifts')
-@section('page_title', 'Shifts')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -72,9 +70,9 @@
     to { transform: rotate(360deg); }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
@@ -122,7 +120,7 @@
       </div>
       <form id="mainForm">
         <div class="modal-body bg-white pt-4 pb-4">
-          @csrf
+          <?php echo csrf_field(); ?>
           <input type="hidden" id="edit_id" name="id">
           
           <div class="row g-3 mb-4">
@@ -164,14 +162,15 @@
             <div class="col-12">
                 <label class="form-label-modern">Weekly Offs</label>
                 <div class="d-flex flex-wrap gap-3 mt-1">
-                    @foreach(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as $index => $day)
+                    <?php $__currentLoopData = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="form-check">
-                        <input class="form-check-input week-off-checkbox" type="checkbox" name="week_offs[]" value="{{ $index }}" id="day_{{ $index }}">
-                        <label class="form-check-label" for="day_{{ $index }}" style="font-size: 0.85rem;">
-                            {{ $day }}
+                        <input class="form-check-input week-off-checkbox" type="checkbox" name="week_offs[]" value="<?php echo e($index); ?>" id="day_<?php echo e($index); ?>">
+                        <label class="form-check-label" for="day_<?php echo e($index); ?>" style="font-size: 0.85rem;">
+                            <?php echo e($day); ?>
+
                         </label>
                     </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
             </div>
           </div>
@@ -185,9 +184,9 @@
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(function() {
     let rawData = [];
@@ -205,7 +204,7 @@ $(function() {
 
     function loadData() {
         let search = $('#search').val().toLowerCase();
-        $.get("{{ route('shifts.list') }}", function(res) {
+        $.get("<?php echo e(route('shifts.list')); ?>", function(res) {
             rawData = res;
             renderTable(search);
         });
@@ -289,7 +288,7 @@ $(function() {
     $('#mainForm').on('submit', function(e) {
         e.preventDefault();
         let id = $('#edit_id').val();
-        let url = id ? `/shifts/${id}` : "{{ route('shifts.store') }}";
+        let url = id ? `/shifts/${id}` : "<?php echo e(route('shifts.store')); ?>";
         let type = id ? 'PUT' : 'POST';
         
         let $btn = $('#saveBtn');
@@ -320,7 +319,7 @@ $(function() {
             $.ajax({
                 url: `/shifts/${$(this).data('id')}`,
                 type: 'DELETE',
-                data: { _token: '{{ csrf_token() }}' },
+                data: { _token: '<?php echo e(csrf_token()); ?>' },
                 success: function() {
                     loadData();
                 }
@@ -331,4 +330,6 @@ $(function() {
     loadData();
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/master/shifts.blade.php ENDPATH**/ ?>

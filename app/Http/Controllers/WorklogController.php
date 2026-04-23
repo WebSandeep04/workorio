@@ -541,8 +541,15 @@ class WorklogController extends Controller
             $isHoliday = Holiday::where('holiday_date', $currentDate)
                 ->exists();
             
-            // Check if the date is a Sunday (0 = Sunday)
-            $isSunday = date('w', strtotime($currentDate)) == 0;
+            // Dynamic weekoff from Shift
+            $isWeekoff = false;
+            $employee = $user->employee;
+            if ($employee && $employee->shiftRelation && is_array($employee->shiftRelation->week_offs)) {
+                $isWeekoff = in_array(date('w', strtotime($currentDate)), $employee->shiftRelation->week_offs);
+            } else {
+                // Fallback to Sunday (0)
+                $isWeekoff = date('w', strtotime($currentDate)) == 0;
+            }
             
             // Check if user has attendance for this date
             $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
@@ -763,6 +770,8 @@ class WorklogController extends Controller
                 ->exists();
             
             // Check if the date is a Sunday (0 = Sunday)
+            // (Note: This global summary check still uses Sunday as a default reference 
+            // since it loops through all users who might have different weekoffs)
             $isSunday = date('w', strtotime($currentDate)) == 0;
             
             // Now checking all days.

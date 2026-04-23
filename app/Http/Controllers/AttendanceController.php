@@ -49,11 +49,21 @@ class AttendanceController extends Controller
                 ->exists();
 
             if (!$hasAttendance) {
-                // If no attendance, we only skip if it's a Sunday or Holiday
+                // If no attendance, we only skip if it's a Weekoff or Holiday
                 $isHoliday = Holiday::where('holiday_date', $dateStr)->exists();
-                $isSunday = $checkDate->dayOfWeek === Carbon::SUNDAY;
                 
-                if ($isHoliday || $isSunday) {
+                // Dynamic weekoff from Shift
+                $isWeekoff = false;
+                $employee = $user->employee;
+                if ($employee && $employee->shiftRelation && is_array($employee->shiftRelation->week_offs)) {
+                    // Carbon dayOfWeek returns 0 (Sunday) to 6 (Saturday)
+                    $isWeekoff = in_array($checkDate->dayOfWeek, $employee->shiftRelation->week_offs);
+                } else {
+                    // Fallback to hardcoded Sunday if no shift or weekoffs defined
+                    $isWeekoff = $checkDate->dayOfWeek === Carbon::SUNDAY;
+                }
+                
+                if ($isHoliday || $isWeekoff) {
                     $checkDate->addDay();
                     continue;
                 }
@@ -307,18 +317,8 @@ class AttendanceController extends Controller
                                 
                             $monthlyLateAllowance = (int) ($employee->employmentTypeRelation->min_per_month_late_allow ?? 0);
 
-                            // If allowance is set ( > 0 ) and combined late minutes exceed it, block the punch-in
-                            if ($monthlyLateAllowance > 0 && ($alreadyUsedLateMinutes + $lateMinutesToRecord) > $monthlyLateAllowance) {
-                                 return response()->json([
-                                     'success' => false,
-                                     'late_allowance_exceeded' => true,
-                                     'message' => 'You have exceeded your monthly late allowance (' . $alreadyUsedLateMinutes . '/' . $monthlyLateAllowance . ' min). Today\'s late of ' . $lateMinutesToRecord . ' min would put you at ' . ($alreadyUsedLateMinutes + $lateMinutesToRecord) . ' min. Please apply for a Short Leave (SL) or Half-Day leave instead.',
-                                     'used' => $alreadyUsedLateMinutes,
-                                     'today_late' => $lateMinutesToRecord,
-                                     'allowance' => $monthlyLateAllowance,
-                                     'leave_url' => route('leave.index')
-                                 ], 403);
-                            }
+                            // The late allowance check is now only for information/logging, not a blocker.
+                            // We previously blocked punch-in here if (alreadyUsedLateMinutes + lateMinutesToRecord) > monthlyLateAllowance.
                             
                             // User is late; require reason
                             if (empty($request->late_reason)) {

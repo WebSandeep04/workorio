@@ -295,3 +295,18 @@
 [2026-04-21 11:27:12] local.INFO: Quotation store: User ID found {"user_id":13} 
 [2026-04-21 11:27:12] local.INFO: Quotation validation passed {"data_keys":["quotation_number","customer_type","customer_id","subject","discount","total_amount","global_discount_type","status","payment_terms","show_payment_terms","products"]} 
 [2026-04-21 11:27:12] local.INFO: Starting quotation save transaction {"quote_no":"AEYA-20260421-001"} 
+[2026-04-23 05:55:41] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-04-23 05:55:43] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-23 05:55:44] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-04-23 05:55:44] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-04-23 05:55:44] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-04-23 06:49:42] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-04-23 06:49:42] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-23 06:49:42] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-04-23 06:49:42] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep Kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-04-23 06:49:42] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
+[2026-04-23 06:50:26] local.ERROR: AuthController@login start {"email":"shamshad@triserv360.com"} 
+[2026-04-23 06:50:26] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-23 06:50:26] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-04-23 06:50:26] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Shamshad Ahmad","email":"shamshad@triserv360.com","role_id":1,"tenant_id":1}} 
+[2026-04-23 06:50:26] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 
