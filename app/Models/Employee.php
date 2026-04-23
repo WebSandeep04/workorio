@@ -72,6 +72,7 @@ class Employee extends Model
         'notes',
         'is_place_allowed',
         'is_tracking',
+        'working_type',
     ];
 
     protected $casts = [

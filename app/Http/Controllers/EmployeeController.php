@@ -311,6 +311,7 @@ class EmployeeController extends Controller
             'is_tracking' => 'boolean',
             'places' => 'array',
             'places.*' => 'exists:places,id',
+            'working_type' => 'nullable|string|in:Office,Remote',
             'profile_picture' => 'nullable|image',
         ]);
 

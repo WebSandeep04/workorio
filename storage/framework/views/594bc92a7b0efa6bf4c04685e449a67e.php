@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Employees')
-@section('page_title', 'Employees')
 
-@push('styles')
+<?php $__env->startSection('title', 'Employees'); ?>
+<?php $__env->startSection('page_title', 'Employees'); ?>
+
+<?php $__env->startPush('styles'); ?>
   <style>
     .container-fluid {
       padding: 0.5rem;
@@ -760,9 +760,9 @@
       opacity: 1;
     }
   </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
     <!-- Search and Action -->
     <div class="table-search mb-2">
@@ -817,25 +817,25 @@
         Showing 0 data
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 (function () {
     let employeeCache = {};
     let allEmployees = [];
     const csrf = $('meta[name="csrf-token"]').attr('content');
-    const listUrl = "{{ route('employees.list') }}";
-    const storeUrl = "{{ route('employees.store') }}";
-    const storageBase = "{{ asset('storage') }}";
-    const deptOptionsUrl = "{{ route('departments.options') }}";
-    const cityOptionsUrl = "{{ route('cities.options') }}";
-    const branchOptions = @json($branches);
-    const designationOptions = @json($designations);
-    const employmentTypeOptions = @json($employmentTypes);
-    const shiftOptions = @json($shifts);
-    const stateOptions = @json($states);
-    const countryOptions = @json($countries);
+    const listUrl = "<?php echo e(route('employees.list')); ?>";
+    const storeUrl = "<?php echo e(route('employees.store')); ?>";
+    const storageBase = "<?php echo e(asset('storage')); ?>";
+    const deptOptionsUrl = "<?php echo e(route('departments.options')); ?>";
+    const cityOptionsUrl = "<?php echo e(route('cities.options')); ?>";
+    const branchOptions = <?php echo json_encode($branches, 15, 512) ?>;
+    const designationOptions = <?php echo json_encode($designations, 15, 512) ?>;
+    const employmentTypeOptions = <?php echo json_encode($employmentTypes, 15, 512) ?>;
+    const shiftOptions = <?php echo json_encode($shifts, 15, 512) ?>;
+    const stateOptions = <?php echo json_encode($states, 15, 512) ?>;
+    const countryOptions = <?php echo json_encode($countries, 15, 512) ?>;
 
     function escapeHtml(text = '') {
         return (text || '').toString()
@@ -1093,12 +1093,12 @@
         $('#employeeError').addClass('d-none').text('');
 
         // Profile Picture
-        const defaultAvatar = "{{ asset('img/avatar.png') }}"; 
+        const defaultAvatar = "<?php echo e(asset('img/avatar.png')); ?>"; 
         
         let profilePicUrl = defaultAvatar;
         if (data && data.profile_picture) {
             // Use the named route pattern: profile.picture with ID
-            profilePicUrl = `{{ url('profile/picture') }}/${data.id}?t=${new Date().getTime()}`;
+            profilePicUrl = `<?php echo e(url('profile/picture')); ?>/${data.id}?t=${new Date().getTime()}`;
         }
         
         $('#modal_profile_preview').attr('src', profilePicUrl).show();
@@ -1198,7 +1198,7 @@
 
         } else {
             // Setup for new employee
-             const defaultAvatar = "{{ asset('img/avatar.png') }}";
+             const defaultAvatar = "<?php echo e(asset('img/avatar.png')); ?>";
              $('#modal_profile_preview').attr('src', defaultAvatar);
              $('#modal_profile_picture_input').val('');
              
@@ -1377,7 +1377,7 @@
         formData.append('_token', csrf);
         
         if (id) {
-             url = `{{ url('/employees') }}/${id}`;
+             url = `<?php echo e(url('/employees')); ?>/${id}`;
              formData.append('_method', 'POST'); // Actually, Laravel resource update expects PUT/PATCH.
              // But PHP can't parse multipart/form-data for PUT requests natively.
              // So we must use POST and spoof _method="POST" (wait, actually _method="PUT").
@@ -1419,7 +1419,7 @@
                 // Upload documents if files are selected
                 uploadEmployeeDocuments(employeeId, function() {
                     // Reload employee data with documents to update the modal display
-                    $.get(`{{ url('/employees') }}/${employeeId}`)
+                    $.get(`<?php echo e(url('/employees')); ?>/${employeeId}`)
                         .done(function(employeeData) {
                             employeeCache[employeeId] = employeeData;
                             if (employeeData.documents) {
@@ -1489,7 +1489,7 @@
             formData.append('_token', csrf);
             
             $.ajax({
-                url: `{{ url('/employees') }}/${employeeId}/documents`,
+                url: `<?php echo e(url('/employees')); ?>/${employeeId}/documents`,
                 method: 'POST',
                 data: formData,
                 processData: false,
@@ -1520,7 +1520,7 @@
     function deleteEmployee(id) {
         if (!confirm('Delete this employee?')) return;
         $.ajax({
-            url: `{{ url('/employees') }}/${id}`,
+            url: `<?php echo e(url('/employees')); ?>/${id}`,
             method: 'DELETE',
             data: { _token: csrf },
         }).done(loadEmployees)
@@ -1537,7 +1537,7 @@
     }
 
     function loadDocuments(employeeId) {
-        $.get(`{{ url('/employees') }}/${employeeId}/documents`)
+        $.get(`<?php echo e(url('/employees')); ?>/${employeeId}/documents`)
             .done(function (rows) {
                 if (!rows || rows.length === 0) {
                     $('#docListBody').html('<tr><td colspan="5" class="text-center">No documents</td></tr>');
@@ -1570,7 +1570,7 @@
 
         $('#uploadDocumentBtn').prop('disabled', true).text('Uploading...');
         $.ajax({
-            url: `{{ url('/employees') }}/${employeeId}/documents`,
+            url: `<?php echo e(url('/employees')); ?>/${employeeId}/documents`,
             method: 'POST',
             data: formData,
             processData: false,
@@ -1590,7 +1590,7 @@
     function deleteDocument(employeeId, documentId) {
         if (!confirm('Delete this document?')) return;
         $.ajax({
-            url: `{{ url('/employees') }}/${employeeId}/documents/${documentId}`,
+            url: `<?php echo e(url('/employees')); ?>/${employeeId}/documents/${documentId}`,
             method: 'DELETE',
             data: { _token: csrf },
         }).done(function () {
@@ -1633,7 +1633,7 @@
 
     let selectedPlaceIds = [];
     let placesData = [];
-    const placesListUrl = "{{ route('places.list') }}";
+    const placesListUrl = "<?php echo e(route('places.list')); ?>";
 
     // Preview Image on Select
     $('#modal_profile_picture_input').on('change', function(e) {
@@ -1657,14 +1657,14 @@
         }
         
         $.ajax({
-            url: `{{ url('/employees') }}/${employeeId}/documents/${documentId}`,
+            url: `<?php echo e(url('/employees')); ?>/${employeeId}/documents/${documentId}`,
             method: 'DELETE',
             data: { _token: csrf },
         }).done(function() {
             // Reload documents for the modal
             const employeeData = employeeCache[employeeId];
             if (employeeData) {
-                $.get(`{{ url('/employees') }}/${employeeId}/documents`)
+                $.get(`<?php echo e(url('/employees')); ?>/${employeeId}/documents`)
                     .done(function(docs) {
                         // Filter documents by type to show/hide upload links
                         const filteredDocs = docs.filter(doc => ['Aadhaar', 'PAN', 'Education'].includes(doc.document_type));
@@ -2018,9 +2018,9 @@
     }
 }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-{{-- Employee Modal --}}
+
 <div class="modal fade" id="employeeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -2032,11 +2032,11 @@
                 <form id="employeeForm">
                     <input type="hidden" id="employee_id">
                     
-                    {{-- Profile Picture Upload --}}
+                    
                     <div class="row justify-content-center mb-3">
                         <div class="col-auto">
                             <div class="profile-page-avatar" onclick="document.getElementById('modal_profile_picture_input').click()">
-                                <img id="modal_profile_preview" src="{{ asset('img/avatar.png') }}" alt="Profile Picture">
+                                <img id="modal_profile_preview" src="<?php echo e(asset('img/avatar.png')); ?>" alt="Profile Picture">
                                 <div class="avatar-overlay">
                                     <i class="bi bi-camera"></i>
                                 </div>
@@ -2364,7 +2364,7 @@
     </div>
 </div>
 
-{{-- Document Modal --}}
+
 <div class="modal fade" id="documentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -2426,7 +2426,7 @@
     </div>
  </div>
 
- {{-- Places Selection Modal --}}
+ 
  <div class="modal fade" id="placesModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -2445,7 +2445,7 @@
                     </div>
                 </div>
                 <div id="placesList" class="list-group">
-                    {{-- Places will be loaded here --}}
+                    
                     <div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</div>
                 </div>
             </div>
@@ -2456,3 +2456,5 @@
         </div>
     </div>
  </div>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/employees/index.blade.php ENDPATH**/ ?>
