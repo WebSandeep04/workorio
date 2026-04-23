@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Leave Types'); ?>
+<?php $__env->startSection('page_title', 'Leave Types'); ?>
 
-@section('title', 'Leave Types')
-@section('page_title', 'Leave Types')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -23,9 +21,9 @@
   .badge-active { background: #dcfce7; color: #166534; }
   .badge-inactive { background: #fee2e2; color: #991b1b; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -75,7 +73,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="mainForm">
-                @csrf
+                <?php echo csrf_field(); ?>
                 <input type="hidden" id="edit_id" name="id">
                 <div class="modal-body">
                     <div class="mb-3">
@@ -109,9 +107,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
     let currentPage = 1;
@@ -130,7 +128,7 @@ $(document).ready(function() {
         let search = $('#searchInput').val();
         
         $.ajax({
-            url: "{{ route('leave-type.fetch') }}",
+            url: "<?php echo e(route('leave-type.fetch')); ?>",
             type: "GET",
             data: { page: page, search: search },
             success: function(response) {
@@ -217,7 +215,7 @@ $(document).ready(function() {
     $('#mainForm').on('submit', function(e) {
         e.preventDefault();
         let id = $('#edit_id').val();
-        let url = id ? `/leave-type/${id}` : "{{ route('leave-type.store') }}";
+        let url = id ? `/leave-type/${id}` : "<?php echo e(route('leave-type.store')); ?>";
         let type = id ? 'PUT' : 'POST';
         let data = $(this).serialize();
 
@@ -256,7 +254,7 @@ $(document).ready(function() {
             $.ajax({
                 url: `/leave-type/${id}`,
                 type: 'DELETE',
-                data: { _token: "{{ csrf_token() }}" },
+                data: { _token: "<?php echo e(csrf_token()); ?>" },
                 success: function(response) {
                     fetchData(currentPage);
                 }
@@ -265,4 +263,6 @@ $(document).ready(function() {
     });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/software-setup/leave-type/index.blade.php ENDPATH**/ ?>

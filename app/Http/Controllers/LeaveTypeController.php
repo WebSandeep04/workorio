@@ -38,11 +38,12 @@ class LeaveTypeController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255|unique:leave_types,name',
+            'is_paid' => 'boolean',
             'color_code' => 'nullable|string|max:50',
             'status' => 'boolean'
         ]);
 
-        LeaveType::create($request->only('name', 'color_code', 'status'));
+        LeaveType::create($request->only('name', 'is_paid', 'color_code', 'status'));
         return response()->json(['success' => true]);
     }
 
@@ -50,11 +51,12 @@ class LeaveTypeController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:leave_types,name,' . $id,
+            'is_paid' => 'boolean',
             'color_code' => 'nullable|string|max:50',
             'status' => 'boolean'
         ]);
 
-        LeaveType::findOrFail($id)->update($request->only('name', 'color_code', 'status'));
+        LeaveType::findOrFail($id)->update($request->only('name', 'is_paid', 'color_code', 'status'));
         return response()->json(['success' => true, 'message' => 'Leave type updated']);
     }
 
