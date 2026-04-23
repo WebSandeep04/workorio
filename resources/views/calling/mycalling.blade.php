@@ -193,6 +193,9 @@
     .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); }
 
     .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; font-family: Montserrat; }
+    .goto-page-wrapper { display: flex; align-items: center; gap: 0.5rem; margin-left: 1rem; }
+    .goto-page-input { width: 60px; height: 26px; font-size: 10px; border-radius: 4px; border: 1px solid #d0d5dd; padding: 0 5px; text-align: center; font-family: Montserrat; }
+    .goto-page-btn { padding: 2px 8px; font-size: 10px; border-radius: 4px; background: #434afa; color: #fff; border: none; font-family: Montserrat; cursor: pointer; }
 
     #campaignListView, #campaignDataView { display: none; }
     
@@ -299,7 +302,13 @@
         </div>
 
         <div class="d-flex justify-content-between align-items-center mt-2 px-1">
-            <div class="table-range-meta" id="rangeInfo">Showing 0-0 from 0 data</div>
+            <div class="d-flex align-items-center">
+                <div class="table-range-meta" id="rangeInfo">Showing 0-0 from 0 data</div>
+                <div class="goto-page-wrapper" id="gotoPageWrapper" style="display: none;">
+                    <input type="number" id="gotoPageInput" class="goto-page-input" placeholder="Page">
+                    <button id="gotoPageBtn" class="goto-page-btn">Go</button>
+                </div>
+            </div>
             <ul class="pagination mb-0" id="paginationLinks"></ul>
         </div>
     </div>
@@ -537,12 +546,34 @@
 
         function buildPagination(data) {
             const $container = $('#paginationLinks'); $container.empty();
-            if (data.last_page <= 1) return;
+            if (data.last_page <= 1) {
+                $('#gotoPageWrapper').hide();
+                return;
+            }
+            $('#gotoPageWrapper').show();
+            $('#gotoPageInput').attr('max', data.last_page).val(data.current_page);
+
             $container.append(`<li class="page-item ${data.current_page === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${data.current_page - 1}"><i class="bi bi-chevron-left"></i> Previous</a></li>`);
             $container.append(`<li class="page-item active"><span class="page-link">${data.current_page} / ${data.last_page}</span></li>`);
             $container.append(`<li class="page-item ${data.current_page === data.last_page ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${data.current_page + 1}">Next <i class="bi bi-chevron-right"></i></a></li>`);
             $('#rangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
+
+        $('#gotoPageBtn').on('click', function() {
+            const page = parseInt($('#gotoPageInput').val());
+            const max = parseInt($('#gotoPageInput').attr('max'));
+            if (page >= 1 && page <= max) {
+                loadData(page);
+            } else {
+                alert('Please enter a valid page number between 1 and ' + max);
+            }
+        });
+
+        $('#gotoPageInput').on('keypress', function(e) {
+            if (e.which == 13) {
+                $('#gotoPageBtn').click();
+            }
+        });
 
         loadFilterData(); 
         loadTeamMembers(() => {
