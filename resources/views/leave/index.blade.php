@@ -174,7 +174,6 @@
                                 <label class="btn btn-outline-primary w-100 py-3" for="pre_lunch">
                                     <i class="bi bi-brightness-high fs-4 d-block mb-1"></i>
                                     Pre Lunch
-                                    <div class="x-small fw-normal">Before 1:30 PM</div>
                                 </label>
                             </div>
                             <div class="col-6">
@@ -182,7 +181,6 @@
                                 <label class="btn btn-outline-primary w-100 py-3" for="post_lunch">
                                     <i class="bi bi-sunset fs-4 d-block mb-1"></i>
                                     Post Lunch
-                                    <div class="x-small fw-normal">After 1:30 PM</div>
                                 </label>
                             </div>
                         </div>

@@ -1,3 +1,4 @@
+
 <?php $__env->startSection('title', 'Attendance'); ?>
 <?php $__env->startSection('page_title', 'Attendance'); ?>
 
