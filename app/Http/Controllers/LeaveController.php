@@ -94,28 +94,8 @@ class LeaveController extends Controller
         $isHDType = $request->leave_type_id === 'hd';
         $actualLeaveTypeId = ($isRH || $isSL || $isHDType) ? null : $request->leave_type_id;
 
-        // --- Custom Validation: Half Day Limit ---
-        if ($isHalfDay) {
-            $emp = $user->employee;
-            if ($emp && $emp->employmentType) {
-                $limit = (int) $emp->employmentType->no_of_half_days;
-                if ($limit > 0) {
-                    $halfDaysTakenThisMonth = LeaveRequest::where('user_id', $user->id)
-                        ->where('is_half_day', 1)
-                        ->whereIn('status', ['pending', 'approved'])
-                        ->whereMonth('start_date', Carbon::parse($request->start_date)->month)
-                        ->whereYear('start_date', Carbon::parse($request->start_date)->year)
-                        ->count();
+        // --- Custom Validation: Half Day Limit removed per user request ---
 
-                    if ($halfDaysTakenThisMonth >= $limit) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => "You have reached your monthly limit of {$limit} half days."
-                        ], 422);
-                    }
-                }
-            }
-        }
 
         if ($isRH) {
             // Check RH restrictions
@@ -493,24 +473,22 @@ class LeaveController extends Controller
                     ]);
                 }
 
-                if ($employmentType && $employmentType->no_of_half_days > 0) {
-                    $totalHD = $employmentType->no_of_half_days;
+                // Half Day is always allowed now
+                $takenHD = \App\Models\LeaveRequest::where('user_id', $user->id)
+                    ->where('is_half_day', 1)
+                    ->whereYear('start_date', Carbon::parse($request->start_date ?? now())->year)
+                    ->whereMonth('start_date', Carbon::parse($request->start_date ?? now())->month)
+                    ->whereIn('status', ['pending', 'approved'])
+                    ->count();
                     
-                    $takenHD = \App\Models\LeaveRequest::where('user_id', $user->id)
-                        ->where('is_half_day', 1)
-                        ->whereYear('start_date', Carbon::parse($request->start_date ?? now())->year)
-                        ->whereMonth('start_date', Carbon::parse($request->start_date ?? now())->month)
-                        ->whereIn('status', ['pending', 'approved'])
-                        ->count();
-                        
-                    $mapped->push((object)[
-                        'id' => 'hd',
-                        'name' => 'Half Day',
-                        'balance' => max(0, $totalHD - $takenHD),
-                        'total_allowed' => $totalHD,
-                        'pending' => 0
-                    ]);
-                }
+                $mapped->push((object)[
+                    'id' => 'hd',
+                    'name' => 'Half Day',
+                    'balance' => 'Unlimited',
+                    'total_allowed' => '∞',
+                    'pending' => 0
+                ]);
+
             }
 
             return response()->json(['data' => $mapped]);
@@ -652,7 +630,8 @@ class LeaveController extends Controller
             $leaveReq->approved_by = $user->id;
             $leaveReq->save();
 
-            if (!$leaveReq->is_rh && !$leaveReq->is_sl) {
+            if (!$leaveReq->is_rh && !$leaveReq->is_sl && !$leaveReq->is_half_day) {
+
                 $balanceService = app(LeaveBalanceService::class);
                 $balanceService->debitLeave(
                     $leaveReq->user_id, 

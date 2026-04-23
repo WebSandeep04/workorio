@@ -452,25 +452,29 @@ function loadLeaveTypes() {
             response.data.forEach(t => {
                 opts += `<option value="${t.id}">${t.name}</option>`;
                 
-                let ledgerBtn = (t.id === 'rh' || t.id === 'sl') 
+                let ledgerBtn = (t.id === 'rh' || t.id === 'sl' || t.id === 'hd') 
                     ? '' 
                     : `<button class="details-btn" onclick="openLedger('${t.id}', '${t.name}')">Ledger</button>`;
+
                 
-                cardsHtml += `
-                    <div class="summary-card">
-                        <div class="summary-card-content" style="padding-right:0;">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="summary-card-label">${t.name}</div>
-                                ${ledgerBtn}
-                            </div>
-                            <div class="summary-card-value text-primary mt-1">${t.balance} <span style="font-size:10px; color:#6b7280; font-weight:500;">Balance</span></div>
-                            <div class="stats-row text-muted fw-bold">
-                                <span>Allowed: ${t.total_allowed}</span> | 
-                                <span class="text-warning">Pending: ${t.pending}</span>
+                if (t.id !== 'hd') {
+                    cardsHtml += `
+                        <div class="summary-card">
+                            <div class="summary-card-content" style="padding-right:0;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="summary-card-label">${t.name}</div>
+                                    ${ledgerBtn}
+                                </div>
+                                <div class="summary-card-value text-primary mt-1">${t.balance} <span style="font-size:10px; color:#6b7280; font-weight:500;">Balance</span></div>
+                                <div class="stats-row text-muted fw-bold">
+                                    <span>Allowed: ${t.total_allowed}</span> | 
+                                    <span class="text-warning">Pending: ${t.pending}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
+
             });
             $('#leave_type_id').html(opts);
             $('#leaveSummaryCards').html(cardsHtml);
