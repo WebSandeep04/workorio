@@ -275,12 +275,11 @@ class SendNightAttendanceMail extends Command
         if ($decimalHours <= 0) {
             return '0:00 hrs';
         }
-        $hours = floor($decimalHours);
-        $minutes = round(($decimalHours - $hours) * 60);
-        if ($minutes === 60) {
-            $hours += 1;
-            $minutes = 0;
-        }
+        
+        $totalMinutes = (int) round($decimalHours * 60);
+        $hours = floor($totalMinutes / 60);
+        $minutes = $totalMinutes % 60;
+
         return $hours . ':' . str_pad($minutes, 2, '0', STR_PAD_LEFT) . ' hrs';
     }
 }
