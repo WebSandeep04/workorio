@@ -1604,8 +1604,6 @@ class AttendanceController extends Controller
             $isWeeklyOff = false;
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
                 $isWeeklyOff = in_array($dayName, $shift->week_offs);
-            } else {
-                $isWeeklyOff = $isSunday;
             }
 
             $dayData['is_sunday'] = $isWeeklyOff; // Using is_sunday key for compatibility with existing UI if needed
@@ -1992,8 +1990,6 @@ class AttendanceController extends Controller
                 $isWeeklyOff = false;
                 if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
                     $isWeeklyOff = in_array($dayName, $shift->week_offs);
-                } else {
-                    $isWeeklyOff = $d['is_sunday'];
                 }
 
                 if (isset($attendancesByDate[$dateStr])) {
@@ -2155,8 +2151,6 @@ class AttendanceController extends Controller
             $isWeeklyOff = false;
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
                 $isWeeklyOff = in_array($dayName, $shift->week_offs);
-            } else {
-                $isWeeklyOff = ($attendanceDate->dayOfWeek === Carbon::SUNDAY);
             }
 
             // Count total holidays worked (Weekly Off OR Holiday with attendance)
@@ -2275,8 +2269,6 @@ class AttendanceController extends Controller
             $isWeeklyOff = false;
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
                 $isWeeklyOff = in_array($dayName, $shift->week_offs);
-            } else {
-                $isWeeklyOff = ($leaveCarbon->dayOfWeek === Carbon::SUNDAY);
             }
 
             // Only count leave on working days (not weekly offs or holidays) for attendance calculation
@@ -2299,8 +2291,6 @@ class AttendanceController extends Controller
             $isWeeklyOff = false;
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
                 $isWeeklyOff = in_array($dayName, $shift->week_offs);
-            } else {
-                $isWeeklyOff = ($holidayCarbon->dayOfWeek === Carbon::SUNDAY);
             }
 
             // Only count holidays that are not weekly offs
@@ -2367,8 +2357,6 @@ class AttendanceController extends Controller
             $isWeeklyOff = false;
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
                 $isWeeklyOff = in_array($dayName, $shift->week_offs);
-            } else {
-                $isWeeklyOff = ($currentDate->dayOfWeek === Carbon::SUNDAY);
             }
 
             $dayData = [
