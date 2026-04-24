@@ -307,7 +307,7 @@ class AttendanceController extends Controller
                             // If they have a leave, we don't record late minutes
                             $lateMinutesToRecord = 0;
                         } else {
-                            $lateMinutesToRecord = (int) abs($now->diffInMinutes($shiftStart));
+                            $lateMinutesToRecord = (int) abs($now->diffInMinutes($cutoffTime));
 
                             // Check if monthly late allowance exceeded
                             $thisMonth = Carbon::now()->startOfMonth();

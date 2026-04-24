@@ -290,7 +290,7 @@ class AttendanceController extends Controller
                         if ($hasLeaveToday) {
                             $lateMinutesToRecord = 0;
                         } else {
-                            $lateMinutesToRecord = (int) abs($now->diffInMinutes($shiftStart));
+                            $lateMinutesToRecord = (int) abs($now->diffInMinutes($cutoffTime));
 
                             // Check if monthly late allowance exceeded
                             $thisMonth = Carbon::now()->startOfMonth();
