@@ -1421,7 +1421,8 @@ class AttendanceController extends Controller
         $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
         
-        $user = User::find($userId);
+        $user = User::with(['employee.shiftRelation'])->find($userId);
+        $shift = $user->employee->shiftRelation ?? null;
         
         $attendances = Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
@@ -1474,7 +1475,7 @@ class AttendanceController extends Controller
 
         $summary = $this->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData, $user);
         
-        $dailyBreakdown = $this->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData);
+        $dailyBreakdown = $this->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $shift);
         
         return [
             'user' => [
@@ -1538,7 +1539,8 @@ class AttendanceController extends Controller
     {
         $carbonDate = Carbon::parse($date);
         
-        $users = User::where('role_id', '!=', 1)
+        $users = User::with(['employee.shiftRelation'])
+            ->where('role_id', '!=', 1)
             ->whereHas('employee', function($query) {
                 $query->where('status', 'active');
             })
@@ -1567,6 +1569,7 @@ class AttendanceController extends Controller
             }
         }
 
+        $dayName = $carbonDate->format('l');
         $reportData = [];
 
         foreach ($users as $user) {
@@ -1597,8 +1600,18 @@ class AttendanceController extends Controller
                 'movements' => []
             ];
 
+            $shift = $user->employee->shiftRelation ?? null;
+            $isWeeklyOff = false;
+            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
+                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+            } else {
+                $isWeeklyOff = $isSunday;
+            }
+
+            $dayData['is_sunday'] = $isWeeklyOff; // Using is_sunday key for compatibility with existing UI if needed
+
             if ($attendance) {
-                $dayData['hours'] = $this->calculateHours($attendance->movements);
+                $dayData['hours'] = $this->calculateHours($attendance->movements, $shift, $date);
                 $dayData['office_hours'] = $this->calculateTypeHours($attendance->movements, 'office');
                 $dayData['field_hours'] = $this->calculateTypeHours($attendance->movements, 'field');
                 $dayData['break_time'] = $this->calculateTypeHours($attendance->movements, 'break');
@@ -1614,21 +1627,24 @@ class AttendanceController extends Controller
                     $dayData['last_out'] = Carbon::parse($lastOutMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
                 }
 
-                if ($isSunday) {
-                    $dayData['status'] = 'sunday working';
+                if ($isWeeklyOff) {
+                    $dayData['status'] = 'weekly off working';
                 } elseif ($holiday) {
                     $dayData['status'] = 'holiday working';
                 } else {
+                    $fullDayHr = $shift->full_day_hr ?? 7;
+                    $halfDayHr = $shift->half_day_hr ?? 4;
+
                     if ($dayData['leave_type'] === 'SL') {
-                        if ($dayData['hours'] >= 7) {
+                        if ($dayData['hours'] >= $fullDayHr) {
                             $dayData['status'] = 'present';
                         } else {
                             $dayData['status'] = 'short leave';
                         }
                     } else {
-                        if ($dayData['hours'] >= 7) {
+                        if ($dayData['hours'] >= $fullDayHr) {
                             $dayData['status'] = 'present';
-                        } elseif ($dayData['hours'] >= 4) {
+                        } elseif ($dayData['hours'] >= $halfDayHr) {
                             $dayData['status'] = 'halfday';
                         } else {
                             $dayData['status'] = 'absent';
@@ -1652,8 +1668,8 @@ class AttendanceController extends Controller
                         'description' => $m->description
                     ];
                 })->toArray();
-            } elseif ($isSunday) {
-                $dayData['status'] = 'sunday';
+            } elseif ($isWeeklyOff) {
+                $dayData['status'] = 'weekly off';
             } elseif ($holiday) {
                 $dayData['status'] = 'holiday';
             } elseif ($userLeaves) {
@@ -1680,15 +1696,20 @@ class AttendanceController extends Controller
         ];
 
         foreach ($reportData as $row) {
+            $u = $users->firstWhere('id', $row['user']['id']);
+            $shift = $u->employee->shiftRelation ?? null;
+            $fullDayHr = $shift->full_day_hr ?? 7;
+            $halfDayHr = $shift->half_day_hr ?? 4;
+
             if ($row['hours'] > 0) {
-                if ($row['is_sunday']) {
+                if ($row['is_sunday']) { // row['is_sunday'] contains isWeeklyOff
                     $summary['sunday_working']++;
                 } elseif ($row['is_holiday']) {
                     $summary['holiday_working']++;
                 } else {
-                    if ($row['hours'] >= 7) {
+                    if ($row['hours'] >= $fullDayHr) {
                         $summary['present']++;
-                    } elseif ($row['hours'] >= 4) {
+                    } elseif ($row['hours'] >= $halfDayHr) {
                         $summary['halfday']++;
                     } else {
                         $summary['absent']++;
@@ -1873,7 +1894,8 @@ class AttendanceController extends Controller
         }
 
         // Get all users who are active employees AND not admin (role_id != 1)
-        $users = User::where('role_id', '!=', 1)
+        $users = User::with(['employee.shiftRelation'])
+            ->where('role_id', '!=', 1)
             ->whereHas('employee', function($query) {
                 $query->where('status', 'active');
             })
@@ -1965,28 +1987,33 @@ class AttendanceController extends Controller
                 $statusCode = '-';
                 $statusClass = '';
                 
-                // Priority Logic:
-                // 1. Attendance (Present/Half Day)
-                // 2. Holiday (if no attendance)
-                // 3. Sunday (if no attendance)
-                // 4. Leave (if no attendance and on working day)
-                // 5. Absent
-                
+                $shift = $user->employee->shiftRelation ?? null;
+                $dayName = Carbon::parse($dateStr)->format('l');
+                $isWeeklyOff = false;
+                if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
+                    $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                } else {
+                    $isWeeklyOff = $d['is_sunday'];
+                }
+
                 if (isset($attendancesByDate[$dateStr])) {
                     $att = $attendancesByDate[$dateStr];
-                    $hours = $this->calculateHours($att->movements);
+                    $hours = $this->calculateHours($att->movements, $shift, $dateStr);
                     
-                    // Check if it was a Holiday/Sunday working
-                    if ($d['is_sunday']) {
-                        $statusCode = 'S/W'; // Sunday Working
+                    // Check if it was a Holiday/Weekly Off working
+                    if ($isWeeklyOff) {
+                        $statusCode = 'S/W'; // Weekly Off Working (kept S/W code for UI compatibility)
                         $statusClass = 'text-info';
                     } elseif (in_array($dateStr, $holidays)) {
                         $statusCode = 'H/W'; // Holiday Working
                         $statusClass = 'text-info';
                     } else {
+                        $fullDayHr = $shift->full_day_hr ?? 7;
+                        $halfDayHr = $shift->half_day_hr ?? 4;
+                        
                         $leaveType = $userLeavesDetails[$dateStr] ?? null;
                         if ($leaveType === 'SL') {
-                            if ($hours >= 7) {
+                            if ($hours >= $fullDayHr) {
                                 $statusCode = 'P (SL)';
                                 $statusClass = 'text-success';
                             } else {
@@ -1995,10 +2022,10 @@ class AttendanceController extends Controller
                             }
                         } else {
                             // Normal Working Day
-                            if ($hours >= 7) {
+                            if ($hours >= $fullDayHr) {
                                 $statusCode = 'P'; // Present
                                 $statusClass = 'text-success';
-                            } elseif ($hours >= 4) {
+                            } elseif ($hours >= $halfDayHr) {
                                 $statusCode = 'P2'; // Half Day
                                 $statusClass = 'text-warning';
                             } else {
@@ -2011,8 +2038,8 @@ class AttendanceController extends Controller
                 } elseif (in_array($dateStr, $holidays)) {
                     $statusCode = 'H'; // Holiday
                     $statusClass = 'text-secondary';
-                } elseif ($d['is_sunday']) {
-                    $statusCode = 'S'; // Sunday
+                } elseif ($isWeeklyOff) {
+                    $statusCode = 'S'; // Weekly Off (kept S code for UI compatibility)
                     $statusClass = 'text-danger small';
                 } elseif (isset($userLeavesDetails[$dateStr])) {
                     $lType = $userLeavesDetails[$dateStr];
@@ -2094,9 +2121,18 @@ class AttendanceController extends Controller
         
         $shiftRelation = $user ? ($user->employee->shiftRelation ?? null) : null;
         $shift = $shiftRelation;
-        $currentDate = $startDate->copy();
         while ($currentDate->lte($endDate)) {
-            if ($currentDate->dayOfWeek === Carbon::SUNDAY) {
+            $dayName = $currentDate->format('l'); // Sunday, Monday, etc.
+            $isWeeklyOff = false;
+            
+            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
+                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+            } else {
+                // Fallback to Sunday if no weekly off defined
+                $isWeeklyOff = ($currentDate->dayOfWeek === Carbon::SUNDAY);
+            }
+
+            if ($isWeeklyOff) {
                 $totalSundays++;
             } elseif (!in_array($currentDate->format('Y-m-d'), $holidays)) {
                 $totalWorkingDays++;
@@ -2114,37 +2150,43 @@ class AttendanceController extends Controller
             $attendanceDate = Carbon::parse($attendance->date);
             $dateStr = $attendanceDate->format('Y-m-d');
             
-            // Check if attendance is on a holiday
-            if (in_array($dateStr, $holidays)) {
-                // If user has attendance on a holiday, mark it (don't count as leave)
-                $holidaysWithAttendance[] = $dateStr;
+            // Check if this day is a weekly off
+            $dayName = $attendanceDate->format('l');
+            $isWeeklyOff = false;
+            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
+                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+            } else {
+                $isWeeklyOff = ($attendanceDate->dayOfWeek === Carbon::SUNDAY);
             }
-            
-            // Count total holidays worked (Sunday OR Holiday with attendance)
-            if ($attendanceDate->dayOfWeek === Carbon::SUNDAY) {
+
+            // Count total holidays worked (Weekly Off OR Holiday with attendance)
+            if ($isWeeklyOff) {
                 $totalSundaysWorked++;
             } elseif (in_array($dateStr, $holidays)) {
                 $totalHolidaysWorked++;
             }
             
-            // Only count attendance on working days (not Sundays or holidays) for work stats
-            if ($attendanceDate->dayOfWeek !== Carbon::SUNDAY && !in_array($dateStr, $holidays)) {
+            // Only count attendance on working days (not weekly offs or holidays) for work stats
+            if (!$isWeeklyOff && !in_array($dateStr, $holidays)) {
                 $attendanceDates[] = $dateStr;
                 $totalDaysWorked++;
                 
-                $dayHours = $this->calculateHours($attendance->movements);
+                $dayHours = $this->calculateHours($attendance->movements, $shift, $attendance->date);
                 $totalHours += $dayHours;
                 
+                $fullDayHr = $shift->full_day_hr ?? 7;
+                $halfDayHr = $shift->half_day_hr ?? 4;
+
                 // Count present and half days based on hours
-                if ($dayHours >= 7) {
+                if ($dayHours >= $fullDayHr) {
                     $presentDays++;
-                } elseif ($dayHours >= 4) {
+                } elseif ($dayHours >= $halfDayHr) {
                     $halfDays++;
                 }
 
                 if ($dayHours >= 8.5) {
                     $totalMore8_30++;
-                } elseif ($dayHours >= 4) {
+                } elseif ($dayHours >= $halfDayHr) {
                     $totalLess8_30++;
                 }
                 
@@ -2178,13 +2220,14 @@ class AttendanceController extends Controller
                         $reason = '';
                         
                         if ($punchTime->gt($lateThreshold)) {
-                            // Only count late if worked >= 4 hours
-                            if ($dayHours >= 4) {
+                            // Only count late if worked >= half day hours
+                            $halfDayHr = $shift->half_day_hr ?? 4;
+                            if ($dayHours >= $halfDayHr) {
                                 $lateCount++;
                                 $isLate = true;
-                                $reason = 'Late: Punched after threshold and worked >= 4hrs';
+                                $reason = 'Late: Punched after threshold and worked >= half day';
                             } else {
-                                $reason = 'Not Late: Punched after threshold but worked < 4hrs';
+                                $reason = 'Not Late: Punched after threshold but worked < half day';
                             }
                         } else {
                             $reason = 'Not Late: on time';
@@ -2228,10 +2271,18 @@ class AttendanceController extends Controller
             $dateStr = is_string($leaveDate) ? $leaveDate : Carbon::parse($leaveDate)->format('Y-m-d');
             $leaveCarbon = Carbon::parse($dateStr);
             
-            // Only count leave on working days (not Sundays or holidays) for attendance calculation
+            $dayName = $leaveCarbon->format('l');
+            $isWeeklyOff = false;
+            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
+                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+            } else {
+                $isWeeklyOff = ($leaveCarbon->dayOfWeek === Carbon::SUNDAY);
+            }
+
+            // Only count leave on working days (not weekly offs or holidays) for attendance calculation
             // Also exclude days that already have attendance (attendance takes precedence)
             // Also exclude holidays where user has attendance (attendance on holiday = holiday only, not leave)
-            if ($leaveCarbon->dayOfWeek !== Carbon::SUNDAY 
+            if (!$isWeeklyOff 
                 && !in_array($dateStr, $holidays) 
                 && !in_array($dateStr, $attendanceDates)
                 && !in_array($dateStr, $holidaysWithAttendance)) {
@@ -2244,8 +2295,16 @@ class AttendanceController extends Controller
         $totalHolidays = 0;
         foreach ($holidays as $holidayDate) {
             $holidayCarbon = Carbon::parse($holidayDate);
-            // Only count holidays that are not Sundays
-            if ($holidayCarbon->dayOfWeek !== Carbon::SUNDAY) {
+            $dayName = $holidayCarbon->format('l');
+            $isWeeklyOff = false;
+            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
+                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+            } else {
+                $isWeeklyOff = ($holidayCarbon->dayOfWeek === Carbon::SUNDAY);
+            }
+
+            // Only count holidays that are not weekly offs
+            if (!$isWeeklyOff) {
                 $totalHolidays++;
             }
         }
@@ -2291,7 +2350,7 @@ class AttendanceController extends Controller
         ];
     }
 
-    private function generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData = null)
+    private function generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData = null, $shift = null)
     {
         $dailyData = [];
         // Key attendance by formatted date string to avoid Carbon key mismatch
@@ -2305,11 +2364,18 @@ class AttendanceController extends Controller
             $dayName = $currentDate->format('l');
             $displayDate = $currentDate->format('M j, Y');
             
+            $isWeeklyOff = false;
+            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
+                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+            } else {
+                $isWeeklyOff = ($currentDate->dayOfWeek === Carbon::SUNDAY);
+            }
+
             $dayData = [
                 'date' => $dateStr,
                 'display_date' => $displayDate,
                 'day_name' => $dayName,
-                'is_sunday' => $currentDate->dayOfWeek === Carbon::SUNDAY,
+                'is_sunday' => $isWeeklyOff,
                 'is_holiday' => in_array($dateStr, $holidays),
                 'is_leave' => isset($leaves[$dateStr]),
                 'leave_type' => $leaves[$dateStr] ?? null,
@@ -2326,7 +2392,7 @@ class AttendanceController extends Controller
             // First check if user has attendance for this date (takes priority for data)
             if (isset($attendanceByDate[$dateStr])) {
                 $attendance = $attendanceByDate[$dateStr];
-                $dayData['hours'] = $this->calculateHours($attendance->movements);
+                $dayData['hours'] = $this->calculateHours($attendance->movements, $shift, $dateStr);
                 $dayData['office_hours'] = $this->calculateTypeHours($attendance->movements, 'office');
                 $dayData['field_hours'] = $this->calculateTypeHours($attendance->movements, 'field');
                 $dayData['break_time'] = $this->calculateTypeHours($attendance->movements, 'break');
@@ -2367,16 +2433,19 @@ class AttendanceController extends Controller
                         $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
                     }
                 } else {
+                    $fullDayHr = $shift->full_day_hr ?? 7;
+                    $halfDayHr = $shift->half_day_hr ?? 4;
+                    
                     if ($dayData['leave_type'] === 'SL') {
-                        if ($dayData['hours'] >= 7) {
+                        if ($dayData['hours'] >= $fullDayHr) {
                             $dayData['status'] = 'present';
                         } else {
                             $dayData['status'] = 'short leave';
                         }
                     } else {
-                        if ($dayData['hours'] >= 7) {
+                        if ($dayData['hours'] >= $fullDayHr) {
                             $dayData['status'] = 'present';
-                        } elseif ($dayData['hours'] >= 4) {
+                        } elseif ($dayData['hours'] >= $halfDayHr) {
                             $dayData['status'] = 'halfday';
                         } else {
                             $dayData['status'] = 'absent by less hr';
@@ -2385,8 +2454,8 @@ class AttendanceController extends Controller
                 }
             } else {
                 // NO attendance found, determine fallback status
-                if ($currentDate->dayOfWeek === Carbon::SUNDAY) {
-                    $dayData['status'] = 'sunday';
+                if ($isWeeklyOff) {
+                    $dayData['status'] = 'weekly off';
                 } elseif (in_array($dateStr, $holidays)) {
                     $dayData['status'] = 'holiday';
                     if ($holidaysData && isset($holidaysData[$dateStr])) {
@@ -2412,7 +2481,7 @@ class AttendanceController extends Controller
         return $dailyData;
     }
 
-    private function calculateHours($movements): float
+    private function calculateHours($movements, $shift = null, $date = null): float
     {
         if ($movements->isEmpty()) {
             return 0;
@@ -2423,15 +2492,15 @@ class AttendanceController extends Controller
         // Find first punch-in and last punch-out across all movement types
         $firstPunchIn = null;
         $lastPunchOut = null;
-        
-        foreach ($movements as $movement) {
+                foreach ($movements as $movement) {
             // Only consider office and field movements for total hours calculation
             if (in_array($movement->movement_type, ['office', 'field'])) {
+                $time = Carbon::parse($movement->time)->setTimezone('Asia/Kolkata');
                 if ($movement->movement_action === 'in' && !$firstPunchIn) {
-                    $firstPunchIn = $movement->time;
+                    $firstPunchIn = $time;
                 }
                 if ($movement->movement_action === 'out') {
-                    $lastPunchOut = $movement->time;
+                    $lastPunchOut = $time;
                 }
             }
         }
@@ -2443,7 +2512,41 @@ class AttendanceController extends Controller
         
         // If no punch-out found, calculate until now
         if (!$lastPunchOut) {
-            $lastPunchOut = Carbon::now();
+            $lastPunchOut = Carbon::now()->setTimezone('Asia/Kolkata');
+        }
+
+        // Apply shift capping if shift and date are provided
+        if ($shift && $date) {
+            $shiftDate = Carbon::parse($date)->format('Y-m-d');
+            
+            // Handle Start Time Capping
+            if ($shift->start_time) {
+                $shiftStartTime = Carbon::parse($shift->start_time)->format('H:i:s');
+                $startLimit = Carbon::parse($shiftDate . ' ' . $shiftStartTime, 'Asia/Kolkata');
+                if ($firstPunchIn->lt($startLimit)) {
+                    $firstPunchIn = $startLimit;
+                }
+            }
+            
+            // Handle End Time Capping (Shift End + Extended Hours)
+            if ($shift->end_time) {
+                $shiftEndTime = Carbon::parse($shift->end_time)->format('H:i:s');
+                $endLimit = Carbon::parse($shiftDate . ' ' . $shiftEndTime, 'Asia/Kolkata');
+                
+                if ($shift->extended_hr > 0) {
+                    $endLimit->addMinutes((int)($shift->extended_hr * 60));
+                }
+                
+                if ($lastPunchOut->gt($endLimit)) {
+                    $lastPunchOut = $endLimit;
+                }
+            }
+        }
+
+        
+        // If capped first punch is after capped last punch, duration is 0
+        if ($firstPunchIn->gt($lastPunchOut)) {
+            return 0;
         }
         
         // Calculate total minutes from first punch-in to last punch-out
