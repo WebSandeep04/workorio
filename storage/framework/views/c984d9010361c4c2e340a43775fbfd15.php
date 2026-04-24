@@ -87,7 +87,6 @@
             <th>Name</th>
             <th>RH Allowed</th>
             <th>SL/Month</th>
-            <th>Late Allow (Min/Mo)</th>
 
             <th>Status</th>
             <th class="text-center">Actions</th>
@@ -129,11 +128,6 @@
                 <label class="form-label-modern">SL/Month</label>
                 <input type="number" class="form-control form-control-modern" id="sl_allowed" name="sl_allowed" min="0" value="0">
               </div>
-              <div class="col-md-3">
-                <label class="form-label-modern">Late Allow (Min/Mo)</label>
-                <input type="number" class="form-control form-control-modern" id="min_per_month_late_allow" name="min_per_month_late_allow" min="0" value="0">
-              </div>
-
               <div class="col-md-3">
                 <label class="form-label-modern">Status</label>
                 <select id="status" name="status" class="form-control form-control-modern">
@@ -262,7 +256,6 @@ $(function() {
                     <td><strong>${row.name}</strong></td>
                     <td>${row.rh_allowed || '0'}</td>
                     <td>${row.sl_allowed || '0'}</td>
-                    <td>${row.min_per_month_late_allow || '0'} min</td>
 
                     <td><span class="${statusBadge}">${row.status || 'inactive'}</span></td>
                     <td class="text-center">
@@ -310,7 +303,6 @@ $(function() {
         $('#status').val(row.status);
         $('#rh_allowed').val(row.rh_allowed || 0);
         $('#sl_allowed').val(row.sl_allowed || 0);
-        $('#min_per_month_late_allow').val(row.min_per_month_late_allow || 0);
 
 
         // Fill Rules

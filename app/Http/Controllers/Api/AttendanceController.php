@@ -298,7 +298,7 @@ class AttendanceController extends Controller
                                 ->where('date', '>=', $thisMonth)
                                 ->sum('late_minutes'));
                                 
-                            $monthlyLateAllowance = (int) ($employee->employmentTypeRelation->min_per_month_late_allow ?? 0);
+                            $monthlyLateAllowance = (int) ($shift->min_per_month_late_allow ?? 0);
                             
                             // Block if allowance exceeded and no leave covers today
                             if ($monthlyLateAllowance > 0 && ($alreadyUsedLateMinutes + $lateMinutesToRecord) > $monthlyLateAllowance) {

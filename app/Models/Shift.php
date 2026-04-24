@@ -14,6 +14,7 @@ class Shift extends Model
         'start_time',
         'end_time',
         'late_min',
+        'min_per_month_late_allow',
         'is_active',
         'sl_start_limit',
         'sl_end_limit',
@@ -27,6 +28,7 @@ class Shift extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'late_min' => 'integer',
+        'min_per_month_late_allow' => 'integer',
         'sl_start_limit' => 'integer',
         'sl_end_limit' => 'integer',
         'week_offs' => 'array',

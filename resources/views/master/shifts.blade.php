@@ -102,6 +102,7 @@
             <th>Full (H)</th>
             <th>Half (H)</th>
             <th>Ext. (H)</th>
+            <th>Monthly Late Allow</th>
             <th>Status</th>
             <th class="text-center">Actions</th>
           </tr>
@@ -148,6 +149,10 @@
                 <input type="number" class="form-control form-control-modern" id="late_min" name="late_min" min="0" value="15">
               </div>
               <div class="col-md-3">
+                <label class="form-label-modern">Monthly Late Allow (Min)</label>
+                <input type="number" class="form-control form-control-modern" id="min_per_month_late_allow" name="min_per_month_late_allow" min="0" value="0" placeholder="e.g. 120">
+              </div>
+              <div class="col-md-3">
                 <label class="form-label-modern">SL Start Limit (H)</label>
                 <input type="number" class="form-control form-control-modern" id="sl_start_limit" name="sl_start_limit" min="0" value="0">
               </div>
@@ -155,6 +160,9 @@
                 <label class="form-label-modern">SL End Limit (H)</label>
                 <input type="number" class="form-control form-control-modern" id="sl_end_limit" name="sl_end_limit" min="0" value="0">
               </div>
+          </div>
+
+          <div class="row g-3 mb-4">
               <div class="col-md-3">
                 <label class="form-label-modern">Status</label>
                 <select id="is_active" name="is_active" class="form-control form-control-modern">
@@ -162,18 +170,15 @@
                     <option value="0">Inactive</option>
                 </select>
               </div>
-          </div>
-
-          <div class="row g-3 mb-4">
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <label class="form-label-modern">Full Day Hours</label>
                 <input type="number" step="0.5" class="form-control form-control-modern" id="full_day_hr" name="full_day_hr" min="0" placeholder="e.g. 9">
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <label class="form-label-modern">Half Day Hours</label>
                 <input type="number" step="0.5" class="form-control form-control-modern" id="half_day_hr" name="half_day_hr" min="0" placeholder="e.g. 4.5">
               </div>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <label class="form-label-modern">Extended Hours</label>
                 <input type="number" step="0.5" class="form-control form-control-modern" id="extended_hr" name="extended_hr" min="0" placeholder="e.g. 10">
               </div>
@@ -279,6 +284,7 @@ $(function() {
                     <td>${row.full_day_hr || '-'}h</td>
                     <td>${row.half_day_hr || '-'}h</td>
                     <td>${row.extended_hr || '-'}h</td>
+                    <td>${row.min_per_month_late_allow || '0'} Min</td>
                     <td><span class="${statusBadge}">${statusText}</span></td>
                     <td class="text-center">
                         <button class="btn-action btn-action-edit editBtn" data-id="${row.id}" title="Edit"><i class="bi bi-pencil"></i></button>
@@ -322,6 +328,7 @@ $(function() {
         $('#full_day_hr').val(row.full_day_hr);
         $('#half_day_hr').val(row.half_day_hr);
         $('#extended_hr').val(row.extended_hr);
+        $('#min_per_month_late_allow').val(row.min_per_month_late_allow || 0);
         $('#is_active').val(row.is_active ? '1' : '0');
 
         if(row.week_offs && Array.isArray(row.week_offs)) {

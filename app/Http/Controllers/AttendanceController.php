@@ -315,7 +315,7 @@ class AttendanceController extends Controller
                                 ->where('date', '>=', $thisMonth)
                                 ->sum('late_minutes'));
                                 
-                            $monthlyLateAllowance = (int) ($employee->employmentTypeRelation->min_per_month_late_allow ?? 0);
+                            $monthlyLateAllowance = (int) ($shift->min_per_month_late_allow ?? 0);
 
                             // The late allowance check is now only for information/logging, not a blocker.
                             // We previously blocked punch-in here if (alreadyUsedLateMinutes + lateMinutesToRecord) > monthlyLateAllowance.
@@ -1017,8 +1017,8 @@ class AttendanceController extends Controller
         
         // Late Allowance
         $lateAllowance = 0;
-        if ($user && $user->employee && $user->employee->employmentTypeRelation) {
-            $lateAllowance = (int) $user->employee->employmentTypeRelation->min_per_month_late_allow;
+        if ($user && $user->employee && $user->employee->shiftRelation) {
+            $lateAllowance = (int) $user->employee->shiftRelation->min_per_month_late_allow;
         }
         $stats['late_allowance'] = $lateAllowance;
 

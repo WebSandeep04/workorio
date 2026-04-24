@@ -154,7 +154,6 @@ class EmploymentTypeController extends Controller
             'rh_allowed' => 'nullable|integer|min:0',
             'sl_allowed' => 'nullable|integer|min:0',
             'no_of_half_days' => 'nullable|integer|min:0',
-            'min_per_month_late_allow' => 'nullable|integer|min:0',
             'rules' => 'nullable|array',
         ]);
     }

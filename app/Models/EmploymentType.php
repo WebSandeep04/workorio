@@ -17,7 +17,6 @@ class EmploymentType extends Model
         'rh_allowed',
         'sl_allowed',
         'no_of_half_days',
-        'min_per_month_late_allow',
     ];
 
     public function employees()
