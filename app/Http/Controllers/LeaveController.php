@@ -35,7 +35,7 @@ class LeaveController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'start_date' => 'required|date',
+            'start_date' => 'required|date|after:today',
             'end_date' => 'required|date|after_or_equal:start_date',
             'leave_type_id' => 'required', // Can be 'rh', 'sl' or an ID
             'start_time' => 'nullable|date_format:H:i',

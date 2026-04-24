@@ -599,9 +599,12 @@ function openCreateModal() {
     $('#half_day_options').hide();
     $('#sl_type_div').hide();
     
-    const today = new Date().toISOString().split('T')[0];
-    $('#start_date').val(today);
-    $('#end_date').val(today);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    $('#start_date').attr('min', tomorrowStr).val(tomorrowStr);
+    $('#end_date').attr('min', tomorrowStr).val(tomorrowStr);
     calculateDays();
     $('#leaveModal').modal('show');
 }
