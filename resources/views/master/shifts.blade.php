@@ -98,6 +98,9 @@
             <th>SL Start (H)</th>
             <th>SL End (H)</th>
             <th>Week Offs</th>
+            <th>Full (H)</th>
+            <th>Half (H)</th>
+            <th>Ext. (H)</th>
             <th>Status</th>
             <th class="text-center">Actions</th>
           </tr>
@@ -157,6 +160,21 @@
                     <option value="1">Active</option>
                     <option value="0">Inactive</option>
                 </select>
+              </div>
+          </div>
+
+          <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label class="form-label-modern">Full Day Hours</label>
+                <input type="number" step="0.5" class="form-control form-control-modern" id="full_day_hr" name="full_day_hr" min="0" placeholder="e.g. 9">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-modern">Half Day Hours</label>
+                <input type="number" step="0.5" class="form-control form-control-modern" id="half_day_hr" name="half_day_hr" min="0" placeholder="e.g. 4.5">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label-modern">Extended Hours</label>
+                <input type="number" step="0.5" class="form-control form-control-modern" id="extended_hr" name="extended_hr" min="0" placeholder="e.g. 10">
               </div>
           </div>
 
@@ -237,6 +255,9 @@ $(function() {
                     <td>${row.sl_start_limit || '0'}h</td>
                     <td>${row.sl_end_limit || '0'}h</td>
                     <td>${formatWeekOffs(row.week_offs)}</td>
+                    <td>${row.full_day_hr || '-'}h</td>
+                    <td>${row.half_day_hr || '-'}h</td>
+                    <td>${row.extended_hr || '-'}h</td>
                     <td><span class="${statusBadge}">${statusText}</span></td>
                     <td class="text-center">
                         <button class="btn-action btn-action-edit editBtn" data-id="${row.id}" title="Edit"><i class="bi bi-pencil"></i></button>
@@ -275,6 +296,9 @@ $(function() {
         $('#late_min').val(row.late_min);
         $('#sl_start_limit').val(row.sl_start_limit || 0);
         $('#sl_end_limit').val(row.sl_end_limit || 0);
+        $('#full_day_hr').val(row.full_day_hr);
+        $('#half_day_hr').val(row.half_day_hr);
+        $('#extended_hr').val(row.extended_hr);
         $('#is_active').val(row.is_active ? '1' : '0');
 
         if(row.week_offs && Array.isArray(row.week_offs)) {

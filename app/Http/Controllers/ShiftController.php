@@ -70,6 +70,9 @@ class ShiftController extends Controller
             'sl_end_limit' => 'nullable|integer|min:0',
             'week_offs' => 'nullable|array',
             'week_offs.*' => 'integer|between:0,6',
+            'full_day_hr' => 'nullable|numeric|min:0',
+            'half_day_hr' => 'nullable|numeric|min:0',
+            'extended_hr' => 'nullable|numeric|min:0',
         ]);
     }
 }
