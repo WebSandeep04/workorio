@@ -93,7 +93,6 @@
             <th>Start Time</th>
             <th>End Time</th>
             <th>Late (min)</th>
-            <th>SL Start (H)</th>
             <th>SL End (H)</th>
             <th>Week Offs</th>
             <th>Half Days</th>
@@ -149,10 +148,6 @@
               <div class="col-md-3">
                 <label class="form-label-modern">Monthly Late Allow (Min)</label>
                 <input type="number" class="form-control form-control-modern" id="min_per_month_late_allow" name="min_per_month_late_allow" min="0" value="0" placeholder="e.g. 120">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label-modern">SL Start Limit (H)</label>
-                <input type="number" class="form-control form-control-modern" id="sl_start_limit" name="sl_start_limit" min="0" value="0">
               </div>
               <div class="col-md-3">
                 <label class="form-label-modern">SL End Limit (H)</label>
@@ -277,7 +272,6 @@ $(function() {
                     <td>${formatTime(row.start_time)}</td>
                     <td>${formatTime(row.end_time)}</td>
                     <td>${row.late_min || '0'} Min</td>
-                    <td>${row.sl_start_limit || '0'}h</td>
                     <td>${row.sl_end_limit || '0'}h</td>
                     <td>${formatWeekOffs(row.week_offs)}</td>
                     <td>${formatHalfDays(row.half_days)}</td>
@@ -323,7 +317,6 @@ $(function() {
         $('#start_time').val(formatTime(row.start_time));
         $('#end_time').val(formatTime(row.end_time));
         $('#late_min').val(row.late_min);
-        $('#sl_start_limit').val(row.sl_start_limit || 0);
         $('#sl_end_limit').val(row.sl_end_limit || 0);
         $('#full_day_hr').val(row.full_day_hr);
         $('#half_day_hr').val(row.half_day_hr);

@@ -143,35 +143,20 @@ class LeaveController extends Controller
 
             // --- Shift-Based SL Period Handling ---
             try {
-                $shiftStart = Carbon::parse($shift->start_time);
                 $shiftEnd = Carbon::parse($shift->end_time);
-                
-                $startLimitHours = (int) ($shift->sl_start_limit ?? 0);
                 $endLimitHours = (int) ($shift->sl_end_limit ?? 0);
-                
-                $morningMax = (clone $shiftStart)->addHours($startLimitHours);
                 $eveningMin = (clone $shiftEnd)->subHours($endLimitHours);
 
-                // If sl_period is provided, override times
-                if ($request->filled('sl_period')) {
-                    if ($request->sl_period === 'evening') {
-                        $request->merge([
-                            'start_time' => $eveningMin->format('H:i'),
-                            'end_time' => $shiftEnd->format('H:i')
-                        ]);
-                    }
-                }
+                // Force SL to be 'evening' period
+                $request->merge(['sl_period' => 'evening']);
 
-                if (!$request->start_time || !$request->end_time) {
-                     return response()->json(['success' => false, 'message' => 'Short Leave time must be provided or Evening must be selected.'], 422);
-                }
+                $request->merge([
+                    'start_time' => $eveningMin->format('H:i'),
+                    'end_time' => $shiftEnd->format('H:i')
+                ]);
 
                 $reqStart = Carbon::parse($request->start_time);
                 $reqEnd = Carbon::parse($request->end_time);
-                
-                if ($reqEnd->lte($reqStart)) {
-                     return response()->json(['success' => false, 'message' => 'End time must be after start time.'], 422);
-                }
                 
                 // Evening SL: Must be within [ShiftEnd - Limit, ShiftEnd]
                 $isValidEvening = ($reqStart->format('H:i:s') >= $eveningMin->format('H:i:s') && $reqEnd->format('H:i:s') <= $shiftEnd->format('H:i:s'));
@@ -181,7 +166,7 @@ class LeaveController extends Controller
                     
                     return response()->json([
                         'success' => false, 
-                        'message' => "Invalid Short Leave time. SL is only allowed during the Evening window ($eveningWindow). Core working hours and Morning starts are protected."
+                        'message' => "Invalid Short Leave time. SL is only allowed during the Evening window ($eveningWindow)."
                     ], 422);
                 }
             } catch (\Exception $e) {

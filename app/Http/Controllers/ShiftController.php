@@ -67,7 +67,6 @@ class ShiftController extends Controller
             'late_min' => 'nullable|integer|min:0',
             'min_per_month_late_allow' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
-            'sl_start_limit' => 'nullable|integer|min:0',
             'sl_end_limit' => 'nullable|integer|min:0',
             'week_offs' => 'nullable|array',
             'week_offs.*' => 'integer|between:0,6',
