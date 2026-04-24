@@ -1602,8 +1602,14 @@ class AttendanceController extends Controller
 
             $shift = $user->employee->shiftRelation ?? null;
             $isWeeklyOff = false;
-            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+            $isHalfDayWorking = false;
+            if ($shift) {
+                if ($shift->week_offs && is_array($shift->week_offs)) {
+                    $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                }
+                if ($shift->half_days && is_array($shift->half_days)) {
+                    $isHalfDayWorking = in_array($dayName, $shift->half_days);
+                }
             }
 
             $dayData['is_sunday'] = $isWeeklyOff; // Using is_sunday key for compatibility with existing UI if needed
@@ -1632,6 +1638,11 @@ class AttendanceController extends Controller
                 } else {
                     $fullDayHr = $shift->full_day_hr ?? 7;
                     $halfDayHr = $shift->half_day_hr ?? 4;
+
+                    if ($isHalfDayWorking) {
+                        $fullDayHr = $halfDayHr;
+                        $halfDayHr = $halfDayHr / 2;
+                    }
 
                     if ($dayData['leave_type'] === 'SL') {
                         if ($dayData['hours'] >= $fullDayHr) {
@@ -1988,8 +1999,14 @@ class AttendanceController extends Controller
                 $shift = $user->employee->shiftRelation ?? null;
                 $dayName = Carbon::parse($dateStr)->format('l');
                 $isWeeklyOff = false;
-                if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                    $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                $isHalfDayWorking = false;
+                if ($shift) {
+                    if ($shift->week_offs && is_array($shift->week_offs)) {
+                        $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                    }
+                    if ($shift->half_days && is_array($shift->half_days)) {
+                        $isHalfDayWorking = in_array($dayName, $shift->half_days);
+                    }
                 }
 
                 if (isset($attendancesByDate[$dateStr])) {
@@ -2007,6 +2024,11 @@ class AttendanceController extends Controller
                         $fullDayHr = $shift->full_day_hr ?? 7;
                         $halfDayHr = $shift->half_day_hr ?? 4;
                         
+                        if ($isHalfDayWorking) {
+                            $fullDayHr = $halfDayHr;
+                            $halfDayHr = $halfDayHr / 2;
+                        }
+
                         $leaveType = $userLeavesDetails[$dateStr] ?? null;
                         if ($leaveType === 'SL') {
                             if ($hours >= $fullDayHr) {
@@ -2123,9 +2145,6 @@ class AttendanceController extends Controller
             
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
                 $isWeeklyOff = in_array($dayName, $shift->week_offs);
-            } else {
-                // Fallback to Sunday if no weekly off defined
-                $isWeeklyOff = ($currentDate->dayOfWeek === Carbon::SUNDAY);
             }
 
             if ($isWeeklyOff) {
@@ -2149,8 +2168,13 @@ class AttendanceController extends Controller
             // Check if this day is a weekly off
             $dayName = $attendanceDate->format('l');
             $isWeeklyOff = false;
-            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+            if ($shift) {
+                if ($shift->week_offs && is_array($shift->week_offs)) {
+                    $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                }
+                if ($shift->half_days && is_array($shift->half_days)) {
+                    $isHalfDayWorking = in_array($dayName, $shift->half_days);
+                }
             }
 
             // Count total holidays worked (Weekly Off OR Holiday with attendance)
@@ -2170,6 +2194,11 @@ class AttendanceController extends Controller
                 
                 $fullDayHr = $shift->full_day_hr ?? 7;
                 $halfDayHr = $shift->half_day_hr ?? 4;
+
+                if ($isHalfDayWorking) {
+                    $fullDayHr = $halfDayHr;
+                    $halfDayHr = $halfDayHr / 2;
+                }
 
                 // Count present and half days based on hours
                 if ($dayHours >= $fullDayHr) {
@@ -2355,8 +2384,14 @@ class AttendanceController extends Controller
             $displayDate = $currentDate->format('M j, Y');
             
             $isWeeklyOff = false;
-            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+            $isHalfDayWorking = false;
+            if ($shift) {
+                if ($shift->week_offs && is_array($shift->week_offs)) {
+                    $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                }
+                if ($shift->half_days && is_array($shift->half_days)) {
+                    $isHalfDayWorking = in_array($dayName, $shift->half_days);
+                }
             }
 
             $dayData = [
@@ -2423,6 +2458,11 @@ class AttendanceController extends Controller
                 } else {
                     $fullDayHr = $shift->full_day_hr ?? 7;
                     $halfDayHr = $shift->half_day_hr ?? 4;
+                    
+                    if ($isHalfDayWorking) {
+                        $fullDayHr = $halfDayHr;
+                        $halfDayHr = $halfDayHr / 2;
+                    }
                     
                     if ($dayData['leave_type'] === 'SL') {
                         if ($dayData['hours'] >= $fullDayHr) {

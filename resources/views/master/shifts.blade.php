@@ -98,6 +98,7 @@
             <th>SL Start (H)</th>
             <th>SL End (H)</th>
             <th>Week Offs</th>
+            <th>Half Days</th>
             <th>Full (H)</th>
             <th>Half (H)</th>
             <th>Ext. (H)</th>
@@ -179,14 +180,27 @@
           </div>
 
           <div class="row g-3 mb-2">
-            <div class="col-12">
+            <div class="col-md-6">
                 <label class="form-label-modern">Weekly Offs</label>
-                <div class="d-flex flex-wrap gap-3 mt-1">
+                <div class="d-flex flex-wrap gap-2 mt-1">
                     @foreach(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as $index => $day)
                     <div class="form-check">
                         <input class="form-check-input week-off-checkbox" type="checkbox" name="week_offs[]" value="{{ $index }}" id="day_{{ $index }}">
-                        <label class="form-check-label" for="day_{{ $index }}" style="font-size: 0.85rem;">
-                            {{ $day }}
+                        <label class="form-check-label" for="day_{{ $index }}" style="font-size: 0.8rem;">
+                            {{ substr($day, 0, 3) }}
+                        </label>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label-modern">Half Working Days</label>
+                <div class="d-flex flex-wrap gap-2 mt-1">
+                    @foreach(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as $index => $day)
+                    <div class="form-check">
+                        <input class="form-check-input half-day-checkbox" type="checkbox" name="half_days[]" value="{{ $index }}" id="half_day_{{ $index }}">
+                        <label class="form-check-label" for="half_day_{{ $index }}" style="font-size: 0.8rem;">
+                            {{ substr($day, 0, 3) }}
                         </label>
                     </div>
                     @endforeach
@@ -219,6 +233,12 @@ $(function() {
         if(!offs || !Array.isArray(offs) || offs.length === 0) return 'None';
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         return offs.map(i => days[i]).join(', ');
+    }
+
+    function formatHalfDays(daysArr) {
+        if(!daysArr || !Array.isArray(daysArr) || daysArr.length === 0) return 'None';
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        return daysArr.map(i => days[i]).join(', ');
     }
 
     function loadData() {
@@ -255,6 +275,7 @@ $(function() {
                     <td>${row.sl_start_limit || '0'}h</td>
                     <td>${row.sl_end_limit || '0'}h</td>
                     <td>${formatWeekOffs(row.week_offs)}</td>
+                    <td>${formatHalfDays(row.half_days)}</td>
                     <td>${row.full_day_hr || '-'}h</td>
                     <td>${row.half_day_hr || '-'}h</td>
                     <td>${row.extended_hr || '-'}h</td>
@@ -277,6 +298,7 @@ $(function() {
         $('#modalTitle').html('<i class="bi bi-plus text-white"></i> Create Shift');
         $('#mainForm')[0].reset();
         $('.week-off-checkbox').prop('checked', false);
+        $('.half-day-checkbox').prop('checked', false);
         $('#edit_id').val('');
         $('#formModal').modal('show');
     });
@@ -288,6 +310,7 @@ $(function() {
         $('#modalTitle').html('<i class="bi bi-pencil-square text-white"></i> Edit Shift');
         $('#mainForm')[0].reset();
         $('.week-off-checkbox').prop('checked', false);
+        $('.half-day-checkbox').prop('checked', false);
         
         $('#edit_id').val(row.id);
         $('#name').val(row.name);
@@ -304,6 +327,12 @@ $(function() {
         if(row.week_offs && Array.isArray(row.week_offs)) {
             row.week_offs.forEach(i => {
                 $(`#day_${i}`).prop('checked', true);
+            });
+        }
+
+        if(row.half_days && Array.isArray(row.half_days)) {
+            row.half_days.forEach(i => {
+                $(`#half_day_${i}`).prop('checked', true);
             });
         }
 
