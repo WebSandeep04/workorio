@@ -72,7 +72,10 @@ class AttendanceApprovalController extends Controller
             // Check Leave (Any type: Full, Half, or SL)
             $leave = \App\Models\LeaveRequest::with('leaveType')
                 ->where('user_id', $user->id)
-                ->whereIn('status', ['approved', 'pending'])
+                ->where(function($q) {
+                    $q->whereRaw('LOWER(status) = ?', ['approved'])
+                      ->orWhereRaw('LOWER(status) = ?', ['pending']);
+                })
                 ->whereDate('start_date', '<=', $date)
                 ->whereDate('end_date', '>=', $date)
                 ->first();
@@ -103,7 +106,7 @@ class AttendanceApprovalController extends Controller
                 if ($attendance) {
                     $leaveDetails = "Overlap with {$leaveType} (" . ucfirst($leave->status) . ")";
                 } else {
-                    $status = ($leave->status === 'approved') ? 'On Leave' : 'Pending Leave';
+                    $status = (strtolower($leave->status) === 'approved') ? 'On Leave' : 'Pending Leave';
                     $leaveDetails = $leaveType;
                 }
             }
@@ -230,6 +233,56 @@ class AttendanceApprovalController extends Controller
             return response()->json(['success' => true, 'message' => 'Selected records approved successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error approving records: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function postDaily(Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date'
+        ]);
+
+        $date = $request->date;
+
+        try {
+            // Find all pending records for this date
+            $pendingAttendances = Attendance::with('user')
+                ->whereDate('date', $date)
+                ->where('is_approved', 0)
+                ->get();
+
+            if ($pendingAttendances->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'No pending records to post for this date.'], 422);
+            }
+
+            DB::beginTransaction();
+
+            foreach ($pendingAttendances as $attendance) {
+                // Restriction: Check for previous pending records for each user
+                $hasPreviousPending = Attendance::where('user_id', $attendance->user_id)
+                    ->where('date', '<', $attendance->date)
+                    ->where('is_approved', 0)
+                    ->exists();
+
+                if ($hasPreviousPending) {
+                    DB::rollBack();
+                    $dateStr = Carbon::parse($attendance->date)->format('d M Y');
+                    return response()->json([
+                        'success' => false, 
+                        'message' => "Cannot post. User '{$attendance->user->name}' has pending attendance from a date before {$dateStr}. Please resolve previous dates first."
+                    ], 422);
+                }
+
+                // Approve the record
+                $attendance->is_approved = 1;
+                $attendance->save();
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'All attendance for this date has been posted successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Error posting attendance: ' . $e->getMessage()], 500);
         }
     }
 

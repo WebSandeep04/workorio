@@ -899,6 +899,7 @@ Route::get('/worklog-missing-summary', function() {
                 Route::post('/attendance/approve/{id}', [App\Http\Controllers\AttendanceApprovalController::class, 'approve'])->name('attendance.approve');
                 Route::post('/attendance/reject/{id}', [App\Http\Controllers\AttendanceApprovalController::class, 'reject'])->name('attendance.reject');
                 Route::post('/attendance/approve-bulk', [App\Http\Controllers\AttendanceApprovalController::class, 'bulkApprove'])->name('attendance.approve-bulk');
+                Route::post('/attendance/post-daily', [App\Http\Controllers\AttendanceApprovalController::class, 'postDaily'])->name('attendance.post-daily');
                 Route::post('/attendance/update-times/{id}', [App\Http\Controllers\AttendanceApprovalController::class, 'updateTimes'])->name('attendance.update-times');
 
                 // Unlock Attendance

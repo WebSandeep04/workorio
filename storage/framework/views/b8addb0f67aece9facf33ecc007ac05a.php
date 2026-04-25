@@ -212,17 +212,16 @@
     background: #fff;
     color: #000;
     font-size: 0.65rem;
-    /* text-transform: uppercase; REMOVED per request */
     font-weight: 700;
-    padding: 0.6rem 0.75rem;
+    padding: 0.4rem 0.5rem;
     text-align: left;
     border-bottom: 1px solid #f1f3f5;
     font-family: Montserrat;
   }
 
   .data-table-card .custom-table tbody td {
-    font-size: 0.85rem;
-    padding: 0.65rem 0.75rem;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.5rem;
     color: #000;
     border-bottom: 1px solid #f4f4f6;
     text-align: left;
@@ -322,11 +321,8 @@
     </div>
     
     <div class="d-flex gap-2">
-      <button class="btn btn-custom-primary btn-sm" id="btnBulkApprove" style="display: none;" onclick="bulkApprove()">
-        <i class="bi bi-check-all me-1"></i> Approve Selected (<span id="selectedCount">0</span>)
-      </button>
-      <button class="btn btn-primary btn-sm" onclick="$('#markAttendanceModal').modal('show')" style="font-size: 0.85rem; border-radius: 2px;" title="Mark Attendance">
-        <i class="bi bi-plus-circle"></i> Mark Attendance
+      <button class="btn btn-custom-primary btn-sm" id="btnPostDaily" onclick="postDailyAttendance()">
+        <i class="bi bi-send-fill me-1"></i> Post Daily Attendance
       </button>
       <button class="btn btn-outline-secondary btn-sm" onclick="resetAndRefresh()" style="font-size: 0.85rem; border-radius: 2px;" title="Reset Filters & Refresh">
         <i class="bi bi-arrow-clockwise"></i>
@@ -340,13 +336,11 @@
         <table class="table custom-table" id="attendanceTable">
           <thead>
             <tr>
-              <th width="40"><input type="checkbox" id="checkAll"></th>
               <th>Date</th>
               <th>Employee</th>
               <th>In</th>
               <th>Out</th>
               <th>Status</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -367,85 +361,6 @@
 </div>
 
 <!-- Edit Time Modal -->
-<div class="modal fade" id="editTimeModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-sm">
-    <div class="modal-content border-0">
-      <div class="modal-header bg-primary text-white p-2">
-        <h6 class="modal-title ms-2">Edit Punch Times</h6>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="editTimeForm">
-        <?php echo csrf_field(); ?>
-        <input type="hidden" id="edit_attendance_id">
-        <div class="modal-body p-3">
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Punch In Time</label>
-            <input type="time" class="form-control form-control-sm" name="in_time" id="edit_in_time" required>
-          </div>
-          <div class="mb-1">
-            <label class="small fw-bold">Punch Out Time</label>
-            <input type="time" class="form-control form-control-sm" name="out_time" id="edit_out_time">
-            <small class="text-muted" style="font-size: 0.65rem;">Leave empty if not left yet.</small>
-          </div>
-        </div>
-        <div class="modal-footer p-2 d-flex justify-content-center border-0">
-          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-sm btn-primary px-3">Update</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Mark Attendance Modal -->
-<div class="modal fade" id="markAttendanceModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-md">
-    <div class="modal-content border-0">
-      <div class="modal-header bg-primary text-white p-2">
-        <h6 class="modal-title ms-2">Mark Attendance</h6>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="markAttendanceForm">
-        <?php echo csrf_field(); ?>
-        <div class="modal-body p-3">
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Employee</label>
-            <select class="form-select form-select-sm" name="user_id" required>
-              <option value="">Select Employee</option>
-              <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <option value="<?php echo e($user->id); ?>"><?php echo e($user->name); ?></option>
-              <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Date</label>
-            <input type="date" class="form-control form-control-sm" name="date" required value="<?php echo e(\Carbon\Carbon::today()->toDateString()); ?>">
-          </div>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label small fw-bold">Punch In Time</label>
-                <input type="time" class="form-control form-control-sm" name="in_time" required>
-            </div>
-            <div class="col-md-6 mb-3">
-                <label class="small fw-bold">Punch Out Time</label>
-                <input type="time" class="form-control form-control-sm" name="out_time">
-                <small class="text-muted" style="font-size: 0.65rem;">Leave empty if not left yet.</small>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-bold">Type</label>
-            <select class="form-select form-select-sm" name="movement_type" required>
-              <option value="office">Office</option>
-              <option value="field">Field</option>
-              <option value="wfh">Work From Home</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer p-2 d-flex justify-content-center border-0">
-          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-sm btn-primary px-3">Save</button>
-        </div>
-      </form>
     </div>
   </div>
 </div>
@@ -547,9 +462,6 @@ $(document).ready(function() {
                                 <button class="btn-action text-danger ms-1" title="Reject" onclick="rejectAttendance(${item.id})">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
-                                <button class="btn-action text-primary ms-1" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}')">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
                             `;
                             if (item.leave_details) {
                                 statusBadge += `<br><small class="text-danger fw-bold" style="font-size:0.6rem;">⚠️ ${item.leave_details}</small>`;
@@ -570,19 +482,16 @@ $(document).ready(function() {
 
                         rows += `
                             <tr class="${rowClass}">
-                                <td class="text-center">${checkbox}</td>
-                                <td style="font-size: 0.75rem;">${item.date}</td>
+                                <td style="font-size: 0.7rem;">${item.date}</td>
                                 <td>
                                     <div class="d-flex flex-column">
                                         <span class="fw-bold">${item.user_name}</span>
-                                        <span class="text-muted" style="font-size: 0.65rem;">ID: ${item.emp_id || '-'}</span>
                                         <div>${emergencyBadge} ${wfhBadge}</div>
                                     </div>
                                 </td>
                                 <td>${inEntry}</td>
                                 <td>${outEntry}</td>
                                 <td>${statusBadge}</td>
-                                <td class="text-center">${actions}</td>
                             </tr>
                         `;
                     });
@@ -640,23 +549,35 @@ $(document).ready(function() {
         }
     }
 
-    // ACTIONS
-    window.approveAttendance = function(id) {
-        if (!confirm('Are you sure you want to approve this attendance?')) return;
+    window.postDailyAttendance = function() {
+        const date = $('#filterDate').val();
+        if (!date) return alert('Please select a date.');
+
+        if (!confirm(`Are you sure you want to Post all pending attendance for ${date}? This action cannot be undone.`)) return;
+
+        const btn = $('#btnPostDaily');
+        const originalText = btn.html();
+        btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Posting...');
 
         $.ajax({
-            url: "/attendance/approve/" + id,
-            type: 'POST',
-            data: { _token: '<?php echo e(csrf_token()); ?>' },
+            url: "<?php echo e(route('attendance.post-daily')); ?>",
+            type: "POST",
+            data: {
+                _token: '<?php echo e(csrf_token()); ?>',
+                date: date
+            },
             success: function(response) {
+                btn.prop('disabled', false).html(originalText);
                 if (response.success) {
-                    fetchAttendance(currentPage); 
+                    alert(response.message);
+                    fetchAttendance(currentPage);
                 } else {
                     alert('Error: ' + response.message);
                 }
             },
             error: function(xhr) {
-                let msg = 'Error approving attendance';
+                btn.prop('disabled', false).html(originalText);
+                let msg = 'Error posting attendance';
                 if (xhr.responseJSON && xhr.responseJSON.message) {
                     msg = xhr.responseJSON.message;
                 }
@@ -664,120 +585,6 @@ $(document).ready(function() {
             }
         });
     }
-
-    window.rejectAttendance = function(id) {
-        $('#reject_attendance_id').val(id);
-        $('#reject_reason_text').val('');
-        $('#rejectAttendanceModal').modal('show');
-    }
-
-    $('#rejectAttendanceForm').submit(function(e) {
-        e.preventDefault();
-        let id = $('#reject_attendance_id').val();
-        let submitBtn = $(this).find('button[type="submit"]');
-        let originalText = submitBtn.text();
-
-        submitBtn.text('Rejecting...').prop('disabled', true);
-
-        $.ajax({
-            url: "/attendance/reject/" + id,
-            type: 'POST',
-            data: $(this).serialize(),
-            success: function(response) {
-                submitBtn.text(originalText).prop('disabled', false);
-                if (response.success) {
-                    $('#rejectAttendanceModal').modal('hide');
-                    fetchAttendance(currentPage);
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            },
-            error: function(xhr) {
-                submitBtn.text(originalText).prop('disabled', false);
-                let msg = 'Error rejecting attendance';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg = xhr.responseJSON.message;
-                }
-                alert(msg);
-            }
-        });
-    });
-
-    // Edit Times Modal Helper
-    window.editTimes = function(id, inRaw, outRaw) {
-        $('#edit_attendance_id').val(id);
-        $('#edit_in_time').val(inRaw);
-        $('#edit_out_time').val(outRaw);
-        $('#editTimeModal').modal('show');
-    }
-
-    // Submit Time Edit
-    $('#editTimeForm').submit(function(e) {
-        e.preventDefault();
-        let id = $('#edit_attendance_id').val();
-        let submitBtn = $(this).find('button[type="submit"]');
-        let originalText = submitBtn.text();
-
-        submitBtn.text('Updating...').prop('disabled', true);
-
-        $.ajax({
-            url: "/attendance/update-times/" + id,
-            type: 'POST',
-            data: $(this).serialize(),
-            success: function(response) {
-                submitBtn.text(originalText).prop('disabled', false);
-                if (response.success) {
-                    $('#editTimeModal').modal('hide');
-                    fetchAttendance(currentPage);
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            },
-            error: function(xhr) {
-                submitBtn.text(originalText).prop('disabled', false);
-                let msg = 'Error updating times';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg += ': ' + xhr.responseJSON.message;
-                }
-                alert(msg);
-            }
-        });
-    });
-
-    // Submit Mark Attendance
-    $('#markAttendanceForm').submit(function(e) {
-        e.preventDefault();
-        let submitBtn = $(this).find('button[type="submit"]');
-        let originalText = submitBtn.text();
-
-        submitBtn.text('Saving...').prop('disabled', true);
-
-        $.ajax({
-            url: "<?php echo e(route('attendance.mark')); ?>",
-            type: 'POST',
-            data: $(this).serialize(),
-            success: function(response) {
-                submitBtn.text(originalText).prop('disabled', false);
-                if (response.success) {
-                    $('#markAttendanceModal').modal('hide');
-                    $('#markAttendanceForm')[0].reset();
-                    // Keep the date as today after reset
-                    $('#markAttendanceForm [name="date"]').val("<?php echo e(\Carbon\Carbon::today()->toDateString()); ?>");
-                    fetchAttendance(currentPage);
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            },
-            error: function(xhr) {
-                submitBtn.text(originalText).prop('disabled', false);
-                let msg = 'Error marking attendance';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg += ': ' + xhr.responseJSON.message;
-                }
-                alert(msg);
-            }
-        });
-    });
 
     window.bulkApprove = function() {
         let ids = [];
