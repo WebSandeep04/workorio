@@ -165,25 +165,20 @@ function renderTable() {
                  timeStr = `<br><span class="badge bg-light text-dark border mt-1"><i class="bi bi-clock me-1"></i>${leave.start_time.substring(0,5)} to ${leave.end_time.substring(0,5)}</span>`;
             }
 
-            let overlapWarning = '';
-            if (leave.has_attendance_overlap && leave.status === 'approved') {
-                overlapWarning = ` <i class="bi bi-exclamation-triangle-fill text-warning" style="cursor:help;" title="Attendance detected during this leave!"></i>`;
-            }
+
 
             html += `<tr>
                 <td><strong>${leave.user ? leave.user.name : 'Unknown User'}</strong></td>
                 <td><strong>${new Date(leave.start_date).toLocaleDateString()}</strong> ${leave.start_date !== leave.end_date ? `to <strong>${new Date(leave.end_date).toLocaleDateString()}</strong>` : ''} ${timeStr}</td>
                 <td><span style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-weight:700;">${leave.total_days}</span></td>
                 <td>${typeName}</td>
-                <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span>${overlapWarning}</td>
+                <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>
                 <td>${leave.reason || '-'}</td>
                 <td class="text-center">
                     ${leave.status === 'pending' ? `
                     <button class="btn btn-sm btn-success me-1 px-2 py-1" onclick="performAction(${leave.id}, 'approve')" title="Approve"><i class="bi bi-check-lg"></i></button>
                     <button class="btn btn-sm btn-danger px-2 py-1" onclick="performAction(${leave.id}, 'reject')" title="Reject"><i class="bi bi-x-lg"></i></button>
-                    ` : (leave.status === 'approved' && leave.has_attendance_overlap ? `
-                    <button class="btn btn-sm btn-warning py-1 px-2" style="font-size:10px; font-weight:700; border-radius:4px;" onclick="resumeEarly(${leave.id})">Resume Work</button>
-                    ` : '-')}
+                    ` : '-'}
                 </td>
             </tr>`;
         });
@@ -258,29 +253,7 @@ function submitRejection() {
     });
 }
 
-function resumeEarly(id) {
-    const today = new Date().toISOString().split('T')[0];
-    let resumeDate = prompt("Enter the date employee resumed work (YYYY-MM-DD):", today);
-    
-    if (!resumeDate) return;
 
-    if (confirm(`Confirm early return on ${resumeDate}? This will update the leave end date and refund any unused balance to the employee.`)) {
-        $.post(`/leave/${id}/curtail`, {
-            _token: '<?php echo e(csrf_token()); ?>',
-            resume_date: resumeDate
-        }, function(res) {
-            if (res.success) {
-                showAlert('success', res.message);
-                loadApprovals();
-            } else {
-                showAlert('error', res.message);
-            }
-        }).fail(function(xhr) {
-            let msg = xhr.responseJSON ? xhr.responseJSON.message : "Error processing resumption.";
-            showAlert('error', msg);
-        });
-    }
-}
 
 function renderPagination(total) {
     const totalPages = Math.ceil(total / itemsPerPage);

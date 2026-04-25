@@ -465,6 +465,9 @@ $(document).ready(function() {
                             `;
                             if (item.leave_details) {
                                 statusBadge += `<br><small class="text-danger fw-bold" style="font-size:0.6rem;">⚠️ ${item.leave_details}</small>`;
+                                if (item.leave_id) {
+                                    statusBadge += ` <button class="btn btn-xs btn-outline-danger p-0 px-1 ms-1" style="font-size: 0.55rem;" onclick="processEarlyReturn(${item.leave_id})" title="Curtail Leave & Mark as Early Return">Early Return</button>`;
+                                }
                             }
                         } else if (item.status === 'Approved') {
                             statusBadge = `<span class="badge bg-success" style="font-size: 0.7rem;">${item.status}</span>`;
@@ -547,6 +550,34 @@ $(document).ready(function() {
         } else {
             $('#btnBulkApprove').fadeOut(200);
         }
+    }
+
+    window.processEarlyReturn = function(leaveId) {
+        if (!confirm('Are you sure the employee has returned to work early? This will curtail the leave and allow attendance posting.')) return;
+
+        $.ajax({
+            url: "/leave/" + leaveId + "/curtail",
+            type: 'POST',
+            data: { 
+                _token: '{{ csrf_token() }}',
+                is_early_return: 1,
+                resume_date: $('#filterDate').val() // The date they actually punched in
+            },
+            success: function(response) {
+                if (response.success) {
+                    fetchAttendance(currentPage);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                let msg = 'Error processing early return';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                alert(msg);
+            }
+        });
     }
 
     window.postDailyAttendance = function() {

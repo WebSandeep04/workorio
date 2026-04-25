@@ -113,6 +113,7 @@ class AttendanceApprovalController extends Controller
 
             return [
                 'id' => $attendance ? $attendance->id : null,
+                'leave_id' => ($leave && $attendance) ? $leave->id : null, // Send leave ID only for overlap
                 'user_id' => $user->id,
                 'user_name' => $user->name,
                 'emp_id' => $employee->employee_code,
