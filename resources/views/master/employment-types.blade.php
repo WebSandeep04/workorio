@@ -87,9 +87,6 @@
           <tr>
             <th>Code</th>
             <th>Name</th>
-            <th>RH Allowed</th>
-            <th>SL/Month</th>
-
             <th>Status</th>
             <th class="text-center">Actions</th>
           </tr>
@@ -118,19 +115,11 @@
           <input type="hidden" id="edit_id" name="id">
           
           <div class="row g-3 mb-4">
-              <div class="col-md-3">
+              <div class="col-md-6">
                 <label class="form-label-modern">Name <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-modern" id="name" name="name" required placeholder="Full-Time, Probation, etc.">
               </div>
-              <div class="col-md-3">
-                <label class="form-label-modern">RH Allowed</label>
-                <input type="number" class="form-control form-control-modern" id="rh_allowed" name="rh_allowed" min="0" value="0">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label-modern">SL/Month</label>
-                <input type="number" class="form-control form-control-modern" id="sl_allowed" name="sl_allowed" min="0" value="0">
-              </div>
-              <div class="col-md-3">
+              <div class="col-md-6">
                 <label class="form-label-modern">Status</label>
                 <select id="status" name="status" class="form-control form-control-modern">
                     <option value="active">Active</option>
@@ -255,9 +244,6 @@ $(function() {
                 <tr>
                     <td><strong style="color: #434AFA;">${row.code || '-'}</strong></td>
                     <td><strong>${row.name}</strong></td>
-                    <td>${row.rh_allowed || '0'}</td>
-                    <td>${row.sl_allowed || '0'}</td>
-
                     <td><span class="${statusBadge}">${row.status || 'inactive'}</span></td>
                     <td class="text-center">
                         <button class="btn-action btn-action-edit editBtn" data-id="${row.id}" title="Edit"><i class="bi bi-pencil"></i></button>
@@ -302,8 +288,6 @@ $(function() {
         $('#edit_id').val(row.id);
         $('#name').val(row.name);
         $('#status').val(row.status);
-        $('#rh_allowed').val(row.rh_allowed || 0);
-        $('#sl_allowed').val(row.sl_allowed || 0);
 
 
         // Fill Rules

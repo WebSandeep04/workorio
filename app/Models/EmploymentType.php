@@ -14,9 +14,6 @@ class EmploymentType extends Model
         'name',
         'status',
         'notes',
-        'rh_allowed',
-        'sl_allowed',
-        'no_of_half_days',
     ];
 
     public function employees()

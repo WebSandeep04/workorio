@@ -166,20 +166,27 @@
                         Total: 1 Day
                     </div>
 
-                    <div id="half_day_options" style="display:none;" class="mb-3">
+                    <div id="half_day_toggle_div" style="display:none;" class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_half_day" name="is_half_day" onchange="toggleHalfDay(this.checked)">
+                            <label class="form-check-label fw-bold text-primary" for="is_half_day">Is Half Day?</label>
+                        </div>
+                    </div>
+
+                    <div id="half_day_options" style="display:none;" class="mb-3 p-2 bg-light border">
                         <label class="form-label small fw-bold text-primary d-block">Select Half Day Session <span class="text-danger">*</span></label>
                         <div class="row g-2">
                             <div class="col-6">
                                 <input type="radio" class="btn-check" name="half_day_period" id="pre_lunch" value="pre_lunch" autocomplete="off" checked>
-                                <label class="btn btn-outline-primary w-100 py-3" for="pre_lunch">
-                                    <i class="bi bi-brightness-high fs-4 d-block mb-1"></i>
+                                <label class="btn btn-outline-primary w-100 py-2" for="pre_lunch">
+                                    <i class="bi bi-brightness-high d-block mb-1"></i>
                                     Pre Lunch
                                 </label>
                             </div>
                             <div class="col-6">
                                 <input type="radio" class="btn-check" name="half_day_period" id="post_lunch" value="post_lunch" autocomplete="off">
-                                <label class="btn btn-outline-primary w-100 py-3" for="post_lunch">
-                                    <i class="bi bi-sunset fs-4 d-block mb-1"></i>
+                                <label class="btn btn-outline-primary w-100 py-2" for="post_lunch">
+                                    <i class="bi bi-sunset d-block mb-1"></i>
                                     Post Lunch
                                 </label>
                             </div>
@@ -310,13 +317,27 @@ $(document).ready(function() {
         $('#rh_holiday_div').slideUp();
         $('#rh_holiday_select').removeAttr('required').val('');
         $('#sl_type_div').slideUp();
+        $('#half_day_toggle_div').slideUp();
         $('#half_day_options').slideUp();
+        $('#is_half_day').prop('checked', false);
         $('#end_date').closest('.col-6').show();
         $('#start_date, #end_date').prop('readonly', false);
 
-        if (typeId === 'hd') {
-             toggleHalfDay(true);
-        } else if (typeId === 'rh' && targetType && targetType.rh_list) {
+        if (!targetType) {
+            $('#balanceAlert').hide();
+            return;
+        }
+
+        // Show Balance
+        $('#balanceAlert').fadeIn();
+        $('#dynamicBalance').text(targetType.balance);
+
+        // Logic based on dynamic flags
+        if (targetType.allow_half_day) {
+            $('#half_day_toggle_div').slideDown();
+        }
+
+        if (targetType.is_restricted && targetType.rh_list) {
             $('#rh_holiday_div').slideDown();
             let opts = '<option value="">Choose your pending RH...</option>';
             targetType.rh_list.forEach(h => {
@@ -324,9 +345,8 @@ $(document).ready(function() {
                 opts += `<option value="${cleanDate}" data-name="${h.name}">${h.name} (${cleanDate})</option>`;
             });
             $('#rh_holiday_select').html(opts).attr('required', true);
-            
             $('#start_date, #end_date').prop('readonly', true);
-        } else if (typeId === 'sl' && targetType) {
+        } else if (targetType.is_short_leave) {
             $('#sl_type_div').slideDown();
             // Lock dates to single day
             $('#end_date').closest('.col-6').hide();
@@ -351,12 +371,7 @@ $(document).ready(function() {
             $('#sl_evening_window_info').text(`Window: ${eveningStart} - ${sEndStr}`);
         }
 
-        if(targetType) {
-            $('#balanceAlert').fadeIn();
-            $('#dynamicBalance').text(targetType.balance);
-        } else {
-            $('#balanceAlert').hide();
-        }
+        calculateDays();
     });
 
     $('#rh_holiday_select').on('change', function() {
@@ -391,20 +406,31 @@ $(document).ready(function() {
 function calculateDays() {
     let s = $('#start_date').val();
     let e = $('#end_date').val();
-    let isHalf = $('#leave_type_id').val() === 'hd';
+    let typeId = $('#leave_type_id').val();
+    let targetType = allLeaveTypes.find(t => t.id == typeId);
+    let isHalf = $('#is_half_day').is(':checked');
     
     if(s && e) {
-        if (isHalf) {
-            $('#calcDaysDisplay').text('Total: 0.5 Day');
+        if (isHalf && targetType) {
+            let weight = targetType.half_day_weight || 0.5;
+            $('#calcDaysDisplay').text('Total: ' + weight + ' Day');
             $('#submitBtn').prop('disabled', false);
             return;
         }
+
         let sd = new Date(s);
         let ed = new Date(e);
         if(ed >= sd) {
             let diffTime = Math.abs(ed - sd);
             let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            $('#calcDaysDisplay').text('Total: ' + diffDays + ' Day' + (diffDays>1?'s':''));
+            
+            // If it's a special type with a weight (like Short Leave)
+            if (targetType && targetType.is_short_leave) {
+                let weight = (targetType.full_day_weight || 0.25) * diffDays;
+                $('#calcDaysDisplay').text('Total: ' + weight + ' Day' + (weight!=1?'s':''));
+            } else {
+                $('#calcDaysDisplay').text('Total: ' + diffDays + ' Day' + (diffDays>1?'s':''));
+            }
             $('#submitBtn').prop('disabled', false);
         } else {
             $('#calcDaysDisplay').text('Invalid Range');
@@ -416,12 +442,11 @@ function calculateDays() {
 function toggleHalfDay(active) {
     if (active) {
         $('#half_day_options').slideDown();
-        $('#end_date').val($('#start_date').val()).prop('readonly', true);
-        $('#rh_holiday_div').slideUp();
-        $('#sl_type_div').slideUp();
+        $('#end_date').val($('#start_date').val());
+        $('#end_date').closest('.col-6').hide();
     } else {
         $('#half_day_options').slideUp();
-        $('#end_date').prop('readonly', false);
+        $('#end_date').closest('.col-6').show();
     }
     calculateDays();
 }
@@ -620,9 +645,8 @@ function submitForm() {
         start_date: $('#start_date').val(),
         end_date: $('#end_date').val(),
         leave_type_id: $('#leave_type_id').val(),
-        sl_period: $('#leave_type_id').val() === 'sl' ? $('#sl_period_hidden').val() : null,
-        is_half_day: $('#leave_type_id').val() === 'hd' ? 1 : 0,
-        half_day_period: $('#leave_type_id').val() === 'hd' ? $('input[name="half_day_period"]:checked').val() : null,
+        is_half_day: $('#is_half_day').is(':checked') ? 1 : 0,
+        half_day_period: $('#is_half_day').is(':checked') ? $('input[name="half_day_period"]:checked').val() : null,
         reason: $('#reason').val()
     };
     if (currentLeaveId) data._method = 'PUT';

@@ -60,20 +60,114 @@ class LeaveController extends Controller
             return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
         }
         
-        // Calculate Total Days
+        $leaveType = LeaveType::find($request->leave_type_id);
+        if (!$leaveType) {
+            return response()->json(['success' => false, 'message' => 'Invalid leave type selected.'], 422);
+        }
+
+        // Calculate Total Days based on Dynamic Weights
         try {
-            $isHalfDay = ($request->boolean('is_half_day') || $request->leave_type_id === 'hd');
+            $isHalfDay = $request->boolean('is_half_day');
+            
             if ($isHalfDay) {
-                $totalDays = 0.5;
-                // Force end_date to be start_date for half days
+                if (!$leaveType->allow_half_day) {
+                    return response()->json(['success' => false, 'message' => "Half days are not allowed for {$leaveType->name}."], 422);
+                }
+                $totalDays = (float) $leaveType->half_day_weight;
                 $request->merge(['end_date' => $request->start_date]);
             } else {
                 $start = Carbon::parse($request->start_date);
                 $end = Carbon::parse($request->end_date);
-                $totalDays = $start->diffInDays($end) + 1;
+                $dayCount = $start->diffInDays($end) + 1;
+                $totalDays = $dayCount * (float) $leaveType->full_day_weight;
             }
         } catch (\Exception $e) {
              return response()->json(['success' => false, 'message' => 'Invalid date format.'], 422);
+        }
+
+        // Short Leave Logic (Dynamic)
+        if ($leaveType->is_short_leave) {
+            $employee = $user->employee;
+            if (!$employee || !$employee->shiftRelation) {
+                return response()->json(['success' => false, 'message' => 'Active shift required for Short Leave logic.'], 422);
+            }
+
+            $shift = $employee->shiftRelation;
+            try {
+                $shiftEnd = Carbon::parse($shift->end_time);
+                $endLimitHours = (int) ($shift->sl_end_limit ?? 0);
+                $eveningMin = (clone $shiftEnd)->subHours($endLimitHours);
+
+                $request->merge(['sl_period' => 'evening']);
+                $request->merge([
+                    'start_time' => $eveningMin->format('H:i'),
+                    'end_time' => $shiftEnd->format('H:i')
+                ]);
+
+                $reqStart = Carbon::parse($request->start_time);
+                $reqEnd = Carbon::parse($request->end_time);
+                
+                $isValidEvening = ($reqStart->format('H:i:s') >= $eveningMin->format('H:i:s') && $reqEnd->format('H:i:s') <= $shiftEnd->format('H:i:s'));
+
+                if (!$isValidEvening) {
+                    $eveningWindow = $eveningMin->format('h:i A') . " - " . $shiftEnd->format('h:i A');
+                    return response()->json(['success' => false, 'message' => "Short Leave is only allowed during: $eveningWindow"], 422);
+                }
+            } catch (\Exception $e) {
+                return response()->json(['success' => false, 'message' => 'Error validating SL timing.'], 422);
+            }
+        }
+
+        // Restricted Holiday Logic (Dynamic)
+        if ($leaveType->is_restricted) {
+            $isHoliday = \App\Models\Holiday::where('holiday_date', $request->start_date)->where('is_rh', 1)->exists();
+            if (!$isHoliday) {
+                return response()->json(['success' => false, 'message' => 'Selected date is not a valid Restricted Holiday.'], 422);
+            }
+        }
+
+        // Verify Balance/Quota (Dynamic based on Monthly/Yearly)
+        if ($leaveType->is_deductible || $leaveType->is_restricted || $leaveType->is_short_leave) {
+            $empTypeId = $user->employee->employment_type_id ?? null;
+            $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                ->where('leave_type_id', $leaveType->id)
+                ->first();
+            $maxAllowed = $rule ? (float) $rule->value : 0;
+
+            if ($leaveType->quota_type === 'monthly') {
+                // Monthly logic: Check usage in the current month
+                $usage = LeaveRequest::where('user_id', $user->id)
+                    ->where('leave_type_id', $leaveType->id)
+                    ->whereIn('status', ['pending', 'approved'])
+                    ->whereYear('start_date', Carbon::parse($request->start_date)->year)
+                    ->whereMonth('start_date', Carbon::parse($request->start_date)->month)
+                    ->count(); // Typically Monthly types like SL are count-based
+
+                if (($usage + 1) > $maxAllowed) {
+                    return response()->json(['success' => false, 'message' => "Monthly limit reached. You are allowed {$maxAllowed} per month."], 422);
+                }
+            } else {
+                // Yearly/Standard logic: Check ledger balance for deductible leaves
+                if ($leaveType->is_deductible) {
+                    $balanceService = app(LeaveBalanceService::class);
+                    $currentBalance = $balanceService->getBalance($user->id, $leaveType->id);
+
+                    if ($currentBalance < $totalDays) {
+                         return response()->json(['success' => false, 'message' => "Insufficient balance. Available: {$currentBalance}, Requested: {$totalDays}"], 422);
+                    }
+                } else if ($leaveType->is_restricted) {
+                    // Restricted Holiday logic (yearly count)
+                    $usage = LeaveRequest::where('user_id', $user->id)
+                        ->where('leave_type_id', $leaveType->id)
+                        ->whereIn('status', ['pending', 'approved'])
+                        ->whereYear('start_date', Carbon::parse($request->start_date)->year)
+                        ->sum('total_days');
+
+                    if (($usage + $totalDays) > $maxAllowed) {
+                        return response()->json(['success' => false, 'message' => "Yearly RH limit reached. You have {$maxAllowed} days per year."], 422);
+                    }
+                }
+            }
         }
 
         // Check Overlaps
@@ -88,133 +182,19 @@ class LeaveController extends Controller
         if ($overlappingLeave) {
             return response()->json(['success' => false, 'message' => 'You already have an active leave request overlapping these dates.'], 422);
         }
-        
-        $isRH = $request->leave_type_id === 'rh';
-        $isSL = $request->leave_type_id === 'sl';
-        $isHDType = $request->leave_type_id === 'hd';
-        $actualLeaveTypeId = ($isRH || $isSL || $isHDType) ? null : $request->leave_type_id;
-
-        // --- Custom Validation: Half Day Limit removed per user request ---
-
-
-        if ($isRH) {
-            // Check RH restrictions
-            $empTypeId = $user->employee->employment_type_id ?? null;
-            if (!$empTypeId) {
-                 return response()->json(['success' => false, 'message' => 'Employment type not found for RH check.'], 422);
-            }
-            $employmentType = \App\Models\EmploymentType::find($empTypeId);
-            if (!$employmentType || $employmentType->rh_allowed <= 0) {
-                 return response()->json(['success' => false, 'message' => 'You are not eligible for any Restricted Holidays.'], 422);
-            }
-            $totalRH = $employmentType->rh_allowed;
-            $takenRH = \App\Models\LeaveRequest::where('user_id', $user->id)
-                ->where('is_rh', 1)
-                ->whereYear('start_date', date('Y'))
-                ->whereIn('status', ['pending', 'approved'])
-                ->sum('total_days');
-                
-            if (($takenRH + $totalDays) > $totalRH) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Insufficient RH balance. You only have " . max(0, $totalRH - $takenRH) . " days available."
-                ], 422);
-            }
-        } elseif ($isSL) {
-            if ($totalDays > 1) {
-                 return response()->json(['success' => false, 'message' => 'Short Leaves can only be taken for a single day.'], 422);
-            }
-            
-            $employee = $user->employee;
-            if (!$employee) {
-                 return response()->json(['success' => false, 'message' => 'Employee profile not found.'], 422);
-            }
-
-            $empTypeId = $employee->employment_type_id ?? null;
-            $employmentType = \App\Models\EmploymentType::find($empTypeId);
-            if (!$employmentType || $employmentType->sl_allowed <= 0) {
-                 return response()->json(['success' => false, 'message' => 'You are not eligible for Short Leaves.'], 422);
-            }
-
-            $shift = $employee->shiftRelation;
-            if (!$shift) {
-                 return response()->json(['success' => false, 'message' => 'No shift assigned. Short Leave logic requires active shift hours.'], 422);
-            }
-
-            // --- Shift-Based SL Period Handling ---
-            try {
-                $shiftEnd = Carbon::parse($shift->end_time);
-                $endLimitHours = (int) ($shift->sl_end_limit ?? 0);
-                $eveningMin = (clone $shiftEnd)->subHours($endLimitHours);
-
-                // Force SL to be 'evening' period
-                $request->merge(['sl_period' => 'evening']);
-
-                $request->merge([
-                    'start_time' => $eveningMin->format('H:i'),
-                    'end_time' => $shiftEnd->format('H:i')
-                ]);
-
-                $reqStart = Carbon::parse($request->start_time);
-                $reqEnd = Carbon::parse($request->end_time);
-                
-                // Evening SL: Must be within [ShiftEnd - Limit, ShiftEnd]
-                $isValidEvening = ($reqStart->format('H:i:s') >= $eveningMin->format('H:i:s') && $reqEnd->format('H:i:s') <= $shiftEnd->format('H:i:s'));
-
-                if (!$isValidEvening) {
-                    $eveningWindow = $eveningMin->format('h:i A') . " - " . $shiftEnd->format('h:i A');
-                    
-                    return response()->json([
-                        'success' => false, 
-                        'message' => "Invalid Short Leave time. SL is only allowed during the Evening window ($eveningWindow)."
-                    ], 422);
-                }
-            } catch (\Exception $e) {
-                return response()->json(['success' => false, 'message' => 'Error validating SL timing: ' . $e->getMessage()], 422);
-            }
-            
-            $totalSL = $employmentType->sl_allowed;
-            $takenSL = \App\Models\LeaveRequest::where('user_id', $user->id)
-                ->where('is_sl', 1)
-                ->whereYear('start_date', Carbon::parse($request->start_date)->year)
-                ->whereMonth('start_date', Carbon::parse($request->start_date)->month)
-                ->whereIn('status', ['pending', 'approved'])
-                ->count();
-                
-            if ($takenSL >= $totalSL) {
-                 return response()->json(['success' => false, 'message' => 'You have exhausted your Short Leave quota for this month.'], 422);
-            }
-            
-            // Total Days for SL can be 0 or fractional. Usually we just record it as 0 to not mess up normal days ledger
-            $totalDays = 0; 
-        } elseif ($isHDType) {
-            // Half Day validation (monthly limit) was already handled above in the Half Day Limit block.
-            // We skip standard balance service check here since 'hd' is a virtual quota type.
-        } else {
-            // Verify Balance for normal leave
-            $balanceService = app(LeaveBalanceService::class);
-            $currentBalance = $balanceService->getBalance($user->id, $actualLeaveTypeId);
-
-            if ($currentBalance < $totalDays) {
-                 return response()->json([
-                     'success' => false,
-                     'message' => "Insufficient leave balance. You only have {$currentBalance} days available, but requested {$totalDays} days."
-                 ], 422);
-            }
-        }
 
         DB::beginTransaction();
         try {
             $leaveReq = LeaveRequest::create([
                 'user_id' => $user->id,
-                'leave_type_id' => $actualLeaveTypeId,
-                'is_rh' => $isRH,
-                'is_sl' => $isSL,
+                'leave_type_id' => $leaveType->id,
+                'is_rh' => $leaveType->is_restricted,
+                'is_sl' => $leaveType->is_short_leave,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
-                'start_time' => $isSL ? $request->start_time : null,
-                'end_time' => $isSL ? $request->end_time : null,
-                'sl_period' => $isSL ? $request->sl_period : null,
+                'start_time' => $leaveType->is_short_leave ? $request->start_time : null,
+                'end_time' => $leaveType->is_short_leave ? $request->end_time : null,
+                'sl_period' => $leaveType->is_short_leave ? $request->sl_period : null,
                 'is_half_day' => $isHalfDay ? 1 : 0,
                 'half_day_period' => $isHalfDay ? $request->half_day_period : null,
                 'total_days' => $totalDays,
@@ -292,7 +272,7 @@ class LeaveController extends Controller
 
         DB::beginTransaction();
         try {
-            if ($leaveReq->status === 'approved' && !$leaveReq->is_rh && !$leaveReq->is_sl) {
+            if ($leaveReq->status === 'approved' && $leaveReq->leaveType && $leaveReq->leaveType->is_deductible) {
                 // Refund the ledger
                 $balanceService = app(LeaveBalanceService::class);
                 $balanceService->creditLeave(
@@ -367,23 +347,38 @@ class LeaveController extends Controller
             $balanceService = app(LeaveBalanceService::class);
 
             $mapped = $leaveTypes->map(function ($type) use ($balanceService, $user, $empTypeId) {
-                // Fetch balance safely
                 $balance = 0;
-                if (Schema::hasTable('leave_ledgers')) {
-                     $balance = $balanceService->getBalance($user->id, $type->id);
-                }
-                
                 $totalAllowed = 0;
+                $pending = 0;
+
+                // 1. Fetch Quota (Max Allowed) from Rules
                 if (!empty($empTypeId) && Schema::hasTable('employment_type_leave_rules')) {
-                     $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
-                         ->where('leave_type_id', $type->id)
-                         ->first();
-                     if ($rule) {
-                         $totalAllowed = $rule->value;
-                     }
+                    $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                        ->where('leave_type_id', $type->id)
+                        ->first();
+                    if ($rule) {
+                        $totalAllowed = $rule->value;
+                    }
+                }
+
+                // 2. Fetch Balance/Remaining based on Type
+                if ($type->quota_type === 'monthly') {
+                    // Monthly Balance: TotalAllowed - TakenThisMonth
+                    $takenThisMonth = \App\Models\LeaveRequest::where('user_id', $user->id)
+                        ->where('leave_type_id', $type->id)
+                        ->whereIn('status', ['pending', 'approved'])
+                        ->whereYear('start_date', now()->year)
+                        ->whereMonth('start_date', now()->month)
+                        ->count();
+                    $balance = max(0, $totalAllowed - $takenThisMonth);
+                } else {
+                    // Yearly/Ledger Balance
+                    if (Schema::hasTable('leave_ledgers')) {
+                        $balance = $balanceService->getBalance($user->id, $type->id);
+                    }
                 }
                 
-                $pending = 0;
+                // 3. Fetch Pending
                 if (Schema::hasTable('leave_requests')) {
                      $pending = \App\Models\LeaveRequest::where('user_id', $user->id)
                          ->where('leave_type_id', $type->id)
@@ -394,88 +389,19 @@ class LeaveController extends Controller
                 $type->balance = $balance;
                 $type->total_allowed = $totalAllowed;
                 $type->pending = $pending;
-                return $type;
-            });
-
-            // Handle RH virtual type
-            if (!empty($empTypeId)) {
-                $employmentType = \App\Models\EmploymentType::find($empTypeId);
-                if ($employmentType && $employmentType->rh_allowed > 0) {
-                    $totalRH = $employmentType->rh_allowed;
-                    
-                    $pendingOrTakenRH = \App\Models\LeaveRequest::where('user_id', $user->id)
-                        ->where('is_rh', 1)
-                        ->whereYear('start_date', date('Y'))
-                        ->whereIn('status', ['pending', 'approved'])
-                        ->sum('total_days');
-                        
-                    $rhList = \App\Models\Holiday::where('is_rh', 1)
+                
+                // 4. Attach special lists (RH list) if needed
+                if ($type->is_restricted) {
+                    $type->rh_list = \App\Models\Holiday::where('is_rh', 1)
                         ->whereYear('holiday_date', date('Y'))
                         ->orderBy('holiday_date', 'asc')
                         ->get(['id', 'name', 'holiday_date']);
-                        
-                    $mapped->push((object)[
-                        'id' => 'rh',
-                        'name' => 'Restricted Holiday (RH)',
-                        'balance' => max(0, $totalRH - $pendingOrTakenRH),
-                        'total_allowed' => $totalRH,
-                        'pending' => 0,
-                        'rh_list' => $rhList
-                    ]);
                 }
 
-                if ($employmentType && $employmentType->sl_allowed > 0) {
-                    $totalSL = $employmentType->sl_allowed;
-                    
-                    $pendingOrTakenSL = \App\Models\LeaveRequest::where('user_id', $user->id)
-                        ->where('is_sl', 1)
-                        ->whereYear('start_date', Carbon::parse($request->start_date ?? now())->year)
-                        ->whereMonth('start_date', Carbon::parse($request->start_date ?? now())->month)
-                        ->whereIn('status', ['pending', 'approved'])
-                        ->count();
-                        
-                    $employee = $user->employee;
-                    $userShift = $employee ? $employee->shiftRelation : null;
-                    
-                    if ($userShift) {
-                        // DB is in UTC (e.g. 04:30), but User wants to see IST (e.g. 10:00)
-                        $shiftStart = Carbon::parse($userShift->start_time, 'UTC')->timezone('Asia/Kolkata')->format('H:i');
-                        $shiftEnd = Carbon::parse($userShift->end_time, 'UTC')->timezone('Asia/Kolkata')->format('H:i');
-                    } else {
-                        $shiftStart = '09:00';
-                        $shiftEnd = '18:00';
-                    }
-                        
-                    $mapped->push((object)[
-                        'id' => 'sl',
-                        'name' => 'Short Leave (SL)',
-                        'balance' => max(0, $totalSL - $pendingOrTakenSL),
-                        'total_allowed' => $totalSL,
-                        'pending' => 0,
-                        'shift_start' => $shiftStart,
-                        'shift_end' => $shiftEnd,
-                        'end_limit_hours' => $userShift ? ($userShift->sl_end_limit ?? 0) : 0,
-                    ]);
-                }
+                return $type;
+            });
 
-                // Half Day is always allowed now
-                $takenHD = \App\Models\LeaveRequest::where('user_id', $user->id)
-                    ->where('is_half_day', 1)
-                    ->whereYear('start_date', Carbon::parse($request->start_date ?? now())->year)
-                    ->whereMonth('start_date', Carbon::parse($request->start_date ?? now())->month)
-                    ->whereIn('status', ['pending', 'approved'])
-                    ->count();
-                    
-                $mapped->push((object)[
-                    'id' => 'hd',
-                    'name' => 'Half Day',
-                    'balance' => 'Unlimited',
-                    'total_allowed' => '∞',
-                    'pending' => 0
-                ]);
-
-            }
-
+            // No more virtual types (RH/SL/HD). Everything comes from the database.
             return response()->json(['data' => $mapped]);
         } catch (\Exception $e) {
             return response()->json(['data' => []]);
@@ -615,7 +541,7 @@ class LeaveController extends Controller
             $leaveReq->approved_by = $user->id;
             $leaveReq->save();
 
-            if (!$leaveReq->is_rh && !$leaveReq->is_sl && !$leaveReq->is_half_day) {
+            if ($leaveReq->leaveType && $leaveReq->leaveType->is_deductible) {
 
                 $balanceService = app(LeaveBalanceService::class);
                 $balanceService->debitLeave(
