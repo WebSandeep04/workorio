@@ -396,6 +396,41 @@
   </div>
 </div>
 
+<!-- Quick Leave Modal -->
+<div class="modal fade" id="quickLeaveModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-info text-white p-2">
+        <h6 class="modal-title ms-2">Convert Absence to Leave</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="quickLeaveForm">
+        @csrf
+        <input type="hidden" id="ql_user_id" name="user_id">
+        <div class="modal-body p-3">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Select Leave Type</label>
+            <select class="form-select form-select-sm" name="leave_type_id" id="ql_leave_type" required>
+                <option value="">Loading balances...</option>
+            </select>
+          </div>
+          <div class="mb-1">
+            <label class="form-label small fw-bold">Reason/Remarks <span class="text-danger">*</span></label>
+            <textarea class="form-control form-control-sm" name="reason" id="ql_reason" rows="2" required placeholder="Reason for adjusting absence..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer p-2 d-flex justify-content-center border-0">
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-info text-white px-3">Apply & Approve</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="table-range-meta" id="attendanceRangeInfo" style="font-size:0.75rem; color:#6b7280; padding: 0.5rem 1rem;">Showing 0-0 of 0 entries</div>
+</div>
+
 <!-- Reject Attendance Modal -->
 <div class="modal fade" id="rejectAttendanceModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -524,6 +559,7 @@ $(document).ready(function() {
                             statusBadge = `<span class="badge bg-danger" style="font-size: 0.7rem;">${item.status}</span>`;
                         } else if (item.status === 'Absent') {
                             statusBadge = `<span class="badge bg-danger-soft text-danger border-danger" style="font-size: 0.7rem; background-color: #fff1f0;">${item.status}</span>`;
+                            statusBadge += `<br><button class="btn btn-xs btn-outline-info p-0 px-1 mt-1" style="font-size: 0.55rem;" onclick="openQuickLeave(${item.user_id})" title="Apply leave for this absence">Apply Leave</button>`;
                             rowClass = 'bg-light-red';
                         }
 
@@ -666,6 +702,56 @@ $(document).ready(function() {
             }
         });
     }
+
+    window.openQuickLeave = function(userId) {
+        $('#ql_user_id').val(userId);
+        $('#ql_reason').val('');
+        $('#ql_leave_type').html('<option value="">Loading balances...</option>');
+        $('#quickLeaveModal').modal('show');
+
+        $.get("/attendance/leave-balances/" + userId, function(res) {
+            if (res.success) {
+                let options = '<option value="">-- Select Type --</option>';
+                res.balances.forEach(b => {
+                    let disabled = b.remaining < 1 ? 'disabled' : '';
+                    options += `<option value="${b.type_id}" ${disabled}>${b.type_name} (${b.remaining} days left)</option>`;
+                });
+                $('#ql_leave_type').html(options);
+            } else {
+                alert('Error loading balances');
+            }
+        });
+    }
+
+    $('#quickLeaveForm').submit(function(e) {
+        e.preventDefault();
+        const date = $('#filterDate').val();
+        if (!date) return alert('Select date first.');
+
+        let submitBtn = $(this).find('button[type="submit"]');
+        let originalText = submitBtn.text();
+        submitBtn.text('Processing...').prop('disabled', true);
+
+        $.ajax({
+            url: "{{ route('attendance.apply-quick-leave') }}",
+            type: 'POST',
+            data: $(this).serialize() + '&date=' + date,
+            success: function(response) {
+                submitBtn.text(originalText).prop('disabled', false);
+                if (response.success) {
+                    $('#quickLeaveModal').modal('hide');
+                    fetchAttendance(currentPage);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                submitBtn.text(originalText).prop('disabled', false);
+                let msg = xhr.responseJSON ? xhr.responseJSON.message : "Error applying leave.";
+                alert(msg);
+            }
+        });
+    });
 
     window.postDailyAttendance = function() {
         const date = $('#filterDate').val();

@@ -370,6 +370,99 @@ class AttendanceApprovalController extends Controller
         }
     }
 
+    public function getLeaveBalances($userId)
+    {
+        try {
+            // Get the latest ledger entry for each leave type for this user
+            $balances = \App\Models\LeaveType::all()->map(function($type) use ($userId) {
+                $latestLedger = \App\Models\LeaveLedger::where('user_id', $userId)
+                    ->where('leave_type_id', $type->id)
+                    ->latest('id')
+                    ->first();
+
+                return [
+                    'type_id' => $type->id,
+                    'type_name' => $type->name,
+                    'remaining' => $latestLedger ? (float)$latestLedger->balance_after : 0
+                ];
+            });
+
+            return response()->json(['success' => true, 'balances' => $balances]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function applyQuickLeave(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'date' => 'required|date',
+            'leave_type_id' => 'required|exists:leave_types,id',
+            'reason' => 'required|string|min:5'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $editorId = auth()->id() 
+                ?? \Auth::id() 
+                ?? session('user_id') 
+                ?? session('admin_id') 
+                ?? \Session::get('user_id');
+
+            if (!$editorId) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized: No authenticated user found for logging.'], 401);
+            }
+
+            $userId = $request->user_id;
+            $leaveTypeId = $request->leave_type_id;
+            $date = $request->date;
+
+            // 1. Check Balance (Latest entry)
+            $latestLedger = \App\Models\LeaveLedger::where('user_id', $userId)
+                ->where('leave_type_id', $leaveTypeId)
+                ->latest('id')
+                ->first();
+
+            $currentBalance = $latestLedger ? (float)$latestLedger->balance_after : 0;
+
+            if ($currentBalance < 1) {
+                return response()->json(['success' => false, 'message' => 'Insufficient leave balance.'], 422);
+            }
+
+            // 2. Create Leave Request
+            $leave = \App\Models\LeaveRequest::create([
+                'user_id' => $userId,
+                'leave_type_id' => $leaveTypeId,
+                'start_date' => $date,
+                'end_date' => $date,
+                'total_days' => 1,
+                'status' => 'approved',
+                'reason' => $request->reason,
+                'approved_by' => $editorId
+            ]);
+
+            // 3. Update Ledger (Create new Debit Entry)
+            \App\Models\LeaveLedger::create([
+                'user_id' => $userId,
+                'leave_type_id' => $leaveTypeId,
+                'transaction_type' => 'debit',
+                'amount' => 1,
+                'balance_after' => $currentBalance - 1,
+                'reference_type' => 'App\Models\LeaveRequest',
+                'reference_id' => $leave->id,
+                'remarks' => "Absence adjusted: " . $request->reason
+            ]);
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Absence converted to Leave successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function markAttendance(Request $request)
     {
         $request->validate([

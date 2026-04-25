@@ -901,6 +901,8 @@ Route::get('/worklog-missing-summary', function() {
                 Route::post('/attendance/approve-bulk', [App\Http\Controllers\AttendanceApprovalController::class, 'bulkApprove'])->name('attendance.approve-bulk');
                 Route::post('/attendance/post-daily', [App\Http\Controllers\AttendanceApprovalController::class, 'postDaily'])->name('attendance.post-daily');
                 Route::post('/attendance/update-times/{id}', [App\Http\Controllers\AttendanceApprovalController::class, 'updateTimes'])->name('attendance.update-times');
+                Route::get('/attendance/leave-balances/{userId}', [App\Http\Controllers\AttendanceApprovalController::class, 'getLeaveBalances'])->name('attendance.leave-balances');
+                Route::post('/attendance/apply-quick-leave', [App\Http\Controllers\AttendanceApprovalController::class, 'applyQuickLeave'])->name('attendance.apply-quick-leave');
 
                 // Unlock Attendance
                 Route::get('/attendance/unlock', [App\Http\Controllers\UnlockAttendanceController::class, 'index'])->name('attendance.unlock');
