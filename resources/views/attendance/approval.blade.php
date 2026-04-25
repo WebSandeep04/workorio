@@ -341,6 +341,7 @@
               <th>In</th>
               <th>Out</th>
               <th>Status</th>
+              <th class="text-center">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -361,6 +362,36 @@
 </div>
 
 <!-- Edit Time Modal -->
+<div class="modal fade" id="editTimeModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-primary text-white p-2">
+        <h6 class="modal-title ms-2">Edit Punch Times</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editTimeForm">
+        @csrf
+        <input type="hidden" id="edit_attendance_id">
+        <div class="modal-body p-3">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Punch In Time</label>
+            <input type="time" class="form-control form-control-sm" name="in_time" id="edit_in_time" required>
+          </div>
+          <div class="mb-3">
+            <label class="small fw-bold">Punch Out Time</label>
+            <input type="time" class="form-control form-control-sm" name="out_time" id="edit_out_time">
+          </div>
+          <div class="mb-1">
+            <label class="form-label small fw-bold text-danger">Reason for Change <span class="text-danger">*</span></label>
+            <textarea class="form-control form-control-sm" name="reason" id="edit_reason" rows="2" required placeholder="e.g. Forgot to punch in..."></textarea>
+            <small class="text-muted" style="font-size: 0.65rem;">Minimum 5 characters required.</small>
+          </div>
+        </div>
+        <div class="modal-footer p-2 d-flex justify-content-center border-0">
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-primary px-3">Update & Log</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -454,13 +485,15 @@ $(document).ready(function() {
 
                         if (item.status === 'Pending') {
                             statusBadge = `<span class="badge bg-warning text-dark" style="font-size: 0.7rem;">${item.status}</span>`;
-                            checkbox = `<input type="checkbox" class="row-checkbox" value="${item.id}">`;
+                            
+                            if (item.is_edited) {
+                                let logTitle = item.edit_history.map(h => `${h.at}: ${h.reason} (by ${h.by})`).join('\n');
+                                statusBadge += `<br><span class="text-primary" style="cursor:help; font-size:0.7rem;" title="${logTitle}"><i class="bi bi-info-circle-fill"></i> Adjusted</span>`;
+                            }
+
                             actions = `
-                                <button class="btn-action text-success" title="Approve" onclick="approveAttendance(${item.id})">
-                                    <i class="bi bi-check-lg"></i>
-                                </button>
-                                <button class="btn-action text-danger ms-1" title="Reject" onclick="rejectAttendance(${item.id})">
-                                    <i class="bi bi-x-lg"></i>
+                                <button class="btn-action text-primary ms-1" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}')">
+                                    <i class="bi bi-pencil"></i>
                                 </button>
                             `;
                             if (item.leave_details) {
@@ -471,7 +504,18 @@ $(document).ready(function() {
                             }
                         } else if (item.status === 'Approved') {
                             statusBadge = `<span class="badge bg-success" style="font-size: 0.7rem;">${item.status}</span>`;
-                            actions = `<i class="bi bi-check-circle-fill text-success" title="Approved"></i>`;
+                            
+                            if (item.is_edited) {
+                                let logTitle = item.edit_history.map(h => `${h.at}: ${h.reason} (by ${h.by})`).join('\n');
+                                statusBadge += `<br><span class="text-primary" style="cursor:help; font-size:0.7rem;" title="${logTitle}"><i class="bi bi-info-circle-fill"></i> Adjusted</span>`;
+                            }
+
+                            actions = `
+                                <button class="btn-action text-primary" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <i class="bi bi-check-circle-fill text-success ms-1" title="Approved"></i>
+                            `;
                         } else if (item.status === 'On Leave') {
                             statusBadge = `<span class="badge bg-info text-white" style="font-size: 0.7rem;">${item.status}</span><br><small class="text-muted" style="font-size:0.6rem;">${item.leave_details || ''}</small>`;
                         } else if (item.status === 'Pending Leave') {
@@ -495,6 +539,7 @@ $(document).ready(function() {
                                 <td>${inEntry}</td>
                                 <td>${outEntry}</td>
                                 <td>${statusBadge}</td>
+                                <td class="text-center">${actions}</td>
                             </tr>
                         `;
                     });
@@ -551,6 +596,48 @@ $(document).ready(function() {
             $('#btnBulkApprove').fadeOut(200);
         }
     }
+
+    // Edit Times Modal Helper
+    window.editTimes = function(id, inRaw, outRaw) {
+        $('#edit_attendance_id').val(id);
+        $('#edit_in_time').val(inRaw);
+        $('#edit_out_time').val(outRaw);
+        $('#edit_reason').val('');
+        $('#editTimeModal').modal('show');
+    }
+
+    // Submit Time Edit
+    $('#editTimeForm').submit(function(e) {
+        e.preventDefault();
+        let id = $('#edit_attendance_id').val();
+        let submitBtn = $(this).find('button[type="submit"]');
+        let originalText = submitBtn.text();
+
+        submitBtn.text('Updating...').prop('disabled', true);
+
+        $.ajax({
+            url: "/attendance/update-times/" + id,
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                submitBtn.text(originalText).prop('disabled', false);
+                if (response.success) {
+                    $('#editTimeModal').modal('hide');
+                    fetchAttendance(currentPage);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                submitBtn.text(originalText).prop('disabled', false);
+                let msg = 'Error updating times';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                alert(msg);
+            }
+        });
+    });
 
     window.processEarlyReturn = function(leaveId) {
         if (!confirm('Are you sure the employee has returned to work early? This will curtail the leave and allow attendance posting.')) return;

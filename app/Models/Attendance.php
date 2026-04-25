@@ -37,6 +37,11 @@ class Attendance extends Model
         return $this->hasMany(Movement::class);
     }
 
+    public function editLogs(): HasMany
+    {
+        return $this->hasMany(AttendanceEditLog::class);
+    }
+
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);

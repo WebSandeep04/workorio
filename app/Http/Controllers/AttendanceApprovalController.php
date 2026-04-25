@@ -127,7 +127,15 @@ class AttendanceApprovalController extends Controller
                 'status' => $status,
                 'is_emergency' => $attendance ? $attendance->is_emergency : false,
                 'is_wfh' => $attendance ? $attendance->is_wfh : false,
-                'leave_details' => $leaveDetails
+                'leave_details' => $leaveDetails,
+                'is_edited' => ($attendance && $attendance->editLogs()->exists()),
+                'edit_history' => ($attendance && $attendance->editLogs()->exists()) ? $attendance->editLogs->map(function($log) {
+                    return [
+                        'by' => $log->editor->name,
+                        'reason' => $log->reason,
+                        'at' => $log->created_at->format('d M h:i A')
+                    ];
+                }) : []
             ];
         })->filter(); // Remove any null users if relationships are broken
 
@@ -291,44 +299,74 @@ class AttendanceApprovalController extends Controller
     {
         $request->validate([
             'in_time' => 'required',
-            'out_time' => 'nullable'
+            'reason' => 'required|string|min:5',
         ]);
 
         try {
-            $attendance = Attendance::with('movements')->findOrFail($id);
-            $dateStr = $attendance->date->toDateString(); // Ensure Y-m-d format
+            DB::beginTransaction();
 
-            // Update First Movement (Punch In)
+            $attendance = Attendance::with('movements')->findOrFail($id);
+            $dateStr = $attendance->date->toDateString();
+
+            // Store OLD values for logging
             $firstMovement = $attendance->movements->sortBy('id')->first();
-            if ($firstMovement) {
-                // Convert submitted IST time back to UTC for database
-                $inTimeStr = "{$dateStr} {$request->in_time}";
-                $inTime = Carbon::createFromFormat('Y-m-d H:i', $inTimeStr, 'Asia/Kolkata')->setTimezone('UTC');
-                $firstMovement->update(['time' => $inTime]);
+            $lastMovement = $attendance->movements->sortByDesc('id')->first();
+            
+            $oldIn = $firstMovement ? $firstMovement->time : null;
+            $oldOut = ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? $lastMovement->time : null;
+
+            // Prepare NEW values (IST to UTC)
+            $newIn = Carbon::createFromFormat('Y-m-d H:i', "{$dateStr} {$request->in_time}", 'Asia/Kolkata')->setTimezone('UTC');
+            $newOut = $request->filled('out_time') 
+                ? Carbon::createFromFormat('Y-m-d H:i', "{$dateStr} {$request->out_time}", 'Asia/Kolkata')->setTimezone('UTC') 
+                : null;
+
+            // 1. Create the Audit Log
+            $editorId = auth()->id() 
+                ?? \Auth::id() 
+                ?? session('user_id') 
+                ?? session('admin_id') 
+                ?? \Session::get('user_id');
+            
+            if (!$editorId) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized: No authenticated user found in session or auth guard.'], 401);
             }
 
-            // Update Last Movement (Punch Out)
-            $lastMovement = $attendance->movements->sortByDesc('id')->first();
+            \App\Models\AttendanceEditLog::create([
+                'attendance_id' => $id,
+                'edited_by' => $editorId,
+                'old_in_time' => $oldIn,
+                'new_in_time' => $newIn,
+                'old_out_time' => $oldOut,
+                'new_out_time' => $newOut,
+                'reason' => $request->reason,
+            ]);
+
+            // 2. Update Movements
+            if ($firstMovement) {
+                $firstMovement->update(['time' => $newIn]);
+            }
+
             if ($request->filled('out_time')) {
-                $outTimeStr = "{$dateStr} {$request->out_time}";
-                $outTime = Carbon::createFromFormat('Y-m-d H:i', $outTimeStr, 'Asia/Kolkata')->setTimezone('UTC');
-                
-                if ($lastMovement && $lastMovement->id != $firstMovement->id) {
-                    $lastMovement->update(['time' => $outTime]);
+                if ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) {
+                    $lastMovement->update(['time' => $newOut]);
                 } else {
-                    // If no out movement exists or it's the same as "In", create a new "Out" movement
-                    $attendance->movements()->create([
+                    // Create out movement if it didn't exist
+                    Movement::create([
+                        'attendance_id' => $id,
                         'movement_type' => $firstMovement ? $firstMovement->movement_type : 'office',
                         'movement_action' => 'out',
-                        'time' => $outTime,
+                        'time' => $newOut,
                         'description' => 'Manual adjustment'
                     ]);
                 }
             }
 
-            return response()->json(['success' => true, 'message' => 'Times updated successfully']);
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Attendance times updated and logged successfully.']);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error updating times: ' . $e->getMessage()], 500);
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 

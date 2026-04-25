@@ -891,7 +891,7 @@ Route::get('/worklog-missing-summary', function() {
              Route::delete('/holiday/{id}', [HolidayController::class, 'destroy'])->name('holiday.destroy');
              
             // Attendance routes (tenant DB)
-            Route::middleware(['tenant.db'])->group(function () {
+            Route::middleware(['auth.or.session', 'tenant.db'])->group(function () {
                 // Attendance Approval
                 Route::get('/attendance/approval', [App\Http\Controllers\AttendanceApprovalController::class, 'index'])->name('attendance.approval');
                 Route::get('/attendance/approval/fetch', [App\Http\Controllers\AttendanceApprovalController::class, 'fetch'])->name('attendance.approval.fetch');
