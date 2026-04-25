@@ -25,13 +25,19 @@ class LeaveRequest extends Model
         'approved_by',
         'reject_reason',
         'is_half_day',
-        'half_day_period'
+        'half_day_period',
+        'has_attendance_overlap',
+        'resumed_at',
+        'is_early_return'
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'total_days' => 'decimal:2'
+        'resumed_at' => 'date',
+        'total_days' => 'decimal:2',
+        'has_attendance_overlap' => 'boolean',
+        'is_early_return' => 'boolean'
     ];
 
     public function user()

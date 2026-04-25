@@ -807,6 +807,7 @@ Route::get('/leave/types', [App\Http\Controllers\LeaveController::class, 'fetchL
 Route::post('/leave', [App\Http\Controllers\LeaveController::class, 'store'])->name('leave.store');
 Route::put('/leave/{id}', [App\Http\Controllers\LeaveController::class, 'update'])->name('leave.update');
 Route::delete('/leave/{id}', [App\Http\Controllers\LeaveController::class, 'destroy'])->name('leave.destroy');
+Route::post('/leave/{id}/curtail', [App\Http\Controllers\LeaveController::class, 'curtail'])->name('leave.curtail');
 });
              
              // Worklog routes

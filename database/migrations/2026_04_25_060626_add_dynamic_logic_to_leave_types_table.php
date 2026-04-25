@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+         if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('leave_types', function (Blueprint $table) {
             $table->boolean('is_deductible')->default(true)->after('is_paid');
             $table->boolean('is_short_leave')->default(false)->after('is_deductible');

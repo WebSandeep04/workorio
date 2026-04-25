@@ -294,6 +294,79 @@ class LeaveController extends Controller
         }
     }
 
+    public function curtail(Request $request, $id)
+    {
+        $request->validate([
+            'resume_date' => 'required|date'
+        ]);
+
+        $user = $this->getCurrentUser();
+        if (!$user) return response()->json(['success' => false, 'message' => 'User not authenticated.'], 401);
+
+        $leaveReq = LeaveRequest::with('leaveType')->findOrFail($id);
+        
+        // Authorization: Owner or Admin or Manager
+        $isAuthorized = ($leaveReq->user_id == $user->id || $user->role_id == 1);
+        
+        if (!$isAuthorized) {
+            // Check if user is a manager of the leave owner
+            $actualUser = \App\Models\User::find($user->id);
+            $subordinateIds = $actualUser ? $actualUser->subordinates()->pluck('users.id')->toArray() : [];
+            if (in_array($leaveReq->user_id, $subordinateIds)) {
+                $isAuthorized = true;
+            }
+        }
+
+        if (!$isAuthorized) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+        
+        if ($leaveReq->status !== 'approved') {
+            return response()->json(['success' => false, 'message' => 'Only approved leaves can be curtailed.'], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $resumeDate = Carbon::parse($request->resume_date);
+            $startDate = Carbon::parse($leaveReq->start_date);
+
+            // Days taken is the count of days from start until the day BEFORE resumption
+            $daysCount = $startDate->diffInDays($resumeDate);
+            if ($resumeDate->lt($startDate)) $daysCount = 0;
+
+            $type = $leaveReq->leaveType;
+            $weight = $type ? (float)$type->full_day_weight : 1.0;
+            $newTotalDays = $daysCount * $weight;
+
+            $refundAmount = (float)$leaveReq->total_days - $newTotalDays;
+
+            if ($refundAmount > 0 && $type && $type->is_deductible) {
+                $balanceService = app(LeaveBalanceService::class);
+                $balanceService->creditLeave(
+                    $leaveReq->user_id,
+                    $leaveReq->leave_type_id,
+                    $refundAmount,
+                    $leaveReq,
+                    "Refund for early return on {$request->resume_date} (Original: {$leaveReq->total_days}, New: {$newTotalDays})"
+                );
+            }
+
+            $leaveReq->update([
+                'end_date' => $resumeDate->copy()->subDay()->toDateString(),
+                'total_days' => $newTotalDays,
+                'resumed_at' => $resumeDate->toDateTimeString(),
+                'has_attendance_overlap' => false,
+                'is_early_return' => 1
+            ]);
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Employee resumed work. Balance updated successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to process resumption: ' . $e->getMessage()], 500);
+        }
+    }
+
     /**
      * Fetch leaves for the authenticated user.
      */
@@ -309,7 +382,7 @@ class LeaveController extends Controller
 
             $leaves = LeaveRequest::with(['leaveType'])
                 ->where('user_id', $user->id)
-                ->where('status', '!=', 'cancelled')
+                ->where('is_early_return', 0)
                 ->orderBy('start_date', 'desc')
                 ->get();
 
@@ -472,12 +545,10 @@ class LeaveController extends Controller
             }
 
             if ($user->role_id == 1) {
-                // Admin: Show leaves from users who have no manager
+                // Admin sees all relevant requests
                 $leaves = LeaveRequest::with(['leaveType', 'user'])
                     ->whereIn('status', ['pending', 'approved', 'rejected'])
-                    ->whereHas('user', function($query) {
-                        $query->whereDoesntHave('managers');
-                    })
+                    ->where('is_early_return', 0)
                     ->orderBy('created_at', 'desc')
                     ->get();
             } else {
@@ -492,6 +563,7 @@ class LeaveController extends Controller
                     $leaves = LeaveRequest::with(['leaveType', 'user'])
                         ->whereIn('status', ['pending', 'approved', 'rejected'])
                         ->whereIn('user_id', $subordinateIds)
+                        ->where('is_early_return', 0)
                         ->orderBy('created_at', 'desc')
                         ->get();
                 } else {

@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Leave Approvals'); ?>
+<?php $__env->startSection('page_title', 'Leave Approvals'); ?>
 
-@section('title', 'Leave Approvals')
-@section('page_title', 'Leave Approvals')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
@@ -33,9 +31,9 @@
   .badge-approved { background: #d4edda; color: #155724; }
   .badge-rejected { background: #f8d7da; color: #721c24; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 mt-2">
     <div id="alertBox"></div>
     
@@ -98,9 +96,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 let allApprovals = [];
 let filteredApprovals = [];
@@ -129,7 +127,7 @@ function showAlert(type, message) {
 }
 
 function loadApprovals() {
-    $.get('{{ route("leave.approvals.fetch") }}', function(response) {
+    $.get('<?php echo e(route("leave.approvals.fetch")); ?>', function(response) {
         if (response.data) {
             allApprovals = response.data;
             filteredApprovals = [...allApprovals];
@@ -210,7 +208,7 @@ function performAction(id, action) {
     $.ajax({
         url: `/leave/approvals/${id}/${action}`,
         type: 'POST',
-        data: { _token: '{{ csrf_token() }}' },
+        data: { _token: '<?php echo e(csrf_token()); ?>' },
         success: function(res) {
             if(res.success) {
                 showAlert('success', res.message);
@@ -240,7 +238,7 @@ function submitRejection() {
         url: `/leave/approvals/${id}/reject`,
         type: 'POST',
         data: {
-            _token: '{{ csrf_token() }}',
+            _token: '<?php echo e(csrf_token()); ?>',
             reason: reason
         },
         success: function(res) {
@@ -268,7 +266,7 @@ function resumeEarly(id) {
 
     if (confirm(`Confirm early return on ${resumeDate}? This will update the leave end date and refund any unused balance to the employee.`)) {
         $.post(`/leave/${id}/curtail`, {
-            _token: '{{ csrf_token() }}',
+            _token: '<?php echo e(csrf_token()); ?>',
             resume_date: resumeDate
         }, function(res) {
             if (res.success) {
@@ -297,4 +295,6 @@ function renderPagination(total) {
 
 function changePage(p) { currentPage = p; renderTable(); }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/leave/approvals.blade.php ENDPATH**/ ?>

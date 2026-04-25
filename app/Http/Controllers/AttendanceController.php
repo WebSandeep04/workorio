@@ -437,6 +437,22 @@ class AttendanceController extends Controller
             'place' => $detectedPlaceName,
         ]);
 
+        // Smart Early Return Detection
+        $overlappingLeave = LeaveRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->where('start_date', '<=', $today->toDateString())
+            ->where('end_date', '>=', $today->toDateString())
+            ->first();
+
+        if ($overlappingLeave) {
+            $overlappingLeave->update(['has_attendance_overlap' => true]);
+            Log::info('Smart Early Return detected', [
+                'user_id' => $user->id,
+                'leave_id' => $overlappingLeave->id,
+                'date' => $today->toDateString()
+            ]);
+        }
+
         Log::info('Punch-in movement created', [
             'user_id' => $user->id,
             'attendance_id' => $attendance->id,
