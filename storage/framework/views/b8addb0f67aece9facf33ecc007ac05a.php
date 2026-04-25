@@ -515,7 +515,7 @@ $(document).ready(function() {
             success: function(response) {
                 let rows = '';
                 let data = response.data;
-                $('#stat_pending_count').text(response.total || 0);
+                $('#stat_pending_count').text(response.pending_count || 0);
                 
                 if (data.length > 0) {
                     data.forEach(function(item) {
@@ -532,25 +532,57 @@ $(document).ready(function() {
                         let inEntry = `${getBadge(item.in_type)} ${item.in_time}`;
                         let outEntry = `${getBadge(item.out_type)} ${item.out_time}`;
 
+                        let statusBadge = '';
+                        let actions = '';
+                        let checkbox = '';
+                        let rowClass = '';
+
+                        if (item.status === 'Pending') {
+                            statusBadge = `<span class="badge bg-warning text-dark" style="font-size: 0.7rem;">${item.status}</span>`;
+                            checkbox = `<input type="checkbox" class="row-checkbox" value="${item.id}">`;
+                            actions = `
+                                <button class="btn-action text-success" title="Approve" onclick="approveAttendance(${item.id})">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button class="btn-action text-danger ms-1" title="Reject" onclick="rejectAttendance(${item.id})">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                <button class="btn-action text-primary ms-1" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                            `;
+                            if (item.leave_details) {
+                                statusBadge += `<br><small class="text-danger fw-bold" style="font-size:0.6rem;">⚠️ ${item.leave_details}</small>`;
+                            }
+                        } else if (item.status === 'Approved') {
+                            statusBadge = `<span class="badge bg-success" style="font-size: 0.7rem;">${item.status}</span>`;
+                            actions = `<i class="bi bi-check-circle-fill text-success" title="Approved"></i>`;
+                        } else if (item.status === 'On Leave') {
+                            statusBadge = `<span class="badge bg-info text-white" style="font-size: 0.7rem;">${item.status}</span><br><small class="text-muted" style="font-size:0.6rem;">${item.leave_details || ''}</small>`;
+                        } else if (item.status === 'Pending Leave') {
+                            statusBadge = `<span class="badge bg-warning text-dark border-warning" style="font-size: 0.7rem;">${item.status}</span><br><small class="text-muted" style="font-size:0.6rem;">${item.leave_details || ''}</small>`;
+                        } else if (item.status === 'Rejected') {
+                            statusBadge = `<span class="badge bg-danger" style="font-size: 0.7rem;">${item.status}</span>`;
+                        } else if (item.status === 'Absent') {
+                            statusBadge = `<span class="badge bg-danger-soft text-danger border-danger" style="font-size: 0.7rem; background-color: #fff1f0;">${item.status}</span>`;
+                            rowClass = 'bg-light-red';
+                        }
+
                         rows += `
-                            <tr>
-                                <td><input type="checkbox" class="row-checkbox" value="${item.id}"></td>
-                                <td>${item.date}</td>
-                                <td><span class="fw-bold">${item.user_name}</span> ${emergencyBadge} ${wfhBadge}</td>
+                            <tr class="${rowClass}">
+                                <td class="text-center">${checkbox}</td>
+                                <td style="font-size: 0.75rem;">${item.date}</td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold">${item.user_name}</span>
+                                        <span class="text-muted" style="font-size: 0.65rem;">ID: ${item.emp_id || '-'}</span>
+                                        <div>${emergencyBadge} ${wfhBadge}</div>
+                                    </div>
+                                </td>
                                 <td>${inEntry}</td>
                                 <td>${outEntry}</td>
-                                <td><span class="badge bg-warning text-dark" style="font-size: 0.7rem;">${item.status}</span></td>
-                                <td>
-                                    <button class="btn-action text-success" title="Approve" onclick="approveAttendance(${item.id})">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                    <button class="btn-action text-danger ms-1" title="Reject" onclick="rejectAttendance(${item.id})">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                    <button class="btn-action text-primary ms-1" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}')">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                </td>
+                                <td>${statusBadge}</td>
+                                <td class="text-center">${actions}</td>
                             </tr>
                         `;
                     });

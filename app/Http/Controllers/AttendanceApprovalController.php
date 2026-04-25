@@ -20,59 +20,123 @@ class AttendanceApprovalController extends Controller
 
     public function fetch(Request $request)
     {
-        $today = Carbon::today('Asia/Kolkata')->toDateString();
+        $date = $request->filled('date') ? $request->date : Carbon::today('Asia/Kolkata')->toDateString();
         
-        // Start query
-        $query = Attendance::with(['user', 'movements'])
-            ->where('is_approved', 0) // Filter for pending approvals
-            ->where('is_locked', 0); // Exclude locked records
-        
-        // Date Filtering
-        if ($request->filled('date')) {
-            $query->whereDate('date', $request->date);
-        } else {
-             // Default to today if no date provided? 
-             // Or show all pending? Let's show all pending by default if no date filter, 
-             // but sort by date desc to see recent ones.
-             // If user wants specific date, they use filter.
-             // Actually, usually users want to see Today's by default.
-             // Let's keep logic: if no filter, show pending from *all time* or just *today*?
-             // Previous code forced today. Let's make it optional.
-             if (!$request->has('date')) {
-                 $query->whereDate('date', $today);
-             }
-        }
+        // 1. Fetch Active Employees who have a login account (Excluding Admins with Role ID 1)
+        $empQuery = \App\Models\Employee::with('user')
+            ->where('status', 'active')
+            ->whereHas('user', function($q) {
+                $q->where('role_id', '!=', 1);
+            });
 
         if ($request->search) {
             $searchTerm = $request->search;
-            $query->whereHas('user', function($q) use ($searchTerm) {
+            $empQuery->whereHas('user', function($q) use ($searchTerm) {
                 $q->where('name', 'like', "%{$searchTerm}%");
             });
         }
 
-        $attendances = $query->orderBy('date', 'desc')->orderBy('created_at', 'desc')->paginate(20);
+        $employees = $empQuery->orderBy('employee_code')->paginate(20);
 
-        $attendances->getCollection()->transform(function ($attendance) {
-            $firstMovement = $attendance->movements->first();
-            $lastMovement = $attendance->movements->sortByDesc('id')->first();
+        // 2. Map through employees to detect daily status
+        $employees->getCollection()->transform(function ($employee) use ($date) {
+            $user = $employee->user;
             
+            // Handle case where employee has no user account
+            if (!$user) {
+                return [
+                    'id' => null,
+                    'user_id' => null,
+                    'user_name' => $employee->name . ' (No Account)',
+                    'emp_id' => $employee->employee_code,
+                    'date' => Carbon::parse($date)->format('d M Y'),
+                    'in_time' => '-',
+                    'in_time_raw' => '',
+                    'in_type' => null,
+                    'out_time' => '-',
+                    'out_time_raw' => '',
+                    'out_type' => null,
+                    'status' => 'No User',
+                    'is_emergency' => false,
+                    'is_wfh' => false,
+                    'leave_details' => null
+                ];
+            }
+
+            // Check Attendance
+            $attendance = Attendance::with('movements')
+                ->where('user_id', $user->id)
+                ->whereDate('date', $date)
+                ->first();
+
+            // Check Leave (Any type: Full, Half, or SL)
+            $leave = \App\Models\LeaveRequest::with('leaveType')
+                ->where('user_id', $user->id)
+                ->whereIn('status', ['approved', 'pending'])
+                ->whereDate('start_date', '<=', $date)
+                ->whereDate('end_date', '>=', $date)
+                ->first();
+
+            $firstMovement = $attendance ? $attendance->movements->sortBy('id')->first() : null;
+            $lastMovement = $attendance ? $attendance->movements->sortByDesc('id')->first() : null;
+
+            // Determine Status and Display Badge
+            $status = 'Absent';
+            $leaveDetails = null;
+
+            if ($attendance) {
+                if ($attendance->is_approved == 1) $status = 'Approved';
+                elseif ($attendance->is_approved == 2) $status = 'Rejected';
+                else $status = 'Pending';
+            }
+
+            if ($leave) {
+                $leaveType = $leave->leaveType ? $leave->leaveType->name : 'Leave';
+                if ($leave->is_half_day) {
+                    $session = $leave->half_day_period === 'pre_lunch' ? 'Pre-Lunch' : 'Post-Lunch';
+                    $leaveType .= " (Half Day - {$session})";
+                } elseif ($leave->is_sl) {
+                    $leaveType .= " (Short Leave)";
+                }
+                
+                // If they punched in but also have leave (Overlap)
+                if ($attendance) {
+                    $leaveDetails = "Overlap with {$leaveType} (" . ucfirst($leave->status) . ")";
+                } else {
+                    $status = ($leave->status === 'approved') ? 'On Leave' : 'Pending Leave';
+                    $leaveDetails = $leaveType;
+                }
+            }
+
             return [
-                'id' => $attendance->id,
-                'user_name' => $attendance->user ? $attendance->user->name : 'Unknown',
-                'date' => Carbon::parse($attendance->date)->format('d M Y'),
+                'id' => $attendance ? $attendance->id : null,
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'emp_id' => $employee->employee_code,
+                'date' => Carbon::parse($date)->format('d M Y'),
                 'in_time' => $firstMovement ? Carbon::parse($firstMovement->time)->setTimezone('Asia/Kolkata')->format('h:i A') : '-',
                 'in_time_raw' => $firstMovement ? Carbon::parse($firstMovement->time)->setTimezone('Asia/Kolkata')->format('H:i') : '',
                 'in_type' => $firstMovement ? $firstMovement->movement_type : null,
                 'out_time' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata')->format('h:i A') : '-',
                 'out_time_raw' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata')->format('H:i') : '',
                 'out_type' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? $lastMovement->movement_type : null,
-                'status' => 'Pending',
-                'is_emergency' => $attendance->is_emergency,
-                'is_wfh' => $attendance->is_wfh,
+                'status' => $status,
+                'is_emergency' => $attendance ? $attendance->is_emergency : false,
+                'is_wfh' => $attendance ? $attendance->is_wfh : false,
+                'leave_details' => $leaveDetails
             ];
-        });
+        })->filter(); // Remove any null users if relationships are broken
 
-        return response()->json($attendances);
+        $pendingCount = Attendance::whereDate('date', $date)->where('is_approved', 0)->count();
+
+        return response()->json([
+            'data' => $employees->items(),
+            'total' => $employees->total(),
+            'pending_count' => $pendingCount,
+            'current_page' => $employees->currentPage(),
+            'last_page' => $employees->lastPage(),
+            'links' => $employees->linkCollection()
+        ]);
     }
 
     public function approve($id)

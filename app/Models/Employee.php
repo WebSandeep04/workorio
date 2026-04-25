@@ -134,5 +134,10 @@ class Employee extends Model
     {
         return $this->belongsToMany(Place::class, 'employee_attendance_places')->withTimestamps();
     }
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'employee_id');
+    }
 }
 
