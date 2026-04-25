@@ -576,20 +576,12 @@ function renderTable() {
             }
 
             let overlapWarning = '';
-            if (leave.has_attendance_overlap && leave.status === 'approved') {
-                overlapWarning = ` <i class="bi bi-exclamation-triangle-fill text-warning" style="cursor:help;" title="Attendance detected during this leave!"></i>`;
-            }
 
             let actions = '-';
             if (leave.status === 'pending') {
                 actions = `<button class="btn btn-sm btn-link delete-btn p-0 text-danger" onclick="openDeleteModal(${leave.id})" title="Cancel Leave"><i class="bi bi-x-circle-fill"></i></button>`;
             } else if (leave.status === 'approved') {
-                let cancelBtn = `<button class="btn btn-sm btn-link delete-btn p-0 text-danger" onclick="openDeleteModal(${leave.id})" title="Cancel Leave"><i class="bi bi-x-circle-fill"></i></button>`;
-                let resumeBtn = '';
-                if (leave.has_attendance_overlap) {
-                    resumeBtn = `<button class="btn btn-sm btn-warning py-0 px-2 ms-2" style="font-size:10px; font-weight:700; border-radius:4px;" onclick="resumeEarly(${leave.id}, '${leave.start_date}')">Resume Work</button>`;
-                }
-                actions = `<div class="d-flex align-items-center justify-content-center">${cancelBtn} ${resumeBtn}</div>`;
+                actions = `<button class="btn btn-sm btn-link delete-btn p-0 text-danger" onclick="openDeleteModal(${leave.id})" title="Cancel Leave"><i class="bi bi-x-circle-fill"></i></button>`;
             }
 
             html += `<tr>
@@ -711,31 +703,6 @@ function deleteLeave() {
         },
         complete: function() { btn.prop('disabled', false).text('Yes, Cancel Leave'); }
     });
-}
-
-function resumeEarly(id, startDate) {
-    const today = new Date().toISOString().split('T')[0];
-    let resumeDate = prompt("Enter the date employee resumed work (YYYY-MM-DD):", today);
-    
-    if (!resumeDate) return;
-
-    if (confirm(`Confirm early return on ${resumeDate}? This will update the leave end date and refund any unused balance.`)) {
-        $.post(`/leave/${id}/curtail`, {
-            _token: '{{ csrf_token() }}',
-            resume_date: resumeDate
-        }, function(res) {
-            if (res.success) {
-                showAlert('success', res.message);
-                loadLeaves();
-                loadLeaveTypes();
-            } else {
-                showAlert('error', res.message);
-            }
-        }).fail(function(xhr) {
-            let msg = xhr.responseJSON ? xhr.responseJSON.message : "Error processing resumption.";
-            showAlert('error', msg);
-        });
-    }
 }
 </script>
 @endpush
