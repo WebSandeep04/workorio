@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\User;
+use App\Models\Movement;
 use Carbon\Carbon;
 use App\Mail\AttendanceRejectedMail;
 use Illuminate\Support\Facades\DB;
