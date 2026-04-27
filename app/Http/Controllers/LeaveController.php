@@ -202,11 +202,23 @@ class LeaveController extends Controller
                 'status' => 'pending' // Automatically starts as pending for Manager workflow
             ]);
 
+            // Immediate Deduction Logic
+            if ($leaveType->is_deductible) {
+                $balanceService = app(LeaveBalanceService::class);
+                $balanceService->debitLeave(
+                    $user->id, 
+                    $leaveType->id, 
+                    $totalDays, 
+                    $leaveReq, 
+                    'Immediate deduction upon leave application'
+                );
+            }
+
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => "Leave application for {$totalDays} days submitted and is pending approval.",
+                'message' => "Leave application for {$totalDays} days submitted. Balance has been deducted and request is pending approval.",
                 'data' => $leaveReq
             ]);
         } catch (\Exception $e) {
@@ -272,8 +284,8 @@ class LeaveController extends Controller
 
         DB::beginTransaction();
         try {
-            if ($leaveReq->status === 'approved' && $leaveReq->leaveType && $leaveReq->leaveType->is_deductible) {
-                // Refund the ledger
+            // Refund the ledger if the leave was already deducted (Pending or Approved)
+            if (in_array($leaveReq->status, ['pending', 'approved']) && $leaveReq->leaveType && $leaveReq->leaveType->is_deductible) {
                 $balanceService = app(LeaveBalanceService::class);
                 $balanceService->creditLeave(
                     $leaveReq->user_id,
@@ -613,18 +625,6 @@ class LeaveController extends Controller
             $leaveReq->approved_by = $user->id;
             $leaveReq->save();
 
-            if ($leaveReq->leaveType && $leaveReq->leaveType->is_deductible) {
-
-                $balanceService = app(LeaveBalanceService::class);
-                $balanceService->debitLeave(
-                    $leaveReq->user_id, 
-                    $leaveReq->leave_type_id, 
-                    $leaveReq->total_days, 
-                    $leaveReq, 
-                    'Leave deduction upon approval'
-                );
-            }
-
             DB::commit();
 
             // Only notify if employee is active
@@ -680,25 +680,45 @@ class LeaveController extends Controller
 
         if ($leaveReq->status !== 'pending') return response()->json(['success' => false, 'message' => 'Leave is not pending'], 422);
 
-        $leaveReq->status = 'rejected';
-        $leaveReq->approved_by = $user->id;
-        $leaveReq->reject_reason = $request->reason;
-        $leaveReq->save();
+        DB::beginTransaction();
+        try {
+            $leaveReq->status = 'rejected';
+            $leaveReq->approved_by = $user->id;
+            $leaveReq->reject_reason = $request->reason;
+            $leaveReq->save();
 
-        // Only notify if employee is active
-        if ($leaveReq->user && $leaveReq->user->email && ($leaveReq->user->employee && $leaveReq->user->employee->status === 'active')) {
-            try {
-                Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
-                    'leave_request_id' => $leaveReq->id,
-                    'user_id' => $leaveReq->user->id,
-                    'status' => 'rejected',
-                    'reason' => $request->reason
-                ]));
-            } catch (\Exception $e) {
-                \Log::error("Failed to send leave rejection email: " . $e->getMessage());
+            // Refund logic for rejected leaves (since they were deducted on store)
+            if ($leaveReq->leaveType && $leaveReq->leaveType->is_deductible) {
+                $balanceService = app(LeaveBalanceService::class);
+                $balanceService->creditLeave(
+                    $leaveReq->user_id,
+                    $leaveReq->leave_type_id,
+                    $leaveReq->total_days,
+                    $leaveReq,
+                    'Refund for rejected leave request'
+                );
             }
-        }
 
-        return response()->json(['success' => true, 'message' => 'Leave rejected successfully']);
+            DB::commit();
+
+            // Only notify if employee is active
+            if ($leaveReq->user && $leaveReq->user->email && ($leaveReq->user->employee && $leaveReq->user->employee->status === 'active')) {
+                try {
+                    Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
+                        'leave_request_id' => $leaveReq->id,
+                        'user_id' => $leaveReq->user->id,
+                        'status' => 'rejected',
+                        'reason' => $request->reason
+                    ]));
+                } catch (\Exception $e) {
+                    \Log::error("Failed to send leave rejection email: " . $e->getMessage());
+                }
+            }
+
+            return response()->json(['success' => true, 'message' => 'Leave rejected successfully']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to reject leave: ' . $e->getMessage()], 500);
+        }
     }
 }

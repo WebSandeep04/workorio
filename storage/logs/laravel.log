@@ -209,3 +209,8 @@
 #52 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\DontDelete\\\\l...')
 #53 {main}
 "} 
+[2026-04-27 08:26:36] local.ERROR: AuthController@login start {"email":"sandeep@triserv360.com"} 
+[2026-04-27 08:26:36] local.ERROR: AuthController@login checking tenant {"tenant_id":1} 
+[2026-04-27 08:26:37] local.ERROR: AuthController@login user check {"tenant_id":1,"exists":true,"password_ok":true,"is_login":1} 
+[2026-04-27 08:26:37] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":4,"name":"Sandeep Kumar","email":"sandeep@triserv360.com","role_id":5,"tenant_id":1}} 
+[2026-04-27 08:26:37] local.ERROR: AuthController@login resolved tenant {"tenant_id":1} 

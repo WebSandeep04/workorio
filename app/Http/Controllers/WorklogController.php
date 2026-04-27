@@ -16,9 +16,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use App\Models\WorklogApproval;
+use App\Services\DailyStatusService;
 
 class WorklogController extends Controller
 {
+    protected $statusService;
+
+    public function __construct(DailyStatusService $statusService)
+    {
+        $this->statusService = $statusService;
+    }
 
     public function index()
     {
@@ -524,41 +531,9 @@ class WorklogController extends Controller
         $missingDates = [];
         
         $currentDate = $startDate;
-        while ($currentDate < $endDate) { // Changed from <= to < to exclude the selected date
-            // Check if user has any worklog entry for this date
-            $hasEntry = Worklog::where('user_id', $user->id)
-                ->where('work_date', $currentDate)
-                ->exists();
-            
-            // Check if user has approved leave for this date
-            $hasLeave = LeaveRequest::where('user_id', $user->id)
-                ->where('start_date', '<=', $currentDate)
-                ->where('end_date', '>=', $currentDate)
-                ->where('status', 'approved')
-                ->exists();
-            
-            // Check if the date is a holiday
-            $isHoliday = Holiday::where('holiday_date', $currentDate)
-                ->exists();
-            
-            // Dynamic weekoff from Shift
-            $isWeekoff = false;
-            $employee = $user->employee;
-            if ($employee && $employee->shiftRelation && is_array($employee->shiftRelation->week_offs)) {
-                $isWeekoff = in_array(date('w', strtotime($currentDate)), $employee->shiftRelation->week_offs);
-            } else {
-                // Fallback to Sunday (0)
-                $isWeekoff = date('w', strtotime($currentDate)) == 0;
-            }
-            
-            // Check if user has attendance for this date
-            $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
-                ->where('date', $currentDate)
-                ->exists();
-            
-            // Only add to missing dates if user has attendance (not absent) and no worklog entry
-            // Having a leave (short leave/half-day) does not exempt you if you have punched in
-            if ($hasAttendance && !$hasEntry) {
+        while ($currentDate < $endDate) { 
+            // Use Unified Status Service
+            if ($this->statusService->isWorklogMissing($user->id, $currentDate)) {
                 $missingDates[] = $currentDate;
             }
             
@@ -574,34 +549,22 @@ class WorklogController extends Controller
      */
     private function checkAllUsersWorklogCompletion($date)
     {
-        
         // Get all users with isWorklog = 1
         $worklogUsers = \App\Models\User::where('is_worklog', 1)
             ->get();
         
         if ($worklogUsers->isEmpty()) {
-            return true; // No worklog users, so validation passes
+            return true;
         }
         
-        // Check if all worklog users have entries for this date
         foreach ($worklogUsers as $user) {
-            // Check if user has attendance (if not, they are exempt)
-            $hasAttendance = \App\Models\Attendance::where('user_id', $user->id)
-                ->where('date', $date)
-                ->exists();
-                
-            if (!$hasAttendance) continue;
-
-            $hasEntry = Worklog::where('user_id', $user->id)
-                ->where('work_date', $date)
-                ->exists();
-            
-            if (!$hasEntry) {
-                return false; // At least one present user is missing an entry
+            // Use Unified Status Service to check if log is missing
+            if ($this->statusService->isWorklogMissing($user->id, $date)) {
+                return false;
             }
         }
         
-        return true; // All users have entries for this date
+        return true; 
     }
 
     /**
