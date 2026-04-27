@@ -180,6 +180,13 @@ class TenantFeatureService
                     'setup.petty_opening_balance' => 'Setup: Opening Balances',
                 ]
             ],
+            'contact_management' => [
+                'enabled' => (bool) ($tenant->is_contact_management ?? false),
+                'setup_enabled' => (bool) ($tenant->is_contact_management_setup_enabled ?? false),
+                'permissions' => [
+                    'contact_management.access' => 'Contact Management: Access',
+                ]
+            ],
             'other_modules' => [
                 'enabled' => true,
                 'setup_enabled' => true,
@@ -193,7 +200,6 @@ class TenantFeatureService
                     'tracking.view' => 'Tracking: Live View',
                     'documents.manage' => 'Documents: Manage',
                     'documents.my_documents' => 'Documents: My Files',
-                    'contact_management.access' => 'Contacts: Access',
                     'email_marketing.view' => 'Email Marketing: View',
                 ]
             ]
