@@ -127,7 +127,7 @@ return [
             'key' => 'master_section',
             'title' => 'Master',
             'icon' => 'bi bi-person-badge',
-            'feature_flag' => 'is_worklog_enabled',
+            'feature_flag' => 'is_setup_enabled',
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'employees.index', 'title' => 'Employees', 'icon' => 'bi bi-people', 'permission' => 'master.employees'],
@@ -170,7 +170,7 @@ return [
             'items' => [
                 // ['route' => 'attendance.stats-view', 'title' => 'Attendance Stats', 'icon' => 'bi bi-bar-chart', 'permission' => 'attendance.stats'],
                 ['route' => 'attendance.report', 'title' => 'Attendance Report', 'icon' => 'bi bi-file-earmark-text', 'permission' => 'attendance.report'],
-                ['route' => 'reports.worklog', 'title' => 'Timesheet Report', 'icon' => 'bi bi-journals', 'permission' => 'reports.worklog', 'feature_flag' => 'is_worklog_enable'],
+                ['route' => 'reports.worklog', 'title' => 'Timesheet Report', 'icon' => 'bi bi-journals', 'permission' => 'reports.worklog', 'feature_flag' => 'is_worklog_enabled'],
                 // ['route' => 'reports.user-worklog', 'title' => 'User-wise Report', 'icon' => 'bi bi-person-lines-fill'],
             ],
         ],
@@ -205,7 +205,7 @@ return [
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'approvals.petty', 'title' => 'Petty Approval', 'icon' => 'bi bi-cash', 'permission' => 'approvals.petty'],
-                ['route' => 'worklog-approvals', 'title' => 'Timesheet Approvals', 'icon' => 'bi bi-check2-square', 'permission' => 'approvals.worklog', 'feature_flag' => 'is_worklog_enable'],
+                ['route' => 'worklog-approvals', 'title' => 'Timesheet Approvals', 'icon' => 'bi bi-check2-square', 'permission' => 'approvals.worklog', 'feature_flag' => 'is_worklog_enabled'],
                 ['route' => 'attendance.approval', 'title' => 'Attendance Approval', 'icon' => 'bi bi-person-check', 'permission' => 'approvals.attendance'],
                 ['route' => 'attendance.unlock', 'title' => 'Unlock Attendance', 'icon' => 'bi bi-unlock', 'permission' => 'approvals.unlock_attendance'],
                 ['route' => 'leave.approvals', 'title' => 'Leave Approval', 'icon' => 'bi bi-calendar-check', 'permission' => 'approvals.leave'],
