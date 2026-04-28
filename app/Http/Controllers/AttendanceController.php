@@ -2762,31 +2762,31 @@ class AttendanceController extends Controller
     }
 
 
-    private function getShiftHours()
+    private function getShiftHours($shift)
     {
-         = 7;
-         = 4;
+        $fullDayHr = 7;
+        $halfDayHr = 4;
 
-        if () {
-            if (isset(->full_day_hr) && ->full_day_hr > 0) {
-                 = (float) ->full_day_hr;
-                 = isset(->half_day_hr) && ->half_day_hr > 0 
-                    ? (float) ->half_day_hr 
-                    :  / 2;
-            } elseif (!empty(->start_time) && !empty(->end_time)) {
-                 = \Carbon\Carbon::parse(->start_time);
-                 = \Carbon\Carbon::parse(->end_time);
+        if ($shift) {
+            if (isset($shift->full_day_hr) && $shift->full_day_hr > 0) {
+                $fullDayHr = (float) $shift->full_day_hr;
+                $halfDayHr = isset($shift->half_day_hr) && $shift->half_day_hr > 0 
+                    ? (float) $shift->half_day_hr 
+                    : $fullDayHr / 2;
+            } elseif (!empty($shift->start_time) && !empty($shift->end_time)) {
+                $start = \Carbon\Carbon::parse($shift->start_time);
+                $end = \Carbon\Carbon::parse($shift->end_time);
                 
-                if (->lt()) {
-                    ->addDay();
+                if ($end->lt($start)) {
+                    $end->addDay();
                 }
                 
-                 = ->diffInMinutes() / 60;
-                 =  / 2;
+                $fullDayHr = $start->diffInMinutes($end) / 60;
+                $halfDayHr = $fullDayHr / 2;
             }
         }
 
-        return [, ];
+        return [$fullDayHr, $halfDayHr];
     }
 
 }
