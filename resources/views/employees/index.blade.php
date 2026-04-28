@@ -1066,12 +1066,20 @@
             });
     }
 
-    function populateCountryOptions(selectedId) {
+    function populateCountryOptions(selectedId, fallbackName) {
         const select = $('#employee_country_select');
         select.empty().append('<option value="">Select Country</option>');
+        
+        let matchedId = selectedId;
+        if (!matchedId && fallbackName) {
+            const found = countryOptions.find(c => c.name.toLowerCase() === fallbackName.toLowerCase());
+            if (found) matchedId = found.id;
+        }
+
         countryOptions.forEach(function (country) {
-            select.append(`<option value="${country.id}" ${selectedId && Number(selectedId) === Number(country.id) ? 'selected' : ''}>${escapeHtml(country.name)}</option>`);
+            select.append(`<option value="${country.id}" ${matchedId && Number(matchedId) === Number(country.id) ? 'selected' : ''}>${escapeHtml(country.name)}</option>`);
         });
+        return matchedId;
     }
 
     function openEmployeeModal(data) {
@@ -1112,6 +1120,8 @@
         var stateId = data ? (data.state_id || (data.state_relation ? data.state_relation.id : '')) : '';
         var cityId = data ? (data.city_id || (data.city_relation ? data.city_relation.id : '')) : '';
         var countryId = data ? (data.country_id || (data.country_relation ? data.country_relation.id : '')) : '';
+        var countryFallbackName = data ? data.country : '';
+        
         populateBranchOptions(branchId);
         loadDepartmentOptions(branchId, deptId);
         populateDesignationOptions(designationId);
@@ -1119,7 +1129,7 @@
         populateShiftOptions(shiftId);
         populateStateOptions(stateId);
         loadCityOptions(stateId, cityId);
-        populateCountryOptions(countryId);
+        countryId = populateCountryOptions(countryId, countryFallbackName);
         if (data) {
             $('#employee_code').val(data.employee_code || '');
             $('#employee_name').val(data.name || '');

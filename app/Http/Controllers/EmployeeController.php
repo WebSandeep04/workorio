@@ -263,6 +263,7 @@ class EmployeeController extends Controller
             'shift_id' => 'nullable|exists:shifts,id',
             'state_id' => 'nullable|exists:states,id',
             'city_id' => 'nullable|exists:cities,id',
+            'country_id' => 'nullable|exists:countries,id',
             'designation' => 'nullable|string|max:150',
             'department' => 'nullable|string|max:150',
             'employment_type' => 'nullable|string|max:100',
