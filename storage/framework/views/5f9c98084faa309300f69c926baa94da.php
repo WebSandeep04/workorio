@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Branches'); ?>
+<?php $__env->startSection('page_title', 'Branches'); ?>
 
-@section('title', 'Branches')
-@section('page_title', 'Branches')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -367,9 +365,9 @@
     -webkit-text-fill-color: transparent;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
@@ -476,9 +474,9 @@
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -535,8 +533,8 @@ function escapeHtml(text = '') {
 
 $(function () {
   const csrf = $('meta[name="csrf-token"]').attr('content');
-  const listUrl = "{{ route('branches.list') }}";
-  const storeUrl = "{{ route('branches.store') }}";
+  const listUrl = "<?php echo e(route('branches.list')); ?>";
+  const storeUrl = "<?php echo e(route('branches.store')); ?>";
   let searchTimeout;
   
   loadBranches();
@@ -682,7 +680,7 @@ $(function () {
     };
     
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `{{ url('/branches') }}/${id}` : storeUrl;
+    const url = id ? `<?php echo e(url('/branches')); ?>/${id}` : storeUrl;
     
     const $btn = $(this);
     $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Saving...');
@@ -705,7 +703,7 @@ $(function () {
   $(document).on('click', '.delete-branch', function () {
     if (confirm('Are you sure you want to delete this branch?')) {
       $.ajax({
-        url: `{{ url('/branches') }}/${$(this).data('id')}`,
+        url: `<?php echo e(url('/branches')); ?>/${$(this).data('id')}`,
         type: 'DELETE',
         data: { _token: csrf },
         success: function () {
@@ -720,4 +718,6 @@ $(function () {
   });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/master/branches.blade.php ENDPATH**/ ?>

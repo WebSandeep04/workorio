@@ -14,11 +14,24 @@ class BranchController extends Controller
         return view('master.branches');
     }
 
-    public function list(): JsonResponse
+    public function list(Request $request): JsonResponse
     {
-        return response()->json(
-            Branch::orderBy('name')->get()
-        );
+        $query = Branch::query();
+        
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('code', 'like', '%' . $search . '%')
+                  ->orWhere('location', 'like', '%' . $search . '%');
+            });
+        }
+        
+        if ($request->has('page')) {
+            return response()->json($query->orderBy('name')->paginate(10));
+        }
+        
+        return response()->json($query->orderBy('name')->get());
     }
 
     public function store(Request $request): JsonResponse
