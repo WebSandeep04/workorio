@@ -789,11 +789,8 @@
                             <th>Phone</th>
                             <th>Branch</th>
                             <th>Department</th>
-                            <th>Department (Text)</th>
                             <th>Designation</th>
-                            <th>Designation (Text)</th>
                             <th>Employment Type</th>
-                            <th>Employment Type (Text)</th>
                             <th>Shift</th>
                             <th>Country</th>
                             <th>State</th>
@@ -806,7 +803,7 @@
                         </tr>
                     </thead>
                     <tbody id="employeeTableBody">
-                        <tr><td colspan="19" class="loading-state"><i class="bi bi-arrow-repeat"></i><p class="mt-2 mb-0">Loading employees...</p></td></tr>
+                        <tr><td colspan="17" class="loading-state"><i class="bi bi-arrow-repeat"></i><p class="mt-2 mb-0">Loading employees...</p></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -848,7 +845,7 @@
 
     function renderEmployees(rows) {
         if (!rows || rows.length === 0) {
-            $('#employeeTableBody').html('<tr><td colspan="19" class="empty-state"><i class="bi bi-inbox"></i><p>No employees found</p></td></tr>');
+            $('#employeeTableBody').html('<tr><td colspan="17" class="empty-state"><i class="bi bi-inbox"></i><p>No employees found</p></td></tr>');
              $('#employeeCountInfo').text('Showing 0 data');
             return;
         }
@@ -863,12 +860,9 @@
                 <td>${escapeHtml(row.email || '')}</td>
                 <td>${escapeHtml(row.phone || '')}</td>
                 <td>${escapeHtml((row.branch && row.branch.name) || '')}</td>
-                <td>${escapeHtml((row.department_relation && row.department_relation.name) || '')}</td>
-                <td>${escapeHtml(row.department || '')}</td>
-                <td>${escapeHtml((row.designation_relation && row.designation_relation.title) || '')}</td>
-                <td>${escapeHtml(row.designation || '')}</td>
-                <td>${escapeHtml((row.employment_type_relation && row.employment_type_relation.name) || '')}</td>
-                <td>${escapeHtml(row.employment_type || '')}</td>
+                <td>${escapeHtml((row.department_relation && row.department_relation.name) || row.department || '')}</td>
+                <td>${escapeHtml((row.designation_relation && row.designation_relation.title) || row.designation || '')}</td>
+                <td>${escapeHtml((row.employment_type_relation && row.employment_type_relation.name) || row.employment_type || '')}</td>
                 <td>${escapeHtml((row.shift_relation && row.shift_relation.name) || '')}</td>
                 <td>${escapeHtml((row.country_relation && row.country_relation.name) || row.country || '')}</td>
                 <td>${escapeHtml((row.state_relation && row.state_relation.state_name) || row.state || '')}</td>
@@ -901,7 +895,7 @@
     };
 
     function loadEmployees() {
-        $('#employeeTableBody').html('<tr><td colspan="19" class="loading-state"><i class="bi bi-arrow-repeat"></i><p class="mt-2 mb-0">Loading employees...</p></td></tr>');
+        $('#employeeTableBody').html('<tr><td colspan="17" class="loading-state"><i class="bi bi-arrow-repeat"></i><p class="mt-2 mb-0">Loading employees...</p></td></tr>');
         $.get(listUrl)
             .done(function (rows) {
                 allEmployees = rows || [];
@@ -912,7 +906,7 @@
                 renderEmployees(allEmployees);
             })
             .fail(function () {
-                $('#employeeTableBody').html('<tr><td colspan="19" class="text-center text-danger">Failed to load employees</td></tr>');
+                $('#employeeTableBody').html('<tr><td colspan="17" class="text-center text-danger">Failed to load employees</td></tr>');
             });
     }
 
