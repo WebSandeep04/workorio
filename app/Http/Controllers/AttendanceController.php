@@ -1652,8 +1652,7 @@ class AttendanceController extends Controller
                 } elseif ($holiday) {
                     $dayData['status'] = 'holiday working';
                 } else {
-                    $fullDayHr = $shift->full_day_hr ?? 7;
-                    $halfDayHr = $shift->half_day_hr ?? 4;
+                    [$fullDayHr, $halfDayHr] = $this->getShiftHours($shift);
 
                     if ($isHalfDayWorking) {
                         $fullDayHr = $halfDayHr;
@@ -1723,8 +1722,7 @@ class AttendanceController extends Controller
         foreach ($reportData as $row) {
             $u = $users->firstWhere('id', $row['user']['id']);
             $shift = $u->employee->shiftRelation ?? null;
-            $fullDayHr = $shift->full_day_hr ?? 7;
-            $halfDayHr = $shift->half_day_hr ?? 4;
+            [$fullDayHr, $halfDayHr] = $this->getShiftHours($shift);
 
             if ($row['hours'] > 0) {
                 if ($row['is_sunday']) { // row['is_sunday'] contains isWeeklyOff
@@ -2037,8 +2035,7 @@ class AttendanceController extends Controller
                         $statusCode = 'H/W'; // Holiday Working
                         $statusClass = 'text-info';
                     } else {
-                        $fullDayHr = $shift->full_day_hr ?? 7;
-                        $halfDayHr = $shift->half_day_hr ?? 4;
+                        [$fullDayHr, $halfDayHr] = $this->getShiftHours($shift);
                         
                         if ($isHalfDayWorking) {
                             $fullDayHr = $halfDayHr;
@@ -2211,8 +2208,7 @@ class AttendanceController extends Controller
                 $dayHours = $this->calculateHours($attendance->movements, $shift, $attendance->date);
                 $totalHours += $dayHours;
                 
-                $fullDayHr = $shift->full_day_hr ?? 7;
-                $halfDayHr = $shift->half_day_hr ?? 4;
+                [$fullDayHr, $halfDayHr] = $this->getShiftHours($shift);
 
                 if ($isHalfDayWorking) {
                     $fullDayHr = $halfDayHr;
@@ -2475,8 +2471,7 @@ class AttendanceController extends Controller
                         $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
                     }
                 } else {
-                    $fullDayHr = $shift->full_day_hr ?? 7;
-                    $halfDayHr = $shift->half_day_hr ?? 4;
+                    [$fullDayHr, $halfDayHr] = $this->getShiftHours($shift);
                     
                     if ($isHalfDayWorking) {
                         $fullDayHr = $halfDayHr;
@@ -2764,6 +2759,34 @@ class AttendanceController extends Controller
             'success' => true,
             'message' => 'Response saved successfully'
         ]);
+    }
+
+
+    private function getShiftHours()
+    {
+         = 7;
+         = 4;
+
+        if () {
+            if (isset(->full_day_hr) && ->full_day_hr > 0) {
+                 = (float) ->full_day_hr;
+                 = isset(->half_day_hr) && ->half_day_hr > 0 
+                    ? (float) ->half_day_hr 
+                    :  / 2;
+            } elseif (!empty(->start_time) && !empty(->end_time)) {
+                 = \Carbon\Carbon::parse(->start_time);
+                 = \Carbon\Carbon::parse(->end_time);
+                
+                if (->lt()) {
+                    ->addDay();
+                }
+                
+                 = ->diffInMinutes() / 60;
+                 =  / 2;
+            }
+        }
+
+        return [, ];
     }
 
 }
