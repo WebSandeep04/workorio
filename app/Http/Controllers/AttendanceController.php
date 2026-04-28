@@ -1621,10 +1621,10 @@ class AttendanceController extends Controller
             $isHalfDayWorking = false;
             if ($shift) {
                 if ($shift->week_offs && is_array($shift->week_offs)) {
-                    $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
                 }
                 if ($shift->half_days && is_array($shift->half_days)) {
-                    $isHalfDayWorking = in_array($dayName, $shift->half_days);
+                    $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
                 }
             }
 
@@ -2018,10 +2018,10 @@ class AttendanceController extends Controller
                 $isHalfDayWorking = false;
                 if ($shift) {
                     if ($shift->week_offs && is_array($shift->week_offs)) {
-                        $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                        $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
                     }
                     if ($shift->half_days && is_array($shift->half_days)) {
-                        $isHalfDayWorking = in_array($dayName, $shift->half_days);
+                        $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
                     }
                 }
 
@@ -2155,12 +2155,14 @@ class AttendanceController extends Controller
         
         $shiftRelation = $user ? ($user->employee->shiftRelation ?? null) : null;
         $shift = $shiftRelation;
+        
+        $currentDate = $startDate->copy();
         while ($currentDate->lte($endDate)) {
             $dayName = $currentDate->format('l'); // Sunday, Monday, etc.
             $isWeeklyOff = false;
             
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
             }
 
             if ($isWeeklyOff) {
@@ -2184,12 +2186,13 @@ class AttendanceController extends Controller
             // Check if this day is a weekly off
             $dayName = $attendanceDate->format('l');
             $isWeeklyOff = false;
+            $isHalfDayWorking = false;
             if ($shift) {
                 if ($shift->week_offs && is_array($shift->week_offs)) {
-                    $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
                 }
                 if ($shift->half_days && is_array($shift->half_days)) {
-                    $isHalfDayWorking = in_array($dayName, $shift->half_days);
+                    $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
                 }
             }
 
@@ -2313,7 +2316,7 @@ class AttendanceController extends Controller
             $dayName = $leaveCarbon->format('l');
             $isWeeklyOff = false;
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
             }
 
             // Only count leave on working days (not weekly offs or holidays) for attendance calculation
@@ -2335,7 +2338,7 @@ class AttendanceController extends Controller
             $dayName = $holidayCarbon->format('l');
             $isWeeklyOff = false;
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
             }
 
             // Only count holidays that are not weekly offs
@@ -2403,10 +2406,10 @@ class AttendanceController extends Controller
             $isHalfDayWorking = false;
             if ($shift) {
                 if ($shift->week_offs && is_array($shift->week_offs)) {
-                    $isWeeklyOff = in_array($dayName, $shift->week_offs);
+                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
                 }
                 if ($shift->half_days && is_array($shift->half_days)) {
-                    $isHalfDayWorking = in_array($dayName, $shift->half_days);
+                    $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
                 }
             }
 
@@ -2536,7 +2539,8 @@ class AttendanceController extends Controller
         // Find first punch-in and last punch-out across all movement types
         $firstPunchIn = null;
         $lastPunchOut = null;
-                foreach ($movements as $movement) {
+        
+        foreach ($movements as $movement) {
             // Only consider office and field movements for total hours calculation
             if (in_array($movement->movement_type, ['office', 'field'])) {
                 $time = Carbon::parse($movement->time)->setTimezone('Asia/Kolkata');
@@ -2566,7 +2570,7 @@ class AttendanceController extends Controller
             // Handle Start Time Capping
             if ($shift->start_time) {
                 $shiftStartTime = Carbon::parse($shift->start_time)->format('H:i:s');
-                $startLimit = Carbon::parse($shiftDate . ' ' . $shiftStartTime, 'Asia/Kolkata');
+                $startLimit = Carbon::parse($shiftDate . ' ' . $shiftStartTime, 'UTC')->setTimezone('Asia/Kolkata');
                 if ($firstPunchIn->lt($startLimit)) {
                     $firstPunchIn = $startLimit;
                 }
@@ -2575,7 +2579,7 @@ class AttendanceController extends Controller
             // Handle End Time Capping (Shift End + Extended Hours)
             if ($shift->end_time) {
                 $shiftEndTime = Carbon::parse($shift->end_time)->format('H:i:s');
-                $endLimit = Carbon::parse($shiftDate . ' ' . $shiftEndTime, 'Asia/Kolkata');
+                $endLimit = Carbon::parse($shiftDate . ' ' . $shiftEndTime, 'UTC')->setTimezone('Asia/Kolkata');
                 
                 if ($shift->extended_hr > 0) {
                     $endLimit->addMinutes((int)($shift->extended_hr * 60));
