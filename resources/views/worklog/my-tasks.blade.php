@@ -550,9 +550,9 @@
         <i class="bi bi-search"></i>
         <input type="text" id="search" placeholder="Search tasks..." />
       </div>
-      <!-- <button type="button" class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createTaskModal">
-        <i class="bi bi-plus me-1"></i>Add
-      </button> -->
+      <button type="button" onclick="handleExport()" class="table-search-btn" style="background: #198754; border:none; color: white; box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);">
+        <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+      </button>
     </div>
 
     <!-- Main Content -->
@@ -584,6 +584,7 @@
                             <table class="table custom-table">
                                 <thead>
                             <tr>
+                                <th scope="col" style="width: 40px;"><input type="checkbox" id="selectAllTasks" class="form-check-input"></th>
                                 <th scope="col" style="width: 15%;">Customer</th>
                                 <th scope="col" style="width: 20%;">Task</th>
                                 <th scope="col" style="width: 5%;">Type</th>
@@ -693,6 +694,7 @@
 
 @push('scripts')
 <script>
+let selectedTaskIds = new Set();
 $(document).ready(function() {
     // Escape HTML to prevent XSS
     function escapeHtml(text) {
@@ -965,8 +967,10 @@ $(document).ready(function() {
                             ? `<span class="text-danger fw-bold" title="Overdue">${dueDateRaw}</span>` 
                             : dueDateRaw;
                         
+                        const isChecked = selectedTaskIds.has(task.id) ? 'checked' : '';
                         html += `
                             <tr class="${rowClass}">
+                                <td><input type="checkbox" class="task-checkbox form-check-input" value="${task.id}" ${isChecked}></td>
                                 <td>
                                     <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-dark text-decoration-none" title="${task.customer ? task.customer.name : 'N/A'}">
                                         ${(task.customer ? task.customer.name : 'N/A').length > 7 ? (task.customer ? task.customer.name : 'N/A').substring(0, 7) + '...' : (task.customer ? task.customer.name : 'N/A')}
@@ -1005,7 +1009,60 @@ $(document).ready(function() {
 
     // Filter Listeners
     $('#filter_customer, #filter_status, #filter_priority, #filter_type, #filter_date_from, #filter_date_to').on('change', function() {
+        selectedTaskIds.clear();
+        $('#selectAllTasks').prop('checked', false);
         loadTasks();
+        updateExportUrl();
+    });
+
+    function updateExportUrl() {
+        // No longer needed
+    }
+
+    function handleExport() {
+        const selectedIds = Array.from(selectedTaskIds);
+        
+        const baseUrl = "{{ route('task.export') }}";
+        const params = new URLSearchParams({
+            type: 'assigned',
+            customer_id: $('#filter_customer').val() || '',
+            status: $('#filter_status').val() || '',
+            priority: $('#filter_priority').val() || '',
+            task_type: $('#filter_type').val() || '',
+            date_from: $('#filter_date_from').val() || '',
+            date_to: $('#filter_date_to').val() || '',
+            search: $('#search').val() || ''
+        });
+        
+        if (selectedIds.length > 0) {
+            params.append('ids', selectedIds.join(','));
+        }
+        
+        window.location.href = `${baseUrl}?${params.toString()}`;
+    }
+
+    // Select All functionality
+    $(document).on('change', '#selectAllTasks', function() {
+        const isChecked = $(this).prop('checked');
+        // allTasks is stored on window during loadTasks
+        const filtered = applyFilters(window.allTasks || []);
+        if (isChecked) {
+            filtered.forEach(t => selectedTaskIds.add(t.id));
+        } else {
+            selectedTaskIds.clear();
+        }
+        $('.task-checkbox').prop('checked', isChecked);
+    });
+
+    // Individual checkbox change
+    $(document).on('change', '.task-checkbox', function() {
+        const id = parseInt($(this).val());
+        if ($(this).prop('checked')) {
+            selectedTaskIds.add(id);
+        } else {
+            selectedTaskIds.delete(id);
+            $('#selectAllTasks').prop('checked', false);
+        }
     });
 
     let searchTimeout;
@@ -1013,6 +1070,7 @@ $(document).ready(function() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(function() {
             loadTasks();
+            updateExportUrl();
         }, 300);
     });
 
@@ -1025,6 +1083,7 @@ $(document).ready(function() {
         $('#filter_date_to').val('');
         $('#search').val('');
         loadTasks();
+        updateExportUrl();
     };
 
     // View Toggle

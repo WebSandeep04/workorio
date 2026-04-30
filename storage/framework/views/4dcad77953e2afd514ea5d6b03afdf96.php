@@ -639,9 +639,9 @@
       <i class="bi bi-search"></i>
       <input type="text" id="search" placeholder="Search tasks..." />
     </div>
-    <!-- <a href="<?php echo e(route('task.index')); ?>" class="table-search-btn" id="addBtn">
-      <i class="bi bi-plus me-1"></i>Add
-    </a> -->
+    <button type="button" onclick="handleExport()" class="table-search-btn" style="background: #198754; border:none; color: white; box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);">
+      <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+    </button>
   </div>
 
   <div class="data-table-card">
@@ -649,6 +649,7 @@
       <table class="table custom-table" id="taskstable">
         <thead>
           <tr>
+            <th style="width: 40px;"><input type="checkbox" id="selectAllTasks" class="form-check-input"></th>
             <th>Assigned To</th>
             <th>Customer</th>
             <th>Task Name</th>
@@ -851,6 +852,7 @@
 <script>
 let currentPage = 1;
 let allTasks = [];
+let selectedTaskIds = new Set();
 
 function escapeHtml(text) {
     return (text || '').toString()
@@ -1111,8 +1113,10 @@ function renderTasksTable(tasks, page = 1) {
         ? `<button class="btn btn-sm btn-secondary action-btn" onclick="toggleDone(${task.id})" title="Mark as Pending"><i class="bi bi-x-circle"></i></button>`
         : `<button class="btn btn-sm btn-success action-btn" onclick="toggleDone(${task.id})" title="Mark as Done"><i class="bi bi-check-circle"></i></button>`;
       
+      const isChecked = selectedTaskIds.has(task.id) ? 'checked' : '';
       html += `
         <tr class="${rowClass}">
+          <td><input type="checkbox" class="task-checkbox form-check-input" value="${task.id}" ${isChecked}></td>
           <td>
             <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-dark text-decoration-none" title="${assignedTo}">
               ${assignedTo.length > 7 ? assignedTo.substring(0, 7) + '...' : assignedTo}
@@ -1239,6 +1243,67 @@ $(document).on('change', '#filter_user, #filter_status, #filter_priority, #filte
   currentPage = 1;
   const filtered = applyFilters(allTasks);
   renderTasksTable(filtered, currentPage);
+  updateExportUrl();
+});
+
+function updateExportUrl() {
+    // This is no longer needed as handleExport handles it, but we keep it empty to avoid errors from other calls
+}
+
+function handleExport() {
+    const selectedIds = Array.from(selectedTaskIds);
+    
+    const baseUrl = "<?php echo e(route('task.export')); ?>";
+    const params = new URLSearchParams({
+        type: 'all',
+        user_id: $('#filter_user').val() || '',
+        status: $('#filter_status').val() || '',
+        priority: $('#filter_priority').val() || '',
+        task_type: $('#filter_type').val() || '',
+        date_from: $('#filter_date_from').val() || '',
+        date_to: $('#filter_date_to').val() || '',
+        search: $('#search').val() || ''
+    });
+    
+    if (selectedIds.length > 0) {
+        params.append('ids', selectedIds.join(','));
+    }
+    
+    window.location.href = `${baseUrl}?${params.toString()}`;
+}
+
+// Select All functionality
+$(document).on('change', '#selectAllTasks', function() {
+    const isChecked = $(this).prop('checked');
+    const filtered = applyFilters(allTasks);
+    if (isChecked) {
+        filtered.forEach(t => selectedTaskIds.add(t.id));
+    } else {
+        selectedTaskIds.clear();
+    }
+    // Update only visible checkboxes for performance, but the Set is already updated
+    $('.task-checkbox').prop('checked', isChecked);
+});
+
+// Individual checkbox change
+$(document).on('change', '.task-checkbox', function() {
+    const id = parseInt($(this).val());
+    if ($(this).prop('checked')) {
+        selectedTaskIds.add(id);
+    } else {
+        selectedTaskIds.delete(id);
+        $('#selectAllTasks').prop('checked', false);
+    }
+});
+
+// Reset selection on filter change
+$(document).on('change', '#filter_user, #filter_status, #filter_priority, #filter_type, #filter_date_from, #filter_date_to', function() {
+  currentPage = 1;
+  selectedTaskIds.clear();
+  $('#selectAllTasks').prop('checked', false);
+  const filtered = applyFilters(allTasks);
+  renderTasksTable(filtered, currentPage);
+  updateExportUrl();
 });
 
 let searchTimeout;
@@ -1248,6 +1313,7 @@ $('#search').on('keyup', function() {
     currentPage = 1;
     const filtered = applyFilters(allTasks);
     renderTasksTable(filtered, currentPage);
+    updateExportUrl();
   }, 300);
 });
 

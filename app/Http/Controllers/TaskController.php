@@ -971,6 +971,140 @@ class TaskController extends Controller
     }
 
     /**
+     * Export tasks to Excel (CSV format)
+     */
+    public function exportTasks(Request $request)
+    {
+        $type = $request->query('type', 'all');
+        $userId = $this->getCurrentUserId();
+
+        $query = Task::with($this->includeAssignedUsers([
+            'user',
+            'customer',
+            'creator',
+            'status',
+            'priority',
+            'customerProject'
+        ]));
+
+        if ($request->filled('ids')) {
+            $ids = is_array($request->input('ids')) ? $request->input('ids') : explode(',', $request->input('ids'));
+            $query->whereIn('id', $ids);
+        } else {
+            if ($type === 'created') {
+                $query->where('created_by', $userId);
+            } elseif ($type === 'assigned') {
+                $query->where(function($q) use ($userId) {
+                    $q->whereHas('assignedUsers', function ($sq) use ($userId) {
+                        $sq->where('users.id', $userId);
+                    })->orWhere('user_id', $userId);
+                });
+            }
+            
+            // Apply additional filters if provided
+            if ($request->filled('user_id')) {
+                $fUserId = $request->input('user_id');
+                $query->where(function($q) use ($fUserId) {
+                    $q->whereHas('assignedUsers', function ($sq) use ($fUserId) {
+                        $sq->where('users.id', $fUserId);
+                    })->orWhere('user_id', $fUserId);
+                });
+            }
+
+            if ($request->filled('status')) {
+                $status = $request->input('status');
+                if ($status === 'done') {
+                    $query->where(function ($q) {
+                        $q->where('is_done', true)
+                          ->orWhereHas('status', function ($sq) {
+                              $sq->whereIn('name', ['Done', 'Completed', 'Finish', 'Closed']);
+                          });
+                    });
+                } else {
+                    $query->where('task_status_id', $status);
+                }
+            }
+
+            if ($request->filled('priority')) {
+                $query->where('task_priority_id', $request->input('priority'));
+            }
+
+            if ($request->filled('task_type')) {
+                $query->where('task_type', $request->input('task_type'));
+            }
+
+            if ($request->filled('date_from')) {
+                $query->whereDate('created_at', '>=', $request->input('date_from'));
+            }
+
+            if ($request->filled('date_to')) {
+                $query->whereDate('created_at', '<=', $request->input('date_to'));
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function($q) use ($search) {
+                    $q->where('task_name', 'like', "%{$search}%")
+                      ->orWhere('task', 'like', "%{$search}%")
+                      ->orWhereHas('customer', function($sq) use ($search) {
+                          $sq->where('name', 'like', "%{$search}%");
+                      });
+                });
+            }
+        }
+
+        $tasks = $query->orderBy('created_at', 'desc')->get();
+
+        $filename = "tasks_" . $type . "_" . date('Y-m-d') . ".csv";
+        
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['Task Name', 'Description', 'Customer', 'Project', 'Assignee', 'Creator', 'Status', 'Priority', 'Due Date', 'Completed At', 'Created At'];
+
+        $callback = function() use($tasks, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($tasks as $task) {
+                $assignees = collect();
+                if ($task->relationLoaded('assignedUsers')) {
+                    $assignees = $task->assignedUsers->pluck('name');
+                }
+                
+                if ($assignees->isEmpty() && $task->user) {
+                    $assignees = collect([$task->user->name]);
+                }
+                
+                $assigneeStr = $assignees->implode(', ');
+
+                fputcsv($file, [
+                    $task->task_name,
+                    $task->task,
+                    $task->customer ? $task->customer->name : 'N/A',
+                    $task->customerProject ? $task->customerProject->project_name : 'N/A',
+                    $assigneeStr ?: 'N/A',
+                    $task->creator ? $task->creator->name : 'N/A',
+                    $task->status ? $task->status->name : 'Pending',
+                    $task->priority ? $task->priority->name : 'None',
+                    $task->due_date ? date('d-m-Y', strtotime($task->due_date)) : 'N/A',
+                    $task->completed_at ? date('d-m-Y', strtotime($task->completed_at)) : 'N/A',
+                    $task->created_at ? $task->created_at->format('d-m-Y') : 'N/A',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
      * Get current user ID from Auth or session
      */
     private function getCurrentUserId()

@@ -784,6 +784,9 @@
       <i class="bi bi-search"></i>
       <input type="text" id="search" placeholder="Search tasks..." />
     </div>
+    <button type="button" onclick="handleExport()" class="table-search-btn" style="background: #198754; border:none; color: white; box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);">
+      <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+    </button>
     <button type="button" class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createTaskModal">
       <i class="bi bi-plus me-1"></i>Add
     </button>
@@ -794,6 +797,7 @@
       <table class="table custom-table" id="taskstable">
         <thead>
           <tr>
+            <th style="width: 40px;"><input type="checkbox" id="selectAllTasks" class="form-check-input"></th>
             <th>Assigned To</th>
             <th>Customer</th>
             <th>Task Name</th>
@@ -2069,10 +2073,46 @@ $(document).ready(function() {
       }
     });
 
-    $(document).on('change', '#filter_user, #filter_status, #filter_priority, #filter_type, #filter_date_from, #filter_date_to', function() {
+    $(document).on('change', '#filter_user, #filter_creator, #filter_customer, #filter_status, #filter_priority, #filter_type, #filter_date_from, #filter_date_to', function() {
       currentPage = 1;
       const filtered = applyFilters(allTasks);
       renderTasksTable(filtered, currentPage);
+      updateExportUrl();
+    });
+
+    function updateExportUrl() {
+        // This is no longer needed as handleExport handles it
+    }
+
+    function handleExport() {
+        const selectedIds = $('.task-checkbox:checked').map(function() {
+            return $(this).val();
+        }).get();
+        
+        const baseUrl = "<?php echo e(route('task.export')); ?>";
+        const params = new URLSearchParams({
+            type: 'created',
+            user_id: $('#filter_user').val() || '',
+            creator_id: $('#filter_creator').val() || '',
+            customer_id: $('#filter_customer').val() || '',
+            status: $('#filter_status').val() || '',
+            priority: $('#filter_priority').val() || '',
+            task_type: $('#filter_type').val() || '',
+            date_from: $('#filter_date_from').val() || '',
+            date_to: $('#filter_date_to').val() || '',
+            search: $('#search').val() || ''
+        });
+        
+        if (selectedIds.length > 0) {
+            params.append('ids', selectedIds.join(','));
+        }
+        
+        window.location.href = `${baseUrl}?${params.toString()}`;
+    }
+
+    // Select All functionality
+    $(document).on('change', '#selectAllTasks', function() {
+        $('.task-checkbox').prop('checked', $(this).prop('checked'));
     });
 
     let searchTimeout;
@@ -2082,6 +2122,7 @@ $(document).ready(function() {
         currentPage = 1;
         const filtered = applyFilters(allTasks);
         renderTasksTable(filtered, currentPage);
+        updateExportUrl();
       }, 300);
     });
 
@@ -2617,7 +2658,7 @@ $(document).ready(function() {
                         
                         html += `
                             <tr class="${task.is_done ? 'table-success' : ''}">
-                                
+                                <td><input type="checkbox" class="task-checkbox form-check-input" value="${task.id}"></td>
                                 <td>
                                     <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-dark text-decoration-none" title="${assignedToText}">
                                         ${assignedToText.length > 7 ? assignedToText.substring(0, 7) + '...' : assignedToText}
@@ -3049,6 +3090,7 @@ $(document).ready(function() {
         currentPage = 1;
         const filtered = applyFilters(allTasks);
         renderTasksTable(filtered, currentPage);
+        updateExportUrl();
     };
 
     // Action button functions

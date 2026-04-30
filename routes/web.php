@@ -869,8 +869,9 @@ Route::get('/worklog-missing-summary', function() {
              
             // My Tasks routes (shows tasks assigned to user)
             Route::get('/my-tasks', [\App\Http\Controllers\TaskController::class, 'myTasks'])->name('my-tasks.index');
-            Route::get('/my-tasks/fetch', [\App\Http\Controllers\TaskController::class, 'fetchMyTasks'])->name('my-tasks.fetch');
-            Route::post('/task/remark/save', [\App\Http\Controllers\TaskController::class, 'saveRemark'])->name('task.remark.save');
+             Route::get('/my-tasks/fetch', [\App\Http\Controllers\TaskController::class, 'fetchMyTasks'])->name('my-tasks.fetch');
+             Route::get('/task/export', [\App\Http\Controllers\TaskController::class, 'exportTasks'])->name('task.export');
+             Route::post('/task/remark/save', [\App\Http\Controllers\TaskController::class, 'saveRemark'])->name('task.remark.save');
              
              // Worklog History routes
              Route::get('/worklog-history', [WorklogHistoryController::class, 'index'])->name('worklog-history');
