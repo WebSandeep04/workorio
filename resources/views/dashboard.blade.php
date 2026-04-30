@@ -16,578 +16,638 @@
         $tenant = \App\Models\Tenant::find(session('tenant_id'));
     }
 @endphp
-<div class="neo-dashboard">
-    @if(!$tenant || $tenant->is_sales_enabled)
-    <div class="dashboard-header mb-3">
-        <h4 class="fw-bold" style="font-family: Montserrat; color: #101828;">Sales Intelligence</h4>
-        <p class="text-muted small">Real-time performance metrics for your sales pipeline</p>
-    </div>
-    <div class="neo-metric-grid">
-        <div class="neo-metric-card">
-            <div class="metric-icon icon-sunrise">
-                <img src="{{ asset('img/icons/call.png') }}" alt="Calls">
-            </div>
-            <div class="metric-content">
-                <p>Today's Followups</p>
-                <h3 id="todayfollowups">0</h3>  
-            </div>
-            <a href="{{ route('todayfollowupstable') }}" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="neo-metric-card">
-            <div class="metric-icon icon-amber">
-                <img src="{{ asset('img/icons/underprocess.png') }}" alt="Hourglass">
-            </div>
-            <div class="metric-content">
-                <p>Under Process</p>
-                <h3 id="underprocess">0</h3>
-            </div>
-            <a href="{{ route('underprocesstable') }}" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="neo-metric-card">
-            <div class="metric-icon icon-emerald">
-                <img src="{{ asset('img/icons/tick.png') }}" alt="Completed">
-            </div>
-            <div class="metric-content">    
-                <p>Today Completed</p>
-                <h3 id="todaycompleted">0</h3>
-            </div>
-            <a href="{{ route('todaycompletedtable') }}" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="neo-metric-card">
-            <div class="metric-icon icon-rose">
-                <img src="{{ asset('img/icons/pending.png') }}" alt="Pending">
-            </div>
-            <div class="metric-content">
-                <p>Today Pending</p>
-                <h3 id="todaypending">0</h3>
-            </div>
-            <a href="{{ route('todaypendingtable') }}" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="neo-metric-card">
-            <div class="metric-icon icon-sky">
-                <img src="{{ asset('img/icons/new.png') }}" alt="New">
-            </div>
-            <div class="metric-content">
-                <p>New Followups</p>
-                <h3 id="todaynew">0</h3>
-            </div>
-            <a href="{{ route('todaynewtable') }}" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="neo-metric-card-blue">
-            <div class="metric-icon icon-violet">
-                <img src="{{ asset('img/icons/all.png') }}" alt="All Leads">
-            </div>
-            <div class="metric-content-blue">
-                <p>My All Leads</p>
-                <h3 id="allleads">0</h3>
-            </div>
-            <a href="{{ route('myleads') }}" class="metric-arrow-blue"><i class="bi bi-arrow-right"></i></a>
-        </div>
-    </div>
-    @endif
 
-    @if(!$tenant || $tenant->is_tally_calling_enabled)
-    <div class="dashboard-header mb-3 mt-5">
-        <h4 class="fw-bold" style="font-family: Montserrat; color: #101828;">Tele-Calling Status</h4>
-        <p class="text-muted small">Daily calling activity and follow-up tracking</p>
-    </div>
-    <div class="neo-metric-grid">
-        <div class="neo-metric-card">
-            <div class="metric-icon" style="background: linear-gradient(135deg, #434AFA, #667eea);">
-                <i class="bi bi-telephone-outbound text-white"></i>
+<div class="dashboard-wrapper">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div>
+            <div style="font-size:10.5px;color:#9ca3af;margin-bottom:4px">Viewing dashboard as:</div>
+            <div class="rtabs">
+                <button class="rtab act" onclick="sw('founder',this)">My Dashboard</button>
+                <button class="rtab" onclick="sw('sales',this)">Teams Dashboard</button>
             </div>
-            <div class="metric-content">
-                <p>Today's Followups</p>
-                <h3 id="c_todayfollowups">0</h3>  
-            </div>
-            <a href="{{ route('calling.todayfollowupstable') }}" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
         </div>
-        <div class="neo-metric-card">
-            <div class="metric-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
-                <i class="bi bi-hourglass-split text-white"></i>
-            </div>
-            <div class="metric-content">
-                <p>Under Process</p>
-                <h3 id="c_underprocess">0</h3>
-            </div>
-            <a href="{{ route('calling.underprocesstable') }}" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="neo-metric-card">
-            <div class="metric-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">
-                <i class="bi bi-check-circle text-white"></i>
-            </div>
-            <div class="metric-content">    
-                <p>Today Completed</p>
-                <h3 id="c_todaycompleted">0</h3>
-            </div>
-            <a href="{{ route('calling.todaycompletedtable') }}" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="neo-metric-card">
-            <div class="metric-icon" style="background: linear-gradient(135deg, #ef4444, #f87171);">
-                <i class="bi bi-exclamation-triangle text-white"></i>
-            </div>
-            <div class="metric-content">
-                <p>Today Pending</p>
-                <h3 id="c_todaypending">0</h3>
-            </div>
-            <a href="{{ route('calling.todaypendingtable') }}" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="neo-metric-card">
-            <div class="metric-icon" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa);">
-                <i class="bi bi-person-plus text-white"></i>
-            </div>
-            <div class="metric-content">
-                <p>New Followups</p>
-                <h3 id="c_todaynew">0</h3>
-            </div>
-            <a href="{{ route('calling.todaynewtable') }}" class="metric-arrow"><i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="neo-metric-card-blue">
-            <div class="metric-icon" style="background: #101828;">
-                <i class="bi bi-collection text-white"></i>
-            </div>
-            <div class="metric-content-blue">
-                <p>My All Leads</p>
-                <h3 id="c_allleads">0</h3>
-            </div>
-            <a href="{{ route('calling.allleadstable') }}" class="metric-arrow-blue"><i class="bi bi-arrow-right"></i></a>
+        <div style="font-size:11.5px;color:#6b7280;text-align:right">
+            <div style="font-weight:600;color:#111827">{{ date('l, d M Y') }}</div>
+            <div id="clk-display">Workorio Pro</div>
         </div>
     </div>
-    @endif
 
-    <!-- <div class="neo-panel">
-        <div class="neo-panel-header">
-            <div>
-                <p class="neo-eyebrow">Productivity</p>
-                <h3 class="neo-panel-title">My Tasks</h3>
+    <!-- ===== FOUNDER VIEW ===== -->
+    <div class="d-view act" id="vf">
+        <div class="wbar">
+            <div><h2>Welcome back, {{ $firstName }}! 👋</h2><p>Here is your business overview for today.</p></div>
+            <button class="pibtn">Punch In</button>
+        </div>
+        <div class="alert-w">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="#f59e0b" style="flex-shrink:0"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            <span><b>Subscription Expiring:</b> Workorio Pro expires in <b>18 days</b> (May 13, 2025). &nbsp;<span style="color:#2563eb;cursor:pointer;text-decoration:underline">Renew Now →</span></span>
+        </div>
+
+        <div style="margin-bottom:20px">
+            <div style="margin-bottom:10px">
+                <div style="font-size:16px;font-weight:700;color:#111827">Sales Intelligence</div>
+                <div style="font-size:11.5px;color:#6b7280">Real-time performance metrics for your sales pipeline</div>
             </div>
-            <div class="panel-tags">
-                <span class="tag active">All</span>
-                <span class="tag">High</span>
-                <span class="tag">Completed</span>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px">
+                <div class="sc" onclick="location.href='{{ route('todayfollowupstable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>Today's Followups</div><div class="sval" id="todayfollowups">0<span class="sarr">→</span></div></div>
+                <div class="sc" onclick="location.href='{{ route('underprocesstable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>Under Process</div><div class="sval" id="underprocess">0<span class="sarr">→</span></div></div>
+                <div class="sc" onclick="location.href='{{ route('todaycompletedtable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>Today Completed</div><div class="sval" id="todaycompleted">0<span class="sarr">→</span></div></div>
+                <div class="sc" onclick="location.href='{{ route('todaypendingtable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Today Pending</div><div class="sval" id="todaypending">0<span class="sarr">→</span></div></div>
+                <div class="sc" onclick="location.href='{{ route('todaynewtable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>New Followups</div><div class="sval" id="todaynew">0<span class="sarr">→</span></div></div>
+                <div class="sc" onclick="location.href='{{ route('myleads') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>All Leads</div><div class="sval" id="allleads">0<span class="sarr">→</span></div></div>
+            </div>
+
+            <div style="margin-bottom:10px">
+                <div style="font-size:16px;font-weight:700;color:#111827">Tele-Calling Status</div>
+                <div style="font-size:11.5px;color:#6b7280">Daily calling activity and follow-up tracking</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
+                <div class="sc" onclick="location.href='{{ route('calling.todayfollowupstable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#3b82f6;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>Today's Followups</div><div class="sval" id="c_todayfollowups">0<span class="sarr">→</span></div></div>
+                <div class="sc" onclick="location.href='{{ route('calling.underprocesstable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#f59e0b;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>Under Process</div><div class="sval" id="c_underprocess">0<span class="sarr">→</span></div></div>
+                <div class="sc" onclick="location.href='{{ route('calling.todaycompletedtable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#10b981;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>Today Completed</div><div class="sval" id="c_todaycompleted">0<span class="sarr">→</span></div></div>
+                <div class="sc" onclick="location.href='{{ route('calling.todaypendingtable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#ef4444;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>Today Pending</div><div class="sval" id="c_todaypending">0<span class="sarr">→</span></div></div>
+                <div class="sc" onclick="location.href='{{ route('calling.todaynewtable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#a855f7;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></div>New Followups</div><div class="sval" id="c_todaynew">0<span class="sarr">→</span></div></div>
+                <div class="sc" onclick="location.href='{{ route('calling.allleadstable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#1f2937;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>All Leads</div><div class="sval" id="c_allleads">0<span class="sarr">→</span></div></div>
             </div>
         </div>
-        <div class="table-responsive">
-            <table class="neo-task-table">
-                <thead>
-                    <tr>
-                        <th>Task</th>
-                        <th>Assigned By</th>
-                        <th>Created On</th>
-                        <th>Urgency</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="tasksTableBody">
-                    <tr class="empty-row">
-                        <td colspan="5">Loading tasks...</td>
-                    </tr>
-                </tbody>
-            </table>
+
+        <div class="hcards">
+            <div class="card">
+                <div class="chead"><span class="ctitle">Team Attendance Today</span><span class="va">view all</span></div>
+                <div style="display:grid;grid-template-columns:2.5fr 1fr;gap:16px;">
+                    <div style="background:#f0fdf4;border-radius:9px;padding:16px;border:1px solid #dcfce7">
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #dcfce7;margin-bottom:12px">
+                            <div style="font-size:14px;color:#15803d;font-weight:600">Present</div>
+                            <div style="font-size:32px;font-weight:700;color:#16a34a;line-height:1">18</div>
+                        </div>
+                        <div style="grid-template-columns:1fr 1fr;gap:12px 24px;font-size:12.5px;color:#15803d;display:grid">
+                            <div style="display:flex;justify-content:space-between"><span>In Office</span><b style="color:#16a34a">10</b></div>
+                            <div style="display:flex;justify-content:space-between"><span>Remote</span><b style="color:#16a34a">3</b></div>
+                            <div style="display:flex;justify-content:space-between"><span>In Field</span><b style="color:#16a34a">2</b></div>
+                            <div style="display:flex;justify-content:space-between"><span>WFH</span><b style="color:#16a34a">3</b></div>
+                        </div>
+                    </div>
+                    <div style="background:#fef2f2;border-radius:9px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #fee2e2">
+                        <div style="font-size:42px;font-weight:700;color:#ef4444;line-height:1">5</div>
+                        <div style="font-size:13px;color:#b91c1c;font-weight:600;margin-top:8px">Absent</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="chead"><span class="ctitle">Lead Source Breakdown</span><span style="color:#9ca3af;font-size:16px;cursor:pointer;letter-spacing:2px">···</span></div>
+                <div class="dw">
+                    <div class="dc"><canvas id="dc1" width="110" height="110"></canvas><div class="dctr"><div class="n" id="total-leads-donut">120</div><div class="l">Leads</div></div></div>
+                    <ul class="leg">
+                        <li class="li"><span class="ld" style="background:#2563eb"></span>IndiaMART<span class="lp">30%</span></li>
+                        <li class="li"><span class="ld" style="background:#f97316"></span>Website<span class="lp">25%</span></li>
+                        <li class="li"><span class="ld" style="background:#ec4899"></span>Meta<span class="lp">10%</span></li>
+                        <li class="li"><span class="ld" style="background:#f59e0b"></span>Google Ads<span class="lp">30%</span></li>
+                        <li class="li"><span class="ld" style="background:#8b5cf6"></span>TradeIndia<span class="lp">05%</span></li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    </div> -->
+
+        <div class="hcards">
+            <div class="card">
+                <div class="chead"><span class="ctitle">Task</span><span class="va">view all</span></div>
+                <div class="subtabs">
+                    <button class="subtab act" onclick="swTaskTab('byMe',this)">Assigned by You</button>
+                    <button class="subtab" onclick="swTaskTab('toMe',this)">Assigned to You</button>
+                </div>
+                <div id="tk-byMe" class="tk-cnt act">
+                    <div class="ti"><div class="tdot r"></div><div style="flex:1"><div class="tnm">Send Proposal to X Client</div><div class="tdue">Assigned to: Rahul K. • Overdue</div></div><span class="tm">···</span></div>
+                    <div class="ti"><div class="tdot g"></div><div style="flex:1"><div class="tnm">Q2 Sales Report</div><div class="tdue">Assigned to: Priya S. • Due Today</div></div><span class="tm">···</span></div>
+                    <div class="ti"><div class="tdot o"></div><div style="flex:1"><div class="tnm">Update Product Catalog</div><div class="tdue">Assigned to: Sneha M. • Due Tomorrow</div></div><span class="tm">···</span></div>
+                    <div class="ti"><div class="tdot r"></div><div style="flex:1"><div class="tnm">Client Follow-up Call</div><div class="tdue">Assigned to: Vikram P. • Overdue</div></div><span class="tm">···</span></div>
+                </div>
+                <div id="tk-toMe" class="tk-cnt">
+                    <div class="ti"><div class="tdot o"></div><div style="flex:1"><div class="tnm">Submit Expense Report</div><div class="tdue">Assigned by: Accounts • Due Today</div></div><span class="tm">···</span></div>
+                    <div class="ti"><div class="tdot g"></div><div style="flex:1"><div class="tnm">Team Sync Preparation</div><div class="tdue">Assigned by: HR • Tomorrow</div></div><span class="tm">···</span></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="chead"><span class="ctitle">Due Payments</span><span style="font-size:11px;background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:8px;font-weight:600">3 Overdue</span></div>
+                <div class="pdi">
+                    <div class="pdi-top"><div><div class="pdi-nm">Arjun Enterprises</div><div class="pdi-due">Due Apr 20 • 5 days overdue</div></div><div class="pdi-amt">₹45,000</div></div>
+                    <div class="pdi-fu"><span style="font-size:10.5px;color:#9ca3af">Follow-up:</span><b style="font-size:11px;color:#374151">Rahul K.</b><span class="pdi-tag nc">Call not connected</span></div>
+                </div>
+                <div class="pdi">
+                    <div class="pdi-top"><div><div class="pdi-nm">Sharma Industries</div><div class="pdi-due">Due Apr 15 • 10 days overdue</div></div><div class="pdi-amt">₹1,20,000</div></div>
+                    <div class="pdi-fu"><span style="font-size:10.5px;color:#9ca3af">Follow-up:</span><b style="font-size:11px;color:#374151">Priya S.</b><span class="pdi-tag prom">Will pay by Apr 30</span></div>
+                </div>
+                <div class="pdi">
+                    <div class="pdi-top"><div><div class="pdi-nm">Verma &amp; Co.</div><div class="pdi-due">Due Apr 22 • 3 days overdue</div></div><div class="pdi-amt">₹78,500</div></div>
+                    <div class="pdi-fu"><span style="font-size:10.5px;color:#9ca3af">Follow-up:</span><b style="font-size:11px;color:#374151">Vikram P.</b><span class="pdi-tag pend">Requested invoice copy</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hcards">
+            <div class="card">
+                <div class="chead"><span class="ctitle">Due Subscriptions</span><span class="va">view all</span></div>
+                <div class="pdi">
+                    <div class="pdi-top"><div><div class="pdi-nm">Cloud Services Monthly</div><div class="pdi-due">Due Tomorrow</div></div><div class="pdi-amt">₹2,499</div></div>
+                    <div class="pdi-fu"><span class="pdi-tag pend">Auto-pay enabled</span></div>
+                </div>
+                <div class="pdi">
+                    <div class="pdi-top"><div><div class="pdi-nm">Email Marketing Tool</div><div class="pdi-due">Due in 4 days</div></div><div class="pdi-amt">₹4,200</div></div>
+                    <div class="pdi-fu"><span class="pdi-tag prom">Renewal pending</span></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="chead">
+                    <span class="ctitle">Petty Cash</span>
+                    <select id="pc-period" onchange="updatePC()" style="border:1px solid #e5e7eb;border-radius:6px;padding:3px 8px;font-size:11.5px;color:#374151;background:#fff;cursor:pointer">
+                        <option value="month" selected>This month</option>
+                        <option value="year">This year</option>
+                        <option value="fin">This year Financial</option>
+                    </select>
+                </div>
+                <div class="pcgrid">
+                    <div class="pcb" style="background:#eff6ff"><div class="pcb-val" id="pc-open" style="color:#1d4ed8">₹25,000</div><div class="pcb-lbl">Opening Balance</div></div>
+                    <div class="pcb" style="background:#fee2e2"><div class="pcb-val" id="pc-used" style="color:#b91c1c">₹18,450</div><div class="pcb-lbl">Balance Used</div></div>
+                    <div class="pcb" style="background:#f0fdf4"><div class="pcb-val" id="pc-rem" style="color:#15803d">₹6,550</div><div class="pcb-lbl">Remaining</div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hcards">
+            <div class="card">
+                <div class="chead"><span class="ctitle">SMM Calendar</span><span class="va">view all</span></div>
+                <div class="cal-hdr">
+                    <button class="cal-nav" onclick="prevM()">‹</button>
+                    <span class="cal-month-lbl" id="cal-ml">April 2025</span>
+                    <button class="cal-nav" onclick="nextM()">›</button>
+                </div>
+                <div class="cal-dnames">
+                    <div class="cal-dn">SUN</div><div class="cal-dn">MON</div><div class="cal-dn">TUE</div><div class="cal-dn">WED</div><div class="cal-dn">THU</div><div class="cal-dn">FRI</div><div class="cal-dn">SAT</div>
+                </div>
+                <div class="cal-grid" id="cal-grid"></div>
+            </div>
+            <div class="card">
+                <div class="chead"><span class="ctitle">Pending Approvals</span><span class="va">view all</span></div>
+                <div class="subtabs" style="overflow-x:auto;white-space:nowrap;display:block">
+                    <button class="subtab act" onclick="swApprovalTab('ts',this)" style="display:inline-block">Timesheet<span class="notif-badge">2</span></button>
+                    <button class="subtab" onclick="swApprovalTab('at',this)" style="display:inline-block">Attendance<span class="notif-badge">1</span></button>
+                    <button class="subtab" onclick="swApprovalTab('tk',this)" style="display:inline-block">Task<span class="notif-badge">1</span></button>
+                    <button class="subtab" onclick="swApprovalTab('lv',this)" style="display:inline-block">Leave<span class="notif-badge">1</span></button>
+                    <button class="subtab" onclick="swApprovalTab('pc',this)" style="display:inline-block">Petty Cash<span class="notif-badge">1</span></button>
+                </div>
+                <div id="ap-ts" class="ap-cnt act">
+                    <div class="ti"><div style="flex:1"><div class="tnm">Rahul K. - Apr 24</div><div class="tdue">8.5 Hours • Regular Shift</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                    <div class="ti"><div style="flex:1"><div class="tnm">Priya S. - Apr 24</div><div class="tdue">9.0 Hours • Overtime</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                </div>
+                <div id="ap-at" class="ap-cnt">
+                    <div class="ti"><div style="flex:1"><div class="tnm">Vikram P. - Regularization</div><div class="tdue">Forgot to punch out on Apr 22</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                </div>
+                <div id="ap-tk" class="ap-cnt">
+                    <div class="ti"><div style="flex:1"><div class="tnm">Sneha M. - Client Proposal</div><div class="tdue">Task completed • Pending review</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                </div>
+                <div id="ap-lv" class="ap-cnt">
+                    <div class="ti"><div style="flex:1"><div class="tnm">Arjun E. - Sick Leave</div><div class="tdue">Apr 28 - Apr 29 • 2 days</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                </div>
+                <div id="ap-pc" class="ap-cnt">
+                    <div class="ti"><div style="flex:1"><div class="tnm">Travel Expense - Priya S.</div><div class="tdue">₹450 • Client Meeting</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hcards">
+            <div class="card" style="background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -20px; right: -20px; font-size: 100px; opacity: 0.1;">🌴</div>
+                <div class="chead" style="border-bottom: none;"><span class="ctitle" style="color: #1f2937;">Upcoming Holidays</span></div>
+                <div style="display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1;">
+                    <div style="background: #fff; padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border-left: 4px solid #10b981;">
+                        <div style="background: #ecfdf5; color: #10b981; padding: 8px 12px; border-radius: 8px; text-align: center; min-width: 60px;">
+                            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Aug</div>
+                            <div style="font-size: 20px; font-weight: 800;">15</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 15px; font-weight: 700; color: #111827;">Independence Day</div>
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Thursday • National Holiday</div>
+                        </div>
+                    </div>
+                    <div style="background: #fff; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); opacity: 0.8; border-left: 4px solid #3b82f6;">
+                        <div style="background: #eff6ff; color: #3b82f6; padding: 6px 12px; border-radius: 8px; text-align: center; min-width: 60px;">
+                            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Oct</div>
+                            <div style="font-size: 16px; font-weight: 800;">02</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 700; color: #111827;">Gandhi Jayanti</div>
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Wednesday • National Holiday</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="background: linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -10px; right: 10px; font-size: 80px; opacity: 0.15;">🎉</div>
+                <div class="chead" style="border-bottom: none;"><span class="ctitle" style="color: #1f2937;">Celebrations</span></div>
+                <div style="display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1;">
+                    <div style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #fca5a5; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">AK</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 700; color: #111827;">Amit Kumar</div>
+                                <div style="font-size: 12px; color: #db2777; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 2px;">🎂 Birthday</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 13px; font-weight: 700; color: #1f2937;">Tomorrow</div>
+                            <div style="font-size: 11px; color: #6b7280;">May 14</div>
+                        </div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #60a5fa; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">SJ</div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 700; color: #111827;">Sneha Joshi</div>
+                                <div style="font-size: 12px; color: #2563eb; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 2px;">💼 3rd Work Anniversary</div>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 13px; font-weight: 700; color: #1f2937;">In 4 Days</div>
+                            <div style="font-size: 11px; color: #6b7280;">May 17</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SALES VIEW ===== -->
+    <div class="d-view" id="vs">
+        <div class="wbar"><div><h2>Welcome back, {{ $firstName }}! 📞</h2><p>Your leads and follow-ups for today.</p></div><button class="pibtn">Punch In</button></div>
+        <div class="sgrid">
+            <div class="sc" onclick="location.href='{{ route('todayfollowupstable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#f97316"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>Today's Follow-ups</div><div class="sval" id="s_todayfollowups">0<span class="sarr">→</span></div></div>
+            <div class="sc" onclick="location.href='{{ route('todaypendingtable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#ef4444"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>Missed Follow-ups</div><div class="sval" id="s_missed">0<span class="sarr" style="color:#ef4444">→</span></div></div>
+            <div class="sc" onclick="location.href='{{ route('todaycompletedtable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#22c55e"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>My Conversions</div><div class="sval" id="s_conversions">0<span class="sarr">→</span></div></div>
+            <div class="sc" onclick="location.href='{{ route('calling.todayfollowupstable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#3b82f6"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>Calls Today</div><div class="sval" id="s_calls">0<span class="sarr">→</span></div></div>
+        </div>
+        <div class="hcards">
+            <div class="card">
+                <div class="chead"><span class="ctitle">Today's Follow-ups</span><span class="va">view all</span></div>
+                <div id="followups-list">
+                    <!-- Dynamic list -->
+                </div>
+            </div>
+            <div class="card">
+                <div class="chead"><span class="ctitle">My Lead Sources</span><span style="color:#9ca3af;font-size:16px;cursor:pointer;letter-spacing:2px">···</span></div>
+                <div class="dw">
+                    <div class="dc"><canvas id="dc2" width="110" height="110"></canvas><div class="dctr"><div class="n" id="total-leads-donut-sales">64</div><div class="l">My Leads</div></div></div>
+                    <ul class="leg">
+                        <li class="li"><span class="ld" style="background:#2563eb"></span>IndiaMART<span class="lp">35%</span></li>
+                        <li class="li"><span class="ld" style="background:#f97316"></span>Website<span class="lp">20%</span></li>
+                        <li class="li"><span class="ld" style="background:#ec4899"></span>Meta<span class="lp">20%</span></li>
+                        <li class="li"><span class="ld" style="background:#f59e0b"></span>Google Ads<span class="lp">15%</span></li>
+                        <li class="li"><span class="ld" style="background:#8b5cf6"></span>TradeIndia<span class="lp">10%</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+            <div class="chead"><span class="ctitle">My Lead Pipeline</span><span class="va">view all</span></div>
+            <div class="pstages">
+                <div class="ps" style="background:#eff6ff"><div class="psn" style="color:#1d4ed8" id="pipe-new">18</div><div class="psl">New</div></div>
+                <div class="ps" style="background:#fffbeb"><div class="psn" style="color:#b45309" id="pipe-contacted">12</div><div class="psl">Contacted</div></div>
+                <div class="ps" style="background:#f0fdf4"><div class="psn" style="color:#15803d" id="pipe-interested">8</div><div class="psl">Interested</div></div>
+                <div class="ps" style="background:#fdf4ff"><div class="psn" style="color:#7e22ce" id="pipe-proposal">5</div><div class="psl">Proposal</div></div>
+                <div class="ps" style="background:#dcfce7"><div class="psn" style="color:#15803d" id="pipe-converted">7</div><div class="psl">Converted</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-ov" id="modal-cal" onclick="closeModal(event)">
+    <div class="modal-cnt" onclick="event.stopPropagation()">
+        <div class="m-close" onclick="closeModal(event)">✕</div>
+        <div id="cal-detail-modal"></div>
+    </div>
 </div>
 @endsection
 
 @push('styles')
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+.dashboard-wrapper{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px}
+.rtabs{display:flex;gap:4px;background:#e5e7eb;padding:3px;border-radius:9px;width:fit-content}
+.rtab{padding:6px 16px;border-radius:7px;font-size:12.5px;font-weight:500;cursor:pointer;color:#6b7280;border:none;background:transparent;transition:all .2s}
+.rtab.act{background:#2563eb;color:#fff}
+.wbar{background:#fff;border-radius:9px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border:1px solid #e5e7eb}
+.wbar h2{font-size:17px;font-weight:700;color:#111827;margin:0}
+.wbar p{font-size:12px;color:#9ca3af;margin-top:2px;margin-bottom:0}
+.pibtn{background:#16a34a;color:#fff;border:none;border-radius:7px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}
+.alert-w{border-radius:9px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;font-size:12.5px;background:#fffbeb;border:1px solid #fcd34d;color:#92400e}
+.sc{background:#fff;border-radius:9px;padding:12px 14px;border:1px solid #e5e7eb;transition: all 0.2s ease;}
+.sc:hover{border-color: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05);}
+.slbl{font-size:11px;color:#6b7280;display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.slbl svg{width:13px;height:13px}
+.sval{font-size:20px;font-weight:700;color:#111827;display:flex;align-items:center;justify-content:space-between}
+.sarr{color:#d1d5db;font-size:14px}
+.hcards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:#fff;border-radius:9px;border:1px solid #e5e7eb;padding:14px}
+.chead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ctitle{font-size:13.5px;font-weight:600;color:#111827}
+.va{color:#2563eb;font-size:11.5px;cursor:pointer;text-decoration:none}
+.ti{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid #f3f4f6}
+.ti:last-child{border-bottom:none}
+.tdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.tdot.r{background:#ef4444}.tdot.g{background:#22c55e}.tdot.o{background:#f97316}
+.tnm{font-size:12.5px;color:#374151;font-weight:500}
+.tdue{font-size:11px;color:#9ca3af;margin-top:1px}
+.tm{color:#d1d5db;font-size:15px;cursor:pointer;letter-spacing:2px}
+.dw{display:flex;align-items:center;gap:16px}
+.dc{position:relative;width:110px;height:110px;flex-shrink:0}
+.dctr{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.dctr .n{font-size:17px;font-weight:700;color:#111827}
+.dctr .l{font-size:10px;color:#9ca3af}
+.leg{list-style:none;display:flex;flex-direction:column;gap:5px;padding-left:0;margin-bottom:0}
+.li{display:flex;align-items:center;gap:5px;font-size:11.5px;color:#374151}
+.ld{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.lp{margin-left:auto;color:#6b7280;font-size:10.5px;min-width:28px;text-align:right}
+.pdi{padding:8px 0;border-bottom:1px solid #f3f4f6}
+.pdi:last-child{border-bottom:none}
+.pdi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.pdi-nm{font-size:12.5px;font-weight:600;color:#374151}
+.pdi-due{font-size:10.5px;color:#9ca3af;margin-top:1px}
+.pdi-amt{font-size:13px;font-weight:700;color:#ef4444;white-space:nowrap}
+.pdi-fu{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap}
+.pdi-tag{padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:500}
+.pdi-tag.nc{background:#fee2e2;color:#b91c1c}
+.pdi-tag.prom{background:#dcfce7;color:#15803d}
+.pdi-tag.pend{background:#fffbeb;color:#92400e}
+.pcgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.pcb{border-radius:8px;padding:12px 8px}
+.pcb-val{font-size:17px;font-weight:700;margin-bottom:3px}
+.pcb-lbl{font-size:10.5px;color:#6b7280}
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav{background:none;border:1px solid #e5e7eb;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:15px;color:#374151;display:flex;align-items:center;justify-content:center;line-height:1}
+.cal-nav:hover{background:#f3f4f6}
+.cal-month-lbl{font-size:14px;font-weight:600;color:#111827}
+.cal-dnames{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:3px}
+.cal-dn{text-align:center;font-size:10px;font-weight:600;color:#9ca3af;padding:3px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day{min-height:36px;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;cursor:pointer;font-size:12px;color:#374151;padding:4px 2px;user-select:none}
+.cal-day:hover{background:#f0f4ff}
+.cal-day.today{background:#2563eb;color:#fff;font-weight:700}
+.cal-day.today:hover{background:#1d4ed8}
+.cal-day.sel-day{outline:2px solid #2563eb;border-radius:7px}
+.cal-day.today.sel-day{outline:2px solid #93c5fd;outline-offset:1px}
+.cal-day.empty{cursor:default}
+.cal-day.empty:hover{background:transparent}
+.cal-dots{display:flex;gap:2px;margin-top:2px;justify-content:center}
+.cal-dot{width:4px;height:4px;border-radius:50%}
+.cal-pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.cpill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px}
+.cpill.done{background:#dcfce7;color:#15803d}
+.cpill.miss{background:#fee2e2;color:#b91c1c}
+.cpill.rem{background:#fffbeb;color:#92400e}
+.cpill.sch{background:#dbeafe;color:#1d4ed8}
+.cpill.canc{background:#f3f4f6;color:#6b7280}
+.cpill.resch{background:#fdf4ff;color:#7e22ce}
+.cal-sec{margin-bottom:9px}
+.cal-sec:last-child{margin-bottom:0}
+.cal-sec-title{font-size:10.5px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.cal-entry{display:flex;align-items:center;gap:7px;padding:5px 8px;background:#fff;border-radius:6px;margin-bottom:3px;border:1px solid #e5e7eb}
+.cal-entry:last-child{margin-bottom:0}
+.cplat{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;min-width:50px;text-align:center}
+.cplat.ig{background:#fce7f3;color:#be185d}
+.cplat.fb{background:#dbeafe;color:#1e3a8a}
+.cplat.li{background:#e0f2fe;color:#0369a1}
+.cclient{font-size:12px;color:#374151;font-weight:500}
+.cnote{font-size:10.5px;color:#9ca3af;margin-left:auto}
+.cal-empty-msg{text-align:center;font-size:12px;color:#9ca3af;padding:10px}
+.fi{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #f3f4f6}
+.fi:last-child{border-bottom:none}
+.fav{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.fnm{font-size:12.5px;font-weight:500;color:#374151}
+.fdt{font-size:11px;color:#9ca3af;margin-top:1px}
+.ft{font-size:11px;color:#6b7280;background:#f3f4f6;padding:2px 7px;border-radius:9px;white-space:nowrap}
+.ft.urg{color:#ef4444;background:#fee2e2}
+.pstages{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center}
+.ps{border-radius:7px;padding:10px 6px}
+.psn{font-size:20px;font-weight:700}
+.psl{font-size:10.5px;color:#6b7280;margin-top:3px}
 
-    .neo-dashboard {
-        padding: 10px;
-        /* font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; */
-        background: #f6f6f6;
-    }
+.d-view { display: none !important; }
+.d-view.act { display: block !important; }
+.subtabs { display: flex; gap: 4px; background: #f3f4f6; padding: 3px; border-radius: 8px; margin-bottom: 12px; width: fit-content; }
+.subtab { padding: 5px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer; color: #6b7280; border: none; background: transparent; transition: all .2s; }
+.subtab.act { background: #fff; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.notif-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #ef4444; color: #fff; font-size: 9px; font-weight: 700; margin-left: 6px; vertical-align: text-bottom; }
+.tk-cnt, .ap-cnt { display: none; }
+.tk-cnt.act, .ap-cnt.act { display: block; }
+.modal-ov { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(2px); }
+.modal-cnt { background: #fff; width: 380px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; animation: mIn 0.2s ease-out; }
+@keyframes mIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.m-close { position: absolute; top: 12px; right: 12px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9ca3af; border-radius: 50%; }
+.m-close:hover { background: #f3f4f6; color: #374151; }
 
-    .neo-eyebrow {
-        text-transform: uppercase;
-        letter-spacing: 0.18em;
-        font-size: 0.65rem;
-        color: #a0a6b5;
-        margin-bottom: 0.3rem;
-    }
-
-    .neo-metric-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 22px;
-        margin-bottom: 1.5rem;
-    }
-
-    .neo-metric-card {
-        background: #fff;
-        border-radius: 10px;
-        border: 1px solid #eceef3;
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0px 4px 4px 0px #0000000A;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .neo-metric-card-blue {
-        background: #fff;
-        border-radius: 10px;
-        border: 1px solid #eceef3;
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0px 4px 4px 0px #0000000A;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .metric-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-        color: #fff;
-    }
-
-    .icon-sunrise { background: linear-gradient(135deg, #f97316, #fb923c); }
-    .icon-amber   { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
-    .icon-emerald { background: linear-gradient(135deg, #34d399, #10b981); }
-    .icon-rose    { background: linear-gradient(135deg, #fb7185, #f43f5e); }
-    .icon-sky     { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
-    .icon-violet  { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
-
-  
-
-    .metric-content p {
-        margin: 0;
-        font-size: 0.8rem;
-        color: #000;
-        font-family: Montserrat !important;
-        font-weight: 700;        
-
-    }
-
-    .metric-content-blue p {
-        margin: 0;
-        font-size: 0.8rem;  
-        color: #000;
-        font-family: Montserrat !important;
-        font-weight: 700; 
-    }
-
-    .metric-content h3 {
-        margin: 0;
-        font-size: 1.9rem;
-        color: #101828;
-        font-weight: 700;
-        font-family: Montserrat;
-    }
-
-    .metric-content-blue h3 {
-        margin: 0;
-        font-size: 1.9rem;
-        color: #000;
-        font-weight: 700;
-        font-family: Montserrat;
-    }
-
-    .metric-arrow {
-        width: 34px;
-        height: 34px;
-        border-radius: 12px;
-        /* border: 1px solid #eceef3; */
-        /* background: #f4f4ff; */
-        color: #000;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        position: absolute;
-        right: 16px;
-        bottom: 16px;
-    }
-
-    .metric-arrow-blue {
-        width: 34px;
-        height: 34px;
-        border-radius: 12px;
-        /* border: 1px solid #eceef3; */
-        /* background: #f4f4ff; */
-        color: #000;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        position: absolute;
-        right: 16px;
-        bottom: 16px;
-    }
-
-    .metric-arrow:hover {
-        background: #5b59f7;
-        color: #fff;
-    }
-
-    .neo-panel {
-        background: #fff;
-        border-radius: 24px;
-        border: 1px solid #eceef3;
-        box-shadow: 0 15px 40px rgba(15, 23, 42, 0.05);
-        padding: 1.5rem;
-    }
-
-    .neo-panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .neo-panel-title {
-        margin: 0;
-        font-size: 1.2rem;
-        color: #111827;
-    }
-
-    .panel-tags .tag {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.35rem 0.75rem;
-        border-radius: 999px;
-        border: 1px solid #eceef3;
-        font-size: 0.75rem;
-        margin-right: 0.35rem;
-        color: #6b7280;
-        cursor: pointer;
-    }
-
-    .panel-tags .tag.active {
-        border-color: #c7cbe1;
-        background: #f4f4ff;
-        color: #4338ca;
-        font-weight: 600;
-    }
-
-    .neo-task-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .neo-task-table th {
-        text-transform: uppercase;
-        letter-spacing: 0.18em;
-        font-size: 0.65rem;
-        color: #a0a6b5;
-        font-weight: 600;
-        padding-bottom: 0.75rem;
-    }
-
-    .neo-task-table td {
-        padding: 0.9rem 0;
-        border-top: 1px solid #f1f3f9;
-        color: #1f2937;
-    }
-
-    .neo-task-table tr:first-child td {
-        border-top: none;
-    }
-
-    .table-checkbox {
-        display: flex;
-        align-items: center;
-        gap: 0.45rem;
-        font-weight: 600;
-        color: #111827;
-    }
-
-    .table-checkbox input {
-        width: 16px;
-        height: 16px;
-    }
-
-    .status-pill,
-    .urgency-pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.2rem 0.75rem;
-        border-radius: 999px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .status-green { background: rgba(34, 197, 94, 0.15); color: #15803d; }
-    .status-amber { background: rgba(251, 191, 36, 0.2); color: #92400e; }
-    .status-red   { background: rgba(248, 113, 113, 0.2); color: #b91c1c; }
-    .status-gray  { background: rgba(148, 163, 184, 0.3); color: #475569; }
-
-    .priority-high   { background: rgba(239, 68, 68, 0.15); color: #b91c1c; }
-    .priority-medium { background: rgba(251, 191, 36, 0.15); color: #92400e; }
-    .priority-low    { background: rgba(34, 197, 94, 0.15); color: #15803d; }
-
-    .empty-row td {
-        text-align: center;
-        color: #9ca3af;
-        padding: 1.5rem 0;
-    }
-
-    @media (max-width: 767px) {
-        .neo-hero {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .neo-date-chip {
-            width: 100%;
-            text-align: center;
-        }
-
-        .neo-metric-card{
-            margin-bottom: 10px;
-        }
-
-        .neo-metric-grid{
-            display: block;
-        }
-
-        .neo-dashboard {
-            margin-left: 20px;
-        }
-    }
+@media (max-width: 991.98px) {
+    .hcards { grid-template-columns: 1fr; }
+    .sgrid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 767.98px) {
+    .sgrid { grid-template-columns: repeat(2, 1fr); }
+    .pstages { grid-template-columns: repeat(3, 1fr); }
+    .wbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .pibtn { width: 100%; }
+}
 </style>
 @endpush
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-    function animateValue(element, start, end, duration) {
-        let startTimestamp = null;
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            const current = Math.floor(progress * (end - start) + start);
-            element.textContent = current;
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            }
-        };
-        window.requestAnimationFrame(step);
+var charts={};
+var calY={{ date('Y') }},calM={{ date('n') - 1 }};
+var selDs=null;
+
+var smmData={
+  "2025-04-17":{t:"past",done:[{c:"TechCorp",p:"ig"},{c:"FashionHub",p:"fb"}],missed:[{c:"GreenLeaf",p:"li"}],canc:[]},
+  "2025-04-21":{t:"past",done:[{c:"StyleMart",p:"ig"}],missed:[],canc:[{c:"TechCorp",p:"fb",r:"Rescheduled to Apr 28"}]},
+  "2025-04-23":{t:"past",done:[{c:"GreenLeaf",p:"ig"},{c:"FashionHub",p:"li"}],missed:[{c:"RetailX",p:"fb"}],canc:[]},
+  "2025-04-25":{t:"today",done:[{c:"TechCorp",p:"ig"},{c:"FashionHub",p:"fb"}],rem:[{c:"GreenLeaf",p:"li"},{c:"StyleMart",p:"ig"}],canc:[{c:"RetailX",p:"fb"}]},
+  "2025-04-28":{t:"future",sch:[{c:"TechCorp",p:"ig"},{c:"FashionHub",p:"fb"},{c:"GreenLeaf",p:"li"}],resch:[{c:"RetailX",p:"ig",r:"Rescheduled from Apr 25"}],canc:[]},
+  "2025-04-30":{t:"future",sch:[{c:"StyleMart",p:"fb"},{c:"TechCorp",p:"li"}],resch:[],canc:[{c:"GreenLeaf",p:"ig"}]},
+};
+
+var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function renderCal(y,m){
+  document.getElementById('cal-ml').textContent=MONTHS[m]+' '+y;
+  var firstDay=new Date(y,m,1).getDay();
+  var days=new Date(y,m+1,0).getDate();
+  var todayRef=new Date();
+  todayRef.setHours(0,0,0,0);
+  var html='';
+  for(var i=0;i<firstDay;i++) html+='<div class="cal-day empty"></div>';
+  for(var d=1;d<=days;d++){
+    var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var cd=new Date(y,m,d);
+    var isToday=(y===todayRef.getFullYear()&&m===todayRef.getMonth()&&d===todayRef.getDate());
+    var isPast=cd<todayRef;
+    var data=smmData[ds];
+    var dots='';
+    if(data){
+      var dc=[];
+      if(isToday){
+        if((data.done||[]).length) dc.push('#22c55e');
+        if((data.rem||[]).length) dc.push('#f59e0b');
+        if((data.canc||[]).length) dc.push('#9ca3af');
+      } else if(isPast){
+        if((data.done||[]).length) dc.push('#22c55e');
+        if((data.missed||[]).length) dc.push('#ef4444');
+        if((data.canc||[]).length) dc.push('#9ca3af');
+      } else {
+        if((data.sch||[]).length) dc.push('#2563eb');
+        if((data.resch||[]).length) dc.push('#8b5cf6');
+        if((data.canc||[]).length) dc.push('#9ca3af');
+      }
+      var dotInner=isToday?dc.map(()=>'<div class="cal-dot" style="background:rgba(255,255,255,0.85)"></div>').join(''):dc.map(c=>'<div class="cal-dot" style="background:'+c+'"></div>').join('');
+      dots='<div class="cal-dots">'+dotInner+'</div>';
     }
+    var cls='cal-day'+(isToday?' today':'')+(ds===selDs?' sel-day':'');
+    html+='<div class="'+cls+'" id="cd-'+ds+'" onclick="pickDate(\''+ds+'\')">'+(isToday?'<b>'+d+'</b>':d)+dots+'</div>';
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
 
-    function fetchMetric(url, elementId, key) {
-        $.ajax({
-            url,
-            method: 'GET',
-            success: function (response) {
-                const value = Number(response && response[key]) || 0;
-                const el = document.getElementById(elementId);
-                if (el) animateValue(el, 0, value, 900);
-            },
-            error: function () {
-                const el = document.getElementById(elementId);
-                if (el) el.textContent = '0';
-            }
-        });
+function prevM(){calM--;if(calM<0){calM=11;calY--;}renderCal(calY,calM);selDs=null;}
+function nextM(){calM++;if(calM>11){calM=0;calY++;}renderCal(calY,calM);selDs=null;}
+
+function platHtml(p){
+  var n=p==='ig'?'Instagram':p==='fb'?'Facebook':'LinkedIn';
+  return '<span class="cplat '+p+'">'+n+'</span>';
+}
+function entryRow(e,extra){
+  var note=e.r?'<span class="cnote">'+e.r+'</span>':'';
+  var td=extra?'style="text-decoration:line-through;opacity:0.65"':'';
+  return '<div class="cal-entry">'+platHtml(e.p)+'<span class="cclient" '+td+'>'+e.c+'</span>'+note+'</div>';
+}
+
+function pickDate(ds){
+  if(selDs){var prev=document.getElementById('cd-'+selDs);if(prev){prev.classList.remove('sel-day');}}
+  selDs=ds;
+  var el=document.getElementById('cd-'+ds);
+  if(el) el.classList.add('sel-day');
+  var data=smmData[ds];
+  var d=new Date(ds+'T00:00:00');
+  var dLabel=d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+  var det=document.getElementById('cal-detail-modal');
+  var html='';
+  if(!data){
+    html='<div class="cal-detail-date" style="font-weight:700; margin-bottom:10px;">📅 '+dLabel+'</div><div class="cal-empty-msg">No posts scheduled on this date.</div>';
+  } else {
+    html='<div class="cal-detail-date" style="font-weight:700; margin-bottom:10px;">📅 '+dLabel+'</div>';
+    if(data.t==='today'){
+      var pills='';
+      if((data.done||[]).length) pills+='<span class="cpill done">✓ '+(data.done.length)+' Posted</span>';
+      if((data.rem||[]).length) pills+='<span class="cpill rem">⏳ '+(data.rem.length)+' Remaining</span>';
+      if((data.canc||[]).length) pills+='<span class="cpill canc">✕ '+(data.canc.length)+' Cancelled</span>';
+      html+='<div class="cal-pills">'+pills+'</div>';
+      if((data.done||[]).length){html+='<div class="cal-sec"><div class="cal-sec-title" style="color:#15803d">Posted</div>';data.done.forEach(e=>{html+=entryRow(e);});html+='</div>';}
+      if((data.rem||[]).length){html+='<div class="cal-sec"><div class="cal-sec-title" style="color:#92400e">Remaining</div>';data.rem.forEach(e=>{html+=entryRow(e);});html+='</div>';}
+      if((data.canc||[]).length){html+='<div class="cal-sec"><div class="cal-sec-title">Cancelled</div>';data.canc.forEach(e=>{html+=entryRow(e,true);});html+='</div>';}
+    } else if(data.t==='past'){
+      var pills='';
+      if((data.done||[]).length) pills+='<span class="cpill done">✓ '+(data.done.length)+' Posted</span>';
+      if((data.missed||[]).length) pills+='<span class="cpill miss">✗ '+(data.missed.length)+' Missed</span>';
+      if((data.canc||[]).length) pills+='<span class="cpill canc">↩ '+(data.canc.length)+' Cancelled</span>';
+      html+='<div class="cal-pills">'+pills+'</div>';
+      if((data.done||[]).length){html+='<div class="cal-sec"><div class="cal-sec-title" style="color:#15803d">Posted</div>';data.done.forEach(e=>{html+=entryRow(e);});html+='</div>';}
+      if((data.missed||[]).length){html+='<div class="cal-sec"><div class="cal-sec-title" style="color:#b91c1c">Missed</div>';data.missed.forEach(e=>{html+=entryRow(e);});html+='</div>';}
+      if((data.canc||[]).length){html+='<div class="cal-sec"><div class="cal-sec-title">Cancelled / Rescheduled</div>';data.canc.forEach(e=>{html+=entryRow(e,true);});html+='</div>';}
+    } else {
+      var pills='';
+      if((data.sch||[]).length) pills+='<span class="cpill sch">📅 '+(data.sch.length)+' Scheduled</span>';
+      if((data.resch||[]).length) pills+='<span class="cpill resch">↩ '+(data.resch.length)+' Rescheduled</span>';
+      if((data.canc||[]).length) pills+='<span class="cpill canc">✕ '+(data.canc.length)+' Cancelled</span>';
+      html+='<div class="cal-pills">'+pills+'</div>';
+      if((data.sch||[]).length){html+='<div class="cal-sec"><div class="cal-sec-title" style="color:#1d4ed8">Scheduled</div>';data.sch.forEach(e=>{html+=entryRow(e);});html+='</div>';}
+      if((data.resch||[]).length){html+='<div class="cal-sec"><div class="cal-sec-title" style="color:#7e22ce">Rescheduled</div>';data.resch.forEach(e=>{html+=entryRow(e);});html+='</div>';}
+      if((data.canc||[]).length){html+='<div class="cal-sec"><div class="cal-sec-title">Cancelled</div>';data.canc.forEach(e=>{html+=entryRow(e,true);});html+='</div>';}
     }
+  }
+  det.innerHTML=html;
+  document.getElementById('modal-cal').style.display='flex';
+}
 
-    function loadDashboardMetrics() {
-        // Sales Metrics
-        fetchMetric('/todayfollowups', 'todayfollowups', 'totalLeads');
-        fetchMetric('/underprocess', 'underprocess', 'underprocess');
-        fetchMetric('/todaycompleted', 'todaycompleted', 'todaycompleted');
-        fetchMetric('/todaypending', 'todaypending', 'todaypending');
-        fetchMetric('/todaynew', 'todaynew', 'todaynew');
-        fetchMetric('/allleads', 'allleads', 'allleads');
+function closeModal(){document.getElementById('modal-cal').style.display='none';}
 
-        // Calling Metrics
-        fetchMetric('/calling/todayfollowups', 'c_todayfollowups', 'totalLeads');
-        fetchMetric('/calling/underprocess', 'c_underprocess', 'underprocess');
-        fetchMetric('/calling/todaycompleted', 'c_todaycompleted', 'todaycompleted');
-        fetchMetric('/calling/todaypending', 'c_todaypending', 'todaypending');
-        fetchMetric('/calling/todaynew', 'c_todaynew', 'todaynew');
-        fetchMetric('/calling/allleads', 'c_allleads', 'allleads');
-    }
+function swTaskTab(tab,btn){
+  btn.parentElement.querySelectorAll('.subtab').forEach(t=>t.classList.remove('act'));btn.classList.add('act');
+  btn.parentElement.parentElement.querySelectorAll('.tk-cnt').forEach(c=>c.classList.remove('act'));
+  document.getElementById('tk-'+tab).classList.add('act');
+}
 
-    function loadTasks() {
-        $.ajax({
-            url: '/user-tasks',
-            method: 'GET',
-            success: function (response) {
-                const tasks = response && response.tasks ? response.tasks : [];
-                renderTaskTable(tasks);
-            },
-            error: function () {
-                renderTaskTable([]);
-            }
-        });
-    }
+function swApprovalTab(tab,btn){
+  btn.parentElement.querySelectorAll('.subtab').forEach(t=>t.classList.remove('act'));btn.classList.add('act');
+  btn.parentElement.parentElement.querySelectorAll('.ap-cnt').forEach(c=>c.classList.remove('act'));
+  document.getElementById('ap-'+tab).classList.add('act');
+}
 
-    function renderTaskTable(tasks) {
-        const body = $('#tasksTableBody');
-        if (!tasks || tasks.length === 0) {
-            body.html(`<tr class="empty-row"><td colspan="5">You're all caught up – no tasks assigned 🎉</td></tr>`);
-            return;
+var pcData={month:{o:'₹25,000',u:'₹18,450',r:'₹6,550'},year:{o:'₹3,00,000',u:'₹2,34,800',r:'₹65,200'},fin:{o:'₹2,50,000',u:'₹1,87,350',r:'₹62,650'}};
+function updatePC(){var p=document.getElementById('pc-period').value,d=pcData[p];document.getElementById('pc-open').textContent=d.o;document.getElementById('pc-used').textContent=d.u;document.getElementById('pc-rem').textContent=d.r;}
+
+function drawDonut(id,data,colors){var ctx=document.getElementById(id);if(!ctx)return; if(charts[id]) charts[id].destroy();charts[id]=new Chart(ctx,{type:'doughnut',data:{datasets:[{data:data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:700}}});}
+
+function sw(role,btn){
+  document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('act'));btn.classList.add('act');
+  document.querySelectorAll('.d-view').forEach(v=>v.classList.remove('act'));
+  var target = document.getElementById('v'+role[0]);
+  if(target) target.classList.add('act');
+  if(role==='founder') drawDonut('dc1',[30,25,10,30,5],['#2563eb','#f97316','#ec4899','#f59e0b','#8b5cf6']);
+  if(role==='sales') drawDonut('dc2',[35,20,20,15,10],['#2563eb','#f97316','#ec4899','#f59e0b','#8b5cf6']);
+}
+
+function tick(){var n=new Date(),t=n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}),ce=document.getElementById('clk-display');if(ce)ce.textContent='Workorio Pro • '+t;}
+
+function fetchMetric(url, elementId, key) {
+    $.ajax({
+        url,
+        method: 'GET',
+        success: function (response) {
+            const value = Number(response && response[key]) || 0;
+            const el = document.getElementById(elementId);
+            if (el) el.textContent = value;
+        },
+        error: function () {
+            const el = document.getElementById(elementId);
+            if (el) el.textContent = '0';
         }
-
-        const rows = tasks.slice(0, 6).map(task => `
-            <tr>
-                <td>
-                    <label class="table-checkbox">
-                        <input type="checkbox" />
-                        <span>${task.task_name || 'Untitled Task'}</span>
-                    </label>
-                </td>
-                <td>${task.user_name || 'N/A'}</td>
-                <td>${formatDate(task.created_at)}</td>
-                <td><span class="urgency-pill ${priorityClass(task.priority_name)}">${task.priority_name || '—'}</span></td>
-                <td><span class="status-pill ${statusClass(task.status_name)}">${task.status_name || 'Pending'}</span></td>
-            </tr>
-        `).join('');
-
-        body.html(rows);
-    }
-
-    function statusClass(status) {
-        if (!status) return 'status-gray';
-        const map = {
-            'completed': 'status-green',
-            'in progress': 'status-amber',
-            'pending': 'status-gray',
-            'cancelled': 'status-red'
-        };
-        return map[status.toLowerCase()] || 'status-gray';
-    }
-
-    function priorityClass(priority) {
-        if (!priority) return 'priority-medium';
-        const map = {
-            'high': 'priority-high',
-            'medium': 'priority-medium',
-            'low': 'priority-low'
-        };
-        return map[priority.toLowerCase()] || 'priority-medium';
-    }
-
-    function formatDate(dateString) {
-        if (!dateString) return '—';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    }
-
-    $(function () {
-        loadDashboardMetrics();
-        loadTasks();
     });
+}
+
+function loadDashboardMetrics() {
+    // Sales Metrics
+    fetchMetric('/todayfollowups', 'todayfollowups', 'totalLeads');
+    fetchMetric('/underprocess', 'underprocess', 'underprocess');
+    fetchMetric('/todaycompleted', 'todaycompleted', 'todaycompleted');
+    fetchMetric('/todaypending', 'todaypending', 'todaypending');
+    fetchMetric('/todaynew', 'todaynew', 'todaynew');
+    fetchMetric('/allleads', 'allleads', 'allleads');
+
+    // Calling Metrics
+    fetchMetric('/calling/todayfollowups', 'c_todayfollowups', 'totalLeads');
+    fetchMetric('/calling/underprocess', 'c_underprocess', 'underprocess');
+    fetchMetric('/calling/todaycompleted', 'c_todaycompleted', 'todaycompleted');
+    fetchMetric('/calling/todaypending', 'c_todaypending', 'todaypending');
+    fetchMetric('/calling/todaynew', 'c_todaynew', 'todaynew');
+    fetchMetric('/calling/allleads', 'c_allleads', 'allleads');
+    
+    // For Sales View
+    fetchMetric('/todayfollowups', 's_todayfollowups', 'totalLeads');
+    // fetchMetric('/underprocess', 's_underprocess', 'underprocess');
+    fetchMetric('/todaypending', 's_missed', 'todaypending');
+    fetchMetric('/todaycompleted', 's_conversions', 'todaycompleted');
+}
+
+$(function () {
+    tick();setInterval(tick,1000);
+    drawDonut('dc1',[30,25,10,30,5],['#2563eb','#f97316','#ec4899','#f59e0b','#8b5cf6']);
+    renderCal(calY,calM);
+    loadDashboardMetrics();
+});
 </script>
 @endpush
-
