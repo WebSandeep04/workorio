@@ -31,9 +31,14 @@
         <h4 class="header-title"><?php echo $__env->yieldContent('page_title', 'Dashboard'); ?></h4>
     </div>
     <div class="app-header-actions">
-        <div class="header-icon">
-            <i class="bi bi-globe"></i>
-        </div>
+        <a href="<?php echo e(route('tracking.index')); ?>" class="header-icon" title="Tracking" style="text-decoration: none;">
+            <i class="bi bi-geo-alt"></i>
+        </a>
+        <?php if($headerRole === 'admin'): ?>
+        <a href="<?php echo e(route('role-master')); ?>" class="header-icon" title="Software Setup" style="text-decoration: none;">
+            <i class="bi bi-gear"></i>
+        </a>
+        <?php endif; ?>
         <div class="header-icon" id="notification-bell" style="position: relative;">
             <button id="bell-btn" class="border-0 bg-transparent p-0 w-100 h-100 d-flex align-items-center justify-content-center" style="cursor: pointer;">
                 <i class="bi bi-bell"></i>
@@ -49,9 +54,6 @@
                 </div>
                 <div id="notification-list" style="max-height: 340px; overflow-y: auto;"></div>
             </div>
-        </div>
-        <div class="header-icon">
-            <i class="bi bi-envelope"></i>
         </div>
         <form method="POST" action="<?php echo e(route($logoutRoute)); ?>" class="m-0">
             <?php echo csrf_field(); ?>
