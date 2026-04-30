@@ -14,12 +14,6 @@
     padding: 0.5rem;
   }
 
-  .data-table-card .custom-table thead th {
-    
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
-   
-  }
-
   /* Summary Cards */
   .summary-cards {
     display: grid;
@@ -59,7 +53,7 @@
   .summary-card-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #64748b; font-family: Montserrat; }
   .summary-card-value { font-size: 1.1rem; font-weight: 700; line-height: 1; color: #0f172a; font-family: Montserrat; }
 
-  /* Controls (Search/Refresh) */
+  /* Controls */
   .table-search {
     width: 100%;
     margin-bottom: 0.5rem;
@@ -77,7 +71,6 @@
     border: 1px solid #e5e7eb;
     border-radius: 2px;
     padding: 0.35rem 0.9rem;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
   
   .table-search-field i { color: #9ca3af; font-size: 0.85rem; }
@@ -92,10 +85,6 @@
   .data-table-card .modern-card-body { padding: 0; }
   .data-table-card .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; background: transparent; }
   
-  .data-table-card .table-scroll::-webkit-scrollbar { height: 8px; }
-  .data-table-card .table-scroll::-webkit-scrollbar-track { background: #e4e7ec; border-radius: 999px; }
-  .data-table-card .table-scroll::-webkit-scrollbar-thumb { background: #434aFA; border-radius: 999px; }
-
   .data-table-card .custom-table {
     border-collapse: separate; border-spacing: 0; width: 100%; min-width: 800px;
     background: transparent; font-size: 0.85rem; table-layout: auto;
@@ -116,25 +105,8 @@
   }
 
   .data-table-card .custom-table tbody tr:hover {
-    background: #f8f9ff; transform: translateY(-1px); box-shadow: 0px 2px 5px rgba(0,0,0,0.02);
+    background: #f8f9ff;
   }
-  
-  /* Pagination */
-  .pagination .page-link {
-    color: #434afa; border: 2px solid #e0e0e0; border-radius: 6px;
-    padding: 0.25rem 0.5rem; margin: 0 2px; font-size: 10px; font-weight: 500; cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .pagination .page-item.active .page-link {
-    background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
-  }
-  .pagination .page-link:hover {
-    background: rgba(67, 74, 250, 0.15);
-    border-color: #434afa;
-    transform: translateY(-1px);
-  }
-  
-  .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; }
   
   /* Modals */
   .modal-header { background-color: #434afa !important; color: white; border-radius: 0; }
@@ -144,43 +116,51 @@
 @endpush
 
 <div class="container-fluid px-2 mt-2">
-    
-    <!-- Summary Cards -->
+    <!-- Status Cards -->
     <div class="summary-cards">
         <div class="summary-card">
             <div class="summary-card-icon icon-blue">
-                <i class="bi bi-clock"></i>
+                <i class="bi bi-calendar-range"></i>
             </div>
             <div class="summary-card-content">
-                <div class="summary-card-label">Office Hours</div>
-                <div class="summary-card-value" id="totalOfficeHours">0</div>
+                <div class="summary-card-label">Working Days</div>
+                <div class="summary-card-value" id="totalWorkingDays">0</div>
             </div>
         </div>
         <div class="summary-card">
             <div class="summary-card-icon icon-green">
-                <i class="bi bi-geo-alt"></i>
+                <i class="bi bi-person-check"></i>
             </div>
             <div class="summary-card-content">
-                <div class="summary-card-label">Field Hours</div>
-                <div class="summary-card-value" id="totalFieldHours">0</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-icon icon-purple">
-                <i class="bi bi-calendar-check"></i>
-            </div>
-            <div class="summary-card-content">
-                <div class="summary-card-label">Total Days</div>
-                <div class="summary-card-value" id="totalDays">0</div>
+                <div class="summary-card-label">Present</div>
+                <div class="summary-card-value" id="totalPresent">0</div>
             </div>
         </div>
         <div class="summary-card">
             <div class="summary-card-icon icon-orange">
-                <i class="bi bi-arrow-repeat"></i>
+                <i class="bi bi-clock-history"></i>
             </div>
             <div class="summary-card-content">
-                <div class="summary-card-label">Total Cycles</div>
-                <div class="summary-card-value" id="totalCycles">0</div>
+                <div class="summary-card-label">Half-Day</div>
+                <div class="summary-card-value" id="totalHalfDay">0</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-icon icon-purple">
+                <i class="bi bi-calendar-event"></i>
+            </div>
+            <div class="summary-card-content">
+                <div class="summary-card-label">Leave</div>
+                <div class="summary-card-value" id="totalLeave">0</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-icon icon-blue" style="background: linear-gradient(135deg, #f43f5e, #fb7185) !important;">
+                <i class="bi bi-person-x"></i>
+            </div>
+            <div class="summary-card-content">
+                <div class="summary-card-label">Absent</div>
+                <div class="summary-card-value" id="totalAbsent">0</div>
             </div>
         </div>
     </div>
@@ -190,6 +170,11 @@
         <div class="table-search-field">
           <i class="bi bi-search"></i>
           <input type="text" id="attendanceSearch" placeholder="Filter current page..." />
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label for="monthFilter" class="small fw-bold text-muted mb-0">Month:</label>
+            <input type="month" id="monthFilter" class="form-control form-control-sm shadow-sm" 
+                   value="{{ date('Y-m') }}" style="width: auto; border-radius: 4px; border: 1px solid #e5e7eb;">
         </div>
     </div>
 
@@ -201,25 +186,19 @@
                     <thead>
                         <tr>
                             <th>Date</th>
+                            <th>Status</th>
                             <th>Office Hours</th>
                             <th>Field Hours</th>
                             <th>Total Hours</th>
-                            <th>Cycles</th>
-                            <th>Movements</th>
                             <th class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody id="attendanceTableBody">
-                        <tr><td colspan="7" class="text-center py-4 text-muted">Loading...</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
-    
-    <!-- Pagination -->
-    <div class="d-flex justify-content-center mt-2">
-        <ul class="pagination" id="pagination"></ul>
     </div>
 </div>
 
@@ -234,109 +213,117 @@
             <div class="modal-body" id="movementDetails">
                 <!-- Data loaded via JS -->
             </div>
-            <div class="modal-footer border-0 p-0"></div>
         </div>
     </div>
 </div>
 
 <script>
-let currentPage = 1;
-// We'll keep the server-side pagination flow as the main data source
-// But styling the UI to match the new look
-
 document.addEventListener('DOMContentLoaded', function() {
     loadAttendanceHistory();
     
-    // Client-side simple filter for visible rows
-    const searchInput = document.getElementById('attendanceSearch');
-    if(searchInput) {
-        searchInput.addEventListener('keyup', function() {
-            const query = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#attendanceTableBody tr');
-            rows.forEach(row => {
-                // Skip if it's a loading or info row
-                if(row.cells.length < 2) return;
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
-            });
+    document.getElementById('monthFilter').addEventListener('change', loadAttendanceHistory);
+
+    document.getElementById('attendanceSearch').addEventListener('keyup', function() {
+        const query = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#attendanceTableBody tr');
+        rows.forEach(row => {
+            if(row.cells.length < 2) return;
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
         });
-    }
+    });
 });
 
-function loadAttendanceHistory(page = 1) {
-    currentPage = page;
+function loadAttendanceHistory() {
     const tbody = document.getElementById('attendanceTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</td></tr>';
+    const month = document.getElementById('monthFilter').value;
+    
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</td></tr>';
     
     $.ajax({
         url: '/attendance/history/data',
         method: 'GET',
-        data: { page: page, per_page: 15 }, // Increased per page slightly
+        data: { month: month },
         success: function(response) {
-            if (response && response.data) {
-                displayAttendanceData(response.data);
-                generatePagination(response.current_page, response.last_page);
+            if (response && response.attendances) {
+                displayAttendanceData(response.attendances, response.summary);
             } else {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Data format error</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Data format error</td></tr>';
             }
         },
         error: function(xhr) {
-             tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load attendance history</td></tr>';
+             tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load attendance history</td></tr>';
         }
     });
 }
 
-function displayAttendanceData(attendances) {
-    window.currentAttendances = attendances; // Store for modal
+function displayAttendanceData(attendances, summary) {
+    window.currentAttendances = attendances;
     const tbody = document.getElementById('attendanceTableBody');
     
     if (!attendances || attendances.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No attendance records found</td></tr>';
-        updateSummaryStats([], 0, 0, 0);
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No attendance records found</td></tr>';
+        updateSummaryStats([], summary);
         return;
     }
 
     let html = '';
-    let totalOfficeHours = 0;
-    let totalFieldHours = 0;
-    let totalCycles = 0;
-    
     attendances.forEach(function(attendance) {
-        const dateObj = new Date(attendance.date);
-        const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        const dateStr = attendance.display_date || attendance.date;
+        const status = (attendance.status || 'absent').toLowerCase();
+        const officeHours = attendance.office_hours || 0;
+        const fieldHours = attendance.field_hours || 0;
+        const totalHours = attendance.hours || 0;
         
-        const officeHours = calculateTypeHours(attendance.movements, 'office');
-        const fieldHours = calculateTypeHours(attendance.movements, 'field');
-        const totalHours = officeHours + fieldHours;
-        const cycles = calculateCycles(attendance.movements);
+        let statusBadge = '';
+        let rowClass = '';
         
-        totalOfficeHours += officeHours;
-        totalFieldHours += fieldHours;
-        totalCycles += cycles.office + cycles.field + cycles.break;
-        
-        html += `<tr>
+        switch(status) {
+            case 'present':
+                statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2">Present</span>';
+                break;
+            case 'halfday':
+                statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2">Half-Day</span>';
+                break;
+            case 'weekly off':
+                statusBadge = '<span class="badge bg-info-subtle text-info border border-info-subtle px-2">Weekly Off</span>';
+                rowClass = 'table-light text-muted';
+                break;
+            case 'holiday':
+                statusBadge = `<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2">Holiday${attendance.holiday_name ? ': ' + attendance.holiday_name : ''}</span>`;
+                rowClass = 'table-light text-muted';
+                break;
+            case 'leave':
+            case 'short leave':
+            case 'restricted holiday':
+                statusBadge = `<span class="badge bg-purple-subtle text-purple border border-purple-subtle px-2" style="background-color: #f3e8ff; color: #7e22ce;">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+                break;
+            case 'absent':
+            case 'absent by less hr':
+                statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2">Absent</span>';
+                break;
+            default:
+                statusBadge = `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2">${status}</span>`;
+        }
+
+        html += `<tr class="${rowClass}">
             <td class="fw-bold">${dateStr}</td>
-            <td>${formatHoursMinutes(officeHours)}</td>
-            <td>${formatHoursMinutes(fieldHours)}</td>
-            <td class="fw-bold text-dark">${formatHoursMinutes(totalHours)}</td>
-            <td>
-                <span class="badge text-white me-1" style="background-color: #434afa;">O: ${cycles.office}</span>
-                <span class="badge text-white me-1" style="background-color: #434afa;">F: ${cycles.field}</span>
-                <span class="badge text-white" style="background-color: #434afa;">B: ${cycles.break}</span>
-            </td>
-             <td>
-              ${attendance.movements ? attendance.movements.length + ' events' : '0 events'}
-             </td>
+            <td>${statusBadge}</td>
+            <td>${officeHours > 0 ? formatHoursMinutes(officeHours) : '-'}</td>
+            <td>${fieldHours > 0 ? formatHoursMinutes(fieldHours) : '-'}</td>
+            <td class="fw-bold text-dark">${totalHours > 0 ? formatHoursMinutes(totalHours) : '-'}</td>
             <td class="text-center">
-                <button type="button" class="btn btn-sm text-white shadow-sm" style="background-color: #434afa; border:none; padding: 0.25rem 0.75rem; border-radius: 4px;" onclick="viewMovements(${attendance.id})">
+                ${attendance.movements && attendance.movements.length > 0 ? `
+                <button type="button" class="btn btn-sm text-white shadow-sm" style="background-color: #434afa; border:none; padding: 0.25rem 0.75rem; border-radius: 4px;" onclick="viewMovementsForDate('${attendance.date}')">
                     <i class="fas fa-eye"></i> View
                 </button>
+                ` : '-'}
             </td>
         </tr>`;
     });
     
     tbody.innerHTML = html;
-    updateSummaryStats(attendances, totalOfficeHours, totalFieldHours, totalCycles);
+    updateSummaryStats(attendances, summary);
 }
 
 function formatHoursMinutes(decimalHours) {
@@ -349,118 +336,55 @@ function formatHoursMinutes(decimalHours) {
     return `${finalHours}h ${finalMinutes.toString().padStart(2, '0')}m`;
 }
 
-function updateSummaryStats(attendances, totalOfficeHours, totalFieldHours, totalCycles) {
-    document.getElementById('totalOfficeHours').textContent = formatHoursMinutes(totalOfficeHours);
-    document.getElementById('totalFieldHours').textContent = formatHoursMinutes(totalFieldHours);
-    document.getElementById('totalDays').textContent = attendances.length || 0;
-    document.getElementById('totalCycles').textContent = totalCycles || 0;
+function updateSummaryStats(attendances, summary) {
+    if (summary) {
+        document.getElementById('totalWorkingDays').textContent = summary.total_working_days || 0;
+        document.getElementById('totalPresent').textContent = summary.total_present || 0;
+        document.getElementById('totalHalfDay').textContent = summary.total_halfday || 0;
+        document.getElementById('totalLeave').textContent = summary.days_on_leave || 0;
+        document.getElementById('totalAbsent').textContent = summary.days_absent || 0;
+    }
 }
 
-function calculateTypeHours(movements, type) {
-    const typeMovements = movements.filter(m => m.movement_type === type);
-    if (!typeMovements.length) return 0;
-    typeMovements.sort((a, b) => new Date(a.time) - new Date(b.time));
-    
-    let firstPunchIn = null, lastPunchOut = null;
-    
-    typeMovements.forEach(m => {
-        if (m.movement_action === 'in' && !firstPunchIn) firstPunchIn = new Date(m.time);
-        if (m.movement_action === 'out') lastPunchOut = new Date(m.time);
-    });
-    
-    if (!firstPunchIn) return 0;
-    if (!lastPunchOut) {
-        const endOfDay = new Date(firstPunchIn);
-        endOfDay.setHours(18, 0, 0, 0);
-        lastPunchOut = (new Date() > endOfDay) ? endOfDay : new Date();
-    }
-    return ((lastPunchOut - firstPunchIn) / (1000 * 60)) / 60;
-}
-
-function calculateCycles(movements) {
-    const cycles = { office: 0, field: 0, break: 0 };
-    const grouped = { office: [], field: [], break: [] };
-    movements.forEach(m => { if(grouped[m.movement_type]) grouped[m.movement_type].push(m); });
-    
-    if(grouped.break.length) {
-        let s=0, e=0;
-        grouped.break.forEach(m => { if(m.movement_action === 'start') s++; if(m.movement_action === 'end') e++; });
-        cycles.break = Math.min(s, e) || (s > 0 ? s : 0); // approx
+function viewMovementsForDate(date) {
+    if (!window.currentAttendances) return;
+    const attendance = window.currentAttendances.find(a => a.date === date);
+    if (!attendance || !attendance.movements || attendance.movements.length === 0) {
+        alert('No movements found for this date.');
+        return;
     }
     
-    ['office', 'field'].forEach(type => {
-        if(grouped[type].length) {
-            let i=0, o=0;
-            grouped[type].forEach(m => { if(m.movement_action === 'in') i++; if(m.movement_action === 'out') o++; });
-            cycles[type] = Math.max(i, o); // rough cycle count
-        }
-    });
-    return cycles;
-}
-
-function generatePagination(current, last) {
-    const pagination = document.getElementById('pagination');
-    if (last <= 1) { pagination.innerHTML = ''; return; }
-    
-    let html = '';
-    if (current > 1) {
-        html += `<li class="page-item"><a class="page-link" href="javascript:void(0)" onclick="loadAttendanceHistory(${current - 1})">Prev</a></li>`;
-    }
-    
-    if (last <= 7) {
-        for(let i=1; i<=last; i++) {
-            html += `<li class="page-item ${i===current?'active':''}"><a class="page-link" href="javascript:void(0)" onclick="loadAttendanceHistory(${i})">${i}</a></li>`;
-        }
-    } else {
-        html += `<li class="page-item ${1===current?'active':''}"><a class="page-link" href="javascript:void(0)" onclick="loadAttendanceHistory(1)">1</a></li>`;
-        if(current > 3) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-        let s = Math.max(2, current-1), e = Math.min(last-1, current+1);
-        for(let i=s; i<=e; i++) {
-            html += `<li class="page-item ${i===current?'active':''}"><a class="page-link" href="javascript:void(0)" onclick="loadAttendanceHistory(${i})">${i}</a></li>`;
-        }
-        if(current < last-2) html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-         html += `<li class="page-item ${last===current?'active':''}"><a class="page-link" href="javascript:void(0)" onclick="loadAttendanceHistory(${last})">${last}</a></li>`;
-    }
-
-    if (current < last) {
-         html += `<li class="page-item"><a class="page-link" href="javascript:void(0)" onclick="loadAttendanceHistory(${current + 1})">Next</a></li>`;
-    }
-    pagination.innerHTML = html;
-}
-
-function viewMovements(id) {
-    const attendances = window.currentAttendances || [];
-    const att = attendances.find(a => a.id === id);
-    if (!att) return;
-    
-    // Simple detail render for modal
-    const moves = att.movements || [];
-    moves.sort((a,b) => new Date(a.time) - new Date(b.time));
-    
+    const moves = attendance.movements;
     let html = `
         <div class="table-responsive">
-            <table class="table table-sm table-striped">
-                <thead><tr class="bg-light"><th>Time</th><th>Type</th><th>Action</th><th>Description</th></tr></thead>
+            <table class="table table-sm custom-table">
+                <thead>
+                    <tr class="bg-light">
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Action</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
                 <tbody>
     `;
-    if(moves.length === 0) {
-        html += '<tr><td colspan="4" class="text-center text-muted">No details</td></tr>';
-    } else {
-        moves.forEach(m => {
-            const t = new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            
-            html += `<tr>
-                <td>${t}</td>
-                <td><span class="badge text-white" style="background-color: #434afa;">${m.movement_type}</span></td>
-                <td><span class="badge text-white" style="background-color: #434afa;">${m.movement_action}</span></td>
-                <td><small>${m.description || '-'}</small></td>
-            </tr>`;
-        });
-    }
+    
+    moves.forEach(m => {
+        html += `
+            <tr>
+                <td><span class="fw-bold">${m.time}</span></td>
+                <td><span class="badge text-white" style="background-color: #434afa;">${m.type}</span></td>
+                <td><span class="badge text-white" style="background-color: #434afa;">${m.action}</span></td>
+                <td><small class="text-secondary">${m.description || '-'}</small></td>
+            </tr>
+        `;
+    });
+    
     html += `</tbody></table></div>`;
     
     document.getElementById('movementDetails').innerHTML = html;
-    new bootstrap.Modal(document.getElementById('movementModal')).show();
+    const modal = new bootstrap.Modal(document.getElementById('movementModal'));
+    modal.show();
 }
 </script>
 @endsection

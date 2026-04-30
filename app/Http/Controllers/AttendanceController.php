@@ -982,18 +982,76 @@ class AttendanceController extends Controller
         }
         
         
-        $perPage = $request->get('per_page', 10);
+        $perPage = $request->get('per_page', 15);
+        $month = $request->get('month', Carbon::now()->format('Y-m'));
         
+        try {
+            $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+            $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
+        } catch (\Exception $e) {
+            $startDate = Carbon::now()->startOfMonth();
+            $endDate = Carbon::now()->endOfMonth();
+        }
+
         $attendances = Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
             }])
             ->where('user_id', $user->id)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->orderBy('date', 'asc')
+            ->get();
+        
+        // Fetch leaves and holidays for summary
+        $holidays = Holiday::whereBetween('holiday_date', [$startDate, $endDate])
+            ->get()
+            ->map(function($h) {
+                return Carbon::parse($h->holiday_date)->format('Y-m-d');
+            })
+            ->toArray();
+
+        $leaves = LeaveRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->where(function($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate, $endDate])
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function($q) use ($startDate, $endDate) {
+                        $q->where('start_date', '<=', $startDate)
+                          ->where('end_date', '>=', $endDate);
+                    });
+            })
+            ->get();
             
-            ->orderBy('date', 'desc')
-            ->paginate($perPage);
+        $leaveDates = [];
+        foreach ($leaves as $leave) {
+            $from = Carbon::parse($leave->start_date);
+            $to = Carbon::parse($leave->end_date);
+            $current = $from->copy();
+            while ($current->lte($to)) {
+                if ($current->between($startDate, $endDate)) {
+                    $d = $current->format('Y-m-d');
+                    if (!isset($leaveDates[$d])) {
+                        if ($leave->is_rh) {
+                            $leaveDates[$d] = 'RH';
+                        } elseif ($leave->is_sl) {
+                            $leaveDates[$d] = 'SL';
+                        } else {
+                            $leaveDates[$d] = 'L';
+                        }
+                    }
+                }
+                $current->addDay();
+            }
+        }
+
+        $summary = $this->reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaveDates, null, $user);
         
-        
-        return response()->json($attendances);
+        $shift = $user->employee->shiftRelation ?? null;
+        $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaveDates, null, $shift);
+
+        return response()->json([
+            'attendances' => $dailyBreakdown,
+            'summary' => $summary
+        ]);
     }
 
     public function getAttendanceStats(): JsonResponse
