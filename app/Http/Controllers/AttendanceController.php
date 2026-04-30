@@ -1013,18 +1013,16 @@ class AttendanceController extends Controller
         $todayAttendance = Attendance::with('movements')
             ->where('user_id', $user->id)
             ->where('date', $today)
-            
             ->first();
 
         if ($todayAttendance) {
-            $stats['today_hours'] = $this->calculateHours($todayAttendance->movements);
+            $stats['today_hours'] = $this->reportService->calculateTotalHours($todayAttendance->movements);
         }
 
         // This month's attendance
         $monthAttendances = Attendance::with('movements')
             ->where('user_id', $user->id)
             ->where('date', '>=', $thisMonth)
-            
             ->get();
 
         $stats['total_days'] = $monthAttendances->count();
@@ -1032,7 +1030,7 @@ class AttendanceController extends Controller
         $totalMonthHours = 0;
         $totalLateMinutes = 0;
         foreach ($monthAttendances as $attendance) {
-            $totalMonthHours += $this->calculateHours($attendance->movements);
+            $totalMonthHours += $this->reportService->calculateTotalHours($attendance->movements);
             $totalLateMinutes += (int) abs($attendance->late_minutes ?? 0);
         }
         
@@ -1051,326 +1049,21 @@ class AttendanceController extends Controller
         return response()->json($stats);
     }
 
-    public function statsView()
-    {
-        return view('attendance.stats');
-    }
 
-    public function getAdvancedStats(): JsonResponse
-    {
-        $user = $this->getCurrentUser();
-        
-        if (!$user) {
-            return response()->json(['error' => 'User not authenticated'], 401);
-        }
 
-        $now = Carbon::now();
-        $today = Carbon::today();
-        
-        // Get all user attendance
-        $allAttendances = Attendance::with('movements')
-            ->where('user_id', $user->id)
-            ->orderBy('date')
-            ->get();
 
-        // Basic stats
-        $stats = [
-            'overview' => $this->calculateOverviewStats($allAttendances, $today),
-            'weekly' => $this->calculateWeeklyStats($allAttendances),
-            'monthly' => $this->calculateMonthlyStats($allAttendances),
-            'trends' => $this->calculateTrendStats($allAttendances),
-            'productivity' => $this->calculateProductivityStats($allAttendances),
-            'patterns' => $this->calculatePatternStats($allAttendances)
-        ];
 
-        return response()->json($stats);
-    }
 
-    private function calculateOverviewStats($attendances, $today)
-    {
-        $totalDays = $attendances->count();
-        $totalHours = 0;
-        $totalOfficeHours = 0;
-        $totalFieldHours = 0;
-        $totalBreakTime = 0;
-        $totalLateMinutes = 0;
-        $totalCycles = ['office' => 0, 'field' => 0, 'break' => 0];
 
-        foreach ($attendances as $attendance) {
-            $dayHours = $this->calculateHours($attendance->movements);
-            $totalHours += $dayHours;
-            $totalLateMinutes += (int) ($attendance->late_minutes ?? 0);
-            
-            $officeHours = $this->calculateTypeHours($attendance->movements, 'office');
-            $fieldHours = $this->calculateTypeHours($attendance->movements, 'field');
-            $breakTime = $this->calculateTypeHours($attendance->movements, 'break');
-            
-            $totalOfficeHours += $officeHours;
-            $totalFieldHours += $fieldHours;
-            $totalBreakTime += $breakTime;
-            
-            $cycles = $this->calculateDayCycles($attendance->movements);
-            $totalCycles['office'] += $cycles['office'];
-            $totalCycles['field'] += $cycles['field'];
-            $totalCycles['break'] += $cycles['break'];
-        }
 
-        // Today's specific stats
-        $todayStats = ['hours' => 0, 'office_hours' => 0, 'field_hours' => 0, 'break_time' => 0, 'cycles' => ['office' => 0, 'field' => 0, 'break' => 0]];
-        $todayAttendance = $attendances->where('date', $today->format('Y-m-d'))->first();
-        if ($todayAttendance) {
-            $todayStats['hours'] = $this->calculateHours($todayAttendance->movements);
-            $todayStats['office_hours'] = $this->calculateTypeHours($todayAttendance->movements, 'office');
-            $todayStats['field_hours'] = $this->calculateTypeHours($todayAttendance->movements, 'field');
-            $todayStats['break_time'] = $this->calculateTypeHours($todayAttendance->movements, 'break');
-            $todayStats['cycles'] = $this->calculateDayCycles($todayAttendance->movements);
-        }
 
-        return [
-            'total_days' => $totalDays,
-            'total_hours' => round($totalHours, 2),
-            'total_office_hours' => round($totalOfficeHours, 2),
-            'total_field_hours' => round($totalFieldHours, 2),
-            'total_break_time' => round($totalBreakTime, 2),
-            'total_late_minutes' => $totalLateMinutes,
-            'avg_hours_per_day' => $totalDays > 0 ? round($totalHours / $totalDays, 2) : 0,
-            'avg_office_hours_per_day' => $totalDays > 0 ? round($totalOfficeHours / $totalDays, 2) : 0,
-            'avg_field_hours_per_day' => $totalDays > 0 ? round($totalFieldHours / $totalDays, 2) : 0,
-            'total_cycles' => $totalCycles,
-            'today' => $todayStats
-        ];
-    }
 
-    private function calculateWeeklyStats($attendances)
-    {
-        $weeks = [];
-        $currentWeekStart = null;
-        $weeklyData = [];
 
-        foreach ($attendances as $attendance) {
-            $date = Carbon::parse($attendance->date);
-            $weekStart = $date->copy()->startOfWeek();
-            $weekKey = $weekStart->format('Y-m-d');
 
-            if (!isset($weeklyData[$weekKey])) {
-                $weeklyData[$weekKey] = [
-                    'week_start' => $weekStart->format('M j'),
-                    'week_end' => $weekStart->copy()->endOfWeek()->format('M j, Y'),
-                    'days' => 0,
-                    'total_hours' => 0,
-                    'office_hours' => 0,
-                    'field_hours' => 0,
-                    'break_time' => 0,
-                    'cycles' => ['office' => 0, 'field' => 0, 'break' => 0]
-                ];
-            }
 
-            $weeklyData[$weekKey]['days']++;
-            $weeklyData[$weekKey]['total_hours'] += $this->calculateHours($attendance->movements);
-            $weeklyData[$weekKey]['office_hours'] += $this->calculateTypeHours($attendance->movements, 'office');
-            $weeklyData[$weekKey]['field_hours'] += $this->calculateTypeHours($attendance->movements, 'field');
-            $weeklyData[$weekKey]['break_time'] += $this->calculateTypeHours($attendance->movements, 'break');
-            
-            $cycles = $this->calculateDayCycles($attendance->movements);
-            $weeklyData[$weekKey]['cycles']['office'] += $cycles['office'];
-            $weeklyData[$weekKey]['cycles']['field'] += $cycles['field'];
-            $weeklyData[$weekKey]['cycles']['break'] += $cycles['break'];
-        }
 
-        // Round all hours and sort by week
-        foreach ($weeklyData as $key => $week) {
-            $weeklyData[$key]['total_hours'] = round($week['total_hours'], 2);
-            $weeklyData[$key]['office_hours'] = round($week['office_hours'], 2);
-            $weeklyData[$key]['field_hours'] = round($week['field_hours'], 2);
-            $weeklyData[$key]['break_time'] = round($week['break_time'], 2);
-            $weeklyData[$key]['avg_hours_per_day'] = $week['days'] > 0 ? round($week['total_hours'] / $week['days'], 2) : 0;
-        }
 
-        ksort($weeklyData);
-        return array_values($weeklyData);
-    }
 
-    private function calculateMonthlyStats($attendances)
-    {
-        $monthlyData = [];
-
-        foreach ($attendances as $attendance) {
-            $date = Carbon::parse($attendance->date);
-            $monthKey = $date->format('Y-m');
-            $monthName = $date->format('M Y');
-
-            if (!isset($monthlyData[$monthKey])) {
-                $monthlyData[$monthKey] = [
-                    'month' => $monthName,
-                    'days' => 0,
-                    'total_hours' => 0,
-                    'office_hours' => 0,
-                    'field_hours' => 0,
-                    'break_time' => 0,
-                    'late_minutes' => 0,
-                    'cycles' => ['office' => 0, 'field' => 0, 'break' => 0]
-                ];
-            }
-
-            $monthlyData[$monthKey]['days']++;
-            $monthlyData[$monthKey]['total_hours'] += $this->calculateHours($attendance->movements);
-            $monthlyData[$monthKey]['office_hours'] += $this->calculateTypeHours($attendance->movements, 'office');
-            $monthlyData[$monthKey]['field_hours'] += $this->calculateTypeHours($attendance->movements, 'field');
-            $monthlyData[$monthKey]['break_time'] += $this->calculateTypeHours($attendance->movements, 'break');
-            $monthlyData[$monthKey]['late_minutes'] += (int) ($attendance->late_minutes ?? 0);
-            
-            $cycles = $this->calculateDayCycles($attendance->movements);
-            $monthlyData[$monthKey]['cycles']['office'] += $cycles['office'];
-            $monthlyData[$monthKey]['cycles']['field'] += $cycles['field'];
-            $monthlyData[$monthKey]['cycles']['break'] += $cycles['break'];
-        }
-
-        // Round all hours and add averages
-        foreach ($monthlyData as $key => $month) {
-            $monthlyData[$key]['total_hours'] = round($month['total_hours'], 2);
-            $monthlyData[$key]['office_hours'] = round($month['office_hours'], 2);
-            $monthlyData[$key]['field_hours'] = round($month['field_hours'], 2);
-            $monthlyData[$key]['break_time'] = round($month['break_time'], 2);
-            $monthlyData[$key]['avg_hours_per_day'] = $month['days'] > 0 ? round($month['total_hours'] / $month['days'], 2) : 0;
-        }
-
-        ksort($monthlyData);
-        return array_values($monthlyData);
-    }
-
-    private function calculateTrendStats($attendances)
-    {
-        if ($attendances->count() < 2) {
-            return [
-                'hours_trend' => 'stable',
-                'productivity_trend' => 'stable',
-                'consistency_score' => 0
-            ];
-        }
-
-        $recentDays = $attendances->take(-7);
-        $previousDays = $attendances->take(-14)->take(7);
-
-        $recentAvg = $recentDays->avg(function ($attendance) {
-            return $this->calculateHours($attendance->movements);
-        });
-
-        $previousAvg = $previousDays->avg(function ($attendance) {
-            return $this->calculateHours($attendance->movements);
-        });
-
-        $hoursTrend = 'stable';
-        if ($recentAvg > $previousAvg * 1.1) {
-            $hoursTrend = 'increasing';
-        } elseif ($recentAvg < $previousAvg * 0.9) {
-            $hoursTrend = 'decreasing';
-        }
-
-        // Calculate consistency score (lower standard deviation = higher consistency)
-        $allHours = $attendances->map(function ($attendance) {
-            return $this->calculateHours($attendance->movements);
-        })->toArray();
-
-        $mean = array_sum($allHours) / count($allHours);
-        $variance = array_sum(array_map(function($x) use ($mean) { return pow($x - $mean, 2); }, $allHours)) / count($allHours);
-        $stdDev = sqrt($variance);
-        
-        // Consistency score: 100 - (std dev as percentage of mean)
-        $consistencyScore = $mean > 0 ? max(0, 100 - (($stdDev / $mean) * 100)) : 0;
-
-        return [
-            'hours_trend' => $hoursTrend,
-            'recent_avg_hours' => round($recentAvg, 2),
-            'previous_avg_hours' => round($previousAvg, 2),
-            'consistency_score' => round($consistencyScore, 1)
-        ];
-    }
-
-    private function calculateProductivityStats($attendances)
-    {
-        $productiveHours = 0;
-        $totalWorkHours = 0;
-        $peakDays = [];
-        $lowDays = [];
-
-        foreach ($attendances as $attendance) {
-            $dayHours = $this->calculateHours($attendance->movements);
-            $officeHours = $this->calculateTypeHours($attendance->movements, 'office');
-            $fieldHours = $this->calculateTypeHours($attendance->movements, 'field');
-            
-            $workHours = $officeHours + $fieldHours;
-            $totalWorkHours += $workHours;
-            
-            // Consider productive if > 6 hours of actual work
-            if ($workHours >= 6) {
-                $productiveHours += $workHours;
-                $peakDays[] = [
-                    'date' => Carbon::parse($attendance->date)->format('M j'),
-                    'hours' => round($workHours, 2)
-                ];
-            } else {
-                $lowDays[] = [
-                    'date' => Carbon::parse($attendance->date)->format('M j'),
-                    'hours' => round($workHours, 2)
-                ];
-            }
-        }
-
-        // Sort and limit peak/low days
-        usort($peakDays, function($a, $b) { return $b['hours'] <=> $a['hours']; });
-        usort($lowDays, function($a, $b) { return $a['hours'] <=> $b['hours']; });
-        
-        return [
-            'productive_days' => count($peakDays),
-            'low_productivity_days' => count($lowDays),
-            'productivity_rate' => $attendances->count() > 0 ? round((count($peakDays) / $attendances->count()) * 100, 1) : 0,
-            'avg_productive_hours' => count($peakDays) > 0 ? round($productiveHours / count($peakDays), 2) : 0,
-            'top_peak_days' => array_slice($peakDays, 0, 5),
-            'recent_low_days' => array_slice($lowDays, 0, 5)
-        ];
-    }
-
-    private function calculatePatternStats($attendances)
-    {
-        $dayOfWeekStats = [];
-        $hourlyPatterns = [];
-
-        foreach ($attendances as $attendance) {
-            $date = Carbon::parse($attendance->date);
-            $dayOfWeek = $date->format('l');
-            
-            if (!isset($dayOfWeekStats[$dayOfWeek])) {
-                $dayOfWeekStats[$dayOfWeek] = ['days' => 0, 'total_hours' => 0];
-            }
-            
-            $dayOfWeekStats[$dayOfWeek]['days']++;
-            $dayOfWeekStats[$dayOfWeek]['total_hours'] += $this->calculateHours($attendance->movements);
-
-            // Analyze hourly patterns
-            foreach ($attendance->movements as $movement) {
-                $hour = Carbon::parse($movement->time)->hour;
-                if (!isset($hourlyPatterns[$hour])) {
-                    $hourlyPatterns[$hour] = 0;
-                }
-                $hourlyPatterns[$hour]++;
-            }
-        }
-
-        // Calculate averages for days of week
-        foreach ($dayOfWeekStats as $day => $stats) {
-            $dayOfWeekStats[$day]['avg_hours'] = $stats['days'] > 0 ? round($stats['total_hours'] / $stats['days'], 2) : 0;
-        }
-
-        // Find most active hours
-        arsort($hourlyPatterns);
-        $mostActiveHours = array_slice(array_keys($hourlyPatterns), 0, 3);
-
-        return [
-            'day_of_week_stats' => $dayOfWeekStats,
-            'most_active_hours' => $mostActiveHours,
-            'hourly_activity' => $hourlyPatterns
-        ];
-    }
 
 
 

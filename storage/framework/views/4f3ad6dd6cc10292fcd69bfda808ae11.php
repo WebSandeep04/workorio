@@ -403,7 +403,6 @@
   </div>
 
   <div id="attendanceAlerts"></div>
-
   <div class="stats-grid" id="attendanceStats">
     <div class="metric-card">
       <p>Today's Hours</p>
@@ -688,6 +687,7 @@ function performPunchIn(type) {
                     showAlert('success', response.message);
                     loadTodayStatus();
                     loadAttendanceStats();
+                
                     
                     // Show task reminder modal if user has pending tasks
                     if (response.show_task_reminder) {
@@ -766,7 +766,7 @@ function performPunchOut(type) {
             if (response.success) {
                 showAlert('success', response.message);
                 loadTodayStatus();
-                loadAttendanceStats();
+            
                 
                 // Show task reminder modal if user has pending tasks
                 if (response.show_task_reminder) {
@@ -839,7 +839,7 @@ function performStartBreak() {
             if (response.success) {
                 showAlert('success', response.message);
                 loadTodayStatus();
-                loadAttendanceStats();
+            
             } else {
                 showAlert('error', response.message);
             }
@@ -866,7 +866,7 @@ function performEndBreak() {
             if (response.success) {
                 showAlert('success', response.message);
                 loadTodayStatus();
-                loadAttendanceStats();
+            
             } else {
                 showAlert('error', response.message);
             }
@@ -908,6 +908,8 @@ function loadTodayStatus() {
         }
     });
 }
+
+
 
 function loadAttendanceStats() {
     $.ajax({
@@ -1449,6 +1451,7 @@ function handleLateReasonSave(e) {
                     showAlert('success', resp.message);
                     loadTodayStatus();
                     loadAttendanceStats();
+                
                     if (resp.show_task_reminder) {
                         showTaskReminderModal(resp.punch_type || 'in');
                     }

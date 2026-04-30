@@ -168,7 +168,7 @@ return [
             'feature_flag' => 'is_reports_enabled',
             'roles' => ['admin'],
             'items' => [
-                // ['route' => 'attendance.stats-view', 'title' => 'Attendance Stats', 'icon' => 'bi bi-bar-chart', 'permission' => 'attendance.stats'],
+
                 ['route' => 'attendance.report', 'title' => 'Attendance Report', 'icon' => 'bi bi-file-earmark-text', 'permission' => 'attendance.report'],
                 ['route' => 'reports.worklog', 'title' => 'Timesheet Report', 'icon' => 'bi bi-journals', 'permission' => 'reports.worklog', 'feature_flag' => 'is_worklog_enabled'],
                 // ['route' => 'reports.user-worklog', 'title' => 'User-wise Report', 'icon' => 'bi bi-person-lines-fill'],

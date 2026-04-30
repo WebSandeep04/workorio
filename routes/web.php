@@ -921,8 +921,7 @@ Route::get('/worklog-missing-summary', function() {
                 Route::get('/attendance/history', [AttendanceController::class, 'history'])->name('attendance.history');
                 Route::get('/attendance/history/data', [AttendanceController::class, 'getHistoryData'])->name('attendance.history.data');
                 Route::get('/attendance/stats', [AttendanceController::class, 'getAttendanceStats'])->name('attendance.stats');
-                Route::get('/attendance/stats-view', [AttendanceController::class, 'statsView'])->name('attendance.stats-view');
-                Route::get('/attendance/advanced-stats', [AttendanceController::class, 'getAdvancedStats'])->name('attendance.advanced-stats');
+
                 // Attendance report
                 Route::get('/attendance/report', [AttendanceController::class, 'reportView'])->name('attendance.report');
                 Route::post('/attendance/report-data', [AttendanceController::class, 'getReportData'])->name('attendance.report-data');
