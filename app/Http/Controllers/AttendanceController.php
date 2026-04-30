@@ -17,9 +17,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\AttendanceReportService;
 
 class AttendanceController extends Controller
 {
+    protected $reportService;
+
+    public function __construct(AttendanceReportService $reportService)
+    {
+        $this->reportService = $reportService;
+    }
+
     /**
      * Check if user can perform attendance actions based on worklog completion
      * Users with isWorklog = 1 must complete previous day's worklog before attendance
@@ -1364,63 +1372,9 @@ class AttendanceController extends Controller
         ];
     }
 
-    private function calculateTypeHours($movements, $type): float
-    {
-        $typeMovements = $movements->where('movement_type', $type)->sortBy('time');
-        
-        if ($typeMovements->isEmpty()) {
-            return 0;
-        }
-        
-        // Find first punch-in and last punch-out for this type
-        $firstPunchIn = null;
-        $lastPunchOut = null;
-        
-        foreach ($typeMovements as $movement) {
-            if (($movement->movement_action === 'in' || $movement->movement_action === 'start') && !$firstPunchIn) {
-                $firstPunchIn = Carbon::parse($movement->time);
-            }
-            if ($movement->movement_action === 'out' || $movement->movement_action === 'end') {
-                $lastPunchOut = Carbon::parse($movement->time);
-            }
-        }
-        
-        // If no punch-in found, return 0
-        if (!$firstPunchIn) {
-            return 0;
-        }
-        
-        // If no punch-out found, calculate until end of day (6 PM) or now
-        if (!$lastPunchOut) {
-            $endOfDay = $firstPunchIn->copy()->setTime(18, 0, 0); // 6 PM
-            $lastPunchOut = Carbon::now()->lt($endOfDay) ? Carbon::now() : $endOfDay;
-        }
-        
-        // Calculate total minutes from first punch-in to last punch-out
-        $totalMinutes = $firstPunchIn->diffInMinutes($lastPunchOut);
-        
-        return $totalMinutes / 60;
-    }
 
-    private function calculateDayCycles($movements)
-    {
-        $cycles = ['office' => 0, 'field' => 0, 'break' => 0];
-        $groupedMovements = $movements->groupBy('movement_type');
 
-        foreach ($groupedMovements as $type => $typeMovements) {
-            if ($type === 'break') {
-                $startCount = $typeMovements->where('movement_action', 'start')->count();
-                $endCount = $typeMovements->where('movement_action', 'end')->count();
-                $cycles[$type] = min($startCount, $endCount);
-            } else {
-                $inCount = $typeMovements->where('movement_action', 'in')->count();
-                $outCount = $typeMovements->where('movement_action', 'out')->count();
-                $cycles[$type] = min($inCount, $outCount);
-            }
-        }
 
-        return $cycles;
-    }
 
     public function reportView()
     {
@@ -1489,9 +1443,9 @@ class AttendanceController extends Controller
         }
         $leaves = collect($leavesList)->unique()->values()->toArray();
 
-        $summary = $this->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData, $user);
+        $summary = $this->reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData, $user);
         
-        $dailyBreakdown = $this->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $shift);
+        $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $shift);
         
         return [
             'user' => [
@@ -1631,10 +1585,10 @@ class AttendanceController extends Controller
             $dayData['is_sunday'] = $isWeeklyOff; // Using is_sunday key for compatibility with existing UI if needed
 
             if ($attendance) {
-                $dayData['hours'] = $this->calculateHours($attendance->movements, $shift, $date);
-                $dayData['office_hours'] = $this->calculateTypeHours($attendance->movements, 'office');
-                $dayData['field_hours'] = $this->calculateTypeHours($attendance->movements, 'field');
-                $dayData['break_time'] = $this->calculateTypeHours($attendance->movements, 'break');
+                $dayData['hours'] = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
+                $dayData['office_hours'] = $this->reportService->calculateTypeHours($attendance->movements, 'office');
+                $dayData['field_hours'] = $this->reportService->calculateTypeHours($attendance->movements, 'field');
+                $dayData['break_time'] = $this->reportService->calculateTypeHours($attendance->movements, 'break');
                 $dayData['is_wfh'] = $attendance->is_wfh;
                 
                 $firstInMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'in')->first();
@@ -1647,34 +1601,15 @@ class AttendanceController extends Controller
                     $dayData['last_out'] = Carbon::parse($lastOutMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
                 }
 
-                if ($isWeeklyOff) {
-                    $dayData['status'] = 'weekly off working';
-                } elseif ($holiday) {
-                    $dayData['status'] = 'holiday working';
-                } else {
-                    [$fullDayHr, $halfDayHr] = $this->getShiftHours($shift);
-
-                    if ($isHalfDayWorking) {
-                        $fullDayHr = $halfDayHr;
-                        $halfDayHr = $halfDayHr / 2;
-                    }
-
-                    if ($dayData['leave_type'] === 'SL') {
-                        if ($dayData['hours'] >= $fullDayHr) {
-                            $dayData['status'] = 'present';
-                        } else {
-                            $dayData['status'] = 'short leave';
-                        }
-                    } else {
-                        if ($dayData['hours'] >= $fullDayHr) {
-                            $dayData['status'] = 'present';
-                        } elseif ($dayData['hours'] >= $halfDayHr) {
-                            $dayData['status'] = 'halfday';
-                        } else {
-                            $dayData['status'] = 'absent by less hr';
-                        }
-                    }
+                [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
+                if ($isHalfDayWorking) {
+                    $fullDayHr = $halfDayHr;
+                    $halfDayHr = $halfDayHr / 2;
                 }
+
+                $statusInfo = $this->reportService->determineStatus($dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType);
+                $dayData['status'] = $statusInfo['label'];
+            } elseif ($isWeeklyOff) {
 
                 $descriptions = $attendance->movements
                     ->map(fn($m) => $m->description ? trim($m->description) : null)
@@ -1722,7 +1657,7 @@ class AttendanceController extends Controller
         foreach ($reportData as $row) {
             $u = $users->firstWhere('id', $row['user']['id']);
             $shift = $u->employee->shiftRelation ?? null;
-            [$fullDayHr, $halfDayHr] = $this->getShiftHours($shift);
+            [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
 
             if ($row['hours'] > 0) {
                 if ($row['is_sunday']) { // row['is_sunday'] contains isWeeklyOff
@@ -2025,47 +1960,19 @@ class AttendanceController extends Controller
 
                 if (isset($attendancesByDate[$dateStr])) {
                     $att = $attendancesByDate[$dateStr];
-                    $hours = $this->calculateHours($att->movements, $shift, $dateStr);
+                    $hours = $this->reportService->calculateTotalHours($att->movements, $shift, $dateStr);
                     
-                    // Check if it was a Holiday/Weekly Off working
-                    if ($isWeeklyOff) {
-                        $statusCode = 'S/W'; // Weekly Off Working (kept S/W code for UI compatibility)
-                        $statusClass = 'text-info';
-                    } elseif (in_array($dateStr, $holidays)) {
-                        $statusCode = 'H/W'; // Holiday Working
-                        $statusClass = 'text-info';
-                    } else {
-                        [$fullDayHr, $halfDayHr] = $this->getShiftHours($shift);
-                        
-                        if ($isHalfDayWorking) {
-                            $fullDayHr = $halfDayHr;
-                            $halfDayHr = $halfDayHr / 2;
-                        }
-
-                        $leaveType = $userLeavesDetails[$dateStr] ?? null;
-                        if ($leaveType === 'SL') {
-                            if ($hours >= $fullDayHr) {
-                                $statusCode = 'P (SL)';
-                                $statusClass = 'text-success';
-                            } else {
-                                $statusCode = 'SL';
-                                $statusClass = 'text-info';
-                            }
-                        } else {
-                            // Normal Working Day
-                            if ($hours >= $fullDayHr) {
-                                $statusCode = 'P'; // Present
-                                $statusClass = 'text-success';
-                            } elseif ($hours >= $halfDayHr) {
-                                $statusCode = 'P2'; // Half Day
-                                $statusClass = 'text-warning';
-                            } else {
-                                $statusCode = 'A'; // Absent
-                                $statusClass = 'text-danger'; 
-                            }
-                        }
+                    [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
+                    if ($isHalfDayWorking) {
+                        $fullDayHr = $halfDayHr;
+                        $halfDayHr = $halfDayHr / 2;
                     }
 
+                    $leaveType = $userLeavesDetails[$dateStr] ?? null;
+                    $statusInfo = $this->reportService->determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType);
+                    
+                    $statusCode = $statusInfo['code'];
+                    $statusClass = $statusInfo['class'];
                 } elseif (in_array($dateStr, $holidays)) {
                     $statusCode = 'H'; // Holiday
                     $statusClass = 'text-secondary';
@@ -2104,7 +2011,7 @@ class AttendanceController extends Controller
                 ->values()
                 ->toArray();
 
-            $summary = $this->calculateMonthlySummary($userAttendances, $startDate, $endDate, $holidays, $userLeavesSummary, null, $user);
+            $summary = $this->reportService->calculateMonthlySummary($userAttendances, $startDate, $endDate, $holidays, $userLeavesSummary, null, $user);
 
             $reportData[] = [
                 'user' => [
@@ -2127,479 +2034,11 @@ class AttendanceController extends Controller
         ];
     }
 
-    private function calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData = null, $user = null)
-    {
-        $totalWorkingDays = 0;
-        $totalDaysWorked = 0;
-        $totalHours = 0;
-        $totalOfficeHours = 0;
-        $totalFieldHours = 0;
-        $totalBreakTime = 0;
-        $totalCycles = ['office' => 0, 'field' => 0, 'break' => 0];
-        $daysAbsent = 0;
-        $daysOnLeave = 0;
-        $totalLeaves = 0; // Count all leaves for summary display
-        $presentDays = 0; // Days with >= 7 hours
-        $halfDays = 0; // Days with >= 4 hours but < 7 hours
-        $totalSundays = 0;
-        $totalSundaysWorked = 0;
-        $totalHolidaysWorked = 0;
-        $totalLess8_30 = 0;
-        $totalMore8_30 = 0;
-        $lateCount = 0;
-        $totalLateMinutes = 0;
-        $lateLogs = [];
-        
-        $shiftRelation = $user ? ($user->employee->shiftRelation ?? null) : null;
-        $shift = $shiftRelation;
-        
-        $currentDate = $startDate->copy();
-        while ($currentDate->lte($endDate)) {
-            $dayName = $currentDate->format('l'); // Sunday, Monday, etc.
-            $isWeeklyOff = false;
-            
-            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-            }
 
-            if ($isWeeklyOff) {
-                $totalSundays++;
-            } elseif (!in_array($currentDate->format('Y-m-d'), $holidays)) {
-                $totalWorkingDays++;
-            }
-            $currentDate->addDay();
-        }
-        
-        // Create sets to track working days with attendance/leave
-        $attendanceDates = [];
-        $leaveDates = [];
-        $holidaysWithAttendance = []; // Track holidays where user has attendance
-        
-        // Process attendance records
-        foreach ($attendances as $attendance) {
-            $attendanceDate = Carbon::parse($attendance->date);
-            $dateStr = $attendanceDate->format('Y-m-d');
-            
-            // Check if this day is a weekly off
-            $dayName = $attendanceDate->format('l');
-            $isWeeklyOff = false;
-            $isHalfDayWorking = false;
-            if ($shift) {
-                if ($shift->week_offs && is_array($shift->week_offs)) {
-                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-                }
-                if ($shift->half_days && is_array($shift->half_days)) {
-                    $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
-                }
-            }
 
-            // Count total holidays worked (Weekly Off OR Holiday with attendance)
-            if ($isWeeklyOff) {
-                $totalSundaysWorked++;
-            } elseif (in_array($dateStr, $holidays)) {
-                $totalHolidaysWorked++;
-            }
-            
-            // Only count attendance on working days (not weekly offs or holidays) for work stats
-            if (!$isWeeklyOff && !in_array($dateStr, $holidays)) {
-                $dayHours = $this->calculateHours($attendance->movements, $shift, $attendance->date);
-                $totalHours += $dayHours;
-                
-                [$fullDayHr, $halfDayHr] = $this->getShiftHours($shift);
 
-                if ($isHalfDayWorking) {
-                    $fullDayHr = $halfDayHr;
-                    $halfDayHr = $halfDayHr / 2;
-                }
 
-                // Only count as worked day if >= half day hours
-                if ($dayHours >= $halfDayHr) {
-                    $attendanceDates[] = $dateStr;
-                    $totalDaysWorked++;
-                }
 
-                // Count present and half days based on hours
-                if ($dayHours >= $fullDayHr) {
-                    $presentDays++;
-                } elseif ($dayHours >= $halfDayHr) {
-                    $halfDays++;
-                }
-
-                if ($dayHours >= 8.5) {
-                    $totalMore8_30++;
-                } elseif ($dayHours >= $halfDayHr) {
-                    $totalLess8_30++;
-                }
-                
-                $officeHours = $this->calculateTypeHours($attendance->movements, 'office');
-                $fieldHours = $this->calculateTypeHours($attendance->movements, 'field');
-                $breakTime = $this->calculateTypeHours($attendance->movements, 'break');
-                
-                $totalOfficeHours += $officeHours;
-                $totalFieldHours += $fieldHours;
-                $totalBreakTime += $breakTime;
-                
-                $cycles = $this->calculateDayCycles($attendance->movements);
-                $totalCycles['office'] += $cycles['office'];
-                $totalCycles['field'] += $cycles['field'];
-                $totalCycles['break'] += $cycles['break'];
-
-                // Late Check
-                if ($shift && $shift->start_time) {
-                    $firstPunch = $attendance->movements->whereIn('movement_type', ['office', 'field'])->first();
-                    if ($firstPunch) {
-                        $punchTime = Carbon::parse($firstPunch->time)->setTimezone('Asia/Kolkata');
-                        
-                        $shiftDate = Carbon::parse($attendance->date)->format('Y-m-d');
-                        $shiftTime = Carbon::parse($shift->start_time)->format('H:i:s');
-                        // Shift time is UTC in DB, convert to IST
-                        $shiftStart = Carbon::parse($shiftDate . ' ' . $shiftTime, 'UTC')->setTimezone('Asia/Kolkata');
-                        
-                        $lateThreshold = $shiftStart->copy()->addMinutes($shift->late_min ?? 0);
-                        
-                        $isLate = false;
-                        $reason = '';
-                        
-                        if ($punchTime->gt($lateThreshold)) {
-                            // Only count late if worked >= half day hours
-                            $halfDayHr = $shift->half_day_hr ?? 4;
-                            if ($dayHours >= $halfDayHr) {
-                                $lateCount++;
-                                $isLate = true;
-                                $reason = 'Late: Punched after threshold and worked >= half day';
-                            } else {
-                                $reason = 'Not Late: Punched after threshold but worked < half day';
-                            }
-                        } else {
-                            $reason = 'Not Late: on time';
-                        }
-                        
-                        $lateLogs[] = [
-                            'date' => $dateStr,
-                            'punch' => $punchTime->toDateTimeString(),
-                            'threshold' => $lateThreshold->toDateTimeString(),
-                            'hours' => $dayHours,
-                            'is_late' => $isLate,
-                            'reason' => $reason
-                        ];
-                    }
-                }
-                
-                // Add late minutes from attendance record if it exists
-                $totalLateMinutes += (int) abs($attendance->late_minutes ?? 0);
-            }
-        }
-        
-        // Count ALL leaves for summary display, excluding leaves on holidays
-        // If a day is a holiday, it's counted as holiday only (not leave), regardless of whether user has attendance
-        // Also remove duplicates to ensure accurate count
-        $uniqueLeaves = array_unique($leaves);
-        $totalLeaves = 0;
-        foreach ($uniqueLeaves as $leaveDate) {
-            $dateStr = is_string($leaveDate) ? $leaveDate : Carbon::parse($leaveDate)->format('Y-m-d');
-            // Exclude leaves on holidays (holidays are counted separately, not as leaves)
-            // Also exclude leaves on holidays where user has attendance (attendance on holiday = holiday only, not leave)
-            if (!in_array($dateStr, $holidays) && !in_array($dateStr, $holidaysWithAttendance)) {
-                $totalLeaves++;
-            }
-        }
-        
-        // Filter leave records to only count those on working days, excluding days with attendance
-        // Also exclude leaves on holidays where user has attendance (attendance on holiday = holiday only)
-        // This is used for attendance calculation (absent days), not for summary display
-        // Use unique leaves to avoid counting duplicates
-        foreach ($uniqueLeaves as $leaveDate) {
-            $dateStr = is_string($leaveDate) ? $leaveDate : Carbon::parse($leaveDate)->format('Y-m-d');
-            $leaveCarbon = Carbon::parse($dateStr);
-            
-            $dayName = $leaveCarbon->format('l');
-            $isWeeklyOff = false;
-            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-            }
-
-            // Only count leave on working days (not weekly offs or holidays) for attendance calculation
-            // Also exclude days that already have attendance (attendance takes precedence)
-            // Also exclude holidays where user has attendance (attendance on holiday = holiday only, not leave)
-            if (!$isWeeklyOff 
-                && !in_array($dateStr, $holidays) 
-                && !in_array($dateStr, $attendanceDates)
-                && !in_array($dateStr, $holidaysWithAttendance)) {
-                $leaveDates[] = $dateStr;
-                $daysOnLeave++;
-            }
-        }
-        
-        // Calculate total holidays count (excluding Sundays)
-        $totalHolidays = 0;
-        foreach ($holidays as $holidayDate) {
-            $holidayCarbon = Carbon::parse($holidayDate);
-            $dayName = $holidayCarbon->format('l');
-            $isWeeklyOff = false;
-            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-            }
-
-            // Only count holidays that are not weekly offs
-            if (!$isWeeklyOff) {
-                $totalHolidays++;
-            }
-        }
-        
-        // Calculate absent days (working days - days worked - days on leave)
-        $daysAbsent = $totalWorkingDays - $totalDaysWorked - $daysOnLeave;
-        $daysAbsent = max(0, $daysAbsent); // Ensure non-negative
-        
-        // Calculate attendance percentage: (Present Days + Half Days) / Total Working Days × 100
-        // Note: 
-        // - Total Working Days = All days excluding Sundays and holidays
-        // - Present Days = Days with >= 7 hours
-        // - Half Days = Days with >= 4 hours but < 7 hours
-        // - Only Present and Half Days are counted in the numerator
-        $attendancePercentage = $totalWorkingDays > 0 
-            ? round((($presentDays + $halfDays) / $totalWorkingDays) * 100, 1) 
-            : 0;
-        $attendancePercentage = min(100, $attendancePercentage); // Cap at 100%
-        
-        return [
-            'total_working_days' => $totalWorkingDays,
-            'days_worked' => $totalDaysWorked,
-            'days_absent' => $daysAbsent,
-            'days_on_leave' => $totalLeaves, // Show total leaves count (all leaves) for summary display
-            'attendance_percentage' => $attendancePercentage,
-            'total_present_combined' => $presentDays + $halfDays + $totalHolidaysWorked + $totalSundaysWorked,
-            'total_present' => $presentDays,
-            'total_halfday' => $halfDays,
-            'total_sundays' => $totalSundays,
-            'total_sundays_worked' => $totalSundaysWorked,
-            'total_holidays_worked' => $totalHolidaysWorked,
-            'total_hours' => round($totalHours, 2),
-            'total_office_hours' => round($totalOfficeHours, 2),
-            'total_field_hours' => round($totalFieldHours, 2),
-            'total_break_time' => round($totalBreakTime, 2),
-            'avg_hours_per_day' => $totalDaysWorked > 0 ? round($totalHours / $totalDaysWorked, 2) : 0,
-            'total_cycles' => $totalCycles,
-            'total_less_8_30' => $totalLess8_30,
-            'total_more_8_30' => $totalMore8_30,
-            'late_count' => $lateCount,
-            'total_late_minutes' => $totalLateMinutes,
-            'late_logs' => $lateLogs
-        ];
-    }
-
-    private function generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData = null, $shift = null)
-    {
-        $dailyData = [];
-        // Key attendance by formatted date string to avoid Carbon key mismatch
-        $attendanceByDate = $attendances->keyBy(function ($attendance) {
-            return Carbon::parse($attendance->date)->format('Y-m-d');
-        });
-        
-        $currentDate = $startDate->copy();
-        while ($currentDate->lte($endDate)) {
-            $dateStr = $currentDate->format('Y-m-d');
-            $dayName = $currentDate->format('l');
-            $displayDate = $currentDate->format('M j, Y');
-            
-            $isWeeklyOff = false;
-            $isHalfDayWorking = false;
-            if ($shift) {
-                if ($shift->week_offs && is_array($shift->week_offs)) {
-                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-                }
-                if ($shift->half_days && is_array($shift->half_days)) {
-                    $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
-                }
-            }
-
-            $dayData = [
-                'date' => $dateStr,
-                'display_date' => $displayDate,
-                'day_name' => $dayName,
-                'is_sunday' => $isWeeklyOff,
-                'is_holiday' => in_array($dateStr, $holidays),
-                'is_leave' => isset($leaves[$dateStr]),
-                'leave_type' => $leaves[$dateStr] ?? null,
-                'holiday_name' => null,
-                'status' => 'absent',
-                'hours' => 0,
-                'office_hours' => 0,
-                'field_hours' => 0,
-                'break_time' => 0,
-                'cycles' => ['office' => 0, 'field' => 0, 'break' => 0],
-                'movements' => []
-            ];
-            
-            // First check if user has attendance for this date (takes priority for data)
-            if (isset($attendanceByDate[$dateStr])) {
-                $attendance = $attendanceByDate[$dateStr];
-                $dayData['hours'] = $this->calculateHours($attendance->movements, $shift, $dateStr);
-                $dayData['office_hours'] = $this->calculateTypeHours($attendance->movements, 'office');
-                $dayData['field_hours'] = $this->calculateTypeHours($attendance->movements, 'field');
-                $dayData['break_time'] = $this->calculateTypeHours($attendance->movements, 'break');
-                $dayData['cycles'] = $this->calculateDayCycles($attendance->movements);
-                $dayData['late_minutes'] = (int) ($attendance->late_minutes ?? 0);
-                $dayData['is_wfh'] = $attendance->is_wfh;
-                
-                // Format movements for display
-                $dayData['movements'] = $attendance->movements->map(function($movement) {
-                    return [
-                        'time' => Carbon::parse($movement->time)->setTimezone('Asia/Kolkata')->format('H:i'),
-                        'type' => ucfirst($movement->movement_type),
-                        'action' => ucfirst($movement->movement_action),
-                        'description' => $movement->description
-                    ];
-                })->toArray();
-                
-                // Aggregate descriptions
-                $descriptions = $attendance->movements
-                    ->map(function($m) { 
-                        return $m->description ? trim($m->description) : null; 
-                    })
-                    ->filter(function($desc) { 
-                        return !empty($desc); 
-                    })
-                    ->unique()
-                    ->values()
-                    ->toArray();
-                
-                $dayData['description'] = !empty($descriptions) ? implode('<br>', $descriptions) : null;
-
-                // Set status - handle specific labeling for Sundays/Holidays vs Regular days
-                if ($dayData['is_sunday']) {
-                    $dayData['status'] = 'S/W';
-                } elseif ($dayData['is_holiday']) {
-                    $dayData['status'] = 'H/W';
-                    if ($holidaysData && isset($holidaysData[$dateStr])) {
-                        $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
-                    }
-                } else {
-                    [$fullDayHr, $halfDayHr] = $this->getShiftHours($shift);
-                    
-                    if ($isHalfDayWorking) {
-                        $fullDayHr = $halfDayHr;
-                        $halfDayHr = $halfDayHr / 2;
-                    }
-                    
-                    if ($dayData['leave_type'] === 'SL') {
-                        if ($dayData['hours'] >= $fullDayHr) {
-                            $dayData['status'] = 'present';
-                        } else {
-                            $dayData['status'] = 'short leave';
-                        }
-                    } else {
-                        if ($dayData['hours'] >= $fullDayHr) {
-                            $dayData['status'] = 'present';
-                        } elseif ($dayData['hours'] >= $halfDayHr) {
-                            $dayData['status'] = 'halfday';
-                        } else {
-                            $dayData['status'] = 'absent by less hr';
-                        }
-                    }
-                }
-            } else {
-                // NO attendance found, determine fallback status
-                if ($isWeeklyOff) {
-                    $dayData['status'] = 'weekly off';
-                } elseif (in_array($dateStr, $holidays)) {
-                    $dayData['status'] = 'holiday';
-                    if ($holidaysData && isset($holidaysData[$dateStr])) {
-                        $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
-                    }
-                } elseif (isset($leaves[$dateStr])) {
-                    if ($leaves[$dateStr] === 'RH') {
-                        $dayData['status'] = 'restricted holiday';
-                    } elseif ($leaves[$dateStr] === 'SL') {
-                        $dayData['status'] = 'short leave';
-                    } else {
-                        $dayData['status'] = 'leave';
-                    }
-                } else {
-                    $dayData['status'] = 'absent';
-                }
-            }
-            
-            $dailyData[] = $dayData;
-            $currentDate->addDay();
-        }
-        
-        return $dailyData;
-    }
-
-    private function calculateHours($movements, $shift = null, $date = null): float
-    {
-        if ($movements->isEmpty()) {
-            return 0;
-        }
-
-        $movements = $movements->sortBy('time');
-        
-        // Find first punch-in and last punch-out across all movement types
-        $firstPunchIn = null;
-        $lastPunchOut = null;
-        
-        foreach ($movements as $movement) {
-            // Only consider office and field movements for total hours calculation
-            if (in_array($movement->movement_type, ['office', 'field'])) {
-                $time = Carbon::parse($movement->time)->setTimezone('Asia/Kolkata');
-                if ($movement->movement_action === 'in' && !$firstPunchIn) {
-                    $firstPunchIn = $time;
-                }
-                if ($movement->movement_action === 'out') {
-                    $lastPunchOut = $time;
-                }
-            }
-        }
-        
-        // If no punch-in found, return 0
-        if (!$firstPunchIn) {
-            return 0;
-        }
-        
-        // If no punch-out found, calculate until now
-        if (!$lastPunchOut) {
-            $lastPunchOut = Carbon::now()->setTimezone('Asia/Kolkata');
-        }
-
-        // Apply shift capping if shift and date are provided
-        if ($shift && $date) {
-            $shiftDate = Carbon::parse($date)->format('Y-m-d');
-            
-            // Handle Start Time Capping
-            if ($shift->start_time) {
-                $shiftStartTime = Carbon::parse($shift->start_time)->format('H:i:s');
-                $startLimit = Carbon::parse($shiftDate . ' ' . $shiftStartTime, 'UTC')->setTimezone('Asia/Kolkata');
-                if ($firstPunchIn->lt($startLimit)) {
-                    $firstPunchIn = $startLimit;
-                }
-            }
-            
-            // Handle End Time Capping (Shift End + Extended Hours)
-            if ($shift->end_time) {
-                $shiftEndTime = Carbon::parse($shift->end_time)->format('H:i:s');
-                $endLimit = Carbon::parse($shiftDate . ' ' . $shiftEndTime, 'UTC')->setTimezone('Asia/Kolkata');
-                
-                if ($shift->extended_hr > 0) {
-                    $endLimit->addMinutes((int)($shift->extended_hr * 60));
-                }
-                
-                if ($lastPunchOut->gt($endLimit)) {
-                    $lastPunchOut = $endLimit;
-                }
-            }
-        }
-
-        
-        // If capped first punch is after capped last punch, duration is 0
-        if ($firstPunchIn->gt($lastPunchOut)) {
-            return 0;
-        }
-        
-        // Calculate total minutes from first punch-in to last punch-out
-        $totalMinutes = $firstPunchIn->diffInMinutes($lastPunchOut);
-        
-        return $totalMinutes / 60;
-    }
 
 
     /**
@@ -2765,31 +2204,6 @@ class AttendanceController extends Controller
     }
 
 
-    private function getShiftHours($shift)
-    {
-        $fullDayHr = 7;
-        $halfDayHr = 4;
 
-        if ($shift) {
-            if (isset($shift->full_day_hr) && $shift->full_day_hr > 0) {
-                $fullDayHr = (float) $shift->full_day_hr;
-                $halfDayHr = isset($shift->half_day_hr) && $shift->half_day_hr > 0 
-                    ? (float) $shift->half_day_hr 
-                    : $fullDayHr / 2;
-            } elseif (!empty($shift->start_time) && !empty($shift->end_time)) {
-                $start = \Carbon\Carbon::parse($shift->start_time);
-                $end = \Carbon\Carbon::parse($shift->end_time);
-                
-                if ($end->lt($start)) {
-                    $end->addDay();
-                }
-                
-                $fullDayHr = $start->diffInMinutes($end) / 60;
-                $halfDayHr = $fullDayHr / 2;
-            }
-        }
-
-        return [$fullDayHr, $halfDayHr];
-    }
 
 }
