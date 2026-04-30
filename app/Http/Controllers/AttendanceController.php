@@ -1671,7 +1671,7 @@ class AttendanceController extends Controller
                         } elseif ($dayData['hours'] >= $halfDayHr) {
                             $dayData['status'] = 'halfday';
                         } else {
-                            $dayData['status'] = 'absent';
+                            $dayData['status'] = 'absent by less hr';
                         }
                     }
                 }
@@ -2060,8 +2060,8 @@ class AttendanceController extends Controller
                                 $statusCode = 'P2'; // Half Day
                                 $statusClass = 'text-warning';
                             } else {
-                                $statusCode = 'P'; // Falling back to P if punched in but low hours (or could be absent)
-                                $statusClass = 'text-success'; 
+                                $statusCode = 'A'; // Absent
+                                $statusClass = 'text-danger'; 
                             }
                         }
                     }
@@ -2202,9 +2202,6 @@ class AttendanceController extends Controller
             
             // Only count attendance on working days (not weekly offs or holidays) for work stats
             if (!$isWeeklyOff && !in_array($dateStr, $holidays)) {
-                $attendanceDates[] = $dateStr;
-                $totalDaysWorked++;
-                
                 $dayHours = $this->calculateHours($attendance->movements, $shift, $attendance->date);
                 $totalHours += $dayHours;
                 
@@ -2213,6 +2210,12 @@ class AttendanceController extends Controller
                 if ($isHalfDayWorking) {
                     $fullDayHr = $halfDayHr;
                     $halfDayHr = $halfDayHr / 2;
+                }
+
+                // Only count as worked day if >= half day hours
+                if ($dayHours >= $halfDayHr) {
+                    $attendanceDates[] = $dateStr;
+                    $totalDaysWorked++;
                 }
 
                 // Count present and half days based on hours
