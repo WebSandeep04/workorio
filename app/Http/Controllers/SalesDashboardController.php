@@ -615,6 +615,8 @@ public function userTasks(Request $request)
         $query->where('t.user_id', $userId);
     }
 
+    $query->where('t.is_done', 0);
+
     $tasks = $query->select(
             't.id',
             't.task_name',

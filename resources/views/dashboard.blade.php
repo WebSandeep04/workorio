@@ -15,6 +15,17 @@
     if (session()->has('tenant_id')) {
         $tenant = \App\Models\Tenant::find(session('tenant_id'));
     }
+
+    // Resolve tenant for feature flags - handle missing flags gracefully
+    $isSales = isset($tenant->is_sales_enabled) ? (bool)$tenant->is_sales_enabled : true;
+    $isCalling = isset($tenant->is_tally_calling_enabled) ? (bool)$tenant->is_tally_calling_enabled : true;
+    $isAttendance = isset($tenant->is_attendance_enabled) ? (bool)$tenant->is_attendance_enabled : true;
+    $isTasks = isset($tenant->is_task_reminders_enabled) ? (bool)$tenant->is_task_reminders_enabled : true;
+    $isSubs = isset($tenant->is_subscription_enabled) ? (bool)$tenant->is_subscription_enabled : true;
+    $isPettyCash = isset($tenant->is_petty_cash_enable) ? (bool)$tenant->is_petty_cash_enable : true;
+    $isCalendar = isset($tenant->is_social_media_calendar_enabled) ? (bool)$tenant->is_social_media_calendar_enabled : true;
+    $isApproval = isset($tenant->is_approval_enabled) ? (bool)$tenant->is_approval_enabled : true;
+    $isWorklog = isset($tenant->is_worklog_enabled) ? (bool)$tenant->is_worklog_enabled : true;
 @endphp
 
 <div class="dashboard-wrapper">
@@ -23,7 +34,9 @@
             <div style="font-size:10.5px;color:#9ca3af;margin-bottom:4px">Viewing dashboard as:</div>
             <div class="rtabs">
                 <button class="rtab act" onclick="sw('founder',this)">My Dashboard</button>
+                @if($isSales || $isCalling)
                 <button class="rtab" onclick="sw('sales',this)">Teams Dashboard</button>
+                @endif
             </div>
         </div>
         <div style="font-size:11.5px;color:#6b7280;text-align:right">
@@ -36,14 +49,15 @@
     <div class="d-view act" id="vf">
         <div class="wbar">
             <div><h2>Welcome back, {{ $firstName }}! 👋</h2><p>Here is your business overview for today.</p></div>
-            <button class="pibtn">Punch In</button>
         </div>
         <div class="alert-w">
             <svg width="14" height="14" viewBox="0 0 20 20" fill="#f59e0b" style="flex-shrink:0"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
             <span><b>Subscription Expiring:</b> Workorio Pro expires in <b>18 days</b> (May 13, 2025). &nbsp;<span style="color:#2563eb;cursor:pointer;text-decoration:underline">Renew Now →</span></span>
         </div>
 
+        @if($isSales || $isCalling)
         <div style="margin-bottom:20px">
+            @if($isSales)
             <div style="margin-bottom:10px">
                 <div style="font-size:16px;font-weight:700;color:#111827">Sales Intelligence</div>
                 <div style="font-size:11.5px;color:#6b7280">Real-time performance metrics for your sales pipeline</div>
@@ -56,8 +70,10 @@
                 <div class="sc" onclick="location.href='{{ route('todaynewtable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>New Followups</div><div class="sval" id="todaynew">0<span class="sarr">→</span></div></div>
                 <div class="sc" onclick="location.href='{{ route('myleads') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>All Leads</div><div class="sval" id="allleads">0<span class="sarr">→</span></div></div>
             </div>
+            @endif
 
-            <div style="margin-bottom:10px">
+            @if($isCalling)
+            <div style="margin-bottom:10px; margin-top: 20px;">
                 <div style="font-size:16px;font-weight:700;color:#111827">Tele-Calling Status</div>
                 <div style="font-size:11.5px;color:#6b7280">Daily calling activity and follow-up tracking</div>
             </div>
@@ -69,9 +85,13 @@
                 <div class="sc" onclick="location.href='{{ route('calling.todaynewtable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#a855f7;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg></div>New Followups</div><div class="sval" id="c_todaynew">0<span class="sarr">→</span></div></div>
                 <div class="sc" onclick="location.href='{{ route('calling.allleadstable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#1f2937;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>All Leads</div><div class="sval" id="c_allleads">0<span class="sarr">→</span></div></div>
             </div>
+            @endif
         </div>
+        @endif
 
         <div class="hcards">
+            {{-- 
+            @if($isAttendance)
             <div class="card">
                 <div class="chead"><span class="ctitle">Team Attendance Today</span><span class="va" onclick="location.href='{{ route('attendance.history') }}'">view all</span></div>
                 <div style="display:grid;grid-template-columns:2.5fr 1fr;gap:16px;">
@@ -93,6 +113,10 @@
                     </div>
                 </div>
             </div>
+            @endif
+            --}}
+
+            @if($isSales)
             <div class="card">
                 <div class="chead"><span class="ctitle">Lead Source Breakdown</span><span style="color:#9ca3af;font-size:16px;cursor:pointer;letter-spacing:2px">···</span></div>
                 <div class="dw">
@@ -102,9 +126,11 @@
                     </ul>
                 </div>
             </div>
+            @endif
         </div>
 
         <div class="hcards">
+            @if($isTasks)
             <div class="card">
                 <div class="chead"><span class="ctitle">Task</span><span class="va">view all</span></div>
                 <div class="subtabs">
@@ -118,21 +144,29 @@
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading tasks...</div>
                 </div>
             </div>
+            @endif
+
+            @if($isSales)
             <div class="card">
                 <div class="chead"><span class="ctitle">Due Payments</span><span id="overdue-badge" style="display:none;font-size:11px;background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:8px;font-weight:600">0 Overdue</span></div>
                 <div id="due-payments-list">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending payments</div>
                 </div>
             </div>
+            @endif
         </div>
 
         <div class="hcards">
+            @if($isSubs)
             <div class="card">
                 <div class="chead"><span class="ctitle">Due Subscriptions</span><span class="va" onclick="location.href='{{ route('subscriptions.index') }}'">view all</span></div>
                 <div id="due-subscriptions-list">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No active subscriptions</div>
                 </div>
             </div>
+            @endif
+
+            @if($isPettyCash)
             <div class="card">
                 <div class="chead">
                     <span class="ctitle">Petty Cash</span>
@@ -148,9 +182,11 @@
                     <div class="pcb" style="background:#f0fdf4"><div class="pcb-val" id="pc-rem" style="color:#15803d">₹0</div><div class="pcb-lbl">Remaining</div></div>
                 </div>
             </div>
+            @endif
         </div>
 
         <div class="hcards">
+            @if($isCalendar)
             <div class="card">
                 <div class="chead"><span class="ctitle">SMM Calendar</span><span class="va">view all</span></div>
                 <div class="cal-hdr">
@@ -163,31 +199,62 @@
                 </div>
                 <div class="cal-grid" id="cal-grid"></div>
             </div>
+            @endif
+
+            @if($isApproval)
             <div class="card">
                 <div class="chead"><span class="ctitle">Pending Approvals</span><span class="va">view all</span></div>
                 <div class="subtabs" style="overflow-x:auto;white-space:nowrap;display:block">
+                    @if($isWorklog)
                     <button class="subtab act" onclick="swApprovalTab('ts',this)" style="display:inline-block">Timesheet<span class="notif-badge" id="ap-ts-badge">0</span></button>
-                    <button class="subtab" onclick="swApprovalTab('at',this)" style="display:inline-block">Attendance<span class="notif-badge" id="ap-at-badge">0</span></button>
-                    <button class="subtab" onclick="swApprovalTab('tk',this)" style="display:inline-block">Task<span class="notif-badge" id="ap-tk-badge">0</span></button>
+                    @endif
+                    @if($isAttendance)
+                    <button class="subtab {{ !$isWorklog ? 'act' : '' }}" onclick="swApprovalTab('at',this)" style="display:inline-block">Attendance<span class="notif-badge" id="ap-at-badge">0</span></button>
+                    @endif
+                    @if($isTasks)
+                    <button class="subtab {{ !$isWorklog && !$isAttendance ? 'act' : '' }}" onclick="swApprovalTab('tk',this)" style="display:inline-block">Task<span class="notif-badge" id="ap-tk-badge">0</span></button>
+                    @endif
+                    @if($isAttendance)
                     <button class="subtab" onclick="swApprovalTab('lv',this)" style="display:inline-block">Leave<span class="notif-badge" id="ap-lv-badge">0</span></button>
-                    <button class="subtab" onclick="swApprovalTab('pc',this)" style="display:inline-block">Petty Cash<span class="notif-badge" id="ap-pc-badge">0</span></button>
+                    @endif
+                    @if($isPettyCash)
+                    <button class="subtab {{ !$isWorklog && !$isAttendance && !$isTasks ? 'act' : '' }}" onclick="swApprovalTab('pc',this)" style="display:inline-block">Petty Cash<span class="notif-badge" id="ap-pc-badge">0</span></button>
+                    @endif
                 </div>
+                
+                @if($isWorklog)
                 <div id="ap-ts" class="ap-cnt act">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending timesheets</div>
                 </div>
-                <div id="ap-at" class="ap-cnt">
+                @endif
+                
+                @if($isAttendance)
+                <div id="ap-at" class="ap-cnt {{ !$isWorklog ? 'act' : '' }}">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending attendance</div>
                 </div>
-                <div id="ap-tk" class="ap-cnt">
+                @endif
+                
+                @if($isTasks)
+                <div id="ap-tk" class="ap-cnt {{ !$isWorklog && !$isAttendance ? 'act' : '' }}">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending tasks</div>
                 </div>
+                @endif
+                
+                @if($isAttendance)
                 <div id="ap-lv" class="ap-cnt">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending leaves</div>
                 </div>
-                <div id="ap-pc" class="ap-cnt">
+                @endif
+                
+                @if($isPettyCash)
+                <div id="ap-pc" class="ap-cnt {{ !$isWorklog && !$isAttendance && !$isTasks ? 'act' : '' }}">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending petty cash</div>
                 </div>
+                @endif
             </div>
+            @endif
+        </div>
+            @if($isAttendance)
             <div class="card" style="background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden;">
                 <div style="position: absolute; top: -10px; right: 10px; font-size: 80px; opacity: 0.1;">🌴</div>
                 <div class="chead" style="border-bottom: none;"><span class="ctitle" style="color: #1f2937;">Upcoming Holidays</span><span class="va" onclick="location.href='{{ route('holidays.index') }}'">view all</span></div>
@@ -195,6 +262,7 @@
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading holidays...</div>
                 </div>
             </div>
+            @endif
             <div class="card" style="background: linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden;">
                 <div style="position: absolute; top: -10px; right: 10px; font-size: 80px; opacity: 0.15;">🎉</div>
                 <div class="chead" style="border-bottom: none;"><span class="ctitle" style="color: #1f2937;">Celebrations</span></div>
@@ -209,11 +277,16 @@
     <div class="d-view" id="vs">
         <div class="wbar"><div><h2>Welcome back, {{ $firstName }}! 📞</h2><p>Your leads and follow-ups for today.</p></div><button class="pibtn">Punch In</button></div>
         <div class="sgrid">
+            @if($isSales)
             <div class="sc" onclick="location.href='{{ route('todayfollowupstable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#f97316"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>Today's Follow-ups</div><div class="sval" id="s_todayfollowups">0<span class="sarr">→</span></div></div>
             <div class="sc" onclick="location.href='{{ route('todaypendingtable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#ef4444"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>Missed Follow-ups</div><div class="sval" id="s_missed">0<span class="sarr" style="color:#ef4444">→</span></div></div>
             <div class="sc" onclick="location.href='{{ route('todaycompletedtable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#22c55e"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>My Conversions</div><div class="sval" id="s_conversions">0<span class="sarr">→</span></div></div>
+            @endif
+            @if($isCalling)
             <div class="sc" onclick="location.href='{{ route('calling.todayfollowupstable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#3b82f6"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>Calls Today</div><div class="sval" id="s_calls">0<span class="sarr">→</span></div></div>
+            @endif
         </div>
+        @if($isSales)
         <div class="hcards">
             <div class="card">
                 <div class="chead"><span class="ctitle">Today's Follow-ups</span><span class="va">view all</span></div>
@@ -241,6 +314,7 @@
                 <div class="ps" style="background:#dcfce7"><div class="psn" style="color:#15803d" id="pipe-converted">7</div><div class="psl">Converted</div></div>
             </div>
         </div>
+        @endif
     </div>
 </div>
 
@@ -269,7 +343,7 @@
 .slbl svg{width:13px;height:13px}
 .sval{font-size:20px;font-weight:700;color:#111827;display:flex;align-items:center;justify-content:space-between}
 .sarr{color:#d1d5db;font-size:14px}
-.hcards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.hcards{display:grid;grid-template-columns:repeat(auto-fit, minmax(450px, 1fr));gap:14px;margin-bottom:14px}
 .card{background:#fff;border-radius:9px;border:1px solid #e5e7eb;padding:14px}
 .chead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .ctitle{font-size:13.5px;font-weight:600;color:#111827}
@@ -387,6 +461,18 @@
 var charts={};
 var calY={{ date('Y') }},calM={{ date('n') - 1 }};
 var selDs=null;
+
+window.tenantFeatures = {
+    isSales: {{ $isSales ? 'true' : 'false' }},
+    isCalling: {{ $isCalling ? 'true' : 'false' }},
+    isAttendance: {{ $isAttendance ? 'true' : 'false' }},
+    isTasks: {{ $isTasks ? 'true' : 'false' }},
+    isSubs: {{ $isSubs ? 'true' : 'false' }},
+    isPettyCash: {{ $isPettyCash ? 'true' : 'false' }},
+    isCalendar: {{ $isCalendar ? 'true' : 'false' }},
+    isApproval: {{ $isApproval ? 'true' : 'false' }},
+    isWorklog: {{ $isWorklog ? 'true' : 'false' }}
+};
 
 var smmData={};
 
@@ -574,96 +660,131 @@ function fetchMetric(url, elementId, key) {
 }
 
 function loadDashboardMetrics() {
+    const f = window.tenantFeatures;
+
     // Sales Intelligence
-    fetchMetric('/todayfollowups', 'todayfollowups', 'totalLeads');
-    fetchMetric('/underprocess', 'underprocess', 'underprocess');
-    fetchMetric('/todaycompleted', 'todaycompleted', 'todaycompleted');
-    fetchMetric('/todaypending', 'todaypending', 'todaypending');
-    fetchMetric('/todaynew', 'todaynew', 'todaynew');
-    fetchMetric('/allleads', 'allleads', 'allleads');
+    if (f.isSales) {
+        fetchMetric('/todayfollowups', 'todayfollowups', 'totalLeads');
+        fetchMetric('/underprocess', 'underprocess', 'underprocess');
+        fetchMetric('/todaycompleted', 'todaycompleted', 'todaycompleted');
+        fetchMetric('/todaypending', 'todaypending', 'todaypending');
+        fetchMetric('/todaynew', 'todaynew', 'todaynew');
+        fetchMetric('/allleads', 'allleads', 'allleads');
+    }
 
     // Tele-Calling Status
-    fetchMetric('/calling/todayfollowups', 'c_todayfollowups', 'totalLeads');
-    fetchMetric('/calling/underprocess', 'c_underprocess', 'underprocess');
-    fetchMetric('/calling/todaycompleted', 'c_todaycompleted', 'todaycompleted');
-    fetchMetric('/calling/todaypending', 'c_todaypending', 'todaypending');
-    fetchMetric('/calling/todaynew', 'c_todaynew', 'todaynew');
-    fetchMetric('/calling/allleads', 'c_allleads', 'allleads');
+    if (f.isCalling) {
+        fetchMetric('/calling/todayfollowups', 'c_todayfollowups', 'totalLeads');
+        fetchMetric('/calling/underprocess', 'c_underprocess', 'underprocess');
+        fetchMetric('/calling/todaycompleted', 'c_todaycompleted', 'todaycompleted');
+        fetchMetric('/calling/todaypending', 'c_todaypending', 'todaypending');
+        fetchMetric('/calling/todaynew', 'c_todaynew', 'todaynew');
+        fetchMetric('/calling/allleads', 'c_allleads', 'allleads');
+    }
     
     // Team Attendance
-    $.ajax({
-        url: '/attendance/summary',
-        method: 'GET',
-        success: function(res) {
-            $('#att-present').text(res.present);
-            $('#att-absent').text(res.absent);
-            $('#att-office').text(res.office);
-            $('#att-remote').text(res.remote);
-            $('#att-field').text(res.field);
-            $('#att-wfh').text(res.wfh);
-        }
-    });
+    if (f.isAttendance) {
+        $.ajax({
+            url: '/attendance/summary',
+            method: 'GET',
+            success: function(res) {
+                $('#att-present').text(res.present);
+                $('#att-absent').text(res.absent);
+                $('#att-office').text(res.office);
+                $('#att-remote').text(res.remote);
+                $('#att-field').text(res.field);
+                $('#att-wfh').text(res.wfh);
+            }
+        });
+
+        // Holidays
+        $.ajax({
+            url: '/holidays/summary',
+            method: 'GET',
+            success: function(res) {
+                renderHolidays(res.list || []);
+            }
+        });
+    }
 
     // Petty Cash
-    updatePC();
+    if (f.isPettyCash) {
+        updatePC();
+    }
 
     // Pending Approvals
-    $.ajax({
-        url: '/pending-approvals/summary',
-        method: 'GET',
-        success: function(res) {
-            $('#ap-at-badge').text(res.attendance);
-            $('#ap-lv-badge').text(res.leave);
-            $('#ap-pc-badge').text(res.petty_cash);
-            $('#ap-ts-badge').text(res.timesheet || 0);
-            $('#ap-tk-badge').text(res.task || 0);
-            
-            if (res.lists) {
-                renderApprovals('at', res.lists.attendance);
-                renderApprovals('lv', res.lists.leave);
-                renderApprovals('pc', res.lists.petty_cash);
-                renderApprovals('ts', res.lists.timesheet);
-                renderApprovals('tk', res.lists.task);
+    if (f.isApproval) {
+        $.ajax({
+            url: '/pending-approvals/summary',
+            method: 'GET',
+            success: function(res) {
+                if (f.isAttendance) $('#ap-at-badge').text(res.attendance);
+                if (f.isAttendance) $('#ap-lv-badge').text(res.leave);
+                if (f.isPettyCash) $('#ap-pc-badge').text(res.petty_cash);
+                if (f.isWorklog) $('#ap-ts-badge').text(res.timesheet || 0);
+                if (f.isTasks) $('#ap-tk-badge').text(res.task || 0);
+                
+                if (res.lists) {
+                    if (f.isAttendance) renderApprovals('at', res.lists.attendance);
+                    if (f.isAttendance) renderApprovals('lv', res.lists.leave);
+                    if (f.isPettyCash) renderApprovals('pc', res.lists.petty_cash);
+                    if (f.isWorklog) renderApprovals('ts', res.lists.timesheet);
+                    if (f.isTasks) renderApprovals('tk', res.lists.task);
+                }
             }
-        }
-    });
+        });
+    }
 
     // Due Payments
-    $.ajax({
-        url: '/due-payments/summary',
-        method: 'GET',
-        success: function(res) {
-            renderPayments(res.list || []);
-        }
-    });
+    if (f.isSales) {
+        $.ajax({
+            url: '/due-payments/summary',
+            method: 'GET',
+            success: function(res) {
+                renderPayments(res.list || []);
+            }
+        });
+    }
 
     // Due Subscriptions
-    $.ajax({
-        url: '/due-subscriptions/summary',
-        method: 'GET',
-        success: function(res) {
-            renderSubscriptions(res.list || []);
-        }
-    });
+    if (f.isSubs) {
+        $.ajax({
+            url: '/due-subscriptions/summary',
+            method: 'GET',
+            success: function(res) {
+                renderSubscriptions(res.list || []);
+            }
+        });
+    }
 
     // Sales View Specific
-    $.ajax({
-        url: '/todayfollowups',
-        method: 'GET',
-        success: function(res) {
-            $('#s_todayfollowups').text(res.totalLeads || 0);
-            renderFollowups(res.leads || []);
-            if (res.pipeline) {
-                res.pipeline.forEach(p => {
-                    const id = 'pipe-' + p.status_name.toLowerCase().replace(/\s+/g, '');
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = p.total;
-                });
+    if (f.isSales) {
+        $.ajax({
+            url: '/todayfollowups',
+            method: 'GET',
+            success: function(res) {
+                $('#s_todayfollowups').text(res.totalLeads || 0);
+                renderFollowups(res.leads || []);
+                if (res.pipeline) {
+                    res.pipeline.forEach(p => {
+                        const id = 'pipe-' + p.status_name.toLowerCase().replace(/\s+/g, '');
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = p.total;
+                    });
+                }
             }
-        }
-    });
-    fetchMetric('/todaypending', 's_missed', 'todaypending');
-    fetchMetric('/todaycompleted', 's_conversions', 'todaycompleted');
+        });
+        fetchMetric('/todaypending', 's_missed', 'todaypending');
+        fetchMetric('/todaycompleted', 's_conversions', 'todaycompleted');
+
+        loadLeadSourceDonut('dc1', 'total-leads-donut');
+        loadLeadSourceDonut('dc2', 'total-leads-donut-sales');
+    }
+
+    if (f.isCalling) {
+        // Add call metrics if needed for sales view
+        // fetchMetric('/calling/summary', 's_calls', 'completed'); // Example
+    }
     
     // Celebrations
     $.ajax({
@@ -674,33 +795,28 @@ function loadDashboardMetrics() {
         }
     });
 
-    // Holidays
-    $.ajax({
-        url: '/holidays/summary',
-        method: 'GET',
-        success: function(res) {
-            renderHolidays(res.list || []);
-        }
-    });
-
-    loadLeadSourceDonut('dc1', 'total-leads-donut');
-    loadLeadSourceDonut('dc2', 'total-leads-donut-sales');
+    // Calendar
+    if (f.isCalendar) {
+        loadCalendarData(calY, calM);
+    }
     
     // Tasks
-    $.ajax({
-        url: '/user-tasks?type=byMe',
-        method: 'GET',
-        success: function(res) {
-            renderTasks('tk-byMe', res.data || []);
-        }
-    });
-    $.ajax({
-        url: '/user-tasks?type=toMe',
-        method: 'GET',
-        success: function(res) {
-            renderTasks('tk-toMe', res.data || []);
-        }
-    });
+    if (f.isTasks) {
+        $.ajax({
+            url: '/user-tasks?type=byMe',
+            method: 'GET',
+            success: function(res) {
+                renderTasks('tk-byMe', res.data || []);
+            }
+        });
+        $.ajax({
+            url: '/user-tasks?type=toMe',
+            method: 'GET',
+            success: function(res) {
+                renderTasks('tk-toMe', res.data || []);
+            }
+        });
+    }
 }
 
 function loadCalendarData(y, m) {
