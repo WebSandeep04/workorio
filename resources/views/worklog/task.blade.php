@@ -784,7 +784,7 @@
       <i class="bi bi-search"></i>
       <input type="text" id="search" placeholder="Search tasks..." />
     </div>
-    <button type="button" onclick="handleExport()" class="table-search-btn" style="background: #198754; border:none; color: white; box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);">
+    <button type="button" onclick="handleExport()" class="table-search-btn" style="background: #434afa; border:none; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);">
       <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
     </button>
     <button type="button" class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createTaskModal">
