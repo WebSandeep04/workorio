@@ -51,6 +51,7 @@ class TaskController extends Controller
                     'priority',
                     'customerProject',
                     'workflowTask.successorDependencies.type',
+                    'remarks.user',
                 ]))
                 ->where('created_by', $userId)
                 ->orderBy('created_at', 'desc')
@@ -97,6 +98,7 @@ class TaskController extends Controller
                     'priority',
                     'customerProject',
                     'workflowTask.successorDependencies.type',
+                    'remarks.user',
                 ]))
                 // Exclude tasks that are already marked as done
                 ->where(function ($q) {

@@ -659,6 +659,7 @@
             <th>Completed At</th>
             <th>Created By</th>
             <th>Created At</th>
+            <th>Remarks</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -850,6 +851,15 @@
 <script>
 let currentPage = 1;
 let allTasks = [];
+
+function escapeHtml(text) {
+    return (text || '').toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
 
 // Load summary stats
 function loadSummaryStats() {
@@ -1129,6 +1139,12 @@ function renderTasksTable(tasks, page = 1) {
             </a>
           </td>
           <td>${createdAt}</td>
+          <td>
+            <button type="button" class="btn btn-sm btn-outline-secondary position-relative" onclick="showRemarksModal(${task.id})" title="Remarks">
+                <i class="bi bi-chat-left-text"></i>
+                ${(task.remarks ? task.remarks.length : 0) > 0 ? `<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.55rem; padding: 2px 4px;">${task.remarks.length}</span>` : ''}
+            </button>
+          </td>
           <td>
             <button class="btn btn-sm btn-primary action-btn" onclick="editTask(${task.id})" title="Edit">
               <i class="bi bi-pencil"></i>
@@ -1765,6 +1781,85 @@ window.toggleDone = function(id) {
     }
   });
 };
+
+window.showRemarksModal = function(taskId) {
+    const task = allTasks.find(t => t.id == taskId);
+    if (task) {
+        let modalEl = document.getElementById('taskRemarksModal');
+        if (!modalEl) {
+            const html = `
+            <div class="modal fade" id="taskRemarksModal" tabindex="-1">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Remarks</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div id="remarksList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px;"></div>
+                    <div class="border-top pt-3">
+                      <h6>Add New Remark</h6>
+                      <textarea id="newRemarkText" class="form-control" rows="3"></textarea>
+                      <button type="button" class="btn btn-primary btn-sm mt-2" id="saveRemarkBtn"><i class="bi bi-save"></i> Add</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', html);
+            modalEl = document.getElementById('taskRemarksModal');
+        }
+        displayRemarks(task.remarks || []);
+        $('#saveRemarkBtn').attr('data-task-id', taskId);
+        new bootstrap.Modal(modalEl).show();
+    }
+};
+
+function displayRemarks(remarks) {
+    const list = $('#remarksList');
+    if (!remarks || !remarks.length) {
+        list.html('<p class="text-muted text-center">No remarks.</p>');
+        return;
+    }
+    let html = '<div class="list-group">';
+    remarks.forEach(r => {
+         html += `<div class="list-group-item">
+            <p class="mb-1">${escapeHtml(r.remark)}</p>
+            <small class="text-muted">${r.user ? r.user.name : ''} - ${new Date(r.created_at).toLocaleString()}</small>
+         </div>`;
+    });
+    html += '</div>';
+    list.html(html);
+}
+
+$(document).on('click', '#saveRemarkBtn', function() {
+    const taskId = $(this).attr('data-task-id');
+    const text = $('#newRemarkText').val().trim();
+    if (!text) return;
+    $.post("<?php echo e(route('task.remark.save')); ?>", {
+        task_id: taskId,
+        remark: text,
+        _token: '<?php echo e(csrf_token()); ?>'
+    }, function(res) {
+        if (res.success) {
+            $('#newRemarkText').val('');
+            alert('Remark added');
+            // Refresh task list to show updated remarks count
+            loadTasks();
+            // We need to re-fetch the task to update the remarks list in modal
+            $.ajax({
+                url: "<?php echo e(route('all-tasks.fetch')); ?>",
+                type: "GET",
+                dataType: 'json',
+                success: function(data) {
+                    allTasks = data || [];
+                    const t = allTasks.find(i => i.id == taskId);
+                    if (t) displayRemarks(t.remarks);
+                }
+            });
+        }
+    });
+});
 </script>
 <?php $__env->stopPush(); ?>
 
