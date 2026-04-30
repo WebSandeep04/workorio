@@ -71,22 +71,22 @@
 
         <div class="hcards">
             <div class="card">
-                <div class="chead"><span class="ctitle">Team Attendance Today</span><span class="va">view all</span></div>
+                <div class="chead"><span class="ctitle">Team Attendance Today</span><span class="va" onclick="location.href='<?php echo e(route('attendance.history')); ?>'">view all</span></div>
                 <div style="display:grid;grid-template-columns:2.5fr 1fr;gap:16px;">
                     <div style="background:#f0fdf4;border-radius:9px;padding:16px;border:1px solid #dcfce7">
                         <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #dcfce7;margin-bottom:12px">
                             <div style="font-size:14px;color:#15803d;font-weight:600">Present</div>
-                            <div style="font-size:32px;font-weight:700;color:#16a34a;line-height:1">18</div>
+                            <div style="font-size:32px;font-weight:700;color:#16a34a;line-height:1" id="att-present">0</div>
                         </div>
                         <div style="grid-template-columns:1fr 1fr;gap:12px 24px;font-size:12.5px;color:#15803d;display:grid">
-                            <div style="display:flex;justify-content:space-between"><span>In Office</span><b style="color:#16a34a">10</b></div>
-                            <div style="display:flex;justify-content:space-between"><span>Remote</span><b style="color:#16a34a">3</b></div>
-                            <div style="display:flex;justify-content:space-between"><span>In Field</span><b style="color:#16a34a">2</b></div>
-                            <div style="display:flex;justify-content:space-between"><span>WFH</span><b style="color:#16a34a">3</b></div>
+                            <div style="display:flex;justify-content:space-between"><span>In Office</span><b style="color:#16a34a" id="att-office">0</b></div>
+                            <div style="display:flex;justify-content:space-between"><span>Remote</span><b style="color:#16a34a" id="att-remote">0</b></div>
+                            <div style="display:flex;justify-content:space-between"><span>In Field</span><b style="color:#16a34a" id="att-field">0</b></div>
+                            <div style="display:flex;justify-content:space-between"><span>WFH</span><b style="color:#16a34a" id="att-wfh">0</b></div>
                         </div>
                     </div>
                     <div style="background:#fef2f2;border-radius:9px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #fee2e2">
-                        <div style="font-size:42px;font-weight:700;color:#ef4444;line-height:1">5</div>
+                        <div style="font-size:42px;font-weight:700;color:#ef4444;line-height:1" id="att-absent">0</div>
                         <div style="font-size:13px;color:#b91c1c;font-weight:600;margin-top:8px">Absent</div>
                     </div>
                 </div>
@@ -94,13 +94,9 @@
             <div class="card">
                 <div class="chead"><span class="ctitle">Lead Source Breakdown</span><span style="color:#9ca3af;font-size:16px;cursor:pointer;letter-spacing:2px">···</span></div>
                 <div class="dw">
-                    <div class="dc"><canvas id="dc1" width="110" height="110"></canvas><div class="dctr"><div class="n" id="total-leads-donut">120</div><div class="l">Leads</div></div></div>
-                    <ul class="leg">
-                        <li class="li"><span class="ld" style="background:#2563eb"></span>IndiaMART<span class="lp">30%</span></li>
-                        <li class="li"><span class="ld" style="background:#f97316"></span>Website<span class="lp">25%</span></li>
-                        <li class="li"><span class="ld" style="background:#ec4899"></span>Meta<span class="lp">10%</span></li>
-                        <li class="li"><span class="ld" style="background:#f59e0b"></span>Google Ads<span class="lp">30%</span></li>
-                        <li class="li"><span class="ld" style="background:#8b5cf6"></span>TradeIndia<span class="lp">05%</span></li>
+                    <div class="dc"><canvas id="dc1" width="110" height="110"></canvas><div class="dctr"><div class="n" id="total-leads-donut">0</div><div class="l">Leads</div></div></div>
+                    <ul class="leg" id="lead-source-leg">
+                        <!-- Dynamic legend -->
                     </ul>
                 </div>
             </div>
@@ -114,43 +110,25 @@
                     <button class="subtab" onclick="swTaskTab('toMe',this)">Assigned to You</button>
                 </div>
                 <div id="tk-byMe" class="tk-cnt act">
-                    <div class="ti"><div class="tdot r"></div><div style="flex:1"><div class="tnm">Send Proposal to X Client</div><div class="tdue">Assigned to: Rahul K. • Overdue</div></div><span class="tm">···</span></div>
-                    <div class="ti"><div class="tdot g"></div><div style="flex:1"><div class="tnm">Q2 Sales Report</div><div class="tdue">Assigned to: Priya S. • Due Today</div></div><span class="tm">···</span></div>
-                    <div class="ti"><div class="tdot o"></div><div style="flex:1"><div class="tnm">Update Product Catalog</div><div class="tdue">Assigned to: Sneha M. • Due Tomorrow</div></div><span class="tm">···</span></div>
-                    <div class="ti"><div class="tdot r"></div><div style="flex:1"><div class="tnm">Client Follow-up Call</div><div class="tdue">Assigned to: Vikram P. • Overdue</div></div><span class="tm">···</span></div>
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading tasks...</div>
                 </div>
                 <div id="tk-toMe" class="tk-cnt">
-                    <div class="ti"><div class="tdot o"></div><div style="flex:1"><div class="tnm">Submit Expense Report</div><div class="tdue">Assigned by: Accounts • Due Today</div></div><span class="tm">···</span></div>
-                    <div class="ti"><div class="tdot g"></div><div style="flex:1"><div class="tnm">Team Sync Preparation</div><div class="tdue">Assigned by: HR • Tomorrow</div></div><span class="tm">···</span></div>
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading tasks...</div>
                 </div>
             </div>
             <div class="card">
-                <div class="chead"><span class="ctitle">Due Payments</span><span style="font-size:11px;background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:8px;font-weight:600">3 Overdue</span></div>
-                <div class="pdi">
-                    <div class="pdi-top"><div><div class="pdi-nm">Arjun Enterprises</div><div class="pdi-due">Due Apr 20 • 5 days overdue</div></div><div class="pdi-amt">₹45,000</div></div>
-                    <div class="pdi-fu"><span style="font-size:10.5px;color:#9ca3af">Follow-up:</span><b style="font-size:11px;color:#374151">Rahul K.</b><span class="pdi-tag nc">Call not connected</span></div>
-                </div>
-                <div class="pdi">
-                    <div class="pdi-top"><div><div class="pdi-nm">Sharma Industries</div><div class="pdi-due">Due Apr 15 • 10 days overdue</div></div><div class="pdi-amt">₹1,20,000</div></div>
-                    <div class="pdi-fu"><span style="font-size:10.5px;color:#9ca3af">Follow-up:</span><b style="font-size:11px;color:#374151">Priya S.</b><span class="pdi-tag prom">Will pay by Apr 30</span></div>
-                </div>
-                <div class="pdi">
-                    <div class="pdi-top"><div><div class="pdi-nm">Verma &amp; Co.</div><div class="pdi-due">Due Apr 22 • 3 days overdue</div></div><div class="pdi-amt">₹78,500</div></div>
-                    <div class="pdi-fu"><span style="font-size:10.5px;color:#9ca3af">Follow-up:</span><b style="font-size:11px;color:#374151">Vikram P.</b><span class="pdi-tag pend">Requested invoice copy</span></div>
+                <div class="chead"><span class="ctitle">Due Payments</span><span id="overdue-badge" style="display:none;font-size:11px;background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:8px;font-weight:600">0 Overdue</span></div>
+                <div id="due-payments-list">
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending payments</div>
                 </div>
             </div>
         </div>
 
         <div class="hcards">
             <div class="card">
-                <div class="chead"><span class="ctitle">Due Subscriptions</span><span class="va">view all</span></div>
-                <div class="pdi">
-                    <div class="pdi-top"><div><div class="pdi-nm">Cloud Services Monthly</div><div class="pdi-due">Due Tomorrow</div></div><div class="pdi-amt">₹2,499</div></div>
-                    <div class="pdi-fu"><span class="pdi-tag pend">Auto-pay enabled</span></div>
-                </div>
-                <div class="pdi">
-                    <div class="pdi-top"><div><div class="pdi-nm">Email Marketing Tool</div><div class="pdi-due">Due in 4 days</div></div><div class="pdi-amt">₹4,200</div></div>
-                    <div class="pdi-fu"><span class="pdi-tag prom">Renewal pending</span></div>
+                <div class="chead"><span class="ctitle">Due Subscriptions</span><span class="va" onclick="location.href='<?php echo e(route('subscriptions.index')); ?>'">view all</span></div>
+                <div id="due-subscriptions-list">
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No active subscriptions</div>
                 </div>
             </div>
             <div class="card">
@@ -163,9 +141,9 @@
                     </select>
                 </div>
                 <div class="pcgrid">
-                    <div class="pcb" style="background:#eff6ff"><div class="pcb-val" id="pc-open" style="color:#1d4ed8">₹25,000</div><div class="pcb-lbl">Opening Balance</div></div>
-                    <div class="pcb" style="background:#fee2e2"><div class="pcb-val" id="pc-used" style="color:#b91c1c">₹18,450</div><div class="pcb-lbl">Balance Used</div></div>
-                    <div class="pcb" style="background:#f0fdf4"><div class="pcb-val" id="pc-rem" style="color:#15803d">₹6,550</div><div class="pcb-lbl">Remaining</div></div>
+                    <div class="pcb" style="background:#eff6ff"><div class="pcb-val" id="pc-open" style="color:#1d4ed8">₹0</div><div class="pcb-lbl">Opening Balance</div></div>
+                    <div class="pcb" style="background:#fee2e2"><div class="pcb-val" id="pc-used" style="color:#b91c1c">₹0</div><div class="pcb-lbl">Balance Used</div></div>
+                    <div class="pcb" style="background:#f0fdf4"><div class="pcb-val" id="pc-rem" style="color:#15803d">₹0</div><div class="pcb-lbl">Remaining</div></div>
                 </div>
             </div>
         </div>
@@ -186,89 +164,40 @@
             <div class="card">
                 <div class="chead"><span class="ctitle">Pending Approvals</span><span class="va">view all</span></div>
                 <div class="subtabs" style="overflow-x:auto;white-space:nowrap;display:block">
-                    <button class="subtab act" onclick="swApprovalTab('ts',this)" style="display:inline-block">Timesheet<span class="notif-badge">2</span></button>
-                    <button class="subtab" onclick="swApprovalTab('at',this)" style="display:inline-block">Attendance<span class="notif-badge">1</span></button>
-                    <button class="subtab" onclick="swApprovalTab('tk',this)" style="display:inline-block">Task<span class="notif-badge">1</span></button>
-                    <button class="subtab" onclick="swApprovalTab('lv',this)" style="display:inline-block">Leave<span class="notif-badge">1</span></button>
-                    <button class="subtab" onclick="swApprovalTab('pc',this)" style="display:inline-block">Petty Cash<span class="notif-badge">1</span></button>
+                    <button class="subtab act" onclick="swApprovalTab('ts',this)" style="display:inline-block">Timesheet<span class="notif-badge" id="ap-ts-badge">0</span></button>
+                    <button class="subtab" onclick="swApprovalTab('at',this)" style="display:inline-block">Attendance<span class="notif-badge" id="ap-at-badge">0</span></button>
+                    <button class="subtab" onclick="swApprovalTab('tk',this)" style="display:inline-block">Task<span class="notif-badge" id="ap-tk-badge">0</span></button>
+                    <button class="subtab" onclick="swApprovalTab('lv',this)" style="display:inline-block">Leave<span class="notif-badge" id="ap-lv-badge">0</span></button>
+                    <button class="subtab" onclick="swApprovalTab('pc',this)" style="display:inline-block">Petty Cash<span class="notif-badge" id="ap-pc-badge">0</span></button>
                 </div>
                 <div id="ap-ts" class="ap-cnt act">
-                    <div class="ti"><div style="flex:1"><div class="tnm">Rahul K. - Apr 24</div><div class="tdue">8.5 Hours • Regular Shift</div></div><span class="va" style="color:#16a34a">Approve</span></div>
-                    <div class="ti"><div style="flex:1"><div class="tnm">Priya S. - Apr 24</div><div class="tdue">9.0 Hours • Overtime</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending timesheets</div>
                 </div>
                 <div id="ap-at" class="ap-cnt">
-                    <div class="ti"><div style="flex:1"><div class="tnm">Vikram P. - Regularization</div><div class="tdue">Forgot to punch out on Apr 22</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending attendance</div>
                 </div>
                 <div id="ap-tk" class="ap-cnt">
-                    <div class="ti"><div style="flex:1"><div class="tnm">Sneha M. - Client Proposal</div><div class="tdue">Task completed • Pending review</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending tasks</div>
                 </div>
                 <div id="ap-lv" class="ap-cnt">
-                    <div class="ti"><div style="flex:1"><div class="tnm">Arjun E. - Sick Leave</div><div class="tdue">Apr 28 - Apr 29 • 2 days</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending leaves</div>
                 </div>
                 <div id="ap-pc" class="ap-cnt">
-                    <div class="ti"><div style="flex:1"><div class="tnm">Travel Expense - Priya S.</div><div class="tdue">₹450 • Client Meeting</div></div><span class="va" style="color:#16a34a">Approve</span></div>
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending petty cash</div>
                 </div>
             </div>
-        </div>
-
-        <div class="hcards">
-            <div class="card" style="background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden;">
-                <div style="position: absolute; top: -20px; right: -20px; font-size: 100px; opacity: 0.1;">🌴</div>
-                <div class="chead" style="border-bottom: none;"><span class="ctitle" style="color: #1f2937;">Upcoming Holidays</span></div>
-                <div style="display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1;">
-                    <div style="background: #fff; padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border-left: 4px solid #10b981;">
-                        <div style="background: #ecfdf5; color: #10b981; padding: 8px 12px; border-radius: 8px; text-align: center; min-width: 60px;">
-                            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase;">Aug</div>
-                            <div style="font-size: 20px; font-weight: 800;">15</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 15px; font-weight: 700; color: #111827;">Independence Day</div>
-                            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Thursday • National Holiday</div>
-                        </div>
-                    </div>
-                    <div style="background: #fff; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); opacity: 0.8; border-left: 4px solid #3b82f6;">
-                        <div style="background: #eff6ff; color: #3b82f6; padding: 6px 12px; border-radius: 8px; text-align: center; min-width: 60px;">
-                            <div style="font-size: 10px; font-weight: 700; text-transform: uppercase;">Oct</div>
-                            <div style="font-size: 16px; font-weight: 800;">02</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 14px; font-weight: 700; color: #111827;">Gandhi Jayanti</div>
-                            <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">Wednesday • National Holiday</div>
-                        </div>
-                    </div>
+            <div class="card" style="background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -10px; right: 10px; font-size: 80px; opacity: 0.1;">🌴</div>
+                <div class="chead" style="border-bottom: none;"><span class="ctitle" style="color: #1f2937;">Upcoming Holidays</span><span class="va" onclick="location.href='<?php echo e(route('holidays.index')); ?>'">view all</span></div>
+                <div id="holidays-list" style="display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1;">
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading holidays...</div>
                 </div>
             </div>
-
             <div class="card" style="background: linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden;">
                 <div style="position: absolute; top: -10px; right: 10px; font-size: 80px; opacity: 0.15;">🎉</div>
                 <div class="chead" style="border-bottom: none;"><span class="ctitle" style="color: #1f2937;">Celebrations</span></div>
-                <div style="display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1;">
-                    <div style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #fca5a5; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">AK</div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 700; color: #111827;">Amit Kumar</div>
-                                <div style="font-size: 12px; color: #db2777; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 2px;">🎂 Birthday</div>
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 13px; font-weight: 700; color: #1f2937;">Tomorrow</div>
-                            <div style="font-size: 11px; color: #6b7280;">May 14</div>
-                        </div>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #60a5fa; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">SJ</div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 700; color: #111827;">Sneha Joshi</div>
-                                <div style="font-size: 12px; color: #2563eb; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 2px;">💼 3rd Work Anniversary</div>
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 13px; font-weight: 700; color: #1f2937;">In 4 Days</div>
-                            <div style="font-size: 11px; color: #6b7280;">May 17</div>
-                        </div>
-                    </div>
+                <div id="celebrations-list" style="display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1;">
+                    <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading celebrations...</div>
                 </div>
             </div>
         </div>
@@ -294,12 +223,8 @@
                 <div class="chead"><span class="ctitle">My Lead Sources</span><span style="color:#9ca3af;font-size:16px;cursor:pointer;letter-spacing:2px">···</span></div>
                 <div class="dw">
                     <div class="dc"><canvas id="dc2" width="110" height="110"></canvas><div class="dctr"><div class="n" id="total-leads-donut-sales">64</div><div class="l">My Leads</div></div></div>
-                    <ul class="leg">
-                        <li class="li"><span class="ld" style="background:#2563eb"></span>IndiaMART<span class="lp">35%</span></li>
-                        <li class="li"><span class="ld" style="background:#f97316"></span>Website<span class="lp">20%</span></li>
-                        <li class="li"><span class="ld" style="background:#ec4899"></span>Meta<span class="lp">20%</span></li>
-                        <li class="li"><span class="ld" style="background:#f59e0b"></span>Google Ads<span class="lp">15%</span></li>
-                        <li class="li"><span class="ld" style="background:#8b5cf6"></span>TradeIndia<span class="lp">10%</span></li>
+                    <ul class="leg" id="lead-source-leg-sales">
+                        <!-- Dynamic legend -->
                     </ul>
                 </div>
             </div>
@@ -461,14 +386,7 @@ var charts={};
 var calY=<?php echo e(date('Y')); ?>,calM=<?php echo e(date('n') - 1); ?>;
 var selDs=null;
 
-var smmData={
-  "2025-04-17":{t:"past",done:[{c:"TechCorp",p:"ig"},{c:"FashionHub",p:"fb"}],missed:[{c:"GreenLeaf",p:"li"}],canc:[]},
-  "2025-04-21":{t:"past",done:[{c:"StyleMart",p:"ig"}],missed:[],canc:[{c:"TechCorp",p:"fb",r:"Rescheduled to Apr 28"}]},
-  "2025-04-23":{t:"past",done:[{c:"GreenLeaf",p:"ig"},{c:"FashionHub",p:"li"}],missed:[{c:"RetailX",p:"fb"}],canc:[]},
-  "2025-04-25":{t:"today",done:[{c:"TechCorp",p:"ig"},{c:"FashionHub",p:"fb"}],rem:[{c:"GreenLeaf",p:"li"},{c:"StyleMart",p:"ig"}],canc:[{c:"RetailX",p:"fb"}]},
-  "2025-04-28":{t:"future",sch:[{c:"TechCorp",p:"ig"},{c:"FashionHub",p:"fb"},{c:"GreenLeaf",p:"li"}],resch:[{c:"RetailX",p:"ig",r:"Rescheduled from Apr 25"}],canc:[]},
-  "2025-04-30":{t:"future",sch:[{c:"StyleMart",p:"fb"},{c:"TechCorp",p:"li"}],resch:[],canc:[{c:"GreenLeaf",p:"ig"}]},
-};
+var smmData={};
 
 var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -511,8 +429,8 @@ function renderCal(y,m){
   document.getElementById('cal-grid').innerHTML=html;
 }
 
-function prevM(){calM--;if(calM<0){calM=11;calY--;}renderCal(calY,calM);selDs=null;}
-function nextM(){calM++;if(calM>11){calM=0;calY++;}renderCal(calY,calM);selDs=null;}
+function prevM(){calM--;if(calM<0){calM=11;calY--;}loadCalendarData(calY,calM);selDs=null;}
+function nextM(){calM++;if(calM>11){calM=0;calY++;}loadCalendarData(calY,calM);selDs=null;}
 
 function platHtml(p){
   var n=p==='ig'?'Instagram':p==='fb'?'Facebook':'LinkedIn';
@@ -585,8 +503,18 @@ function swApprovalTab(tab,btn){
   document.getElementById('ap-'+tab).classList.add('act');
 }
 
-var pcData={month:{o:'₹25,000',u:'₹18,450',r:'₹6,550'},year:{o:'₹3,00,000',u:'₹2,34,800',r:'₹65,200'},fin:{o:'₹2,50,000',u:'₹1,87,350',r:'₹62,650'}};
-function updatePC(){var p=document.getElementById('pc-period').value,d=pcData[p];document.getElementById('pc-open').textContent=d.o;document.getElementById('pc-used').textContent=d.u;document.getElementById('pc-rem').textContent=d.r;}
+function updatePC(){
+    var period = document.getElementById('pc-period').value;
+    $.ajax({
+        url: '/petty-cash/summary?period=' + period,
+        method: 'GET',
+        success: function(res) {
+            $('#pc-open').text('₹' + res.total_opening_balance.toLocaleString());
+            $('#pc-used').text('₹' + res.total_expense.toLocaleString());
+            $('#pc-rem').text('₹' + res.remaining_balance.toLocaleString());
+        }
+    });
+}
 
 function drawDonut(id,data,colors){var ctx=document.getElementById(id);if(!ctx)return; if(charts[id]) charts[id].destroy();charts[id]=new Chart(ctx,{type:'doughnut',data:{datasets:[{data:data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:700}}});}
 
@@ -595,8 +523,34 @@ function sw(role,btn){
   document.querySelectorAll('.d-view').forEach(v=>v.classList.remove('act'));
   var target = document.getElementById('v'+role[0]);
   if(target) target.classList.add('act');
-  if(role==='founder') drawDonut('dc1',[30,25,10,30,5],['#2563eb','#f97316','#ec4899','#f59e0b','#8b5cf6']);
-  if(role==='sales') drawDonut('dc2',[35,20,20,15,10],['#2563eb','#f97316','#ec4899','#f59e0b','#8b5cf6']);
+  if(role==='founder') loadLeadSourceDonut('dc1', 'total-leads-donut');
+  if(role==='sales') loadLeadSourceDonut('dc2', 'total-leads-donut-sales');
+}
+
+function loadLeadSourceDonut(canvasId, totalId) {
+    $.ajax({
+        url: '/lead-source/data',
+        method: 'GET',
+        success: function(response) {
+            if(!response || !response.length) return;
+            const labels = response.map(r => r.label);
+            const values = response.map(r => r.value);
+            const total = values.reduce((a, b) => a + b, 0);
+            document.getElementById(totalId).textContent = total;
+            
+            const colors = ['#2563eb','#f97316','#ec4899','#f59e0b','#8b5cf6','#10b981','#6366f1','#ef4444'];
+            drawDonut(canvasId, values, colors.slice(0, values.length));
+            
+            // Update legend
+            let legHtml = '';
+            response.forEach((r, i) => {
+                const percent = total > 0 ? Math.round((r.value / total) * 100) : 0;
+                legHtml += `<li class="li"><span class="ld" style="background:${colors[i % colors.length]}"></span>${r.label}<span class="lp">${percent}%</span></li>`;
+            });
+            const legEl = document.getElementById(canvasId === 'dc1' ? 'lead-source-leg' : 'lead-source-leg-sales');
+            if(legEl) legEl.innerHTML = legHtml;
+        }
+    });
 }
 
 function tick(){var n=new Date(),t=n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}),ce=document.getElementById('clk-display');if(ce)ce.textContent='Workorio Pro • '+t;}
@@ -618,7 +572,7 @@ function fetchMetric(url, elementId, key) {
 }
 
 function loadDashboardMetrics() {
-    // Sales Metrics
+    // Sales Intelligence
     fetchMetric('/todayfollowups', 'todayfollowups', 'totalLeads');
     fetchMetric('/underprocess', 'underprocess', 'underprocess');
     fetchMetric('/todaycompleted', 'todaycompleted', 'todaycompleted');
@@ -626,7 +580,7 @@ function loadDashboardMetrics() {
     fetchMetric('/todaynew', 'todaynew', 'todaynew');
     fetchMetric('/allleads', 'allleads', 'allleads');
 
-    // Calling Metrics
+    // Tele-Calling Status
     fetchMetric('/calling/todayfollowups', 'c_todayfollowups', 'totalLeads');
     fetchMetric('/calling/underprocess', 'c_underprocess', 'underprocess');
     fetchMetric('/calling/todaycompleted', 'c_todaycompleted', 'todaycompleted');
@@ -634,18 +588,344 @@ function loadDashboardMetrics() {
     fetchMetric('/calling/todaynew', 'c_todaynew', 'todaynew');
     fetchMetric('/calling/allleads', 'c_allleads', 'allleads');
     
-    // For Sales View
-    fetchMetric('/todayfollowups', 's_todayfollowups', 'totalLeads');
-    // fetchMetric('/underprocess', 's_underprocess', 'underprocess');
+    // Team Attendance
+    $.ajax({
+        url: '/attendance/summary',
+        method: 'GET',
+        success: function(res) {
+            $('#att-present').text(res.present);
+            $('#att-absent').text(res.absent);
+            $('#att-office').text(res.office);
+            $('#att-remote').text(res.remote);
+            $('#att-field').text(res.field);
+            $('#att-wfh').text(res.wfh);
+        }
+    });
+
+    // Petty Cash
+    updatePC();
+
+    // Pending Approvals
+    $.ajax({
+        url: '/pending-approvals/summary',
+        method: 'GET',
+        success: function(res) {
+            $('#ap-at-badge').text(res.attendance);
+            $('#ap-lv-badge').text(res.leave);
+            $('#ap-pc-badge').text(res.petty_cash);
+            $('#ap-ts-badge').text(res.timesheet || 0);
+            $('#ap-tk-badge').text(res.task || 0);
+            
+            if (res.lists) {
+                renderApprovals('at', res.lists.attendance);
+                renderApprovals('lv', res.lists.leave);
+                renderApprovals('pc', res.lists.petty_cash);
+                renderApprovals('ts', res.lists.timesheet);
+                renderApprovals('tk', res.lists.task);
+            }
+        }
+    });
+
+    // Due Payments
+    $.ajax({
+        url: '/due-payments/summary',
+        method: 'GET',
+        success: function(res) {
+            renderPayments(res.list || []);
+        }
+    });
+
+    // Due Subscriptions
+    $.ajax({
+        url: '/due-subscriptions/summary',
+        method: 'GET',
+        success: function(res) {
+            renderSubscriptions(res.list || []);
+        }
+    });
+
+    // Sales View Specific
+    $.ajax({
+        url: '/todayfollowups',
+        method: 'GET',
+        success: function(res) {
+            $('#s_todayfollowups').text(res.totalLeads || 0);
+            renderFollowups(res.leads || []);
+            if (res.pipeline) {
+                res.pipeline.forEach(p => {
+                    const id = 'pipe-' + p.status_name.toLowerCase().replace(/\s+/g, '');
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = p.total;
+                });
+            }
+        }
+    });
     fetchMetric('/todaypending', 's_missed', 'todaypending');
     fetchMetric('/todaycompleted', 's_conversions', 'todaycompleted');
+    
+    // Celebrations
+    $.ajax({
+        url: '/celebrations/summary',
+        method: 'GET',
+        success: function(res) {
+            renderCelebrations(res.list || []);
+        }
+    });
+
+    // Holidays
+    $.ajax({
+        url: '/holidays/summary',
+        method: 'GET',
+        success: function(res) {
+            renderHolidays(res.list || []);
+        }
+    });
+
+    loadLeadSourceDonut('dc1', 'total-leads-donut');
+    loadLeadSourceDonut('dc2', 'total-leads-donut-sales');
+    
+    // Tasks
+    $.ajax({
+        url: '/user-tasks?type=byMe',
+        method: 'GET',
+        success: function(res) {
+            renderTasks('tk-byMe', res.data || []);
+        }
+    });
+    $.ajax({
+        url: '/user-tasks?type=toMe',
+        method: 'GET',
+        success: function(res) {
+            renderTasks('tk-toMe', res.data || []);
+        }
+    });
+}
+
+function loadCalendarData(y, m) {
+    const from = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+    const to = `${y}-${String(m + 1).padStart(2, '0')}-${new Date(y, m + 1, 0).getDate()}`;
+    $.ajax({
+        url: `/calendar/grid?from=${from}&to=${to}`,
+        method: 'GET',
+        success: function(res) {
+            smmData = {};
+            const todayStr = new Date().toISOString().split('T')[0];
+            res.forEach(item => {
+                const ds = item.event_date;
+                if (!smmData[ds]) {
+                    const isPast = new Date(ds) < new Date(todayStr);
+                    const isToday = ds === todayStr;
+                    smmData[ds] = { t: isToday ? 'today' : (isPast ? 'past' : 'future'), sch: [], done: [], missed: [], canc: [], rem: [] };
+                }
+                if (smmData[ds].t === 'future') smmData[ds].sch.push({ c: item.title, p: 'ig' });
+                else if (smmData[ds].t === 'today') smmData[ds].rem.push({ c: item.title, p: 'ig' });
+                else smmData[ds].missed.push({ c: item.title, p: 'ig' });
+            });
+            renderCal(y, m);
+        }
+    });
+}
+
+function renderPayments(list) {
+    const cont = document.getElementById('due-payments-list');
+    if (!cont) return;
+    if (!list.length) {
+        cont.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending payments</div>';
+        $('#overdue-badge').hide();
+        return;
+    }
+    $('#overdue-badge').text(list.length + ' Pending').show();
+    let html = '';
+    list.forEach(p => {
+        const due = new Date(p.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        html += `<div class="pdi">
+            <div class="pdi-top"><div><div class="pdi-nm">${p.customer_name || 'Customer'}</div><div class="pdi-due">Due ${due}</div></div><div class="pdi-amt">₹${p.remaining.toLocaleString()}</div></div>
+        </div>`;
+    });
+    cont.innerHTML = html;
+}
+
+function renderSubscriptions(list) {
+    const cont = document.getElementById('due-subscriptions-list');
+    if (!cont) return;
+    if (!list || !list.length) {
+        cont.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No active subscriptions</div>';
+        return;
+    }
+    let html = '';
+    list.forEach(s => {
+        const due = new Date(s.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        html += `<div class="pdi">
+            <div class="pdi-top">
+                <div>
+                    <div class="pdi-nm">${s.customer_name || 'Customer'}</div>
+                    <div class="pdi-due">${s.subscription_name || 'Service'} • Due ${due}</div>
+                </div>
+                <div class="pdi-amt">₹${Number(s.amount).toLocaleString()}</div>
+            </div>
+        </div>`;
+    });
+    cont.innerHTML = html;
+}
+
+function renderCelebrations(list) {
+    const cont = document.getElementById('celebrations-list');
+    if (!cont) return;
+    if (!list || !list.length) {
+        cont.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No upcoming celebrations</div>';
+        return;
+    }
+    let html = '';
+    list.forEach(c => {
+        const d = new Date(c.date);
+        const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        const initial = c.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        const icon = c.type === 'birthday' ? '🎂' : '💼';
+        const color = c.type === 'birthday' ? '#fca5a5' : '#60a5fa';
+        const labelColor = c.type === 'birthday' ? '#db2777' : '#2563eb';
+        
+        html += `<div style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: ${color}; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">${initial}</div>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 700; color: #111827;">${c.name}</div>
+                            <div style="font-size: 12px; color: ${labelColor}; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 2px;">${icon} ${c.label}</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 13px; font-weight: 700; color: #1f2937;">Upcoming</div>
+                        <div style="font-size: 11px; color: #6b7280;">${dateStr}</div>
+                    </div>
+                </div>`;
+    });
+    cont.innerHTML = html;
+}
+
+function renderHolidays(list) {
+    const cont = document.getElementById('holidays-list');
+    if (!cont) return;
+    if (!list || !list.length) {
+        cont.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No upcoming holidays</div>';
+        return;
+    }
+    let html = '';
+    list.forEach(h => {
+        const d = new Date(h.holiday_date);
+        const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        const initial = h.name.split(' ').filter(n => n).map(n => n[0]).join('').substring(0,2).toUpperCase();
+        const color = h.is_rh ? '#93c5fd' : '#6ee7b7';
+        const labelColor = h.is_rh ? '#2563eb' : '#059669';
+        const icon = h.is_rh ? '🔵' : '🌴';
+        const typeLabel = h.is_rh ? 'Restricted' : 'Public Holiday';
+        const weekday = d.toLocaleDateString('en-IN', { weekday: 'long' });
+
+        html += `<div style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: ${color}; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">${initial}</div>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 700; color: #111827;">${h.name}</div>
+                            <div style="font-size: 12px; color: ${labelColor}; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 2px;">${icon} ${typeLabel}</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 13px; font-weight: 700; color: #1f2937;">${weekday}</div>
+                        <div style="font-size: 11px; color: #6b7280;">${dateStr}</div>
+                    </div>
+                </div>`;
+    });
+    cont.innerHTML = html;
+}
+
+function renderFollowups(leads) {
+    const cont = document.getElementById('followups-list');
+    if (!cont) return;
+    if (!leads || !leads.length) {
+        cont.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No follow-ups for today</div>';
+        return;
+    }
+    let html = '';
+    leads.slice(0, 5).forEach(l => {
+        html += `<div class="ti">
+            <div class="tdot o"></div>
+            <div style="flex:1">
+                <div class="tnm">${l.customer_name || 'Unnamed Lead'}</div>
+                <div class="tdue">${l.source_name || 'Manual'} • ${l.status_name || 'New'}</div>
+            </div>
+            <span class="tm">···</span>
+        </div>`;
+    });
+    cont.innerHTML = html;
+}
+
+function renderApprovals(type, list) {
+    const cont = document.getElementById('ap-' + type);
+    if (!cont) return;
+    if (!list || !list.length) {
+        const labels = { ts: 'timesheets', at: 'attendance', tk: 'tasks', lv: 'leaves', pc: 'petty cash' };
+        cont.innerHTML = `<div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No pending ${labels[type] || 'items'}</div>`;
+        return;
+    }
+    let html = '';
+    list.forEach(item => {
+        let title = '';
+        let sub = '';
+        if (type === 'at') {
+            title = `${item.user_name} - ${new Date(item.date).toLocaleDateString()}`;
+            sub = 'Attendance regularization';
+        } else if (type === 'lv') {
+            title = `${item.user_name} - ${item.leave_type_name}`;
+            const start = new Date(item.start_date).toLocaleDateString();
+            const end = new Date(item.end_date).toLocaleDateString();
+            sub = `${start} - ${end} • ${item.total_days} days`;
+        } else if (type === 'pc') {
+            title = `${item.expense_name || 'Expense'} - ${item.department_name || 'Dept'}`;
+            sub = `₹${item.price.toLocaleString()} • ${item.remark || 'No remark'}`;
+        }
+        html += `<div class="ti"><div style="flex:1"><div class="tnm">${title}</div><div class="tdue">${sub}</div></div><span class="va" style="color:#16a34a">Approve</span></div>`;
+    });
+    cont.innerHTML = html;
+}
+
+function renderTasks(containerId, tasks) {
+    const cont = document.getElementById(containerId);
+    if (!cont) return;
+    if (!tasks.length) {
+        cont.innerHTML = '<div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No tasks found</div>';
+        return;
+    }
+    let html = '';
+    tasks.forEach(t => {
+        const dot = t.priority === 'High' ? 'r' : (t.priority === 'Medium' ? 'o' : 'g');
+        const due = t.due_date ? new Date(t.due_date).toLocaleDateString() : 'No due date';
+        const label = containerId === 'tk-byMe' ? 'Assigned to: ' + (t.assigned_to_name || 'N/A') : 'Assigned by: ' + (t.assigned_by_name || 'N/A');
+        html += `<div class="ti"><div class="tdot ${dot}"></div><div style="flex:1"><div class="tnm">${t.task_name}</div><div class="tdue">${label} • Due ${due}</div></div><span class="tm">···</span></div>`;
+    });
+    cont.innerHTML = html;
 }
 
 $(function () {
     tick();setInterval(tick,1000);
-    drawDonut('dc1',[30,25,10,30,5],['#2563eb','#f97316','#ec4899','#f59e0b','#8b5cf6']);
-    renderCal(calY,calM);
+    loadCalendarData(calY,calM);
     loadDashboardMetrics();
+    
+    $(document).on('click', '.pibtn', function() {
+        const btn = $(this);
+        btn.prop('disabled', true).text('Processing...');
+        $.ajax({
+            url: '/attendance/punch-in',
+            method: 'POST',
+            data: { _token: '<?php echo e(csrf_token()); ?>' },
+            success: function(res) {
+                alert(res.message || 'Punched in successfully');
+                btn.prop('disabled', false).text('Punch In');
+                loadDashboardMetrics();
+            },
+            error: function(err) {
+                alert(err.responseJSON?.message || 'Failed to punch in');
+                btn.prop('disabled', false).text('Punch In');
+            }
+        });
+    });
 });
 </script>
 <?php $__env->stopPush(); ?>

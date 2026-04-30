@@ -473,6 +473,22 @@ Route::get('/calling/summary', [SalesDashboardController::class, 'callingSummary
 Route::get('/worklog/summary', [SalesDashboardController::class, 'worklogSummary'])->name('worklog.summary');
 Route::get('/calendar/summary', [SalesDashboardController::class, 'calendarSummary'])->name('calendar.summary');
 Route::get('/attendance/summary', [SalesDashboardController::class, 'attendanceSummary'])->name('attendance.summary');
+Route::get('/lead-source/data', [SalesDashboardController::class, 'leadSourceData'])->name('lead-source.data');
+Route::get('/petty-cash/summary', [SalesDashboardController::class, 'pettyCashSummary'])->name('petty-cash.summary');
+Route::get('/due-payments/summary', [SalesDashboardController::class, 'duePaymentsSummary'])->name('due-payments.summary');
+Route::get('/due-subscriptions/summary', [SalesDashboardController::class, 'dueSubscriptionsSummary'])->name('due-subscriptions.summary');
+Route::get('/pending-approvals/summary', [SalesDashboardController::class, 'pendingApprovalsSummary'])->name('pending-approvals.summary');
+Route::get('/holidays/summary', [SalesDashboardController::class, 'holidaysSummary'])->name('holidays.summary');
+Route::get('/celebrations/summary', [SalesDashboardController::class, 'celebrationsSummary'])->name('celebrations.summary');
+
+// Holidays Management
+Route::middleware(['auth.or.session'])->group(function () {
+    Route::get('/holidays', [HolidayController::class, 'index'])->name('holidays.index');
+    Route::get('/holidays/fetch', [HolidayController::class, 'fetchHolidays'])->name('holidays.fetch');
+    Route::post('/holidays', [HolidayController::class, 'store'])->name('holidays.store');
+    Route::put('/holidays/{id}', [HolidayController::class, 'update'])->name('holidays.update');
+    Route::delete('/holidays/{id}', [HolidayController::class, 'destroy'])->name('holidays.destroy');
+});
 Route::get('/piedata', [SalesDashboardController::class, 'piedata'])->name('piedata');
 Route::get('/bardata', [SalesDashboardController::class, 'bardata'])->name('bardata');
 Route::get('/user-tasks', [SalesDashboardController::class, 'userTasks'])->name('user-tasks');
