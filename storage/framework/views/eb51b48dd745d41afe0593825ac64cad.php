@@ -14,6 +14,10 @@
         $tenant = \App\Models\Tenant::find(session('tenant_id'));
     }
 
+    $currentUserId = auth()->check() ? auth()->id() : session('user_id');
+    $currentUser = $currentUserId ? \App\Models\User::find($currentUserId) : null;
+    $hasSubordinates = $currentUser && $currentUser->subordinates()->exists();
+
     // Resolve tenant for feature flags - handle missing flags gracefully
     $isSales = isset($tenant->is_sales_enabled) ? (bool)$tenant->is_sales_enabled : true;
     $isCalling = isset($tenant->is_tally_calling_enabled) ? (bool)$tenant->is_tally_calling_enabled : true;
@@ -32,7 +36,7 @@
             <div style="font-size:10.5px;color:#9ca3af;margin-bottom:4px">Viewing dashboard as:</div>
             <div class="rtabs">
                 <button class="rtab act" onclick="sw('founder',this)">My Dashboard</button>
-                <?php if($isSales || $isCalling): ?>
+                <?php if($hasSubordinates): ?>
                 <button class="rtab" onclick="sw('sales',this)">Teams Dashboard</button>
                 <?php endif; ?>
             </div>
@@ -88,7 +92,29 @@
         <?php endif; ?>
 
         <div class="hcards">
-            
+            <?php if($isAttendance): ?>
+            <div class="card">
+                <div class="chead"><span class="ctitle">Team Attendance Today</span><span class="va" onclick="location.href='<?php echo e(route('attendance.history')); ?>'">view all</span></div>
+                <div style="display:grid;grid-template-columns:2.5fr 1fr;gap:16px;">
+                    <div style="background:#f0fdf4;border-radius:9px;padding:16px;border:1px solid #dcfce7">
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #dcfce7;margin-bottom:12px">
+                            <div style="font-size:14px;color:#15803d;font-weight:600">Present</div>
+                            <div style="font-size:32px;font-weight:700;color:#16a34a;line-height:1" id="att-present">0</div>
+                        </div>
+                        <div style="grid-template-columns:1fr 1fr;gap:12px 24px;font-size:12.5px;color:#15803d;display:grid">
+                            <div style="display:flex;justify-content:space-between"><span>In Office</span><b style="color:#16a34a" id="att-office">0</b></div>
+                            <div style="display:flex;justify-content:space-between"><span>Remote</span><b style="color:#16a34a" id="att-remote">0</b></div>
+                            <div style="display:flex;justify-content:space-between"><span>In Field</span><b style="color:#16a34a" id="att-field">0</b></div>
+                            <div style="display:flex;justify-content:space-between"><span>WFH</span><b style="color:#16a34a" id="att-wfh">0</b></div>
+                        </div>
+                    </div>
+                    <div style="background:#fef2f2;border-radius:9px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #fee2e2">
+                        <div style="font-size:42px;font-weight:700;color:#ef4444;line-height:1" id="att-absent">0</div>
+                        <div style="font-size:13px;color:#b91c1c;font-weight:600;margin-top:8px">Absent</div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <?php if($isSales): ?>
             <div class="card">
@@ -228,68 +254,25 @@
             </div>
             <?php endif; ?>
         </div>
+        <div class="hcards">
             <?php if($isAttendance): ?>
-            <div class="card" style="background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden;">
-                <div style="position: absolute; top: -10px; right: 10px; font-size: 80px; opacity: 0.1;">🌴</div>
-                <div class="chead" style="border-bottom: none;"><span class="ctitle" style="color: #1f2937;">Upcoming Holidays</span><span class="va" onclick="location.href='<?php echo e(route('holidays.index')); ?>'">view all</span></div>
-                <div id="holidays-list" style="display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1;">
+            <div class="card">
+                <div class="chead"><span class="ctitle">Upcoming Holidays</span><span class="va" onclick="location.href='<?php echo e(route('holidays.index')); ?>'">view all</span></div>
+                <div id="holidays-list" style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading holidays...</div>
                 </div>
             </div>
             <?php endif; ?>
-            <div class="card" style="background: linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%); border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden;">
-                <div style="position: absolute; top: -10px; right: 10px; font-size: 80px; opacity: 0.15;">🎉</div>
-                <div class="chead" style="border-bottom: none;"><span class="ctitle" style="color: #1f2937;">Celebrations</span></div>
-                <div id="celebrations-list" style="display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1;">
+            <div class="card">
+                <div class="chead"><span class="ctitle">Celebrations</span></div>
+                <div id="celebrations-list" style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading celebrations...</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ===== SALES VIEW ===== -->
-    <div class="d-view" id="vs">
-        <div class="wbar"><div><h2>Welcome back, <?php echo e($firstName); ?>! 📞</h2><p>Your leads and follow-ups for today.</p></div><button class="pibtn">Punch In</button></div>
-        <div class="sgrid">
-            <?php if($isSales): ?>
-            <div class="sc" onclick="location.href='<?php echo e(route('todayfollowupstable')); ?>'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#f97316"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>Today's Follow-ups</div><div class="sval" id="s_todayfollowups">0<span class="sarr">→</span></div></div>
-            <div class="sc" onclick="location.href='<?php echo e(route('todaypendingtable')); ?>'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#ef4444"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>Missed Follow-ups</div><div class="sval" id="s_missed">0<span class="sarr" style="color:#ef4444">→</span></div></div>
-            <div class="sc" onclick="location.href='<?php echo e(route('todaycompletedtable')); ?>'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#22c55e"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>My Conversions</div><div class="sval" id="s_conversions">0<span class="sarr">→</span></div></div>
-            <?php endif; ?>
-            <?php if($isCalling): ?>
-            <div class="sc" onclick="location.href='<?php echo e(route('calling.todayfollowupstable')); ?>'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 20 20" fill="#3b82f6"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>Calls Today</div><div class="sval" id="s_calls">0<span class="sarr">→</span></div></div>
-            <?php endif; ?>
-        </div>
-        <?php if($isSales): ?>
-        <div class="hcards">
-            <div class="card">
-                <div class="chead"><span class="ctitle">Today's Follow-ups</span><span class="va">view all</span></div>
-                <div id="followups-list">
-                    <!-- Dynamic list -->
-                </div>
-            </div>
-            <div class="card">
-                <div class="chead"><span class="ctitle">My Lead Sources</span><span style="color:#9ca3af;font-size:16px;cursor:pointer;letter-spacing:2px">···</span></div>
-                <div class="dw">
-                    <div class="dc"><canvas id="dc2" width="110" height="110"></canvas><div class="dctr"><div class="n" id="total-leads-donut-sales">64</div><div class="l">My Leads</div></div></div>
-                    <ul class="leg" id="lead-source-leg-sales">
-                        <!-- Dynamic legend -->
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="card" style="margin-bottom:14px">
-            <div class="chead"><span class="ctitle">My Lead Pipeline</span><span class="va">view all</span></div>
-            <div class="pstages">
-                <div class="ps" style="background:#eff6ff"><div class="psn" style="color:#1d4ed8" id="pipe-new">18</div><div class="psl">New</div></div>
-                <div class="ps" style="background:#fffbeb"><div class="psn" style="color:#b45309" id="pipe-contacted">12</div><div class="psl">Contacted</div></div>
-                <div class="ps" style="background:#f0fdf4"><div class="psn" style="color:#15803d" id="pipe-interested">8</div><div class="psl">Interested</div></div>
-                <div class="ps" style="background:#fdf4ff"><div class="psn" style="color:#7e22ce" id="pipe-proposal">5</div><div class="psl">Proposal</div></div>
-                <div class="ps" style="background:#dcfce7"><div class="psn" style="color:#15803d" id="pipe-converted">7</div><div class="psl">Converted</div></div>
-            </div>
-        </div>
-        <?php endif; ?>
-    </div>
+
 </div>
 
 <div class="modal-ov" id="modal-cal" onclick="closeModal(event)">
@@ -581,21 +564,35 @@ function updatePC(){
 
 function drawDonut(id,data,colors){var ctx=document.getElementById(id);if(!ctx)return; if(charts[id]) charts[id].destroy();charts[id]=new Chart(ctx,{type:'doughnut',data:{datasets:[{data:data,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:700}}});}
 
+window.isTeamView = false;
+
 function sw(role,btn){
   document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('act'));btn.classList.add('act');
-  document.querySelectorAll('.d-view').forEach(v=>v.classList.remove('act'));
-  var target = document.getElementById('v'+role[0]);
-  if(target) target.classList.add('act');
-  if(role==='founder') loadLeadSourceDonut('dc1', 'total-leads-donut');
-  if(role==='sales') loadLeadSourceDonut('dc2', 'total-leads-donut-sales');
+  window.isTeamView = (role === 'sales');
+  
+  const titleEl = document.querySelector('.wbar h2');
+  if (titleEl) {
+      titleEl.innerHTML = window.isTeamView ? 'Welcome back, Team Viewer! 👋' : 'Welcome back, <?php echo e($firstName); ?>! 👋';
+  }
+  
+  const subtitleEl = document.querySelector('.wbar p');
+  if (subtitleEl) {
+      subtitleEl.innerHTML = window.isTeamView ? "Here's what's happening with your team today." : "Here's what's happening with your projects today.";
+  }
+  
+  loadDashboardMetrics();
 }
 
 function loadLeadSourceDonut(canvasId, totalId) {
+    var qp = window.isTeamView ? '?team=1' : '';
     $.ajax({
-        url: '/lead-source/data',
+        url: '/lead-source/data' + qp,
         method: 'GET',
         success: function(response) {
-            if(!response || !response.length) return;
+            if(!response || !response.length) {
+                document.getElementById(totalId).textContent = '0';
+                return;
+            }
             const labels = response.map(r => r.label);
             const values = response.map(r => r.value);
             const total = values.reduce((a, b) => a + b, 0);
@@ -619,8 +616,9 @@ function loadLeadSourceDonut(canvasId, totalId) {
 function tick(){var n=new Date(),t=n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}),ce=document.getElementById('clk-display');if(ce)ce.textContent='Workorio Pro • '+t;}
 
 function fetchMetric(url, elementId, key) {
+    var qp = window.isTeamView ? (url.indexOf('?') !== -1 ? '&team=1' : '?team=1') : '';
     $.ajax({
-        url,
+        url: url + qp,
         method: 'GET',
         success: function (response) {
             const value = Number(response && response[key]) || 0;
@@ -636,6 +634,8 @@ function fetchMetric(url, elementId, key) {
 
 function loadDashboardMetrics() {
     const f = window.tenantFeatures;
+    const qp = window.isTeamView ? '?team=1' : '';
+    const qpAmp = window.isTeamView ? '&team=1' : '';
 
     // Sales Intelligence
     if (f.isSales) {
@@ -660,7 +660,7 @@ function loadDashboardMetrics() {
     // Team Attendance
     if (f.isAttendance) {
         $.ajax({
-            url: '/attendance/summary',
+            url: '/attendance/summary' + qp,
             method: 'GET',
             success: function(res) {
                 $('#att-present').text(res.present);
@@ -674,7 +674,7 @@ function loadDashboardMetrics() {
 
         // Holidays
         $.ajax({
-            url: '/holidays/summary',
+            url: '/holidays/summary' + qp,
             method: 'GET',
             success: function(res) {
                 renderHolidays(res.list || []);
@@ -690,7 +690,7 @@ function loadDashboardMetrics() {
     // Pending Approvals
     if (f.isApproval) {
         $.ajax({
-            url: '/pending-approvals/summary',
+            url: '/pending-approvals/summary' + qp,
             method: 'GET',
             success: function(res) {
                 if (f.isAttendance) $('#ap-at-badge').text(res.attendance);
@@ -713,7 +713,7 @@ function loadDashboardMetrics() {
     // Due Payments
     if (f.isSales) {
         $.ajax({
-            url: '/due-payments/summary',
+            url: '/due-payments/summary' + qp,
             method: 'GET',
             success: function(res) {
                 renderPayments(res.list || []);
@@ -724,7 +724,7 @@ function loadDashboardMetrics() {
     // Due Subscriptions
     if (f.isSubs) {
         $.ajax({
-            url: '/due-subscriptions/summary',
+            url: '/due-subscriptions/summary' + qp,
             method: 'GET',
             success: function(res) {
                 renderSubscriptions(res.list || []);
@@ -735,7 +735,7 @@ function loadDashboardMetrics() {
     // Sales View Specific
     if (f.isSales) {
         $.ajax({
-            url: '/todayfollowups',
+            url: '/todayfollowups' + qp,
             method: 'GET',
             success: function(res) {
                 $('#s_todayfollowups').text(res.totalLeads || 0);
@@ -763,7 +763,7 @@ function loadDashboardMetrics() {
     
     // Celebrations
     $.ajax({
-        url: '/celebrations/summary',
+        url: '/celebrations/summary' + qp,
         method: 'GET',
         success: function(res) {
             renderCelebrations(res.list || []);
@@ -778,14 +778,14 @@ function loadDashboardMetrics() {
     // Tasks
     if (f.isTasks) {
         $.ajax({
-            url: '/user-tasks?type=byMe',
+            url: '/user-tasks?type=byMe' + qpAmp,
             method: 'GET',
             success: function(res) {
                 renderTasks('tk-byMe', res.data || []);
             }
         });
         $.ajax({
-            url: '/user-tasks?type=toMe',
+            url: '/user-tasks?type=toMe' + qpAmp,
             method: 'GET',
             success: function(res) {
                 renderTasks('tk-toMe', res.data || []);
@@ -869,7 +869,7 @@ function renderCelebrations(list) {
         return;
     }
     let html = '';
-    list.forEach(c => {
+    list.slice(0, 1).forEach(c => {
         const d = new Date(c.date);
         const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
         const initial = c.name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -877,7 +877,7 @@ function renderCelebrations(list) {
         const color = c.type === 'birthday' ? '#fca5a5' : '#60a5fa';
         const labelColor = c.type === 'birthday' ? '#db2777' : '#2563eb';
         
-        html += `<div style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+        html += `<div style="background: #f9fafb; border: 1px solid #f3f4f6; padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div style="width: 40px; height: 40px; border-radius: 50%; background: ${color}; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">${initial}</div>
                         <div>
@@ -902,7 +902,7 @@ function renderHolidays(list) {
         return;
     }
     let html = '';
-    list.forEach(h => {
+    list.slice(0, 1).forEach(h => {
         const d = new Date(h.holiday_date);
         const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
         const initial = h.name.split(' ').filter(n => n).map(n => n[0]).join('').substring(0,2).toUpperCase();
@@ -912,7 +912,7 @@ function renderHolidays(list) {
         const typeLabel = h.is_rh ? 'Restricted' : 'Public Holiday';
         const weekday = d.toLocaleDateString('en-IN', { weekday: 'long' });
 
-        html += `<div style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+        html += `<div style="background: #f9fafb; border: 1px solid #f3f4f6; padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div style="width: 40px; height: 40px; border-radius: 50%; background: ${color}; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">${initial}</div>
                         <div>
