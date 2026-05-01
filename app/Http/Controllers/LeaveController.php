@@ -600,10 +600,7 @@ class LeaveController extends Controller
 
         try {
             if ($user->role_id == 1) {
-                $leaveReq = LeaveRequest::where('id', $id)
-                    ->whereHas('user', function($query) {
-                        $query->whereDoesntHave('managers');
-                    })->firstOrFail();
+                $leaveReq = LeaveRequest::where('id', $id)->firstOrFail();
             } else {
                 $actualUser = clone $user; 
                 try { $actualUser = \App\Models\User::find($user->id); } catch(\Exception $e) {}
@@ -661,10 +658,7 @@ class LeaveController extends Controller
 
         try {
             if ($user->role_id == 1) {
-                $leaveReq = LeaveRequest::where('id', $id)
-                    ->whereHas('user', function($query) {
-                        $query->whereDoesntHave('managers');
-                    })->firstOrFail();
+                $leaveReq = LeaveRequest::where('id', $id)->firstOrFail();
             } else {
                 $actualUser = clone $user; 
                 try { $actualUser = \App\Models\User::find($user->id); } catch(\Exception $e) {}
