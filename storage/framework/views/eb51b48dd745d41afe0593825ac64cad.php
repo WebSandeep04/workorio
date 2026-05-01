@@ -88,29 +88,7 @@
         <?php endif; ?>
 
         <div class="hcards">
-            <?php if($isAttendance): ?>
-            <div class="card">
-                <div class="chead"><span class="ctitle">Team Attendance Today</span><span class="va" onclick="location.href='<?php echo e(route('attendance.history')); ?>'">view all</span></div>
-                <div style="display:grid;grid-template-columns:2.5fr 1fr;gap:16px;">
-                    <div style="background:#f0fdf4;border-radius:9px;padding:16px;border:1px solid #dcfce7">
-                        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #dcfce7;margin-bottom:12px">
-                            <div style="font-size:14px;color:#15803d;font-weight:600">Present</div>
-                            <div style="font-size:32px;font-weight:700;color:#16a34a;line-height:1" id="att-present">0</div>
-                        </div>
-                        <div style="grid-template-columns:1fr 1fr;gap:12px 24px;font-size:12.5px;color:#15803d;display:grid">
-                            <div style="display:flex;justify-content:space-between"><span>In Office</span><b style="color:#16a34a" id="att-office">0</b></div>
-                            <div style="display:flex;justify-content:space-between"><span>Remote</span><b style="color:#16a34a" id="att-remote">0</b></div>
-                            <div style="display:flex;justify-content:space-between"><span>In Field</span><b style="color:#16a34a" id="att-field">0</b></div>
-                            <div style="display:flex;justify-content:space-between"><span>WFH</span><b style="color:#16a34a" id="att-wfh">0</b></div>
-                        </div>
-                    </div>
-                    <div style="background:#fef2f2;border-radius:9px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #fee2e2">
-                        <div style="font-size:42px;font-weight:700;color:#ef4444;line-height:1" id="att-absent">0</div>
-                        <div style="font-size:13px;color:#b91c1c;font-weight:600;margin-top:8px">Absent</div>
-                    </div>
-                </div>
-            </div>
-            <?php endif; ?>
+            
 
             <?php if($isSales): ?>
             <div class="card">

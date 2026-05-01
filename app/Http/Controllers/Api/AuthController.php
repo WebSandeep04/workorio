@@ -113,6 +113,10 @@ class AuthController extends Controller
                         'name' => $user->name,
                         'email' => $user->email,
                         'role_id' => $user->role_id,
+                        'role_name' => $user->role ? $user->role->name : 'user',
+                        'is_manager' => $user->is_manager ?? 0,
+                        'has_subordinates' => $user->subordinates()->exists(),
+                        'permissions' => $user->rolePermissions(),
                         'tenant_id' => $tenant->id,
                         'token' => $token,
                         'version' => '1.0',
@@ -120,7 +124,41 @@ class AuthController extends Controller
                         'employee_details' => $employee ? [
                             'date_of_birth' => $employee->date_of_birth,
                             'shift' => $shiftDetails
-                        ] : null
+                        ] : null,
+                        'feature_flags' => [
+                            'is_sales_enabled' => $user->is_sales ?? 0,
+                            'is_tally_calling_enabled' => $user->is_tally_calling ?? 0,
+                            'is_leadgen_enabled' => $user->is_sales ?? 0,
+                            'is_projects_enabled' => $user->is_projects ?? 0,
+                            'is_subscription_enabled' => $user->is_subscription_and_renewal ?? 0,
+                            'is_tracking_enabled' => $user->is_tracking ?? 0,
+                            'is_worklog_enabled' => $user->is_worklog ?? 0,
+                            'is_workflow_enabled' => $user->is_workflow ?? 0,
+                            'is_social_media_calendar_enabled' => $user->is_calander ?? 0,
+                            'is_setup_enabled' => $user->is_master ?? 0,
+                            'is_task_reminders_enabled' => $user->is_task ?? 0,
+                            'is_attendance_enabled' => $user->is_attandance ?? 0,
+                            'is_reports_enabled' => $user->is_reports ?? 0,
+                            'is_document_management_enabled' => $user->is_document ?? 0,
+                            'is_petty_cash_enable' => $user->is_petty_cash ?? 0,
+                            'is_approval_enabled' => ($user->is_petty_cash || $user->is_worklog || $user->is_attandance) ? 1 : 0,
+                            'is_contact_management' => $user->is_contact_management ?? 0,
+                            'is_asset_management_enable' => $user->is_asset_management ?? 0,
+                            'is_email_marketing_enable' => $user->is_email_marketing ?? 0,
+                            'is_core_setup_enabled' => $user->is_core_setup ?? 0,
+                            'is_user_setup_enabled' => $user->is_user_setup ?? 0,
+                            'is_master_setup_enabled' => $user->is_master_setup ?? 0,
+                            'is_sales_setup_enabled' => $user->is_sales_setup ?? 0,
+                            'is_tally_calling_setup_enabled' => $user->is_tally_calling_setup ?? 0,
+                            'is_petty_cash_setup_enabled' => $user->is_petty_cash_setup ?? 0,
+                            'is_projects_setup_enabled' => $user->is_projects_setup ?? 0,
+                            'is_work_setup_enabled' => $user->is_work_setup ?? 0,
+                            'is_attendance_setup_enabled' => $user->is_attendance_setup ?? 0,
+                            'is_task_setup_enabled' => $user->is_task_setup ?? 0,
+                            'is_subscription_setup_enabled' => $user->is_subscription_setup ?? 0,
+                            'is_calendar_setup_enabled' => $user->is_calendar_setup ?? 0,
+                            'is_asset_management_setup_enabled' => $user->is_asset_management_setup ?? 0,
+                        ]
                     ];
                 }
             } catch (\Exception $e) {
