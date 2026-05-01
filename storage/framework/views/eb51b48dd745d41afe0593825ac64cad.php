@@ -16,7 +16,7 @@
 
     $currentUserId = auth()->check() ? auth()->id() : session('user_id');
     $currentUser = $currentUserId ? \App\Models\User::find($currentUserId) : null;
-    $hasSubordinates = $currentUser && $currentUser->subordinates()->exists();
+    $hasSubordinates = ($currentUser && $currentUser->subordinates()->exists()) || ($currentUser && $currentUser->role_id == 1);
 
     // Resolve tenant for feature flags - handle missing flags gracefully
     $isSales = isset($tenant->is_sales_enabled) ? (bool)$tenant->is_sales_enabled : true;

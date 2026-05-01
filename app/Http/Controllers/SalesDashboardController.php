@@ -1348,6 +1348,18 @@ public function searchnewFollowups(Request $request)
      */
     private function getSubordinateIds($userId)
     {
+        $isAdmin = false;
+        if (Auth::check()) {
+            $isAdmin = Auth::user()->role_id == 1;
+        } else if (session('user_id')) {
+            $u = DB::table('users')->where('id', session('user_id'))->first();
+            $isAdmin = $u && $u->role_id == 1;
+        }
+
+        if ($isAdmin) {
+            return DB::table('users')->pluck('id')->toArray();
+        }
+
         return DB::table('user_managers')->where('manager_id', $userId)->pluck('user_id')->toArray();
     }
 
