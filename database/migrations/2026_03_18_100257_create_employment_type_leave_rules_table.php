@@ -24,9 +24,11 @@ return new class extends Migration
             
             $table->enum('generation_type', ['accrual', 'prefill', 'unlimited']);
             $table->integer('value'); // dynamic based on generation type
+            $table->integer('max_use_per_month')->nullable();
             
             $table->boolean('carry_forward_allowed')->default(false);
             $table->integer('max_carry_forward')->default(0);
+            $table->string('lapse_type')->nullable(); // monthly, yearly
             
             $table->timestamps();
 

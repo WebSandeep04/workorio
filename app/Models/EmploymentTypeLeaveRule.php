@@ -14,8 +14,10 @@ class EmploymentTypeLeaveRule extends Model
         'leave_type_id',
         'generation_type',
         'value',
+        'max_use_per_month',
         'carry_forward_allowed',
-        'max_carry_forward'
+        'max_carry_forward',
+        'lapse_type'
     ];
 
     protected $casts = [

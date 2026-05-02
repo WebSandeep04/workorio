@@ -118,7 +118,11 @@ class EmploymentTypeController extends Controller
                 [
                     'generation_type' => $rule['generation_type'] ?? 'prefill',
                     'value' => (int) ($rule['value'] ?? 0),
-                    'carry_forward_allowed' => isset($rule['carry_forward_allowed']) && $rule['carry_forward_allowed'] == 1,
+                    'max_use_per_month' => isset($rule['generation_type']) && $rule['generation_type'] === 'prefill' ? (int) ($rule['max_use_per_month'] ?? 0) : null,
+                    'carry_forward_allowed' => isset($rule['carry_forward_allowed']) && $rule['carry_forward_allowed'] == '1',
+                    'lapse_type' => isset($rule['carry_forward_allowed']) && $rule['carry_forward_allowed'] == '0' 
+                        ? ($rule['lapse_type'] ?? 'monthly') 
+                        : null,
                     'max_carry_forward' => (int) ($rule['max_carry_forward'] ?? 0),
                 ]
             );

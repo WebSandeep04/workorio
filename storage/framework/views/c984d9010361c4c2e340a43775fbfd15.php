@@ -101,7 +101,7 @@
 
 <!-- Unified Form Modal -->
 <div class="modal fade" id="formModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 1000px;">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" style="font-size: 1.1rem; font-weight: 600;" id="modalTitle">
@@ -146,7 +146,7 @@
                     </div>
 
                     <div class="row g-2 matrix-config" id="matrix_config_<?php echo e($leave->id); ?>" style="display:none; opacity:0.6;">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label style="font-size:0.75rem;">Type</label>
                             <select class="form-control form-control-sm matrix-type" name="rules[<?php echo e($leave->id); ?>][generation_type]">
                                 <option value="prefill">Prefill (Upfront)</option>
@@ -154,18 +154,29 @@
                                 <option value="unlimited">Unlimited</option>
                             </select>
                         </div>
-                        <div class="col-md-3 matrix-val-col">
+                        <div class="col-md-2 matrix-val-col">
                             <label style="font-size:0.75rem;" class="matrix-val-label">Days to give</label>
                             <input type="number" step="1" min="0" class="form-control form-control-sm matrix-val-input" name="rules[<?php echo e($leave->id); ?>][value]" value="0">
                         </div>
-                        <div class="col-md-3 matrix-cf-col">
+                        <div class="col-md-2 matrix-max-use-col">
+                            <label style="font-size:0.75rem;">Max use per month</label>
+                            <input type="number" step="1" min="0" class="form-control form-control-sm" name="rules[<?php echo e($leave->id); ?>][max_use_per_month]" value="0">
+                        </div>
+                        <div class="col-md-2 matrix-cf-col">
                             <label style="font-size:0.75rem;">Carry Forward</label>
                             <select class="form-control form-control-sm matrix-cf" name="rules[<?php echo e($leave->id); ?>][carry_forward_allowed]">
                                 <option value="0">No, Lapse</option>
                                 <option value="1">Yes, Rollover</option>
                             </select>
                         </div>
-                        <div class="col-md-3 cf-max-col" style="display:none;">
+                        <div class="col-md-2 cf-lapse-col" style="display:none;">
+                            <label style="font-size:0.75rem;">Lapse Type</label>
+                            <select class="form-control form-control-sm matrix-lapse" name="rules[<?php echo e($leave->id); ?>][lapse_type]">
+                                <option value="yearly" selected>Yearly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 cf-max-col" style="display:none;">
                             <label style="font-size:0.75rem;">Max Rollover</label>
                             <input type="number" class="form-control form-control-sm max-cf-val" name="rules[<?php echo e($leave->id); ?>][max_carry_forward]" value="0">
                         </div>
@@ -197,6 +208,7 @@ $(function() {
         let div = $(this).closest('.matrix-box').find('.matrix-config');
         if($(this).is(':checked')) {
             div.slideDown().css('opacity', 1);
+            div.find('.matrix-cf').trigger('change');
         } else {
             div.slideUp().css('opacity', 0.6);
         }
@@ -210,32 +222,55 @@ $(function() {
         let maxCol = parent.find('.cf-max-col');
 
         let val = $(this).val();
+        let maxUseCol = parent.find('.matrix-max-use-col');
         if (val === 'unlimited') {
             valCol.hide().find('input').prop('disabled', true).val('0');
+            maxUseCol.hide().find('input').prop('disabled', true).val('0');
             cfCol.hide().find('select').prop('disabled', true).val('0');
             maxCol.hide().find('input').prop('disabled', true).val('0');
+            parent.find('.cf-lapse-col').hide().find('select').prop('disabled', true);
         } else {
             valCol.show().find('input').prop('disabled', false);
             cfCol.show().find('select').prop('disabled', false);
+            parent.find('.cf-lapse-col').find('select').prop('disabled', false);
             
             if (val === 'accrual') {
                 label.text('Valid Days Reqd.');
+                maxUseCol.hide().find('input').prop('disabled', true).val('0');
             } else {
                 label.text('Base Days Given');
+                maxUseCol.show().find('input').prop('disabled', false);
             }
             
             if (cfCol.find('select').val() === '1') {
                 maxCol.show().find('input').prop('disabled', false);
+                parent.find('.cf-lapse-col').hide();
+            } else {
+                maxCol.hide();
+                parent.find('.cf-lapse-col').show();
             }
         }
     });
 
     $('.matrix-cf').on('change', function() {
-        let col = $(this).closest('.matrix-config').find('.cf-max-col');
-        if($(this).val() === '1') col.fadeIn();
-        else {
-            col.fadeOut();
-            $(this).closest('.matrix-config').find('.max-cf-val').val(0);
+        let parent = $(this).closest('.matrix-config');
+        let maxCol = parent.find('.cf-max-col');
+        let lapseCol = parent.find('.cf-lapse-col');
+        
+        let genType = parent.find('.matrix-type').val();
+        if (genType === 'unlimited') {
+            maxCol.hide();
+            lapseCol.hide();
+            return;
+        }
+
+        if ($(this).val() === '1') {
+            maxCol.fadeIn();
+            lapseCol.fadeOut();
+        } else {
+            maxCol.fadeOut();
+            parent.find('.max-cf-val').val(0);
+            lapseCol.fadeIn();
         }
     });
 
@@ -321,7 +356,12 @@ $(function() {
                 $(`#leave_toggle_${lid}`).prop('checked', true).trigger('change');
                 $(`select[name="rules[${lid}][generation_type]"]`).val(rule.generation_type).trigger('change');
                 $(`input[name="rules[${lid}][value]"]`).val(rule.value);
-                $(`select[name="rules[${lid}][carry_forward_allowed]"]`).val(rule.carry_forward_allowed ? 1 : 0).trigger('change');
+                $(`input[name="rules[${lid}][max_use_per_month]"]`).val(rule.max_use_per_month || 0);
+                let cfVal = rule.carry_forward_allowed ? 1 : 0;
+                $(`select[name="rules[${lid}][carry_forward_allowed]"]`).val(cfVal).trigger('change');
+                if (cfVal == 0) {
+                    $(`select[name="rules[${lid}][lapse_type]"]`).val(rule.lapse_type || 'yearly');
+                }
                 $(`input[name="rules[${lid}][max_carry_forward]"]`).val(rule.max_carry_forward);
             });
         }
