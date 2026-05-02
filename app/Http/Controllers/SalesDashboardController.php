@@ -350,30 +350,98 @@ public function calendarSummary(Request $request)
         }
 
         $today = Carbon::today();
-        $query = DB::table('attendance')->whereDate('date', $today);
+        $query = DB::table('attendance as a')
+            ->join('users as u', 'u.id', '=', 'a.user_id')
+            ->where('u.role_id', '!=', 1)
+            ->whereDate('a.date', $today);
+
+        if (Schema::hasTable('employees')) {
+            if (Schema::hasColumn('employees', 'user_id')) {
+                $query->join('employees as e', 'e.user_id', '=', 'u.id')
+                      ->where('e.status', 'active');
+            } elseif (Schema::hasColumn('users', 'employee_id')) {
+                $query->join('employees as e', 'e.id', '=', 'u.employee_id')
+                      ->where('e.status', 'active');
+            }
+        }
 
         if ($request->get('team') == 1) {
             $userId = $this->getCurrentUserId();
             $subordinateIds = $this->getSubordinateIds($userId);
-            $query->whereIn('user_id', $subordinateIds);
+            if (Schema::hasTable('employees')) {
+                if (Schema::hasColumn('employees', 'user_id')) {
+                    $subordinateIds = DB::table('employees as e')
+                        ->join('users as us', 'us.id', '=', 'e.user_id')
+                        ->whereIn('e.user_id', $subordinateIds)
+                        ->where('e.status', 'active')
+                        ->where('us.role_id', '!=', 1)
+                        ->pluck('e.user_id')
+                        ->toArray();
+                } elseif (Schema::hasColumn('users', 'employee_id')) {
+                    $subordinateIds = DB::table('users as us')
+                        ->join('employees as e', 'e.id', '=', 'us.employee_id')
+                        ->whereIn('us.id', $subordinateIds)
+                        ->where('e.status', 'active')
+                        ->where('us.role_id', '!=', 1)
+                        ->pluck('us.id')
+                        ->toArray();
+                }
+            } else {
+                $subordinateIds = DB::table('users')
+                    ->whereIn('id', $subordinateIds)
+                    ->where('role_id', '!=', 1)
+                    ->pluck('id')
+                    ->toArray();
+            }
+            $query->whereIn('a.user_id', $subordinateIds);
             $totalUsers = count($subordinateIds);
         } else {
-            $totalUsers = Schema::hasTable('users') ? DB::table('users')->count() : (clone $query)->count();
+            if (Schema::hasTable('employees')) {
+                if (Schema::hasColumn('employees', 'user_id')) {
+                    $totalUsers = DB::table('employees as e')
+                        ->join('users as us', 'us.id', '=', 'e.user_id')
+                        ->where('e.status', 'active')
+                        ->where('us.role_id', '!=', 1)
+                        ->count();
+                } elseif (Schema::hasColumn('users', 'employee_id')) {
+                    $totalUsers = DB::table('users as us')
+                        ->join('employees as e', 'e.id', '=', 'us.employee_id')
+                        ->where('e.status', 'active')
+                        ->where('us.role_id', '!=', 1)
+                        ->count();
+                } else {
+                    $totalUsers = DB::table('users')->where('role_id', '!=', 1)->count();
+                }
+            } else {
+                $totalUsers = Schema::hasTable('users') ? DB::table('users')->where('role_id', '!=', 1)->count() : (clone $query)->count();
+            }
         }
 
         $present = (clone $query)->count();
         $absent = max(($totalUsers ?? 0) - $present, 0);
 
-        $wfh = (clone $query)->where('is_wfh', 1)->count();
+        $wfh = (clone $query)->where('a.is_wfh', 1)->count();
         
         $office = 0;
         $field = 0;
         if (Schema::hasTable('movements')) {
             $firstMovements = DB::table('movements as m')
                 ->join('attendance as a', 'a.id', '=', 'm.attendance_id')
+                ->join('users as u', 'u.id', '=', 'a.user_id')
+                ->where('u.role_id', '!=', 1)
                 ->whereDate('a.date', $today)
                 ->where('m.movement_action', 'in')
                 ->where('a.is_wfh', 0);
+
+            if (Schema::hasTable('employees')) {
+                if (Schema::hasColumn('employees', 'user_id')) {
+                    $firstMovements->join('employees as e', 'e.user_id', '=', 'u.id')
+                                   ->where('e.status', 'active');
+                } elseif (Schema::hasColumn('users', 'employee_id')) {
+                    $firstMovements->join('employees as e', 'e.id', '=', 'u.employee_id')
+                                   ->where('e.status', 'active');
+                }
+            }
 
             if ($request->get('team') == 1) {
                 $firstMovements->whereIn('a.user_id', $subordinateIds);
@@ -394,8 +462,20 @@ public function calendarSummary(Request $request)
             $cutoff = (clone $today)->setTime(10, 30);
             $lateQuery = DB::table('movements as m')
                 ->join('attendance as a', 'a.id', '=', 'm.attendance_id')
+                ->join('users as u', 'u.id', '=', 'a.user_id')
+                ->where('u.role_id', '!=', 1)
                 ->whereDate('a.date', $today)
                 ->where('m.movement_action', 'in');
+
+            if (Schema::hasTable('employees')) {
+                if (Schema::hasColumn('employees', 'user_id')) {
+                    $lateQuery->join('employees as e', 'e.user_id', '=', 'u.id')
+                              ->where('e.status', 'active');
+                } elseif (Schema::hasColumn('users', 'employee_id')) {
+                    $lateQuery->join('employees as e', 'e.id', '=', 'u.employee_id')
+                              ->where('e.status', 'active');
+                }
+            }
 
             if ($request->get('team') == 1) {
                 $lateQuery->whereIn('a.user_id', $subordinateIds);
@@ -408,6 +488,42 @@ public function calendarSummary(Request $request)
                 ->count();
         }
 
+        // Present names
+        $presentUserIds = (clone $query)->pluck('a.user_id')->toArray();
+        $presentNames = DB::table('users')->whereIn('id', $presentUserIds)->pluck('name')->toArray();
+
+        // Absent names
+        if ($request->get('team') == 1) {
+            $absentUserIds = array_diff($subordinateIds, $presentUserIds);
+        } else {
+            if (Schema::hasTable('employees')) {
+                if (Schema::hasColumn('employees', 'user_id')) {
+                    $activeUserIds = DB::table('employees as e')
+                        ->join('users as us', 'us.id', '=', 'e.user_id')
+                        ->where('e.status', 'active')
+                        ->where('us.role_id', '!=', 1)
+                        ->pluck('e.user_id')
+                        ->toArray();
+                    $absentUserIds = array_diff($activeUserIds, $presentUserIds);
+                } elseif (Schema::hasColumn('users', 'employee_id')) {
+                    $activeUserIds = DB::table('users as us')
+                        ->join('employees as e', 'e.id', '=', 'us.employee_id')
+                        ->where('e.status', 'active')
+                        ->where('us.role_id', '!=', 1)
+                        ->pluck('us.id')
+                        ->toArray();
+                    $absentUserIds = array_diff($activeUserIds, $presentUserIds);
+                } else {
+                    $allUserIds = DB::table('users')->where('role_id', '!=', 1)->pluck('id')->toArray();
+                    $absentUserIds = array_diff($allUserIds, $presentUserIds);
+                }
+            } else {
+                $allUserIds = DB::table('users')->where('role_id', '!=', 1)->pluck('id')->toArray();
+                $absentUserIds = array_diff($allUserIds, $presentUserIds);
+            }
+        }
+        $absentNames = DB::table('users')->whereIn('id', $absentUserIds)->pluck('name')->toArray();
+
         return response()->json([
             'present' => $present,
             'absent' => $absent,
@@ -415,7 +531,9 @@ public function calendarSummary(Request $request)
             'office' => $office,
             'field' => $field,
             'remote' => $remote,
-            'wfh' => $wfh
+            'wfh' => $wfh,
+            'present_names' => $presentNames,
+            'absent_names' => $absentNames
         ]);
     }
 

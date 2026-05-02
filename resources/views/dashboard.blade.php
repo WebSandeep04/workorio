@@ -98,7 +98,7 @@
             <div class="card">
                 <div class="chead"><span class="ctitle">Team Attendance Today</span><span class="va" onclick="location.href='{{ route('attendance.history') }}'">view all</span></div>
                 <div style="display:grid;grid-template-columns:2.5fr 1fr;gap:16px;">
-                    <div style="background:#f0fdf4;border-radius:9px;padding:16px;border:1px solid #dcfce7">
+                    <div id="att-present-block" style="background:#f0fdf4;border-radius:9px;padding:16px;border:1px solid #dcfce7" title="No employees present">
                         <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #dcfce7;margin-bottom:12px">
                             <div style="font-size:14px;color:#15803d;font-weight:600">Present</div>
                             <div style="font-size:32px;font-weight:700;color:#16a34a;line-height:1" id="att-present">0</div>
@@ -110,7 +110,7 @@
                             <div style="display:flex;justify-content:space-between"><span>WFH</span><b style="color:#16a34a" id="att-wfh">0</b></div>
                         </div>
                     </div>
-                    <div style="background:#fef2f2;border-radius:9px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #fee2e2">
+                    <div id="att-absent-block" style="background:#fef2f2;border-radius:9px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #fee2e2" title="No employees absent">
                         <div style="font-size:42px;font-weight:700;color:#ef4444;line-height:1" id="att-absent">0</div>
                         <div style="font-size:13px;color:#b91c1c;font-weight:600;margin-top:8px">Absent</div>
                     </div>
@@ -607,14 +607,15 @@ function loadLeadSourceDonut(canvasId, totalId) {
         url: '/lead-source/data' + qp,
         method: 'GET',
         success: function(response) {
+            const el = document.getElementById(totalId);
             if(!response || !response.length) {
-                document.getElementById(totalId).textContent = '0';
+                if (el) el.textContent = '0';
                 return;
             }
             const labels = response.map(r => r.label);
             const values = response.map(r => r.value);
             const total = values.reduce((a, b) => a + b, 0);
-            document.getElementById(totalId).textContent = total;
+            if (el) el.textContent = total;
             
             const colors = ['#2563eb','#f97316','#ec4899','#f59e0b','#8b5cf6','#10b981','#6366f1','#ef4444'];
             drawDonut(canvasId, values, colors.slice(0, values.length));
@@ -687,6 +688,18 @@ function loadDashboardMetrics() {
                 $('#att-remote').text(res.remote);
                 $('#att-field').text(res.field);
                 $('#att-wfh').text(res.wfh);
+
+                if (res.present_names && res.present_names.length > 0) {
+                    $('#att-present-block').attr('title', 'Present:\n' + res.present_names.join('\n'));
+                } else {
+                    $('#att-present-block').attr('title', 'No employees present');
+                }
+
+                if (res.absent_names && res.absent_names.length > 0) {
+                    $('#att-absent-block').attr('title', 'Absent:\n' + res.absent_names.join('\n'));
+                } else {
+                    $('#att-absent-block').attr('title', 'No employees absent');
+                }
             }
         });
 
