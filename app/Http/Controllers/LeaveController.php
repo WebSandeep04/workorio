@@ -437,12 +437,16 @@ class LeaveController extends Controller
                 $pending = 0;
 
                 // 1. Fetch Quota (Max Allowed) from Rules
+                $isUnlimited = false;
                 if (!empty($empTypeId) && Schema::hasTable('employment_type_leave_rules')) {
                     $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
                         ->where('leave_type_id', $type->id)
                         ->first();
                     if ($rule) {
                         $totalAllowed = $rule->value;
+                        if (($rule->generation_type ?? '') === 'unlimited') {
+                            $isUnlimited = true;
+                        }
                     }
                 }
 
@@ -471,6 +475,7 @@ class LeaveController extends Controller
                          ->sum('total_days');
                 }
 
+                $type->is_unlimited = $isUnlimited;
                 $type->balance = $balance;
                 $type->total_allowed = $totalAllowed;
                 $type->pending = $pending;

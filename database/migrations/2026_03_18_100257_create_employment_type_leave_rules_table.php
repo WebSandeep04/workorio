@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('employment_type_id');
             $table->unsignedBigInteger('leave_type_id');
             
-            $table->enum('generation_type', ['accrual', 'prefill']);
+            $table->enum('generation_type', ['accrual', 'prefill', 'unlimited']);
             $table->integer('value'); // dynamic based on generation type
             
             $table->boolean('carry_forward_allowed')->default(false);

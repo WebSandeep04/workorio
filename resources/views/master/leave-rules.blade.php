@@ -81,10 +81,11 @@
                                     <select class="form-select generation-type-select" name="rules[{{ $leave->id }}][generation_type]">
                                         <option value="prefill" {{ ($rule->generation_type ?? '') == 'prefill' ? 'selected' : '' }}>Prefill (Upfront)</option>
                                         <option value="accrual" {{ ($rule->generation_type ?? '') == 'accrual' ? 'selected' : '' }}>Accrual (Earned)</option>
+                                        <option value="unlimited" {{ ($rule->generation_type ?? '') == 'unlimited' ? 'selected' : '' }}>Unlimited</option>
                                     </select>
                                 </div>
                                 
-                                <div class="col-md-3">
+                                <div class="col-md-3 matrix-val-col">
                                     <label class="form-label value-label">Base Days Given</label>
                                     <div class="input-group">
                                         <input type="number" step="1" min="0" class="form-control" 
@@ -95,7 +96,7 @@
                                     <small class="text-muted value-hint">Amount allocated instantly.</small>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-3 matrix-cf-col">
                                     <label class="form-label">Carry Forward?</label>
                                     <select class="form-select carry-forward-select" name="rules[{{ $leave->id }}][carry_forward_allowed]">
                                         <option value="0" {{ !($rule->carry_forward_allowed ?? false) ? 'selected' : '' }}>No, Lapses at Year-End</option>
@@ -145,16 +146,32 @@ $(document).ready(function() {
     $('.generation-type-select').on('change', function() {
         let val = $(this).val();
         let parentRow = $(this).closest('.rule-config-box');
-        
-        if (val === 'accrual') {
-            parentRow.find('.value-label').text('Valid Days Threshold');
-            parentRow.find('.value-hint').text('Days required to earn 1 full leave.');
-            parentRow.find('.value-suffix').text('Valid Days');
+        let valCol = parentRow.find('.matrix-val-col');
+        let cfCol = parentRow.find('.matrix-cf-col');
+        let maxCol = parentRow.find('.max-carry-col');
+
+        if (val === 'unlimited') {
+            valCol.hide().find('input').prop('disabled', true).val('0');
+            cfCol.hide().find('select').prop('disabled', true).val('0');
+            maxCol.hide().find('input').prop('disabled', true).val('0');
         } else {
-            // Prefill
-            parentRow.find('.value-label').text('Base Initial Days');
-            parentRow.find('.value-hint').text('Amount allocated instantly.');
-            parentRow.find('.value-suffix').text('Days Given');
+            valCol.show().find('input').prop('disabled', false);
+            cfCol.show().find('select').prop('disabled', false);
+
+            if (val === 'accrual') {
+                parentRow.find('.value-label').text('Valid Days Threshold');
+                parentRow.find('.value-hint').text('Days required to earn 1 full leave.');
+                parentRow.find('.value-suffix').text('Valid Days');
+            } else {
+                // Prefill
+                parentRow.find('.value-label').text('Base Initial Days');
+                parentRow.find('.value-hint').text('Amount allocated instantly.');
+                parentRow.find('.value-suffix').text('Days Given');
+            }
+
+            if (cfCol.find('select').val() === '1') {
+                maxCol.show().find('input').prop('disabled', false);
+            }
         }
     });
     

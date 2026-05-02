@@ -150,13 +150,14 @@
                             <select class="form-control form-control-sm matrix-type" name="rules[{{ $leave->id }}][generation_type]">
                                 <option value="prefill">Prefill (Upfront)</option>
                                 <option value="accrual">Accrual (Earned)</option>
+                                <option value="unlimited">Unlimited</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 matrix-val-col">
                             <label style="font-size:0.75rem;" class="matrix-val-label">Days to give</label>
-                            <input type="number" step="1" min="0" class="form-control form-control-sm" name="rules[{{ $leave->id }}][value]" value="0">
+                            <input type="number" step="1" min="0" class="form-control form-control-sm matrix-val-input" name="rules[{{ $leave->id }}][value]" value="0">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 matrix-cf-col">
                             <label style="font-size:0.75rem;">Carry Forward</label>
                             <select class="form-control form-control-sm matrix-cf" name="rules[{{ $leave->id }}][carry_forward_allowed]">
                                 <option value="0">No, Lapse</option>
@@ -201,9 +202,31 @@ $(function() {
     });
 
     $('.matrix-type').on('change', function() {
-        let label = $(this).closest('.matrix-config').find('.matrix-val-label');
-        if($(this).val() === 'accrual') label.text('Valid Days Reqd.');
-        else label.text('Base Days Given');
+        let parent = $(this).closest('.matrix-config');
+        let label = parent.find('.matrix-val-label');
+        let valCol = parent.find('.matrix-val-col');
+        let cfCol = parent.find('.matrix-cf-col');
+        let maxCol = parent.find('.cf-max-col');
+
+        let val = $(this).val();
+        if (val === 'unlimited') {
+            valCol.hide().find('input').prop('disabled', true).val('0');
+            cfCol.hide().find('select').prop('disabled', true).val('0');
+            maxCol.hide().find('input').prop('disabled', true).val('0');
+        } else {
+            valCol.show().find('input').prop('disabled', false);
+            cfCol.show().find('select').prop('disabled', false);
+            
+            if (val === 'accrual') {
+                label.text('Valid Days Reqd.');
+            } else {
+                label.text('Base Days Given');
+            }
+            
+            if (cfCol.find('select').val() === '1') {
+                maxCol.show().find('input').prop('disabled', false);
+            }
+        }
     });
 
     $('.matrix-cf').on('change', function() {

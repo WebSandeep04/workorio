@@ -2326,3 +2326,16 @@
 [2026-05-02 07:12:44] local.ERROR: AuthController@login user check {"tenant_id":8,"exists":true,"password_ok":true,"is_login":1} 
 [2026-05-02 07:12:44] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":1,"name":"Syed Furqan","email":"syedfurqan@triserv360.com","role_id":1,"tenant_id":8}} 
 [2026-05-02 07:12:44] local.ERROR: AuthController@login resolved tenant {"tenant_id":8} 
+[2026-05-02 08:44:21] local.ERROR: AuthController@login start {"email":"alfishayasmin56@gmail.com"} 
+[2026-05-02 08:44:21] local.ERROR: AuthController@login checking tenant {"tenant_id":4} 
+[2026-05-02 08:44:22] local.ERROR: AuthController@login user check {"tenant_id":4,"exists":false,"password_ok":false,"is_login":0} 
+[2026-05-02 08:44:22] local.ERROR: AuthController@login checking tenant {"tenant_id":8} 
+[2026-05-02 08:44:22] local.ERROR: AuthController@login user check {"tenant_id":8,"exists":true,"password_ok":false,"is_login":1} 
+[2026-05-02 08:44:22] local.ERROR: AuthController@login user lookup result {"found":false,"data":null} 
+[2026-05-02 08:44:48] local.ERROR: AuthController@login start {"email":"alfishayasmin56@gmail.com"} 
+[2026-05-02 08:44:48] local.ERROR: AuthController@login checking tenant {"tenant_id":4} 
+[2026-05-02 08:44:48] local.ERROR: AuthController@login user check {"tenant_id":4,"exists":false,"password_ok":false,"is_login":0} 
+[2026-05-02 08:44:48] local.ERROR: AuthController@login checking tenant {"tenant_id":8} 
+[2026-05-02 08:44:48] local.ERROR: AuthController@login user check {"tenant_id":8,"exists":true,"password_ok":true,"is_login":1} 
+[2026-05-02 08:44:48] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Alfisha Yasmin","email":"alfishayasmin56@gmail.com","role_id":6,"tenant_id":8}} 
+[2026-05-02 08:44:48] local.ERROR: AuthController@login resolved tenant {"tenant_id":8} 

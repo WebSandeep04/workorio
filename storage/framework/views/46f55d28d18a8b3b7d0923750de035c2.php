@@ -101,6 +101,9 @@
           <i class="bi bi-search"></i>
           <input type="text" id="leaveSearch" placeholder="Search leaves..." />
         </div>
+        <button type="button" class="table-search-btn me-2" style="background:#434afa; border-color:#434afa;" onclick="openFullLedger()" title="View Full Ledger">
+          <i class="bi bi-journal-text"></i>
+        </button>
         <button type="button" class="table-search-btn" onclick="openCreateModal()">
           <i class="bi bi-plus me-1"></i>Apply Leave
         </button>
@@ -263,7 +266,7 @@
                 <div class="table-scroll">
                     <table class="table custom-table mb-0" id="ledgerTable">
                         <thead>
-                            <tr>
+                            <tr id="ledgerThead">
                                 <th>Date</th>
                                 <th>Type</th>
                                 <th>Amount</th>
@@ -329,8 +332,12 @@ $(document).ready(function() {
         }
 
         // Show Balance
-        $('#balanceAlert').fadeIn();
-        $('#dynamicBalance').text(targetType.balance);
+        if (targetType.is_unlimited) {
+            $('#balanceAlert').hide();
+        } else {
+            $('#balanceAlert').fadeIn();
+            $('#dynamicBalance').text(targetType.balance);
+        }
 
         // Logic based on dynamic flags
         if (targetType.allow_half_day) {
@@ -482,7 +489,11 @@ function loadLeaveTypes() {
                     : `<button class="details-btn" onclick="openLedger('${t.id}', '${t.name}')">Ledger</button>`;
 
                 
-                if (t.id !== 'hd') {
+                if (t.id !== 'hd' && !t.is_unlimited) {
+                    let balDisplay = t.is_unlimited 
+                        ? `<div class="summary-card-value text-primary mt-1">Unlimited</div>`
+                        : `<div class="summary-card-value text-primary mt-1">${t.balance} <span style="font-size:10px; color:#6b7280; font-weight:500;">Balance</span></div>`;
+
                     cardsHtml += `
                         <div class="summary-card">
                             <div class="summary-card-content" style="padding-right:0;">
@@ -490,11 +501,7 @@ function loadLeaveTypes() {
                                     <div class="summary-card-label">${t.name}</div>
                                     ${ledgerBtn}
                                 </div>
-                                <div class="summary-card-value text-primary mt-1">${t.balance} <span style="font-size:10px; color:#6b7280; font-weight:500;">Balance</span></div>
-                                <div class="stats-row text-muted fw-bold">
-                                    <span>Allowed: ${t.total_allowed}</span> | 
-                                    <span class="text-warning">Pending: ${t.pending}</span>
-                                </div>
+                                ${balDisplay}
                             </div>
                         </div>
                     `;
@@ -517,6 +524,7 @@ function openLedger(leaveTypeId, leaveTypeName) {
         return;
     }
 
+    $('#ledgerThead').html(`<th>Date</th><th>Type</th><th>Amount</th><th>Balance After</th><th>Remarks</th>`);
     $('#ledgerLeaveTypeName').text(leaveTypeName);
     $('#ledgerTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted">Loading ledger...</td></tr>');
     $('#ledgerModal').modal('show');
@@ -543,6 +551,48 @@ function openLedger(leaveTypeId, leaveTypeName) {
         }
     }).fail(function() {
         $('#ledgerTableBody').html('<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load ledger.</td></tr>');
+    });
+}
+
+function openFullLedger() {
+    $('#ledgerLeaveTypeName').text('Complete Ledger');
+    $('#ledgerTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted">Loading complete ledger...</td></tr>');
+    
+    $('#ledgerThead').html(`
+        <th>Date</th>
+        <th>Leave Type</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Balance After</th>
+        <th>Remarks</th>
+    `);
+    
+    $('#ledgerModal').modal('show');
+    
+    $.get('<?php echo e(route("leave.ledger")); ?>', function(res) {
+        if(res.success && res.data.length > 0) {
+            let html = '';
+            res.data.forEach(tx => {
+                let badgeClass = tx.transaction_type === 'credit' ? 'success' : (tx.transaction_type === 'debit' ? 'danger' : 'secondary');
+                let op = tx.transaction_type === 'credit' ? '+' : '';
+                let typeName = tx.leave_type ? tx.leave_type.name : '-';
+                html += `
+                    <tr>
+                        <td>${new Date(tx.created_at).toLocaleDateString()}</td>
+                        <td><strong>${typeName}</strong></td>
+                        <td><span class="badge bg-${badgeClass}">${tx.transaction_type.toUpperCase()}</span></td>
+                        <td class="text-${badgeClass} fw-bold">${op}${tx.amount}</td>
+                        <td class="fw-bold">${tx.balance_after}</td>
+                        <td><span class="text-xs">${tx.remarks || '-'}</span></td>
+                    </tr>
+                `;
+            });
+            $('#ledgerTableBody').html(html);
+        } else {
+            $('#ledgerTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted">No ledger records found.</td></tr>');
+        }
+    }).fail(function() {
+        $('#ledgerTableBody').html('<tr><td colspan="6" class="text-center py-4 text-danger">Failed to load complete ledger.</td></tr>');
     });
 }
 
