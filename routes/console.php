@@ -50,6 +50,12 @@ Schedule::command('attendance:lock-past')
     ->timezone('Asia/Kolkata')
     ->description('Automatically lock all past attendance records');
 
+Schedule::command('leave:process-lapse')
+    ->daily()
+    ->at('00:30')
+    ->timezone('Asia/Kolkata')
+    ->description('Automatically process monthly or yearly leave lapses across all users');
+
 Schedule::command('sales:send-admin-follow-up-report', ['--alert=1'])
     ->daily()
     ->at('09:30')
