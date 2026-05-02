@@ -56,7 +56,7 @@
             <th>Office</th>
             <th>Field</th>
             <th>Break</th>
-            <th>Description</th>
+            <th>Late Reason</th>
         </tr>
     </thead>
     <tbody>

@@ -1360,7 +1360,6 @@ class AttendanceController extends Controller
 
                 $statusInfo = $this->reportService->determineStatus($dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType);
                 $dayData['status'] = $statusInfo['label'];
-            } elseif ($isWeeklyOff) {
 
                 $descriptions = $attendance->movements
                     ->map(fn($m) => $m->description ? trim($m->description) : null)

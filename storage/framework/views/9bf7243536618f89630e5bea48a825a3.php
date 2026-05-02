@@ -536,7 +536,7 @@
                                     <th>Office</th>
                                     <th>Field</th>
                                     <th>Break</th>
-                                    <th>Description</th>
+                                    <th>Late Reason</th>
                                     <th class="text-center">Details</th>
                                 </tr>
                             </thead>
