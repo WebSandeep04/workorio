@@ -169,19 +169,36 @@
             @endif
 
             @if($isPettyCash)
-            <div class="card">
-                <div class="chead">
-                    <span class="ctitle">Petty Cash</span>
-                    <select id="pc-period" onchange="updatePC()" style="border:1px solid #e5e7eb;border-radius:6px;padding:3px 8px;font-size:11.5px;color:#374151;background:#fff;cursor:pointer">
-                        <option value="month" selected>This month</option>
-                        <option value="year">This year</option>
-                        <option value="fin">This year Financial</option>
-                    </select>
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px; height: 100%;">
+                <!-- Petty Cash Section -->
+                <div>
+                    <div class="chead">
+                        <span class="ctitle">Petty Cash</span>
+                        <select id="pc-period" onchange="updatePC()" style="border:1px solid #e5e7eb;border-radius:6px;padding:3px 8px;font-size:11.5px;color:#374151;background:#fff;cursor:pointer">
+                            <option value="month" selected>This month</option>
+                            <option value="year">This year</option>
+                            <option value="fin">This year Financial</option>
+                        </select>
+                    </div>
+                    <div class="pcgrid">
+                        <div class="pcb" style="background:#eff6ff"><div class="pcb-val" id="pc-open" style="color:#1d4ed8">₹0</div><div class="pcb-lbl">Opening Balance</div></div>
+                        <div class="pcb" style="background:#fee2e2"><div class="pcb-val" id="pc-used" style="color:#b91c1c">₹0</div><div class="pcb-lbl">Balance Used</div></div>
+                        <div class="pcb" style="background:#f0fdf4"><div class="pcb-val" id="pc-rem" style="color:#15803d">₹0</div><div class="pcb-lbl">Remaining</div></div>
+                    </div>
                 </div>
-                <div class="pcgrid">
-                    <div class="pcb" style="background:#eff6ff"><div class="pcb-val" id="pc-open" style="color:#1d4ed8">₹0</div><div class="pcb-lbl">Opening Balance</div></div>
-                    <div class="pcb" style="background:#fee2e2"><div class="pcb-val" id="pc-used" style="color:#b91c1c">₹0</div><div class="pcb-lbl">Balance Used</div></div>
-                    <div class="pcb" style="background:#f0fdf4"><div class="pcb-val" id="pc-rem" style="color:#15803d">₹0</div><div class="pcb-lbl">Remaining</div></div>
+
+                <!-- Divider -->
+                <hr style="border:0; border-top:1px solid #e5e7eb; margin:4px 0;">
+
+                <!-- Upcoming Leaves Section -->
+                <div>
+                    <div class="chead">
+                        <span class="ctitle">Upcoming Leaves</span>
+                        <span class="va" onclick="location.href='{{ route('leave.index') }}'">view all</span>
+                    </div>
+                    <div id="upcoming-leaves-list" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+                        <div style="text-align:center;padding:10px;color:#9ca3af;font-size:12px">No upcoming leaves</div>
+                    </div>
                 </div>
             </div>
             @endif
@@ -686,6 +703,13 @@ function loadDashboardMetrics() {
     // Petty Cash
     if (f.isPettyCash) {
         updatePC();
+        $.ajax({
+            url: '/upcoming-leaves/summary' + qp,
+            method: 'GET',
+            success: function(res) {
+                renderUpcomingLeaves(res.list || []);
+            }
+        });
     }
 
     // Pending Approvals
@@ -818,6 +842,28 @@ function loadCalendarData(y, m) {
             renderCal(y, m);
         }
     });
+}
+
+function renderUpcomingLeaves(list) {
+    const cont = document.getElementById('upcoming-leaves-list');
+    if (!cont) return;
+    if (!list || !list.length) {
+        cont.innerHTML = '<div style="text-align:center;padding:10px;color:#9ca3af;font-size:12px">No upcoming leaves</div>';
+        return;
+    }
+    let html = '';
+    list.forEach(item => {
+        const start = new Date(item.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        const end = new Date(item.end_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        html += `<div style="display:flex; justify-content:space-between; align-items:center; padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px;">
+            <div>
+                <div style="font-weight: 600; color: #111827;">${item.user_name}</div>
+                <div style="color: #6b7280; font-size: 12px;">${item.leave_type_name} • ${start} - ${end}</div>
+            </div>
+            <div style="font-weight: 500; color: #374151;">${item.total_days} d</div>
+        </div>`;
+    });
+    cont.innerHTML = html;
 }
 
 function renderPayments(list) {
@@ -974,10 +1020,38 @@ function renderApprovals(type, list) {
         } else if (type === 'pc') {
             title = `${item.expense_name || 'Expense'} - ${item.department_name || 'Dept'}`;
             sub = `₹${item.price.toLocaleString()} • ${item.remark || 'No remark'}`;
+        } else if (type === 'ts') {
+            title = `${item.user_name} - ${new Date(item.work_date).toLocaleDateString()}`;
+            sub = `Logged: ${item.hours}h ${item.minutes}m`;
+        } else if (type === 'tk') {
+            title = `${item.task_name}`;
+            const due = item.due_date ? new Date(item.due_date).toLocaleDateString() : 'No due date';
+            sub = `Assigned to: ${item.user_name || 'N/A'} • Due: ${due}`;
         }
-        html += `<div class="ti"><div style="flex:1"><div class="tnm">${title}</div><div class="tdue">${sub}</div></div><span class="va" style="color:#16a34a">Approve</span></div>`;
+        let btnHtml = `<span class="va" style="color:#16a34a">Approve</span>`;
+        if (type === 'tk') {
+            btnHtml = `<span class="va" style="color:#16a34a;cursor:pointer" onclick="approveTask('${item.id}')">Approve</span>`;
+        }
+        html += `<div class="ti"><div style="flex:1"><div class="tnm">${title}</div><div class="tdue">${sub}</div></div>${btnHtml}</div>`;
     });
     cont.innerHTML = html;
+}
+
+function approveTask(id) {
+    if (!confirm('Are you sure you want to mark this task as done?')) return;
+    $.ajax({
+        url: '/task/' + id + '/toggle-done',
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(res) {
+            loadDashboardMetrics();
+        },
+        error: function(err) {
+            alert('Failed to mark task as done');
+        }
+    });
 }
 
 function renderTasks(containerId, tasks) {

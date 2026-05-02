@@ -480,6 +480,7 @@ Route::get('/due-subscriptions/summary', [SalesDashboardController::class, 'dueS
 Route::get('/pending-approvals/summary', [SalesDashboardController::class, 'pendingApprovalsSummary'])->name('pending-approvals.summary');
 Route::get('/holidays/summary', [SalesDashboardController::class, 'holidaysSummary'])->name('holidays.summary');
 Route::get('/celebrations/summary', [SalesDashboardController::class, 'celebrationsSummary'])->name('celebrations.summary');
+Route::get('/upcoming-leaves/summary', [SalesDashboardController::class, 'upcomingLeavesSummary'])->name('upcoming-leaves.summary');
 
 // Holidays Management
 Route::middleware(['auth.or.session'])->group(function () {

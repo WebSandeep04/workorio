@@ -459,7 +459,9 @@ public function calendarSummary(Request $request)
                 $userId = $this->getCurrentUserId();
                 $subordinateIds = $this->getSubordinateIds($userId);
                 $queryOpen->whereIn('user_id', $subordinateIds);
-                $queryExp->whereIn('user_id', $subordinateIds);
+                if (Schema::hasColumn('petty_cash_datas', 'user_id')) {
+                    $queryExp->whereIn('user_id', $subordinateIds);
+                }
             }
 
             if ($period === 'month') {
@@ -494,7 +496,9 @@ public function calendarSummary(Request $request)
             if ($request->get('team') == 1) {
                 $userId = $this->getCurrentUserId();
                 $subordinateIds = $this->getSubordinateIds($userId);
-                $query->whereIn('user_id', $subordinateIds);
+                $query->whereIn('sales_record_id', function($q) use ($subordinateIds) {
+                    $q->select('id')->from('sales_records')->whereIn('user_id', $subordinateIds);
+                });
             }
 
             $totalAmount = (clone $query)->sum('amount');
@@ -504,7 +508,9 @@ public function calendarSummary(Request $request)
                     ->where('i.status', '!=', 'paid')
                 : null;
             if ($totalPaid && $request->get('team') == 1) {
-                $totalPaid->whereIn('i.user_id', $subordinateIds);
+                $totalPaid->whereIn('i.sales_record_id', function($q) use ($subordinateIds) {
+                    $q->select('id')->from('sales_records')->whereIn('user_id', $subordinateIds);
+                });
             }
             $totalPaid = $totalPaid ? $totalPaid->sum('if.amount_paid') : 0;
             
@@ -516,10 +522,12 @@ public function calendarSummary(Request $request)
                 ->where('i.status', '!=', 'paid');
 
             if ($request->get('team') == 1) {
-                $listQuery->whereIn('i.user_id', $subordinateIds);
+                $listQuery->whereIn('i.sales_record_id', function($q) use ($subordinateIds) {
+                    $q->select('id')->from('sales_records')->whereIn('user_id', $subordinateIds);
+                });
             }
 
-            $list = $listQuery->select('i.*', 'sr.customer_name')
+            $list = $listQuery->select('i.*', 'sr.leads_name as customer_name')
                 ->orderBy('i.due_date', 'asc')
                 ->limit(5)
                 ->get();
@@ -593,18 +601,34 @@ public function calendarSummary(Request $request)
         $attendanceQuery = DB::table('attendance')->where('is_approved', 0);
         $leaveQuery = DB::table('leave_requests')->where('status', 'pending');
         $pettyCashQuery = DB::table('petty_cash_datas')->where('is_approved', 0);
+        $timesheetQuery = DB::table('worklogs')->where('status', 'pending');
+        $taskQuery = DB::table('tasks')
+            ->where(function($q) {
+                $q->whereNull('is_done')
+                  ->orWhere('is_done', 0)
+                  ->orWhere('is_done', false);
+            });
 
         if ($request->get('team') == 1) {
             $userId = $this->getCurrentUserId();
             $subordinateIds = $this->getSubordinateIds($userId);
             $attendanceQuery->whereIn('user_id', $subordinateIds);
             $leaveQuery->whereIn('user_id', $subordinateIds);
-            $pettyCashQuery->whereIn('user_id', $subordinateIds);
+            if (Schema::hasColumn('petty_cash_datas', 'user_id')) {
+                $pettyCashQuery->whereIn('user_id', $subordinateIds);
+            }
+            $timesheetQuery->whereIn('user_id', $subordinateIds);
+            $taskQuery->whereIn('created_by', $subordinateIds);
+        } else {
+            $userId = $this->getCurrentUserId();
+            $taskQuery->where('created_by', $userId);
         }
 
         $attendanceCount = Schema::hasTable('attendance') ? $attendanceQuery->count() : 0;
         $leaveCount = Schema::hasTable('leave_requests') ? $leaveQuery->count() : 0;
         $pettyCashCount = Schema::hasTable('petty_cash_datas') ? $pettyCashQuery->count() : 0;
+        $timesheetCount = Schema::hasTable('worklogs') ? $timesheetQuery->count() : 0;
+        $taskCount = Schema::hasTable('tasks') ? $taskQuery->count() : 0;
 
         $attendanceList = [];
         if (Schema::hasTable('attendance')) {
@@ -644,7 +668,7 @@ public function calendarSummary(Request $request)
                 ->leftJoin('departments as d', 'd.id', '=', 'pcd.department_id')
                 ->where('pcd.is_approved', 0);
 
-            if ($request->get('team') == 1) {
+            if ($request->get('team') == 1 && Schema::hasColumn('petty_cash_datas', 'user_id')) {
                 $pettyCashListQuery->whereIn('pcd.user_id', $subordinateIds);
             }
 
@@ -653,19 +677,55 @@ public function calendarSummary(Request $request)
                 ->limit(5)->get();
         }
 
+        $timesheetList = [];
+        if (Schema::hasTable('worklogs')) {
+            $tsListQuery = DB::table('worklogs as w')
+                ->join('users as u', 'u.id', '=', 'w.user_id')
+                ->where('w.status', 'pending');
+
+            if ($request->get('team') == 1) {
+                $tsListQuery->whereIn('w.user_id', $subordinateIds);
+            }
+
+            $timesheetList = $tsListQuery->select('w.id', 'w.work_date', 'w.hours', 'w.minutes', 'u.name as user_name')
+                ->orderBy('w.work_date', 'desc')
+                ->limit(5)->get();
+        }
+
+        $taskList = [];
+        if (Schema::hasTable('tasks')) {
+            $tlQuery = DB::table('tasks as t')
+                ->leftJoin('users as u', 'u.id', '=', 't.user_id')
+                ->where(function ($q) {
+                    $q->whereNull('t.is_done')
+                      ->orWhere('t.is_done', 0)
+                      ->orWhere('t.is_done', false);
+                });
+
+            if ($request->get('team') == 1) {
+                $tlQuery->whereIn('t.created_by', $subordinateIds);
+            } else {
+                $tlQuery->where('t.created_by', $userId);
+            }
+
+            $taskList = $tlQuery->select('t.id', 't.task_name', 't.due_date', 'u.name as user_name')
+                ->orderBy('t.created_at', 'desc')
+                ->limit(5)->get();
+        }
+
         return response()->json([
             'attendance' => $attendanceCount,
             'leave' => $leaveCount,
             'petty_cash' => $pettyCashCount,
-            'timesheet' => 0,
-            'task' => 0,
-            'total' => $attendanceCount + $leaveCount + $pettyCashCount,
+            'timesheet' => $timesheetCount,
+            'task' => $taskCount,
+            'total' => $attendanceCount + $leaveCount + $pettyCashCount + $timesheetCount + $taskCount,
             'lists' => [
                 'attendance' => $attendanceList,
                 'leave' => $leaveList,
                 'petty_cash' => $pettyCashList,
-                'timesheet' => [],
-                'task' => []
+                'timesheet' => $timesheetList,
+                'task' => $taskList
             ]
         ]);
     }
@@ -746,6 +806,54 @@ public function calendarSummary(Request $request)
         return response()->json(['list' => $list]);
     }
 
+    public function upcomingLeavesSummary(Request $request)
+    {
+        $list = [];
+        if (Schema::hasTable('leave_requests')) {
+            $today = \Carbon\Carbon::today();
+            $query = DB::table('leave_requests as lr')
+                ->join('users as u', 'u.id', '=', 'lr.user_id')
+                ->join('leave_types as lt', 'lt.id', '=', 'lr.leave_type_id')
+                ->whereIn('lr.status', ['approved', 'pending'])
+                ->whereDate('lr.start_date', '>=', $today);
+
+            if (Schema::hasTable('employees') && Schema::hasColumn('employees', 'user_id')) {
+                $query->join('employees as e', 'e.user_id', '=', 'u.id')
+                    ->where('e.status', 'active');
+            }
+
+            $userId = $this->getCurrentUserId();
+            $isAdmin = false;
+            if (Auth::check()) {
+                $isAdmin = Auth::user()->role_id == 1;
+            } else if ($userId) {
+                $u = DB::table('users')->where('id', $userId)->first();
+                $isAdmin = $u && $u->role_id == 1;
+            }
+
+            if (!$isAdmin || $request->get('team') == 1) {
+                $subordinateIds = $this->getSubordinateIds($userId);
+                if ($request->get('team') != 1) {
+                    $subordinateIds[] = $userId;
+                }
+                $query->whereIn('lr.user_id', $subordinateIds);
+            }
+
+            $list = $query->select(
+                    'lr.id', 
+                    'lr.start_date', 
+                    'lr.end_date', 
+                    'lr.total_days', 
+                    'u.name as user_name', 
+                    'lt.name as leave_type_name'
+                )
+                ->orderBy('lr.start_date', 'asc')
+                ->limit(5)
+                ->get();
+        }
+        return response()->json(['list' => $list]);
+    }
+
     public function piedata()
     {
         $data = DB::table('sales_status as ss')
@@ -768,6 +876,7 @@ public function calendarSummary(Request $request)
     
     $query = DB::table('tasks as t')
         ->leftJoin('users as u', 't.user_id', '=', 'u.id')
+        ->leftJoin('users as cb', 't.created_by', '=', 'cb.id')
         ->leftJoin('customers as c', 't.customer_id', '=', 'c.id')
         ->leftJoin('task_statuses as ts', 't.task_status_id', '=', 'ts.id')
         ->leftJoin('task_priorities as tp', 't.task_priority_id', '=', 'tp.id');
@@ -795,10 +904,14 @@ public function calendarSummary(Request $request)
             't.task',
             't.is_done',
             't.created_at',
+            't.due_date',
             'u.name as user_name',
+            'u.name as assigned_to_name',
+            'cb.name as assigned_by_name',
             'c.name as customer_name',
             'ts.name as status_name',
             'ts.color as status_color',
+            'tp.name as priority',
             'tp.name as priority_name',
             'tp.color as priority_color'
         )
