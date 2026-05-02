@@ -126,6 +126,33 @@ class LeaveController extends Controller
             }
         }
 
+        $empTypeId = $user->employee->employment_type_id ?? null;
+        if ($empTypeId) {
+            $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                ->where('leave_type_id', $leaveType->id)
+                ->first();
+            if ($rule && $rule->generation_type === 'prefill' && !empty($rule->max_use_per_month) && $rule->max_use_per_month > 0) {
+                $startOfMonth = Carbon::parse($request->start_date)->startOfMonth()->toDateString();
+                $endOfMonth = Carbon::parse($request->start_date)->endOfMonth()->toDateString();
+                
+                $monthUsage = LeaveRequest::where('user_id', $user->id)
+                    ->where('leave_type_id', $leaveType->id)
+                    ->whereIn('status', ['pending', 'approved'])
+                    ->where(function ($query) use ($startOfMonth, $endOfMonth) {
+                        $query->whereBetween('start_date', [$startOfMonth, $endOfMonth])
+                              ->orWhereBetween('end_date', [$startOfMonth, $endOfMonth]);
+                    })
+                    ->sum('total_days');
+
+                if (($monthUsage + $totalDays) > $rule->max_use_per_month) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Monthly usage limit reached. You can only use up to {$rule->max_use_per_month} day(s) per month for this leave type."
+                    ], 422);
+                }
+            }
+        }
+
         // Verify Balance/Quota (Dynamic based on Monthly/Yearly)
         if ($leaveType->is_deductible || $leaveType->is_restricted || $leaveType->is_short_leave) {
             $empTypeId = $user->employee->employment_type_id ?? null;

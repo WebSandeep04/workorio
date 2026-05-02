@@ -19,7 +19,24 @@ class LeaveBalanceService
             ->orderBy('id', 'desc')
             ->first();
 
-        return $latestTransaction ? (float) $latestTransaction->balance_after : 0.00;
+        if ($latestTransaction) {
+            return (float) $latestTransaction->balance_after;
+        }
+
+        $user = \App\Models\User::find($userId);
+        if ($user && $user->employee_id) {
+            $employee = \App\Models\Employee::find($user->employee_id);
+            if ($employee && $employee->employment_type_id) {
+                $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $employee->employment_type_id)
+                    ->where('leave_type_id', $leaveTypeId)
+                    ->first();
+                if ($rule && $rule->generation_type === 'unlimited') {
+                    return 365.0;
+                }
+            }
+        }
+
+        return 0.00;
     }
 
     /**
@@ -104,7 +121,7 @@ class LeaveBalanceService
         if (!\Illuminate\Support\Facades\Schema::hasTable('employment_type_leave_rules')) return;
 
         $rules = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $employee->employment_type_id)
-            ->where('generation_type', 'prefill')
+            ->whereIn('generation_type', ['prefill', 'unlimited'])
             ->get();
 
         foreach ($rules as $rule) {
@@ -115,12 +132,17 @@ class LeaveBalanceService
 
             // If history doesn't exist, this is a legally new assignment. Prefill it exactly once.
             if (!$hasLedgerHistory) {
+                $creditAmount = $rule->generation_type === 'unlimited' ? 365.0 : (float) $rule->value;
+                $remarks = $rule->generation_type === 'unlimited' 
+                    ? 'Initial System Unlimited Balance based on Employment Type' 
+                    : 'Initial System Prefill based on Employment Type';
+
                 $this->creditLeave(
                     $user->id,
                     $rule->leave_type_id,
-                    (float) $rule->value,
+                    $creditAmount,
                     null,
-                    'Initial System Prefill based on Employment Type'
+                    $remarks
                 );
             }
         }

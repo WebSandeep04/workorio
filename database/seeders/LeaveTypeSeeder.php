@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\LeaveType;
 
 class LeaveTypeSeeder extends Seeder
 {
@@ -46,7 +46,7 @@ class LeaveTypeSeeder extends Seeder
             [
                 'name' => 'Restricted Holiday (RH)',
                 'is_paid' => true,
-                'is_deductible' => false, // Virtual count check
+                'is_deductible' => false,
                 'is_restricted' => true,
                 'full_day_weight' => 1.0,
                 'half_day_weight' => 1.0,
@@ -76,7 +76,7 @@ class LeaveTypeSeeder extends Seeder
         ];
 
         foreach ($types as $type) {
-            \App\Models\LeaveType::updateOrCreate(['name' => $type['name']], $type);
+            LeaveType::updateOrCreate(['name' => $type['name']], $type);
         }
     }
 }

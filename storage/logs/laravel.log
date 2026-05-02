@@ -2346,3 +2346,17 @@
 [2026-05-02 09:43:29] local.ERROR: AuthController@login user check {"tenant_id":8,"exists":true,"password_ok":true,"is_login":1} 
 [2026-05-02 09:43:29] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":1,"name":"Syed Furqan","email":"syedfurqan@triserv360.com","role_id":1,"tenant_id":8}} 
 [2026-05-02 09:43:29] local.ERROR: AuthController@login resolved tenant {"tenant_id":8} 
+[2026-05-02 10:54:19] local.ERROR: AuthController@login start {"email":"alfishayasmin56@gmail.com"} 
+[2026-05-02 10:54:19] local.ERROR: AuthController@login checking tenant {"tenant_id":4} 
+[2026-05-02 10:54:19] local.ERROR: AuthController@login user check {"tenant_id":4,"exists":false,"password_ok":false,"is_login":0} 
+[2026-05-02 10:54:19] local.ERROR: AuthController@login checking tenant {"tenant_id":8} 
+[2026-05-02 10:54:19] local.ERROR: AuthController@login user check {"tenant_id":8,"exists":true,"password_ok":true,"is_login":1} 
+[2026-05-02 10:54:19] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":13,"name":"Alfisha Yasmin","email":"alfishayasmin56@gmail.com","role_id":6,"tenant_id":8}} 
+[2026-05-02 10:54:19] local.ERROR: AuthController@login resolved tenant {"tenant_id":8} 
+[2026-05-02 10:55:50] local.ERROR: AuthController@login start {"email":"syedfurqan@triserv360.com"} 
+[2026-05-02 10:55:50] local.ERROR: AuthController@login checking tenant {"tenant_id":4} 
+[2026-05-02 10:55:50] local.ERROR: AuthController@login user check {"tenant_id":4,"exists":false,"password_ok":false,"is_login":0} 
+[2026-05-02 10:55:50] local.ERROR: AuthController@login checking tenant {"tenant_id":8} 
+[2026-05-02 10:55:50] local.ERROR: AuthController@login user check {"tenant_id":8,"exists":true,"password_ok":true,"is_login":1} 
+[2026-05-02 10:55:50] local.ERROR: AuthController@login user lookup result {"found":true,"data":{"id":1,"name":"Syed Furqan","email":"syedfurqan@triserv360.com","role_id":1,"tenant_id":8}} 
+[2026-05-02 10:55:50] local.ERROR: AuthController@login resolved tenant {"tenant_id":8} 
