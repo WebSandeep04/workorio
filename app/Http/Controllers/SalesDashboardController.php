@@ -716,6 +716,35 @@ public function calendarSummary(Request $request)
 
     public function pendingApprovalsSummary(Request $request)
     {
+        $userId = $this->getCurrentUserId();
+        $subordinateIds = $this->getSubordinateIds($userId);
+        
+        $isAdmin = false;
+        if (Auth::check()) {
+            $isAdmin = Auth::user()->role_id == 1;
+        } else if (session('user_id')) {
+            $u = DB::table('users')->where('id', session('user_id'))->first();
+            $isAdmin = $u && $u->role_id == 1;
+        }
+
+        if (!$isAdmin && empty($subordinateIds)) {
+            return response()->json([
+                'attendance' => 0,
+                'leave' => 0,
+                'petty_cash' => 0,
+                'timesheet' => 0,
+                'task' => 0,
+                'total' => 0,
+                'lists' => [
+                    'attendance' => [],
+                    'leave' => [],
+                    'petty_cash' => [],
+                    'timesheet' => [],
+                    'task' => []
+                ]
+            ]);
+        }
+
         $attendanceQuery = DB::table('attendance')->where('is_approved', 0);
         $leaveQuery = DB::table('leave_requests')->where('status', 'pending');
         $pettyCashQuery = DB::table('petty_cash_datas')->where('is_approved', 0);
@@ -728,8 +757,6 @@ public function calendarSummary(Request $request)
             });
 
         if ($request->get('team') == 1) {
-            $userId = $this->getCurrentUserId();
-            $subordinateIds = $this->getSubordinateIds($userId);
             $attendanceQuery->whereIn('user_id', $subordinateIds);
             $leaveQuery->whereIn('user_id', $subordinateIds);
             if (Schema::hasColumn('petty_cash_datas', 'user_id')) {
@@ -738,7 +765,6 @@ public function calendarSummary(Request $request)
             $timesheetQuery->whereIn('user_id', $subordinateIds);
             $taskQuery->whereIn('created_by', $subordinateIds);
         } else {
-            $userId = $this->getCurrentUserId();
             $taskQuery->where('created_by', $userId);
         }
 

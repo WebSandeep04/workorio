@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::create('attendance_edit_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('attendance_id')->constrained('attendance')->onDelete('cascade');
