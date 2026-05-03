@@ -693,6 +693,7 @@ public function calendarSummary(Request $request)
             $listQuery = DB::table('subscription_histories as sh')
                 ->join('subscriptions as s', 's.id', '=', 'sh.subscription_id')
                 ->join('customers as c', 'c.id', '=', 's.customer_id')
+                ->leftJoin('sales_products as sp', 'sp.id', '=', 's.product_id')
                 ->where('sh.due_date', '<=', $fifteenDaysLater)
                 ->where('sh.status', '!=', 'Payment Received');
 
@@ -700,7 +701,7 @@ public function calendarSummary(Request $request)
                 $listQuery->whereIn('sh.user_id', $subordinateIds);
             }
 
-            $list = $listQuery->select('sh.*', 'c.name as customer_name', 's.subscription_name')
+            $list = $listQuery->select('sh.*', 'c.name as customer_name', 's.subscription_name', 'sp.product_name as product_name')
                 ->orderBy('sh.due_date', 'asc')
                 ->limit(5)
                 ->get();

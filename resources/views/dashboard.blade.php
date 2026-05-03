@@ -912,7 +912,7 @@ function renderSubscriptions(list) {
             <div class="pdi-top">
                 <div>
                     <div class="pdi-nm">${s.customer_name || 'Customer'}</div>
-                    <div class="pdi-due">${s.subscription_name || 'Service'} • Due ${due}</div>
+                    <div class="pdi-due">${s.product_name || s.subscription_name || 'Product'} • Due ${due}</div>
                 </div>
                 <div class="pdi-amt">₹${Number(s.amount).toLocaleString()}</div>
             </div>
