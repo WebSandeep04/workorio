@@ -9,6 +9,10 @@ use App\Models\TenantDatabase;
 
 class TenantDatabaseService
 {
+    // =========================================================================
+    // 1. Utility & Identification Methods
+    // =========================================================================
+
     /**
      * Get the connection name for a specific tenant
      */
@@ -16,6 +20,42 @@ class TenantDatabaseService
     {
         return "tenant_{$tenantId}";
     }
+
+    /**
+     * Get the database name for a tenant
+     */
+    public static function getDatabaseName(Tenant $tenant): string
+    {
+        // 1) If a database has already been tracked for this tenant, prefer that
+        $tracked = TenantDatabase::where('tenant_id', $tenant->id)->value('database_name');
+        if (!empty($tracked)) {
+            return $tracked;
+        }
+
+        // 2) Otherwise, build a safe default using tenant_code
+        // Ensure database name is MySQL-safe: letters, numbers, and underscores only
+        $sanitizedCode = preg_replace('/[^a-zA-Z0-9_]/', '_', (string) $tenant->tenant_code);
+        $sanitizedCode = strtolower($sanitizedCode);
+        $baseName = "tenant_{$sanitizedCode}";
+
+        // 3) Hostinger (and many shared hosts) prepend username_ to DB names.
+        // Allow an optional TENANT_DB_PREFIX env (e.g., 'u123456_') to be prepended.
+        $prefix = env('TENANT_DB_PREFIX', '');
+        return $prefix !== '' ? ($prefix . $baseName) : $baseName;
+    }
+
+    /**
+     * Check if a tenant database connection exists
+     */
+    public static function connectionExists(int $tenantId): bool
+    {
+        $connectionName = self::getConnectionName($tenantId);
+        return Config::has("database.connections.{$connectionName}");
+    }
+
+    // =========================================================================
+    // 2. Core Connection Lifecycle Methods
+    // =========================================================================
 
     /**
      * Create a database connection for a specific tenant
@@ -81,45 +121,13 @@ class TenantDatabaseService
     }
 
     /**
-     * Check if a tenant database connection exists
-     */
-    public static function connectionExists(int $tenantId): bool
-    {
-        $connectionName = self::getConnectionName($tenantId);
-        return Config::has("database.connections.{$connectionName}");
-    }
-
-    /**
-     * Get the database name for a tenant
-     */
-    public static function getDatabaseName(Tenant $tenant): string
-    {
-        // 1) If a database has already been tracked for this tenant, prefer that
-        $tracked = TenantDatabase::where('tenant_id', $tenant->id)->value('database_name');
-        if (!empty($tracked)) {
-            return $tracked;
-        }
-
-        // 2) Otherwise, build a safe default using tenant_code
-        // Ensure database name is MySQL-safe: letters, numbers, and underscores only
-        $sanitizedCode = preg_replace('/[^a-zA-Z0-9_]/', '_', (string) $tenant->tenant_code);
-        $sanitizedCode = strtolower($sanitizedCode);
-        $baseName = "tenant_{$sanitizedCode}";
-
-        // 3) Hostinger (and many shared hosts) prepend username_ to DB names.
-        // Allow an optional TENANT_DB_PREFIX env (e.g., 'u123456_') to be prepended.
-        $prefix = env('TENANT_DB_PREFIX', '');
-        return $prefix !== '' ? ($prefix . $baseName) : $baseName;
-    }
-
-    /**
      * Set the default connection for the current request
      */
     public static function setDefaultConnection(int $tenantId): void
     {
         // Ensure the connection exists; create it if missing
         if (!self::connectionExists($tenantId)) {
-            $tenant = \App\Models\Tenant::find($tenantId);
+            $tenant = Tenant::find($tenantId);
             if ($tenant) {
                 self::createConnection($tenant);
             }
@@ -143,36 +151,9 @@ class TenantDatabaseService
         }
     }
 
-    /**
-     * Get all tenant connection names
-     */
-    public static function getAllTenantConnections(): array
-    {
-        $connections = [];
-        $tenants = Tenant::all();
-        
-        foreach ($tenants as $tenant) {
-            $connections[] = self::getConnectionName($tenant->id);
-        }
-        
-        return $connections;
-    }
-
-    /**
-     * Get all tracked tenant databases
-     */
-    public static function getAllTrackedDatabases()
-    {
-        return TenantDatabase::with('tenant')->get();
-    }
-
-    /**
-     * Get tenant database info
-     */
-    public static function getTenantDatabaseInfo(int $tenantId)
-    {
-        return TenantDatabase::where('tenant_id', $tenantId)->first();
-    }
+    // =========================================================================
+    // 3. Maintenance Methods
+    // =========================================================================
 
     /**
      * Update last accessed time for tenant database
@@ -194,6 +175,41 @@ class TenantDatabaseService
         if ($tenantDb) {
             $tenantDb->markAsInactive();
         }
+    }
+
+    // =========================================================================
+    // 4. Information / Statistics Methods
+    // =========================================================================
+
+    /**
+     * Get tenant database info
+     */
+    public static function getTenantDatabaseInfo(int $tenantId)
+    {
+        return TenantDatabase::where('tenant_id', $tenantId)->first();
+    }
+
+    /**
+     * Get all tenant connection names
+     */
+    public static function getAllTenantConnections(): array
+    {
+        $connections = [];
+        $tenants = Tenant::all();
+        
+        foreach ($tenants as $tenant) {
+            $connections[] = self::getConnectionName($tenant->id);
+        }
+        
+        return $connections;
+    }
+
+    /**
+     * Get all tracked tenant databases
+     */
+    public static function getAllTrackedDatabases()
+    {
+        return TenantDatabase::with('tenant')->get();
     }
 
     /**
