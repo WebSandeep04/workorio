@@ -83,8 +83,8 @@
             <th class="summary-col">HW</th>
             <th class="summary-col">L</th>
             <th class="summary-col">A</th>
-            <th class="summary-col">&lt;8:30</th>
-            <th class="summary-col">&gt;8:30</th>
+            <th class="summary-col">&lt;Shift</th>
+            <th class="summary-col">&gt;Shift</th>
             <th class="summary-col">Late</th>
             <th class="summary-col" title="Late Minutes">LM</th>
         </tr>

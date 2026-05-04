@@ -35,4 +35,46 @@ class Shift extends Model
         'half_day_hr' => 'decimal:2',
         'extended_hr' => 'decimal:2',
     ];
+
+    public function getStartTimeAttribute($value)
+    {
+        if ($value) {
+            return \Carbon\Carbon::parse($value, 'UTC')
+                ->setTimezone('Asia/Kolkata')
+                ->format('H:i:s');
+        }
+        return $value;
+    }
+
+    public function getEndTimeAttribute($value)
+    {
+        if ($value) {
+            return \Carbon\Carbon::parse($value, 'UTC')
+                ->setTimezone('Asia/Kolkata')
+                ->format('H:i:s');
+        }
+        return $value;
+    }
+
+    public function setStartTimeAttribute($value)
+    {
+        if ($value) {
+            $this->attributes['start_time'] = \Carbon\Carbon::parse($value, 'Asia/Kolkata')
+                ->setTimezone('UTC')
+                ->format('H:i:s');
+        } else {
+            $this->attributes['start_time'] = null;
+        }
+    }
+
+    public function setEndTimeAttribute($value)
+    {
+        if ($value) {
+            $this->attributes['end_time'] = \Carbon\Carbon::parse($value, 'Asia/Kolkata')
+                ->setTimezone('UTC')
+                ->format('H:i:s');
+        } else {
+            $this->attributes['end_time'] = null;
+        }
+    }
 }

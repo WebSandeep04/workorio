@@ -313,7 +313,8 @@ class AttendanceReportService
                     $halfDays++;
                 }
 
-                if ($dayHours >= 8.5) {
+                [$origFullDayHr, $origHalfDayHr] = $this->getThresholds($shift);
+                if ($dayHours >= $origFullDayHr) {
                     $totalMore8_30++;
                 } elseif ($dayHours >= $halfDayHr) {
                     $totalLess8_30++;

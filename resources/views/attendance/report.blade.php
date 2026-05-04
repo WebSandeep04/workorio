@@ -426,8 +426,8 @@
                                     <th>Holiday Work</th>
                                     <th>Total Hours</th>
                                     <th>Avg Hrs/Day</th>
-                                    <th>Less 8:30</th>
-                                    <th>More 8:30</th>
+                                    <th>Less Shift Hr</th>
+                                    <th>More Shift Hr</th>
                                     <th>Late Count</th>
                                 </tr>
                             </thead>
@@ -759,8 +759,8 @@ function loadMonthlySummary(){
             headerRow += '<th style="min-width:55px;">Holiday Work</th>';
             headerRow += '<th style="min-width:50px;">Leave</th>';
             headerRow += '<th style="min-width:50px;">Absent</th>';
-            headerRow += '<th style="min-width:65px;">Less 8:30</th>';
-            headerRow += '<th style="min-width:65px;">More 8:30</th>';
+            headerRow += '<th style="min-width:65px;">Less Shift Hr</th>';
+            headerRow += '<th style="min-width:65px;">More Shift Hr</th>';
             headerRow += '<th style="min-width:65px;">Late Count</th>';
             headerRow += '</tr>';
             thead.innerHTML = headerRow;
