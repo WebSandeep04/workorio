@@ -157,55 +157,6 @@
     color: white;
   }
 
-  .btn-add {
-    background: #434afa !important;
-    color: white;
-  }
-  
-  .btn-add:hover {
-    background: #047857;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-  }
-
-  .btn-remove {
-    background: #fee2e2;
-    color: #ef4444;
-    border: none;
-    padding: 0.6rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .btn-remove:hover {
-    background: #fecaca;
-    color: #dc2626;
-  }
-
-  /* Services */
-  .service-item {
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-    align-items: stretch;
-  }
-  
-  .service-item input {
-    flex: 1;
-  }
-
-  /* Alerts */
-  .alert-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    min-width: 320px;
-  }
-
   .save-container {
     padding: 1.5rem 2rem;
     background: #f8f9fa;
@@ -246,19 +197,7 @@
     <div class="modern-card">
         <div class="tabs-container">
             <button class="tab-btn active" data-tab="company">
-                <i class="bi bi-building"></i> Company Info
-            </button>
-            <button class="tab-btn" data-tab="services">
-                <i class="bi bi-list-ul"></i> Services
-            </button>
-            <button class="tab-btn" data-tab="office">
-                <i class="bi bi-geo-alt"></i> Office Detail
-            </button>
-            <button class="tab-btn" data-tab="contact">
-                <i class="bi bi-telephone"></i> Contact
-            </button>
-            <button class="tab-btn" data-tab="legal">
-                <i class="bi bi-file-earmark-text"></i> Legal & Financial
+                <i class="bi bi-image"></i> Company Logo
             </button>
             <button class="tab-btn" data-tab="pattern">
                 <i class="bi bi-palette"></i> Quotes Pattern
@@ -271,21 +210,9 @@
         <form id="quotationSetupForm">
             @csrf
             
-            <!-- Company Info Tab -->
+            <!-- Company Logo Tab -->
             <div class="tab-content active" id="tab-company">
                 <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label class="form-label-modern">Company Name</label>
-                            <input type="text" class="form-control-modern" id="company_name" name="company_name" placeholder="Enter company name">
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label class="form-label-modern">Company Description</label>
-                            <textarea class="form-control-modern" id="company_description" name="company_description" rows="4" placeholder="Brief description of the company"></textarea>
-                        </div>
-                    </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="form-label-modern">Company Logo</label>
@@ -303,123 +230,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern">Mission</label>
-                            <textarea class="form-control-modern" id="mission" name="mission" rows="3" placeholder="Company mission statement"></textarea>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern">Vision</label>
-                            <textarea class="form-control-modern" id="vision" name="vision" rows="3" placeholder="Company vision statement"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label-modern">Core Values</label>
-                    <input type="text" class="form-control-modern" id="core_values" name="core_values" placeholder="e.g., Innovation, Integrity, Transparency">
-                    <small class="text-muted mt-1 d-block">Separate values with commas</small>
-                </div>
-            </div>
-
-            <!-- Services Tab -->
-            <div class="tab-content" id="tab-services">
-                <h5 class="mb-3" style="color: #434AFA; font-weight: 600;">Manage Services</h5>
-                <p class="text-muted mb-4 small">List the services your company offers. These will be available when creating quotations.</p>
-                
-                <div id="servicesContainer"></div>
-                
-                <button type="button" class="btn-modern btn-add mt-2" onclick="addServiceField()">
-                    <i class="bi bi-plus-circle"></i> Add New Service
-                </button>
-            </div>
-
-            <!-- Office Detail Tab -->
-            <div class="tab-content" id="tab-office">
-                <div class="form-group">
-                    <label class="form-label-modern">Office Name / Branch</label>
-                    <input type="text" class="form-control-modern" id="office_name" name="office_name" placeholder="e.g., Head Office">
-                </div>
-                <div class="form-group">
-                    <label class="form-label-modern">Address</label>
-                    <textarea class="form-control-modern" id="office_address" name="office_address" rows="3" placeholder="Street address, building, etc."></textarea>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern">City</label>
-                            <input type="text" class="form-control-modern" id="office_city" name="office_city">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern">State</label>
-                            <input type="text" class="form-control-modern" id="office_state" name="office_state">
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern">Pincode</label>
-                            <input type="text" class="form-control-modern" id="office_pincode" name="office_pincode">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern">Country</label>
-                            <input type="text" class="form-control-modern" id="office_country" name="office_country" value="India">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Contact Tab -->
-            <div class="tab-content" id="tab-contact">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern"> <i class="bi bi-telephone me-1"></i> Phone Number</label>
-                            <input type="text" class="form-control-modern" id="phone" name="phone" placeholder="+91 9876543210">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern"> <i class="bi bi-envelope me-1"></i> Email Address</label>
-                            <input type="email" class="form-control-modern" id="email" name="email" placeholder="contact@company.com">
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label-modern"> <i class="bi bi-globe me-1"></i> Website URL</label>
-                    <input type="text" class="form-control-modern" id="website" name="website" placeholder="https://www.company.com">
-                </div>
-            </div>
-
-            <!-- Legal & Financial Tab -->
-            <div class="tab-content" id="tab-legal">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern">GSTIN</label>
-                            <input type="text" class="form-control-modern" id="gstin" name="gstin" placeholder="GST Number">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern">PAN</label>
-                            <input type="text" class="form-control-modern" id="pan" name="pan" placeholder="PAN Number">
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label-modern">Bank Details</label>
-                    <textarea class="form-control-modern" id="bank_details" name="bank_details" rows="5" placeholder="Bank Name: &#10;Account Number: &#10;IFSC Code: &#10;Branch: "></textarea>
-                    <small class="text-muted">Enter complete bank details for payment instructions on quotations.</small>
-                </div>
-
             </div>
 
             <!-- Quotes Pattern Tab -->
@@ -433,28 +243,6 @@
                                 <option value="uniqueac">Uniqueac Pattern</option>
                             </select>
                             <small class="text-muted mt-1 d-block">Choose the layout pattern for your quotation PDFs.</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern">Primary Branding Color</label>
-                            <div class="d-flex gap-2">
-                                <input type="color" class="form-control-modern p-1" id="primary_color" name="primary_color" value="#434AFA" style="width: 50px; height: 45px;">
-                                <input type="text" class="form-control-modern" id="primary_color_text" value="#434AFA" onkeyup="$('#primary_color').val(this.value)">
-                            </div>
-                            <small class="text-muted mt-1 d-block">Used for headers, banners, and primary accents.</small>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="form-label-modern">Secondary Branding Color</label>
-                            <div class="d-flex gap-2">
-                                <input type="color" class="form-control-modern p-1" id="secondary_color" name="secondary_color" value="#FF8C00" style="width: 50px; height: 45px;">
-                                <input type="text" class="form-control-modern" id="secondary_color_text" value="#FF8C00" onkeyup="$('#secondary_color').val(this.value)">
-                            </div>
-                            <small class="text-muted mt-1 d-block">Used for dividers, icons, and highlights.</small>
                         </div>
                     </div>
                 </div>
@@ -513,24 +301,6 @@ function loadSettings() {
             if (response.data) {
                 const data = response.data;
                 
-                // Fill form fields
-                $('#company_name').val(data.company_name || '');
-                $('#company_description').val(data.company_description || '');
-                $('#mission').val(data.mission || '');
-                $('#vision').val(data.vision || '');
-                $('#core_values').val(data.core_values || '');
-                $('#office_name').val(data.office_name || '');
-                $('#office_address').val(data.office_address || '');
-                $('#office_city').val(data.office_city || '');
-                $('#office_state').val(data.office_state || '');
-                $('#office_pincode').val(data.office_pincode || '');
-                $('#office_country').val(data.office_country || 'India');
-                $('#phone').val(data.phone || '');
-                $('#email').val(data.email || '');
-                $('#website').val(data.website || '');
-                $('#gstin').val(data.gstin || '');
-                $('#pan').val(data.pan || '');
-                $('#bank_details').val(data.bank_details || '');
                 $('#payment_terms').val(data.payment_terms || '');
                 
                 // Logo Preview
@@ -542,47 +312,13 @@ function loadSettings() {
                     $('#noLogoText').show();
                 }
                 
-                // New Pattern fields
+                // Set Pattern fields
                 $('#template_name').val(data.template_name || 'triserv');
-                $('#primary_color').val(data.primary_color || '#434AFA');
-                $('#primary_color_text').val(data.primary_color || '#434AFA');
-                $('#secondary_color').val(data.secondary_color || '#FF8C00');
-                $('#secondary_color_text').val(data.secondary_color || '#FF8C00');
-                
-                // Load services
-                if (data.services && Array.isArray(data.services)) {
-                    $('#servicesContainer').empty();
-                    // If empty array, show one empty field
-                    if (data.services.length === 0) {
-                        addServiceField();
-                    } else {
-                        data.services.forEach(function(service) {
-                            addServiceField(service);
-                        });
-                    }
-                } else {
-                    addServiceField();
-                }
-            } else {
-                addServiceField();
             }
         })
         .fail(function() {
-            addServiceField();
             showAlert('error', 'Failed to load settings.');
         });
-}
-
-function addServiceField(value = '') {
-    const serviceHtml = `
-        <div class="service-item">
-            <input type="text" class="form-control-modern" name="services[]" value="${value}" placeholder="Enter service name">
-            <button type="button" class="btn-remove" onclick="$(this).closest('.service-item').remove()" title="Remove Service">
-                <i class="bi bi-trash"></i>
-            </button>
-        </div>
-    `;
-    $('#servicesContainer').append(serviceHtml);
 }
 
 function previewLogo(input) {
@@ -602,16 +338,6 @@ function saveSettings() {
 
     const form = document.getElementById('quotationSetupForm');
     const formData = new FormData(form);
-    
-    // Add services manually if needed (actually FormData handles it if names are correct)
-    // But we need to filter empty services like before
-    formData.delete('services[]'); // Remove all
-    $('input[name="services[]"]').each(function() {
-        const val = $(this).val().trim();
-        if (val !== '') {
-            formData.append('services[]', val);
-        }
-    });
 
     $.ajax({
         url: "{{ route('quotation.setup.store') }}",

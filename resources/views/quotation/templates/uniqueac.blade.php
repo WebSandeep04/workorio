@@ -1,148 +1,149 @@
-@extends('quotation.templates.base')
-
-@section('styles')
-<style>
-    body {
-        background-color: white;
-        font-family: 'Helvetica', sans-serif;
-        padding: 20px;
-    }
-    .main-border {
-        border: 2px solid #000;
-        padding: 5px;
-    }
-    .header-table {
-        width: 100%;
-        margin-bottom: 2px;
-    }
-    .header-table td {
-        border: none;
-        padding: 10px;
-        vertical-align: middle;
-    }
-    .logo-section {
-        width: 50%;
-        text-align: left;
-    }
-    .logo-section img {
-        max-width: 200px;
-        height: auto;
-    }
-    .address-section {
-        width: 50%;
-        text-align: right;
-        font-size: 9px;
-        line-height: 1.2;
-    }
-    .address-block {
-        display: inline-block;
-        text-align: left;
-    }
-    .header-border {
-        border-bottom: 2px solid #000;
-        margin-bottom: 8px;
-    }
-    .title-bar {
-        background-color: #fff;
-        border: 2px solid #000;
-        text-align: center;
-        padding: 4px;
-        font-size: 16px;
-        font-weight: bold;
-        letter-spacing: 2px;
-        margin-bottom: 0;
-    }
-    .customer-details-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .customer-details-table td {
-        border: 1px solid #000;
-        padding: 5px;
-        font-size: 11px;
-        vertical-align: top;
-    }
-    .subject-bar {
-        background-color: {{ $settings->primary_color ?? '#6f42c1' }};
-        color: white;
-        text-align: center;
-        padding: 5px;
-        font-weight: bold;
-        font-size: 11px;
-        border: 1px solid #000;
-    }
-    .items-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 0;
-    }
-    .items-table th {
-        background-color: {{ $settings->primary_color ?? '#6f42c1' }};
-        color: white;
-        border: 1px solid #000;
-        padding: 5px;
-        font-size: 11px;
-        text-align: center;
-    }
-    .items-table td {
-        border: 1px solid #000;
-        padding: 5px;
-        font-size: 11px;
-        text-align: center;
-    }
-    .text-left { text-align: left !important; }
-    .sub-section-row {
-        background-color: #ffff00;
-        font-weight: bold;
-        text-align: center;
-        color: red;
-    }
-    .total-label-cell {
-        background-color: {{ $settings->primary_color ?? '#6f42c1' }};
-        color: white;
-        font-weight: bold;
-        text-align: left;
-    }
-    .bank-details {
-        text-align: center;
-        font-size: 11px;
-        font-weight: bold;
-        color: #ce5a16;
-        padding: 10px 0;
-        border-top: 1px solid #000;
-        border-bottom: 1px solid #000;
-    }
-    .payment-terms {
-        padding: 10px;
-        font-size: 11px;
-    }
-    .payment-terms h4 {
-        color: #6f42c1;
-        text-decoration: underline;
-        margin-bottom: 5px;
-    }
-    .payment-terms ol {
-        margin-top: 0;
-        padding-left: 20px;
-    }
-    .payment-terms li {
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-    .footer-section {
-        margin-top: 20px;
-        text-align: right;
-        font-size: 11px;
-    }
-    .footer-brand {
-        margin-top: 40px;
-        text-align: center;
-        font-weight: bold;
-    }
-</style>
-@endsection
-
-@section('content')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Unique Air Conditioning | Quotation</title>
+    <style>
+        body {
+            background-color: white;
+            font-family: 'Helvetica', sans-serif;
+            padding: 20px;
+        }
+        .main-border {
+            border: 2px solid #000;
+            padding: 5px;
+        }
+        .header-table {
+            width: 100%;
+            margin-bottom: 2px;
+        }
+        .header-table td {
+            border: none;
+            padding: 10px;
+            vertical-align: middle;
+        }
+        .logo-section {
+            width: 50%;
+            text-align: left;
+        }
+        .logo-section img {
+            max-width: 200px;
+            height: auto;
+        }
+        .address-section {
+            width: 50%;
+            text-align: right;
+            font-size: 9px;
+            line-height: 1.2;
+        }
+        .address-block {
+            display: inline-block;
+            text-align: left;
+        }
+        .header-border {
+            border-bottom: 2px solid #000;
+            margin-bottom: 8px;
+        }
+        .title-bar {
+            background-color: #fff;
+            border: 2px solid #000;
+            text-align: center;
+            padding: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 0;
+        }
+        .customer-details-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .customer-details-table td {
+            border: 1px solid #000;
+            padding: 5px;
+            font-size: 11px;
+            vertical-align: top;
+        }
+        .subject-bar {
+            background-color: #6f42c1;
+            color: white;
+            text-align: center;
+            padding: 5px;
+            font-weight: bold;
+            font-size: 11px;
+            border: 1px solid #000;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+        .items-table th {
+            background-color: #6f42c1;
+            color: white;
+            border: 1px solid #000;
+            padding: 5px;
+            font-size: 11px;
+            text-align: center;
+        }
+        .items-table td {
+            border: 1px solid #000;
+            padding: 5px;
+            font-size: 11px;
+            text-align: center;
+        }
+        .text-left { text-align: left !important; }
+        .sub-section-row {
+            background-color: #ffff00;
+            font-weight: bold;
+            text-align: center;
+            color: red;
+        }
+        .total-label-cell {
+            background-color: #6f42c1;
+            color: white;
+            font-weight: bold;
+            text-align: left;
+        }
+        .bank-details {
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #ce5a16;
+            padding: 10px 0;
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+        }
+        .payment-terms {
+            padding: 10px;
+            font-size: 11px;
+        }
+        .payment-terms h4 {
+            color: #6f42c1;
+            text-decoration: underline;
+            margin-bottom: 5px;
+        }
+        .payment-terms ol {
+            margin-top: 0;
+            padding-left: 20px;
+        }
+        .payment-terms li {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .footer-section {
+            margin-top: 20px;
+            text-align: right;
+            font-size: 11px;
+        }
+        .footer-brand {
+            margin-top: 40px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
 <div class="main-border">
     {{-- Header --}}
     <table class="header-table">
@@ -154,9 +155,9 @@
                     @elseif($settings->logo_path && file_exists(public_path('storage/'.$settings->logo_path)))
                         <img src="{{ public_path('storage/'.$settings->logo_path) }}" alt="Logo">
                     @else
-                        {{-- Dummy Logo to match image --}}
+                        {{-- Hardcoded Original Dummy Logo for Uniqueac --}}
                         <div style="display: inline-block;">
-                            <div style="color: {{ $settings->primary_color ?? '#6f42c1' }}; font-size: 32px; font-weight: bold; line-height: 1; margin: 0;">
+                            <div style="color: #6f42c1; font-size: 32px; font-weight: bold; line-height: 1; margin: 0;">
                                 airoshelt<span style="font-size: 8px; vertical-align: super;">&reg;</span>
                             </div>
                             <div style="border-top: 1px solid #000; margin-top: 2px; padding-top: 1px;">
@@ -168,11 +169,11 @@
             </td>
             <td class="address-section">
                 <div class="address-block">
-                    <strong style="color: {{ $settings->primary_color ?? '#6f42c1' }};">{{ strtoupper($settings->office_name ?? 'CORPORATE OFFICE') }} :</strong> 
-                    {{ $settings->office_address ?? 'OFFICE NO 102 1ST FLOOR, H & M ROYAL WING 4, KONDHWA KATRAJ ROAD, SURVEY NUMBER :18/19 OPP TALAB FACTORY' }}<br>
-                    {{ strtoupper($settings->office_city ?? 'PUNE') }}, {{ strtoupper($settings->office_state ?? 'MAHARASHTRA') }} - {{ $settings->office_pincode ?? '411048' }}<br>
-                    <strong>Email:</strong> {{ $settings->email ?? 'sales@airoshelt.com / uniqueacprojects@gmail.com' }}<br>
-                    <strong>Mobile:</strong> {{ $settings->phone ?? '8448441066' }} &nbsp;&nbsp;&nbsp;&nbsp; <strong>Tel:</strong> 020-46740006
+                    <strong style="color: #6f42c1;">CORPORATE OFFICE :</strong> 
+                    OFFICE NO 102 1ST FLOOR, H & M ROYAL WING 4, KONDHWA KATRAJ ROAD, SURVEY NUMBER :18/19 OPP TALAB FACTORY<br>
+                    PUNE, MAHARASHTRA - 411048<br>
+                    <strong>Email:</strong> sales@airoshelt.com / uniqueacprojects@gmail.com<br>
+                    <strong>Mobile:</strong> 8448441066 &nbsp;&nbsp;&nbsp;&nbsp; <strong>Tel:</strong> 020-46740006
                 </div>
             </td>
         </tr>
@@ -316,17 +317,15 @@
                 <td class="total-label-cell" style="font-size: 14px; background-color: #000;">Total Amount</td>
                 <td style="font-size: 14px; font-weight: bold;">{{ number_format($final_total, 2) }}</td>
             </tr>
-            
-            {{-- Section B (To be made dynamic later) --}}
-            {{-- <tr class="sub-section-row"><td colspan="6">(B) LOW SIDE</td></tr> --}}
         </tbody>
     </table>
 
-    {{-- Bank Details --}}
+    {{-- Hardcoded Bank Details --}}
     <div class="bank-details">
-        {!! $settings->bank_details ?? 'Bank Details: &nbsp;&nbsp; Bank Name: Bank Of India &nbsp;&nbsp; Account Number: 051630150000037 &nbsp;&nbsp; IFSC Code: BKID0000516' !!}
+        Bank Details: &nbsp;&nbsp; Bank Name: Bank Of India &nbsp;&nbsp; Account Number: 051630150000037 &nbsp;&nbsp; IFSC Code: BKID0000516
     </div>
 
+    {{-- Keep payment terms dynamic as requested --}}
     @if(!empty($quote->data['show_payment_terms']))
     <div class="payment-terms">
         <h4>PAYMENT TERMS :</h4>
@@ -353,4 +352,5 @@
         Website - <a href="http://www.uniqueacprojects.com" style="color: #000; text-decoration: none;">www.uniqueacprojects.com</a>
     </div>
 </div>
-@endsection
+</body>
+</html>

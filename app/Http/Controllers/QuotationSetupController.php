@@ -54,28 +54,8 @@ class QuotationSetupController extends Controller
         }
 
         $data = $request->validate([
-            'company_name' => 'nullable|string|max:255',
-            'company_description' => 'nullable|string',
-            'mission' => 'nullable|string',
-            'vision' => 'nullable|string',
-            'core_values' => 'nullable|string',
-            'services' => 'nullable|array',
-            'office_name' => 'nullable|string|max:255',
-            'office_address' => 'nullable|string',
-            'office_city' => 'nullable|string|max:255',
-            'office_state' => 'nullable|string|max:255',
-            'office_pincode' => 'nullable|string|max:20',
-            'office_country' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:50',
-            'email' => 'nullable|email|max:255',
-            'website' => 'nullable|string|max:255',
-            'gstin' => 'nullable|string|max:50',
-            'pan' => 'nullable|string|max:50',
-            'bank_details' => 'nullable|string',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'template_name' => 'nullable|string|max:50',
-            'primary_color' => 'nullable|string|max:20',
-            'secondary_color' => 'nullable|string|max:20',
             'payment_terms' => 'nullable|string',
         ]);
 
@@ -90,11 +70,6 @@ class QuotationSetupController extends Controller
             $data['logo_path'] = $path;
         }
         unset($data['logo']);
-
-        // Convert services array to JSON
-        if (isset($data['services']) && is_array($data['services'])) {
-            $data['services'] = json_encode($data['services']);
-        }
 
         $existing = DB::table('quotation_settings')->first();
 
