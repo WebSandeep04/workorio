@@ -61,11 +61,13 @@
                            $roleId == 3 &&
                            $isMasterConnection;
         @endphp
+        @if(!$isSuperAdmin)
         <span class="menu-title">Main Menu</span>
+        @endif
 
         <div class="side-items">
             <div class="menu-section">
-                @if($isLoggedIn)
+                @if($isLoggedIn && !$isSuperAdmin)
                     <a href="{{ url('/dashboard') }}" class="sidebar-link {{ request()->is('dashboard') ? 'active' : '' }}" title="Dashboard">
                         <span class="link-label"><img src="{{ asset('img/icons/home.png') }}" alt=""><span>Dashboard</span></span>
                         <i class="bi bi-arrow-right-short"></i>
@@ -76,18 +78,9 @@
             @if($isSuperAdmin)
                 <div class="menu-section">
                     <span class="menu-heading">Super Admin</span>
-                    <a class="sidebar-link sidebar-dropdown" data-bs-toggle="collapse" href="#tenantMenu" role="button" aria-expanded="false" aria-controls="tenantMenu" title="Tenant">
-                        <span class="link-label"><i class="bi bi-building"></i><span>Tenant</span></span>
-                        <i class="bi bi-chevron-down"></i>
+                    <a href="{{ route('tenant') }}" class="sidebar-link {{ request()->routeIs('tenant') ? 'active' : '' }}" title="Tenant Management">
+                        <span class="link-label"><i class="bi bi-people"></i><span>Tenant Management</span></span>
                     </a>
-                    <div class="collapse sidebar-sub" id="tenantMenu">
-                        <a href="{{ route('superadmin.dashboard') }}" class="sidebar-sublink" title="Dashboard">
-                            <i class="bi bi-graph-up"></i><span>Dashboard</span>
-                        </a>
-                        <a href="{{ route('tenant') }}" class="sidebar-sublink" title="Tenant Management">
-                            <i class="bi bi-people"></i><span>Tenant Management</span>
-                        </a>
-                    </div>
                 </div>
             @endif
 

@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Tenant Management'); ?>
+<?php $__env->startSection('page_title', 'Tenant Management'); ?>
 
-@section('title', 'Tenant Management')
-@section('page_title', 'Tenant Management')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2 py-2">
     <div class="row g-2">
         <!-- Add Tenant Form (Slim) -->
@@ -14,7 +12,7 @@
                 </div>
                 <div class="card-body p-2 pt-0">
                     <form id="tenantForm" class="slim-form">
-                        @csrf
+                        <?php echo csrf_field(); ?>
                         <div class="mb-2">
                             <label class="form-label mb-1 fw-bold text-dark" for="tenant_name" style="font-size: 0.78rem;">Tenant Name</label>
                             <input type="text" class="form-control form-control-sm border rounded-1" id="tenant_name" name="tenant_name" placeholder="Acme HQ" required style="font-size: 0.82rem;">
@@ -30,7 +28,7 @@
                                 </label>
                             </div>
                             <div class="slim-scrollable-area pe-1" style="max-height: 220px;">
-                                @php
+                                <?php
                                     $menusWithMeta = [
                                         'Sales' => ['is_sales_enabled', 'All Data, My Leads, Team Leads, Assigned Leads, Follow Up, Quotations, Payments, Lead Form'],
                                         'Worklog' => ['is_worklog_enabled', 'Timesheet, Timesheet History, Missing Entries, Approvals'],
@@ -52,20 +50,20 @@
                                         'Reports' => ['is_reports_enabled', 'Attendance Report, Timesheet Report'],
                                         'Approvals' => ['is_approval_enabled', 'Pending Approvals for Timesheets, Attendance, Task, Leave, Petty Cash']
                                     ];
-                                @endphp
+                                ?>
 
                                 <div class="row g-1 menu-checkboxes">
-                                    @foreach($menusWithMeta as $label => $meta)
+                                    <?php $__currentLoopData = $menusWithMeta; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $meta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="col-12">
                                         <div class="d-flex align-items-start gap-2 mb-2 p-1 ms-1">
-                                            <input type="checkbox" class="form-check-input flex-shrink-0" style="margin-top: 2px;" id="{{ $meta[0] }}" name="{{ $meta[0] }}" checked>
+                                            <input type="checkbox" class="form-check-input flex-shrink-0" style="margin-top: 2px;" id="<?php echo e($meta[0]); ?>" name="<?php echo e($meta[0]); ?>" checked>
                                             <div class="lh-sm">
-                                                <label class="form-check-label fw-bold text-dark small" for="{{ $meta[0] }}">{{ $label }}</label>
-                                                <div class="text-muted mt-1" style="font-size: 0.72rem; line-height: 1.25;">Unlocks: {{ $meta[1] }}</div>
+                                                <label class="form-check-label fw-bold text-dark small" for="<?php echo e($meta[0]); ?>"><?php echo e($label); ?></label>
+                                                <div class="text-muted mt-1" style="font-size: 0.72rem; line-height: 1.25;">Unlocks: <?php echo e($meta[1]); ?></div>
                                             </div>
                                         </div>
                                     </div>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
                             </div>
                         </div>
@@ -79,7 +77,7 @@
                                 </label>
                             </div>
                             <div class="slim-scrollable-area pe-1" style="max-height: 220px;">
-                                @php
+                                <?php
                                     $setupWithMeta = [
                                         'Core Setup' => ['is_core_setup_enabled', 'State, City, Countries'],
                                         'User Setup' => ['is_user_setup_enabled', 'User Management, Role Master'],
@@ -102,20 +100,20 @@
                                         'Contact Management Setup' => ['is_contact_management_setup_enabled', 'Contact Management Options'],
                                         'Email Marketing Setup' => ['is_email_marketing_setup_enabled', 'Email Marketing Campaign Settings']
                                     ];
-                                @endphp
+                                ?>
 
                                 <div class="row g-1 checkbox-grid">
-                                    @foreach($setupWithMeta as $label => $meta)
+                                    <?php $__currentLoopData = $setupWithMeta; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $meta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="col-12">
                                         <div class="d-flex align-items-start gap-2 mb-2 p-1 ms-1">
-                                            <input type="checkbox" class="form-check-input flex-shrink-0" style="margin-top: 2px;" id="{{ $meta[0] }}" name="{{ $meta[0] }}" checked>
+                                            <input type="checkbox" class="form-check-input flex-shrink-0" style="margin-top: 2px;" id="<?php echo e($meta[0]); ?>" name="<?php echo e($meta[0]); ?>" checked>
                                             <div class="lh-sm">
-                                                <label class="form-check-label fw-bold text-dark small" for="{{ $meta[0] }}">{{ $label }}</label>
-                                                <div class="text-muted mt-1" style="font-size: 0.72rem; line-height: 1.25;">Unlocks: {{ $meta[1] }}</div>
+                                                <label class="form-check-label fw-bold text-dark small" for="<?php echo e($meta[0]); ?>"><?php echo e($label); ?></label>
+                                                <div class="text-muted mt-1" style="font-size: 0.72rem; line-height: 1.25;">Unlocks: <?php echo e($meta[1]); ?></div>
                                             </div>
                                         </div>
                                     </div>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
                             </div>
                         </div>
@@ -167,7 +165,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="editTenantForm">
-                @csrf
+                <?php echo csrf_field(); ?>
                 <div class="modal-body p-2 bg-white">
                     <input type="hidden" id="edit_tenant_id" name="tenant_id">
                     <div class="mb-2">
@@ -187,17 +185,17 @@
                             </div>
                             <div class="slim-scrollable-area pe-1" style="max-height: 220px;">
                                 <div class="row g-1 edit-menu-checkboxes">
-                                    @foreach($menusWithMeta as $label => $meta)
+                                    <?php $__currentLoopData = $menusWithMeta; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $meta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="col-12">
                                         <div class="d-flex align-items-start gap-2 mb-2 p-1 ms-1">
-                                            <input type="checkbox" class="form-check-input flex-shrink-0" style="margin-top: 2px;" id="edit_{{ $meta[0] }}" name="{{ $meta[0] }}">
+                                            <input type="checkbox" class="form-check-input flex-shrink-0" style="margin-top: 2px;" id="edit_<?php echo e($meta[0]); ?>" name="<?php echo e($meta[0]); ?>">
                                             <div class="lh-sm">
-                                                <label class="form-check-label fw-bold text-dark small" for="edit_{{ $meta[0] }}">{{ $label }}</label>
-                                                <div class="text-muted mt-1" style="font-size: 0.72rem; line-height: 1.25;">Unlocks: {{ $meta[1] }}</div>
+                                                <label class="form-check-label fw-bold text-dark small" for="edit_<?php echo e($meta[0]); ?>"><?php echo e($label); ?></label>
+                                                <div class="text-muted mt-1" style="font-size: 0.72rem; line-height: 1.25;">Unlocks: <?php echo e($meta[1]); ?></div>
                                             </div>
                                         </div>
                                     </div>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
                             </div>
                         </div>
@@ -212,17 +210,17 @@
                             </div>
                             <div class="slim-scrollable-area pe-1" style="max-height: 220px;">
                                 <div class="row g-1 edit-setup-checkboxes">
-                                    @foreach($setupWithMeta as $label => $meta)
+                                    <?php $__currentLoopData = $setupWithMeta; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $label => $meta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="col-12">
                                         <div class="d-flex align-items-start gap-2 mb-2 p-1 ms-1">
-                                            <input type="checkbox" class="form-check-input flex-shrink-0" style="margin-top: 2px;" id="edit_{{ $meta[0] }}" name="{{ $meta[0] }}">
+                                            <input type="checkbox" class="form-check-input flex-shrink-0" style="margin-top: 2px;" id="edit_<?php echo e($meta[0]); ?>" name="<?php echo e($meta[0]); ?>">
                                             <div class="lh-sm">
-                                                <label class="form-check-label fw-bold text-dark small" for="edit_{{ $meta[0] }}">{{ $label }}</label>
-                                                <div class="text-muted mt-1" style="font-size: 0.72rem; line-height: 1.25;">Unlocks: {{ $meta[1] }}</div>
+                                                <label class="form-check-label fw-bold text-dark small" for="edit_<?php echo e($meta[0]); ?>"><?php echo e($label); ?></label>
+                                                <div class="text-muted mt-1" style="font-size: 0.72rem; line-height: 1.25;">Unlocks: <?php echo e($meta[1]); ?></div>
                                             </div>
                                         </div>
                                     </div>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
                             </div>
                         </div>
@@ -236,9 +234,9 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     .slim-scrollable-area {
         overflow-y: auto;
@@ -271,9 +269,9 @@
         to { transform: rotate(360deg); }
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
     loadTenants();
@@ -290,7 +288,7 @@ $(document).ready(function() {
 
     function loadTenants() {
         $.ajax({
-            url: '{{ route("tenant.fetch") }}',
+            url: '<?php echo e(route("tenant.fetch")); ?>',
             type: 'GET',
             success: function(response) {
                 if (response.success) {
@@ -346,7 +344,7 @@ $(document).ready(function() {
         });
         
         $.ajax({
-            url: '{{ route("tenant.store") }}',
+            url: '<?php echo e(route("tenant.store")); ?>',
             type: 'POST',
             data: formData,
             processData: false,
@@ -543,4 +541,6 @@ function editTenant(index) {
     $('#editTenantModal').modal('show');
 }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/tenant.blade.php ENDPATH**/ ?>

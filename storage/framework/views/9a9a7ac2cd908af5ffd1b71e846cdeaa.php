@@ -85,30 +85,19 @@
     <div class="mobile-sidebar-content">
         <?php if($isLoggedIn): ?>
         <!-- Dashboard Link -->
+        <?php if(!$isSuperAdmin): ?>
         <a href="<?php echo e(url('/dashboard')); ?>" class="mobile-menu-item" title="Dashboard">
             <i class="bi bi-speedometer2 me-3"></i>
             <span>Dashboard</span>
         </a>
+        <?php endif; ?>
 
         <!-- TENANT SECTION - Only Super Admin -->
         <?php if($isSuperAdmin): ?>
-        <div class="mobile-menu-section">
-            <a class="mobile-menu-toggle" data-bs-toggle="collapse" href="#mobileTenantMenu" role="button" aria-expanded="false" aria-controls="mobileTenantMenu" title="Tenant">
-                <i class="bi bi-building me-3"></i>
-                <span>Tenant</span>
-                <i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <div class="collapse" id="mobileTenantMenu">
-                <a href="<?php echo e(route('superadmin.dashboard')); ?>" class="mobile-menu-subitem">
-                    <i class="bi bi-speedometer2 me-3"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="<?php echo e(route('tenant')); ?>" class="mobile-menu-subitem">
-                    <i class="bi bi-building me-3"></i>
-                    <span>Tenant Management</span>
-                </a>
-            </div>
-        </div>
+        <a href="<?php echo e(route('tenant')); ?>" class="mobile-menu-item" title="Tenant Management">
+            <i class="bi bi-building me-3"></i>
+            <span>Tenant Management</span>
+        </a>
         <?php endif; ?>
 
         <!-- Dynamic sections based on tenant features and role -->
