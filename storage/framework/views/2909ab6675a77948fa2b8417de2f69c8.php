@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', $project->project_name)
-@section('page_title', $project->project_name . ' (' . $project->customer->name . ')')
 
-@push('styles')
+<?php $__env->startSection('title', $project->project_name); ?>
+<?php $__env->startSection('page_title', $project->project_name . ' (' . $project->customer->name . ')'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -279,9 +279,9 @@
         isolation: isolate;
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
     
 
@@ -342,54 +342,54 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
                 <label class="form-label-modern text-muted mb-1"><i class="bi bi-building me-1"></i> Customer</label>
-                <div class="fw-bold text-dark text-truncate" style="max-width: 200px;" title="{{ $project->customer->company_name ?? $project->customer->name }}">{{ $project->customer->company_name ?? $project->customer->name }}</div>
+                <div class="fw-bold text-dark text-truncate" style="max-width: 200px;" title="<?php echo e($project->customer->company_name ?? $project->customer->name); ?>"><?php echo e($project->customer->company_name ?? $project->customer->name); ?></div>
             </div>
             <div>
                 <label class="form-label-modern text-muted mb-1"><i class="bi bi-gear me-1"></i> Service</label>
-                <div class="fw-bold text-dark text-truncate" style="max-width: 200px;" title="{{ $project->service->name }}">{{ $project->service->name }}</div>
+                <div class="fw-bold text-dark text-truncate" style="max-width: 200px;" title="<?php echo e($project->service->name); ?>"><?php echo e($project->service->name); ?></div>
             </div>
             <div>
                 <label class="form-label-modern text-muted mb-1"><i class="bi bi-clock me-1"></i> Status</label>
                 <div>
-                    @if($project->status == 'Ongoing')
+                    <?php if($project->status == 'Ongoing'): ?>
                         <span class="badge bg-primary">Ongoing</span>
-                    @elseif($project->status == 'Completed')
+                    <?php elseif($project->status == 'Completed'): ?>
                         <span class="badge bg-success">Completed</span>
-                    @elseif($project->status == 'Closed')
+                    <?php elseif($project->status == 'Closed'): ?>
                         <span class="badge bg-danger">Closed</span>
-                    @else
-                        <span class="badge bg-warning text-dark">{{ $project->status }}</span>
-                    @endif
+                    <?php else: ?>
+                        <span class="badge bg-warning text-dark"><?php echo e($project->status); ?></span>
+                    <?php endif; ?>
                 </div>
             </div>
             <div>
                 <label class="form-label-modern text-muted mb-1"><i class="bi bi-calendar-event me-1"></i> Start Date</label>
-                <div class="fw-bold text-dark">{{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : 'N/A' }}</div>
+                <div class="fw-bold text-dark"><?php echo e($project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('d M Y') : 'N/A'); ?></div>
             </div>
             <div>
                 <label class="form-label-modern text-muted mb-1"><i class="bi bi-calendar-check me-1"></i> End Date</label>
-                <div class="fw-bold text-dark">{{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d M Y') : 'N/A' }}</div>
+                <div class="fw-bold text-dark"><?php echo e($project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('d M Y') : 'N/A'); ?></div>
             </div>
             <div style="min-width: 250px;">
                 <label class="form-label-modern text-muted mb-1"><i class="bi bi-pie-chart me-1"></i> Progress</label>
                 <div class="d-flex align-items-center" id="progress-wrapper">
                      <div class="progress flex-grow-1" style="height: 6px;">
-                        <div id="details-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: {{ $project->completed_percentage ?? 0 }}%;" aria-valuenow="{{ $project->completed_percentage ?? 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div id="details-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: <?php echo e($project->completed_percentage ?? 0); ?>%;" aria-valuenow="<?php echo e($project->completed_percentage ?? 0); ?>" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
-                    <span class="ms-3 small fw-bold" id="details-progress-text">{{ $project->completed_percentage ?? 0 }}%</span>
+                    <span class="ms-3 small fw-bold" id="details-progress-text"><?php echo e($project->completed_percentage ?? 0); ?>%</span>
                      <i class="bi bi-pencil-square ms-2 text-primary cursor-pointer" data-bs-toggle="modal" data-bs-target="#updateProjectProgressModal" title="Update Progress" style="cursor: pointer;"></i>
                 </div>
             </div>
             <div>
                 <label class="form-label-modern text-muted mb-1"><i class="bi bi-file-earmark-text me-1"></i> SOW</label>
                 <div>
-                    @if($project->sow_path)
-                        <a href="{{ asset('storage/' . $project->sow_path) }}" target="_blank" class="btn btn-sm btn-outline-primary py-0" style="font-size: 0.75rem;">
+                    <?php if($project->sow_path): ?>
+                        <a href="<?php echo e(asset('storage/' . $project->sow_path)); ?>" target="_blank" class="btn btn-sm btn-outline-primary py-0" style="font-size: 0.75rem;">
                             <i class="bi bi-download me-1"></i> View SOW
                         </a>
-                    @else
+                    <?php else: ?>
                         <span class="text-muted small">No SOW Document</span>
-                    @endif
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -406,23 +406,23 @@
                     </div>
                 </div>
                 <div id="latest-remark-container">
-                    @if($project->latestRemark)
+                    <?php if($project->latestRemark): ?>
                         <div class="remark-item">
                             <div class="d-flex justify-content-between x-small text-muted mb-0" style="font-size: 0.7rem;">
-                                <span class="fw-bold text-dark"><i class="bi bi-person me-1"></i> {{ $project->latestRemark->user ? $project->latestRemark->user->name : 'System' }}</span>
-                                <span>{{ $project->latestRemark->created_at->format('d M Y, h:i A') }}</span>
+                                <span class="fw-bold text-dark"><i class="bi bi-person me-1"></i> <?php echo e($project->latestRemark->user ? $project->latestRemark->user->name : 'System'); ?></span>
+                                <span><?php echo e($project->latestRemark->created_at->format('d M Y, h:i A')); ?></span>
                             </div>
-                            <div class="small text-secondary fw-bold" style="font-size: 0.85rem; line-height: 1.3;">{{ $project->latestRemark->remark }}</div>
+                            <div class="small text-secondary fw-bold" style="font-size: 0.85rem; line-height: 1.3;"><?php echo e($project->latestRemark->remark); ?></div>
                         </div>
-                    @else
+                    <?php else: ?>
                         <div id="no-remarks-msg" class="small text-muted italic">No remarks recorded yet.</div>
-                    @endif
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
 
-    @php
+    <?php
         $userWorkTotalsTotal = [];
         foreach($worklogs as $log) {
             if (!isset($userWorkTotalsTotal[$log->user_id])) {
@@ -430,12 +430,12 @@
             }
             $userWorkTotalsTotal[$log->user_id] += ($log->hours * 60) + $log->minutes;
         }
-    @endphp
+    ?>
 
     <!-- Project Assigned Users Summary -->
     <div class="summary-cards mb-3 mt-1">
-        @foreach($project->assignedUsers as $index => $u)
-            @php
+        <?php $__currentLoopData = $project->assignedUsers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $u): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php
                 $actualMin = $userWorkTotalsTotal[$u->id] ?? 0;
                 $hrsPart = floor($actualMin / 60);
                 $minPart = $actualMin % 60;
@@ -448,22 +448,22 @@
                 $colors = ['sky', 'emerald', 'sunrise', 'rose', 'amber'];
                 $color = $colors[$index % count($colors)];
                 $borderColor = $actualDisplay > $estimatedHours ? '#ef4444' : '#10b981';
-            @endphp
-            <div class="summary-card resource-card" style="border: 2px solid {{ $borderColor }}; cursor: pointer;" data-user-id="{{ $u->id }}">
-                <div class="summary-card-icon icon-{{ $color }}">
+            ?>
+            <div class="summary-card resource-card" style="border: 2px solid <?php echo e($borderColor); ?>; cursor: pointer;" data-user-id="<?php echo e($u->id); ?>">
+                <div class="summary-card-icon icon-<?php echo e($color); ?>">
                     <i class="bi bi-person-badge text-white"></i>
                 </div>
                 <div class="summary-card-content">
-                    <div class="summary-card-label">{{ $u->name }}</div>
+                    <div class="summary-card-label"><?php echo e($u->name); ?></div>
                     <div class="summary-card-value">
-                        <span class="text-primary">{{ number_format(round($actualDisplay), 0) }}</span> / <span class="text-dark">{{ number_format(round($estimatedHours), 0) }}</span> <small style="font-size:0.65rem; font-weight:normal;">HRS</small>
+                        <span class="text-primary"><?php echo e(number_format(round($actualDisplay), 0)); ?></span> / <span class="text-dark"><?php echo e(number_format(round($estimatedHours), 0)); ?></span> <small style="font-size:0.65rem; font-weight:normal;">HRS</small>
                     </div>
                     <div class="text-muted" style="font-size: 0.65rem; margin-top: -2px;">
-                        <span>{{ number_format(round($actualDisplay / 8), 0) }}</span> / <span>{{ number_format(round($estimatedHours / 8), 0) }}</span> <small style="font-weight:normal;">DAYS</small>
+                        <span><?php echo e(number_format(round($actualDisplay / 8), 0)); ?></span> / <span><?php echo e(number_format(round($estimatedHours / 8), 0)); ?></span> <small style="font-weight:normal;">DAYS</small>
                     </div>
                 </div>
             </div>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 
     <!-- Search & Add -->
@@ -519,9 +519,9 @@
                 </label>
                 <select id="filter_worklog_module" class="form-control-modern">
                     <option value="">All Modules</option>
-                    @foreach($modules as $module)
-                        <option value="{{ $module->id }}">{{ $module->name }}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $modules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $module): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($module->id); ?>"><?php echo e($module->name); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
             </div>
             <div class="mb-2">
@@ -579,7 +579,7 @@
         <form id="updateProjectProgressForm">
              <div class="mb-3">
                 <label for="details_new_percentage" class="form-label">Completed (%)</label>
-                <input type="number" class="form-control" id="details_new_percentage" min="0" max="100" required value="{{ $project->completed_percentage ?? 0 }}">
+                <input type="number" class="form-control" id="details_new_percentage" min="0" max="100" required value="<?php echo e($project->completed_percentage ?? 0); ?>">
              </div>
              <button type="submit" class="btn btn-primary w-100" style="background-color:#434afa;">Update</button>
         </form>
@@ -619,17 +619,17 @@
       </div>
       <div class="modal-body">
         <div id="modal-remarks-history-container" style="max-height: 400px; overflow-y: auto;">
-            @forelse($project->remarks as $remark)
+            <?php $__empty_1 = true; $__currentLoopData = $project->remarks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $remark): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <div class="remark-item mb-3 pb-2 border-bottom">
                     <div class="d-flex justify-content-between small text-muted mb-1">
-                        <span class="fw-bold text-dark"><i class="bi bi-person me-1"></i> {{ $remark->user ? $remark->user->name : 'System' }}</span>
-                        <span>{{ $remark->created_at->format('d M Y, h:i A') }}</span>
+                        <span class="fw-bold text-dark"><i class="bi bi-person me-1"></i> <?php echo e($remark->user ? $remark->user->name : 'System'); ?></span>
+                        <span><?php echo e($remark->created_at->format('d M Y, h:i A')); ?></span>
                     </div>
-                    <div class="text-secondary" style="line-height: 1.4;">{{ $remark->remark }}</div>
+                    <div class="text-secondary" style="line-height: 1.4;"><?php echo e($remark->remark); ?></div>
                 </div>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <div class="text-center py-4 text-muted italic">No remarks recorded yet.</div>
-            @endforelse
+            <?php endif; ?>
         </div>
       </div>
        <div class="modal-footer">
@@ -664,10 +664,10 @@
             <div class="modal-body p-0">
                 <form id="createTaskForm" class="h-100 d-flex flex-column">
                     <div class="p-3 form-compact flex-grow-1 overflow-auto">
-                        @csrf
+                        <?php echo csrf_field(); ?>
                         <!-- Hidden fields -->
-                        <input type="hidden" name="customer_id" value="{{ $project->customer_id }}">
-                        <input type="hidden" name="customer_project_id" value="{{ $project->id }}">
+                        <input type="hidden" name="customer_id" value="<?php echo e($project->customer_id); ?>">
+                        <input type="hidden" name="customer_project_id" value="<?php echo e($project->id); ?>">
 
                         <!-- Recurring (Top, colorful) -->
                         <div class="form-accent mb-2" id="recurrenceSection">
@@ -739,13 +739,13 @@
                                 <div class="mb-3">
                                     <label class="form-label" id="label_customer">Client</label>
                                     <select class="form-select form-select-sm" disabled style="background:#e9ecef; opacity:1;">
-                                        <option selected>{{ $project->customer ? $project->customer->name : 'N/A' }}</option>
+                                        <option selected><?php echo e($project->customer ? $project->customer->name : 'N/A'); ?></option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Project</label>
                                     <select class="form-select form-select-sm" disabled style="background:#e9ecef; opacity:1;">
-                                        <option selected>{{ $project->project_name }}</option>
+                                        <option selected><?php echo e($project->project_name); ?></option>
                                     </select>
                                 </div>
                             </div>
@@ -880,7 +880,7 @@
             <div class="modal-body p-0">
                 <form id="editTaskForm" class="h-100 d-flex flex-column">
                     <div class="p-3 form-compact flex-grow-1 overflow-auto">
-                        @csrf
+                        <?php echo csrf_field(); ?>
                         <input type="hidden" id="edit_task_id" name="task_id">
                         
                         <!-- Recurring (Edit) -->
@@ -934,13 +934,13 @@
                                 <div class="mb-3">
                                     <label class="form-label" id="label_customer">Client</label>
                                     <select class="form-select form-select-sm" disabled style="background:#e9ecef; opacity:1;">
-                                        <option selected>{{ $project->customer ? $project->customer->name : 'N/A' }}</option>
+                                        <option selected><?php echo e($project->customer ? $project->customer->name : 'N/A'); ?></option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Project</label>
                                     <select class="form-select form-select-sm" disabled style="background:#e9ecef; opacity:1;">
-                                        <option selected>{{ $project->project_name }}</option>
+                                        <option selected><?php echo e($project->project_name); ?></option>
                                     </select>
                                 </div>
                             </div>
@@ -1062,12 +1062,12 @@
   </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 $(document).ready(function() {
-    const projectId = {{ $project->id }};
+    const projectId = <?php echo e($project->id); ?>;
     let projectTasks = [];
     let search = '';
     
@@ -1102,7 +1102,7 @@ $(document).ready(function() {
         if(taskOptionsLoaded) return;
         
         // Load Users
-        $.get("{{ route('task.users') }}", function(data) {
+        $.get("<?php echo e(route('task.users')); ?>", function(data) {
             globalUsers = Array.isArray(data) ? data : [];
             renderUserCheckboxes();
             
@@ -1115,7 +1115,7 @@ $(document).ready(function() {
         });
 
         // Load Statuses
-        $.get("{{ route('task.statuses') }}", function(data) {
+        $.get("<?php echo e(route('task.statuses')); ?>", function(data) {
             let options = '<option value="">Select Status</option>';
             let filterOptions = '<option value="">All Statuses</option>';
              filterOptions += '<option value="done">Done</option>';
@@ -1133,7 +1133,7 @@ $(document).ready(function() {
         });
 
         // Load Priorities
-        $.get("{{ route('task.priorities') }}", function(data) {
+        $.get("<?php echo e(route('task.priorities')); ?>", function(data) {
             let options = '<option value="">Select Priority</option>';
             let filterOptions = '<option value="">All Priorities</option>';
             data.forEach(p => {
@@ -1229,7 +1229,7 @@ $(document).ready(function() {
         });
         
         $.ajax({
-             url: "{{ route('task.store') }}",
+             url: "<?php echo e(route('task.store')); ?>",
              type: "POST",
              data: formData,
              processData: false,
@@ -1608,7 +1608,7 @@ $(document).ready(function() {
         let percentage = $('#details_new_percentage').val();
         
         $.ajax({
-            url: `{{ route('projects.updateProgress', $project->id) }}`,
+            url: `<?php echo e(route('projects.updateProgress', $project->id)); ?>`,
             type: 'PATCH',
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
@@ -1696,7 +1696,7 @@ $(document).ready(function() {
         let endDate = $('#filter_end_date').val();
 
         $.ajax({
-            url: `{{ route('projects.worklogs', $project->id) }}`,
+            url: `<?php echo e(route('projects.worklogs', $project->id)); ?>`,
             type: 'GET',
             data: {
                 user_id: userId,
@@ -1826,7 +1826,7 @@ $(document).ready(function() {
         $submitBtn.prop('disabled', true).text('Saving...');
         
         $.ajax({
-            url: "{{ route('projects.remarks.store') }}",
+            url: "<?php echo e(route('projects.remarks.store')); ?>",
             type: "POST",
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
@@ -1894,4 +1894,6 @@ $(document).ready(function() {
 
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/projects/project-details.blade.php ENDPATH**/ ?>
