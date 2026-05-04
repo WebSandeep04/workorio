@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Designations'); ?>
+<?php $__env->startSection('page_title', 'Designations'); ?>
 
-@section('title', 'Departments')
-@section('page_title', 'Departments')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -367,26 +365,16 @@
     -webkit-text-fill-color: transparent;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
       <i class="bi bi-search"></i>
-      <input type="text" id="search" placeholder="Search departments..." />
+      <input type="text" id="search" placeholder="Search designations..." />
     </div>
-    
-    <div style="width: 200px;">
-      <select id="filterBranch" class="form-select form-select-modern p-2" style="font-size: 0.85rem; height: auto;">
-        <option value="">All Branches</option>
-        @foreach($branches as $branch)
-          <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-        @endforeach
-      </select>
-    </div>
-
-    <button class="table-search-btn" id="openDepartmentModal">
+    <button class="table-search-btn" id="openDesignationModal">
       <i class="bi bi-plus me-1"></i>Add
     </button>
   </div>
@@ -394,21 +382,20 @@
   <div class="modern-card data-table-card">
     <div class="modern-card-body">
       <div class="table-responsive">
-        <table class="table custom-table" id="departmentsTable">
+        <table class="table custom-table" id="designationsTable">
           <thead>
             <tr>
-              <th>Branch</th>
               <th>Code</th>
-              <th>Name</th>
+              <th>Title</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="departmentTableBody">
+          <tbody id="designationTableBody">
             <tr>
-              <td colspan="5" class="loading-state">
+              <td colspan="4" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
-                <p class="mt-2 mb-0">Loading departments...</p>
+                <p class="mt-2 mb-0">Loading designations...</p>
               </td>
             </tr>
           </tbody>
@@ -417,65 +404,61 @@
     </div>
   </div>
   
-  <div class="table-range-meta" id="departmentRangeInfo">
+  <div class="table-range-meta" id="designationRangeInfo">
     Showing 0-0 from 0 data
   </div>
 </div>
 
 <!-- Modal -->
-<div class="modal fade modal-modern" id="departmentModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+<div class="modal fade modal-modern" id="designationModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" style="font-size: 1.1rem; font-weight: 600;" id="departmentModalLabel">
-          <i class="bi bi-diagram-3 text-white"></i>
-          Add Department
+        <h5 class="modal-title" style="font-size: 1.1rem; font-weight: 600;" id="designationModalLabel">
+          <i class="bi bi-badge-ad text-white"></i>
+          Add Designation
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body pt-4 pb-4">
-        <form id="departmentForm">
-          <input type="hidden" id="department_id">
+        <form id="designationForm">
+          <input type="hidden" id="designation_id">
           <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label-modern">Branch <span class="text-danger">*</span></label>
-              <select id="department_branch_id" class="form-select form-select-modern w-100" required></select>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <label class="form-label-modern">Code</label>
-              <input type="text" id="department_code" class="form-control form-control-modern w-100" placeholder="Auto-generated" readonly>
+              <input type="text" id="designation_code" class="form-control form-control-modern w-100" placeholder="Auto-generated" readonly>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-8">
+              <label class="form-label-modern">Title <span class="text-danger">*</span></label>
+              <input type="text" id="designation_title" class="form-control form-control-modern w-100" required placeholder="Enter designation title">
+            </div>
+            <div class="col-md-4">
               <label class="form-label-modern">Status</label>
-              <select id="department_status" class="form-select form-select-modern w-100">
+              <select id="designation_status" class="form-select form-select-modern w-100">
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
             </div>
             <div class="col-12">
-              <label class="form-label-modern">Name <span class="text-danger">*</span></label>
-              <input type="text" id="department_name" class="form-control form-control-modern w-100" required placeholder="Enter department name">
-            </div>
-            <div class="col-12">
               <label class="form-label-modern">Notes</label>
-              <textarea id="department_notes" rows="3" class="form-control form-control-modern w-100" placeholder="Enter additional notes"></textarea>
+              <textarea id="designation_notes" rows="3" class="form-control form-control-modern w-100" placeholder="Enter additional notes"></textarea>
             </div>
           </div>
         </form>
-        <div class="alert alert-danger d-none mt-3" id="departmentError"></div>
+        <div class="alert alert-danger d-none mt-3" id="designationError"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn-modern btn-modern-primary w-100 justify-content-center" id="saveDepartment" style="background: #434AFA; color: white;">
+        <button type="button" class="btn-modern btn-modern-primary w-100 justify-content-center" id="saveDesignation" style="background: #434AFA; color: white;">
           <i class="bi bi-check-circle"></i>
-          Save Department
+          Save Designation
         </button>
       </div>
     </div>
   </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -490,7 +473,7 @@ function showAlert(type, message) {
 }
 
 function updateRangeInfo(from, to, total) {
-    const $info = $('#departmentRangeInfo');
+    const $info = $('#designationRangeInfo');
     if (!$info.length) return;
 
     const totalValue = Number(total);
@@ -509,34 +492,32 @@ function escapeHtml(text = '') {
 
 $(function () {
   const csrf = $('meta[name="csrf-token"]').attr('content');
-  const listUrl = "{{ route('departments.list') }}";
-  const storeUrl = "{{ route('departments.store') }}";
-  const branches = @json($branches);
+  const listUrl = "<?php echo e(route('designations.list')); ?>";
+  const storeUrl = "<?php echo e(route('designations.store')); ?>";
   let searchTimeout;
   
-  loadDepartments();
+  loadDesignations();
 
-  function loadDepartments() {
+  function loadDesignations() {
     let search = $('#search').val() || '';
-    let branch_id = $('#filterBranch').val() || '';
     
-    $('#departmentTableBody').html(`
+    $('#designationTableBody').html(`
       <tr>
-        <td colspan="5" class="loading-state">
+        <td colspan="4" class="loading-state">
           <i class="bi bi-arrow-repeat spin"></i>
-          <p class="mt-2 mb-0">Loading departments...</p>
+          <p class="mt-2 mb-0">Loading designations...</p>
         </td>
       </tr>
     `);
     
-    $.get(`${listUrl}?search=${search}&branch_id=${branch_id}`, function (data) {
+    $.get(`${listUrl}?search=${search}`, function (data) {
       if (!data || data.length === 0) {
-        $('#departmentTableBody').html(`
+        $('#designationTableBody').html(`
           <tr>
-            <td colspan="5" class="empty-state">
+            <td colspan="4" class="empty-state">
               <i class="bi bi-inbox"></i>
-              <h5>No Departments Found</h5>
-              <p>Get started by creating your first department.</p>
+              <h5>No Designations Found</h5>
+              <p>Get started by creating your first designation.</p>
             </td>
           </tr>
         `);
@@ -549,17 +530,16 @@ $(function () {
         const statusClass = row.status === 'active' ? 'badge-modern-success' : 'badge-modern-secondary';
         rows += `
           <tr style="animation-delay: ${i * 0.1}s;">
-            <td><strong>${escapeHtml(row.branch ? row.branch.name : '-')}</strong></td>
-            <td><strong class="text-gradient-primary">${escapeHtml(row.code)}</strong></td>
-            <td><strong>${escapeHtml(row.name)}</strong></td>
+            <td><strong class="text-gradient-primary">${escapeHtml(row.code || '')}</strong></td>
+            <td><strong>${escapeHtml(row.title)}</strong></td>
             <td><span class="badge ${statusClass}">${escapeHtml(row.status || '')}</span></td>
             <td>
               <div class="d-flex gap-2 justify-content-center">
-                <button class="btn-action btn-action-edit edit-dept"
-                  data-dept='${JSON.stringify(row).replace(/\'/g, "&#39;")}' title="Edit">
+                <button class="btn-action btn-action-edit edit-designation"
+                  data-designation='${JSON.stringify(row).replace(/\'/g, "&#39;")}' title="Edit">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn-action btn-action-delete delete-dept" data-id="${row.id}" title="Delete">
+                <button class="btn-action btn-action-delete delete-designation" data-id="${row.id}" title="Delete">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
@@ -567,116 +547,100 @@ $(function () {
           </tr>
         `;
       });
-      $('#departmentTableBody').html(rows);
+      $('#designationTableBody').html(rows);
       updateRangeInfo(1, data.length, data.length);
     }).fail(function(){
-      $('#departmentTableBody').html(`
+      $('#designationTableBody').html(`
         <tr>
-          <td colspan="5" class="text-danger text-center py-4">
+          <td colspan="4" class="text-danger text-center py-4">
             <i class="bi bi-exclamation-triangle"></i>
-            Failed to load departments. Please try again.
+            Failed to load designations. Please try again.
           </td>
         </tr>
       `);
     });
   }
 
-  // Filter input
-  $('#filterBranch').on('change', function() {
-      loadDepartments();
-  });
-
   // Search input
   $('#search').on('keyup', function() {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(function() {
-          loadDepartments();
+          loadDesignations();
       }, 300);
   });
 
-  function populateBranchSelect(selectId, selected) {
-    const select = $(selectId);
-    select.empty();
-    select.append('<option value="">Select Branch</option>');
-    branches.forEach(function(branch){
-      select.append(`<option value="${branch.id}" ${selected == branch.id ? 'selected' : ''}>${escapeHtml(branch.name)}</option>`);
-    });
-  }
-
   function openModal(data){
-    $('#departmentForm')[0].reset();
-    populateBranchSelect('#department_branch_id', data && data.branch_id ? data.branch_id : null);
-    $('#department_id').val(data && data.id ? data.id : '');
-    $('#departmentModalLabel').html(data ? 
-      '<i class="bi bi-pencil-square text-white"></i> Edit Department' : 
-      '<i class="bi bi-diagram-3 text-white"></i> Add Department'
+    $('#designationForm')[0].reset();
+    $('#designation_id').val(data && data.id ? data.id : '');
+    $('#designationModalLabel').html(data ? 
+      '<i class="bi bi-pencil-square text-white"></i> Edit Designation' : 
+      '<i class="bi bi-badge-ad text-white"></i> Add Designation'
     );
-    $('#departmentError').addClass('d-none').text('');
+    $('#designationError').addClass('d-none').text('');
     
     if (data) {
-      $('#department_code').val(data.code || '');
-      $('#department_name').val(data.name || '');
-      $('#department_status').val(data.status || 'active');
-      $('#department_notes').val(data.notes || '');
+      $('#designation_code').val(data.code || '');
+      $('#designation_title').val(data.title || '');
+      $('#designation_status').val(data.status || 'active');
+      $('#designation_notes').val(data.notes || '');
     } else {
-      $('#department_status').val('active');
+      $('#designation_status').val('active');
     }
     
-    $('#departmentModal').modal('show');
+    $('#designationModal').modal('show');
   }
 
-  $('#openDepartmentModal').on('click', function(){ openModal(null); });
+  $('#openDesignationModal').on('click', function(){ openModal(null); });
   
-  $(document).on('click', '.edit-dept', function(){ 
-    const data = $(this).data('dept');
+  $(document).on('click', '.edit-designation', function(){ 
+    const data = $(this).data('designation');
     openModal(data); 
   });
 
-  $('#saveDepartment').on('click', function (e) {
+  $('#saveDesignation').on('click', function (e) {
     e.preventDefault();
-    const id = $('#department_id').val();
+    const id = $('#designation_id').val();
     const payload = {
       _token: csrf,
-      branch_id: $('#department_branch_id').val(),
-      code: $('#department_code').val().trim(),
-      name: $('#department_name').val().trim(),
-      status: $('#department_status').val(),
-      notes: $('#department_notes').val().trim(),
+      code: $('#designation_code').val().trim(),
+      title: $('#designation_title').val().trim(),
+      status: $('#designation_status').val(),
+      notes: $('#designation_notes').val().trim(),
     };
     
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `{{ url('/departments') }}/${id}` : storeUrl;
+    const url = id ? `<?php echo e(url('/designations')); ?>/${id}` : storeUrl;
     
     const $btn = $(this);
     $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Saving...');
     
     $.ajax({ url, method, data: payload })
       .done(function(){
-        $('#departmentModal').modal('hide');
-        loadDepartments();
-        showAlert('success', id ? 'Department updated successfully!' : 'Department created successfully!');
+        $('#designationModal').modal('hide');
+        loadDesignations();
+        showAlert('success', id ? 'Designation updated successfully!' : 'Designation created successfully!');
       })
       .fail(function(xhr){
         const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Unable to save.';
-        $('#departmentError').removeClass('d-none').text(msg);
+        $('#designationError').removeClass('d-none').text(msg);
       })
       .always(function(){
-        $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Save Department');
+        $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Save Designation');
       });
   });
 
-  $(document).on('click', '.delete-dept', function () {
-    if (confirm('Are you sure you want to delete this department?')) {
+  $(document).on('click', '.delete-designation', function () {
+    if (confirm('Are you sure you want to delete this designation?')) {
       $.ajax({
-        url: `{{ url('/departments') }}/${$(this).data('id')}`,
+        url: `<?php echo e(url('/designations')); ?>/${$(this).data('id')}`,
         type: 'DELETE',
         data: { _token: csrf },
         success: function () {
-          loadDepartments();
-          showAlert('success', 'Department deleted successfully.');
+          loadDesignations();
+          showAlert('success', 'Designation deleted successfully.');
         },
         error: function() {
-          showAlert('error', 'Failed to delete department.');
+          showAlert('error', 'Failed to delete designation.');
         }
       });
     }
@@ -692,4 +656,6 @@ $(function () {
     to { transform: rotate(360deg); }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/master/designations.blade.php ENDPATH**/ ?>

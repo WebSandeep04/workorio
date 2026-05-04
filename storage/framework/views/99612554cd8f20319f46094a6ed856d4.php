@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Departments')
-@section('page_title', 'Departments')
 
-@push('styles')
+<?php $__env->startSection('title', 'City'); ?>
+<?php $__env->startSection('page_title', 'City'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -195,8 +195,8 @@
   }
 
   .btn-action-delete {
-    color: white;
-    background: #343AFA !important;
+   color: white;
+   background: #343AFA !important;
     border-radius: 4px;
   }
 
@@ -206,7 +206,7 @@
   
   /* Pagination */
   .pagination .page-link {
-    color: #434afa;
+    color: #667eea;
     border: 2px solid #e0e0e0;
     border-radius: 6px;
     padding: 0.25rem 0.5rem;
@@ -217,15 +217,15 @@
   }
 
   .pagination .page-item.active .page-link {
-    background: #434afa;
-    border-color: #434afa;
+    background:   #434afa !important;
+    border-color: #667eea;
     color: white;
-    box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
   }
 
   .pagination .page-link:hover {
-    background: rgba(67, 74, 250, 0.15);
-    border-color: #434afa;
+    background: rgba(102, 126, 234, 0.15);
+    border-color: #667eea;
     transform: translateY(-1px);
   }
 
@@ -254,7 +254,7 @@
     animation: spin 1s linear infinite;
   }
 
-  @media (max-width: 767px){
+   @media (max-width: 767px){
     .container-fluid{
       padding-left: 0.5rem;
       padding-right: 0.5rem;
@@ -308,7 +308,15 @@
     font-size: 0.9rem;
   }
   
-  .form-control-modern, .form-select-modern {
+  .form-control-modern {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+  }
+  
+  .form-select-modern {
     border: 1px solid #e0e0e0;
     border-radius: 4px;
     padding: 0.75rem 1rem;
@@ -345,48 +353,17 @@
     box-shadow: 0 4px 12px rgba(67, 74, 250, 0.2);
     color: white;
   }
-
-  .badge-modern-success {
-    background: #10B981;
-    color: white;
-    padding: 0.35em 0.65em;
-    border-radius: 4px;
-    font-weight: 500;
-  }
-
-  .badge-modern-secondary {
-    background: #6B7280;
-    color: white;
-    padding: 0.35em 0.65em;
-    border-radius: 4px;
-    font-weight: 500;
-  }
-  .text-gradient-primary {
-    background: linear-gradient(135deg, #434AFA, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="table-search mb-2">
     <div class="table-search-field">
       <i class="bi bi-search"></i>
-      <input type="text" id="search" placeholder="Search departments..." />
+      <input type="text" id="search" placeholder="Search cities..." />
     </div>
-    
-    <div style="width: 200px;">
-      <select id="filterBranch" class="form-select form-select-modern p-2" style="font-size: 0.85rem; height: auto;">
-        <option value="">All Branches</option>
-        @foreach($branches as $branch)
-          <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-        @endforeach
-      </select>
-    </div>
-
-    <button class="table-search-btn" id="openDepartmentModal">
+    <button class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createCityModal">
       <i class="bi bi-plus me-1"></i>Add
     </button>
   </div>
@@ -394,21 +371,18 @@
   <div class="modern-card data-table-card">
     <div class="modern-card-body">
       <div class="table-responsive">
-        <table class="table custom-table" id="departmentsTable">
+        <table class="table custom-table" id="salesCityTable">
           <thead>
             <tr>
-              <th>Branch</th>
-              <th>Code</th>
-              <th>Name</th>
-              <th>Status</th>
+              <th>City Name</th>
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="departmentTableBody">
+          <tbody>
             <tr>
-              <td colspan="5" class="loading-state">
+              <td colspan="2" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
-                <p class="mt-2 mb-0">Loading departments...</p>
+                <p class="mt-2 mb-0">Loading cities...</p>
               </td>
             </tr>
           </tbody>
@@ -417,65 +391,84 @@
     </div>
   </div>
   
-  <div class="table-range-meta" id="departmentRangeInfo">
+  <div class="table-range-meta" id="cityRangeInfo">
     Showing 0-0 from 0 data
+  </div>
+  
+  <div class="mt-2 d-flex justify-content-center">
+    <ul class="pagination" id="paginationLinks"></ul>
   </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade modal-modern" id="departmentModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+<!-- Create Modal -->
+<div class="modal fade modal-modern" id="createCityModal" tabindex="-1" aria-labelledby="createCityModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" style="font-size: 1.1rem; font-weight: 600;" id="departmentModalLabel">
-          <i class="bi bi-diagram-3 text-white"></i>
-          Add Department
+        <h5 class="modal-title" style ="font-size: 1.1rem; font-weight: 600;" id="createCityModalLabel">
+          <i class="bi bi-plus text-white"></i>
+          Create City
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body pt-4 pb-4">
-        <form id="departmentForm">
-          <input type="hidden" id="department_id">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label-modern">Branch <span class="text-danger">*</span></label>
-              <select id="department_branch_id" class="form-select form-select-modern w-100" required></select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label-modern">Code</label>
-              <input type="text" id="department_code" class="form-control form-control-modern w-100" placeholder="Auto-generated" readonly>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label-modern">Status</label>
-              <select id="department_status" class="form-select form-select-modern w-100">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div class="col-12">
-              <label class="form-label-modern">Name <span class="text-danger">*</span></label>
-              <input type="text" id="department_name" class="form-control form-control-modern w-100" required placeholder="Enter department name">
-            </div>
-            <div class="col-12">
-              <label class="form-label-modern">Notes</label>
-              <textarea id="department_notes" rows="3" class="form-control form-control-modern w-100" placeholder="Enter additional notes"></textarea>
-            </div>
+      <form id="createCityForm">
+        <div class="modal-body pt-4 pb-4">
+          <?php echo csrf_field(); ?>
+          <div class="mb-3">
+            <label for="state_id" class="form-label-modern">State <span class="text-danger">*</span></label>
+            <select class="form-select form-select-modern" id="state_id" name="state_id" required>
+              <option value="">Select State</option>
+            </select>
           </div>
-        </form>
-        <div class="alert alert-danger d-none mt-3" id="departmentError"></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-modern btn-modern-primary w-100 justify-content-center" id="saveDepartment" style="background: #434AFA; color: white;">
-          <i class="bi bi-check-circle"></i>
-          Save Department
-        </button>
-      </div>
+          <div class="mb-2">
+            <label for="city_name" class="form-label-modern">City Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-modern" id="city_name" name="city_name" required placeholder="Enter city name">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn-modern btn-modern-primary w-100 justify-content-center" style="background: #434AFA; color: white;">
+            <i class="bi bi-check-circle"></i>
+            Submit
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
-@endsection
 
-@push('scripts')
+<!-- Edit Modal -->
+<div class="modal fade modal-modern" id="editCityModal" tabindex="-1" aria-labelledby="editCityModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" style="font-size: 1.1rem; font-weight: 600;" id="editCityModalLabel">
+          <i class="bi bi-pencil-square text-white"></i>
+          Edit City
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editCityForm">
+        <div class="modal-body pt-4 pb-4">
+          <?php echo csrf_field(); ?>
+          <input type="hidden" id="edit_city_id">
+          <div class="mb-2">
+            <label for="edit_city_name" class="form-label-modern">City Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-modern" id="edit_city_name" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn-modern btn-modern-primary w-100 justify-content-center" style="background: #434AFA; color: white;">
+            <i class="bi bi-check-circle"></i>
+            Update
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
 <script>
 function showAlert(type, message) {
   const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -489,77 +482,96 @@ function showAlert(type, message) {
   setTimeout(() => $('.alert').fadeOut(), 3000);
 }
 
+// Build compact pagination: "Previous [current / last] Next"
+function buildSimplePagination($container, current, last) {
+    $container.empty();
+    // Prev
+    $container.append(`
+        <li class="page-item ${current === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${Math.max(1, current - 1)}">
+              <i class="bi bi-chevron-left"></i> Previous
+            </a>
+        </li>
+    `);
+    // Current (disabled as display only)
+    $container.append(`
+        <li class="page-item active">
+            <span class="page-link">${current} / ${last}</span>
+        </li>
+    `);
+    // Next
+    $container.append(`
+        <li class="page-item ${current === last ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${Math.min(last, current + 1)}">
+              Next <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    `);
+}
+
 function updateRangeInfo(from, to, total) {
-    const $info = $('#departmentRangeInfo');
+    const $info = $('#cityRangeInfo');
     if (!$info.length) return;
 
     const totalValue = Number(total);
     const safeTotal = Number.isFinite(totalValue) && totalValue >= 0 ? totalValue : 0;
+
     const startValue = Number(from);
     const safeStart = safeTotal === 0 ? 0 : (Number.isFinite(startValue) && startValue > 0 ? startValue : 1);
+
     const endValue = Number(to);
     const safeEnd = safeTotal === 0 ? 0 : (Number.isFinite(endValue) && endValue >= safeStart ? endValue : safeStart);
 
-    $info.text(`Showing ${safeStart.toLocaleString('en-IN')}-${safeEnd.toLocaleString('en-IN')} from ${safeTotal.toLocaleString('en-IN')} data`);
-}
+    const formattedStart = safeStart.toLocaleString('en-IN');
+    const formattedEnd = safeEnd.toLocaleString('en-IN');
+    const formattedTotal = safeTotal.toLocaleString('en-IN');
 
-function escapeHtml(text = '') {
-  return (text || '').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\'/g,'&#039;');
+    $info.text(`Showing ${formattedStart}-${formattedEnd} from ${formattedTotal} data`);
 }
 
 $(function () {
-  const csrf = $('meta[name="csrf-token"]').attr('content');
-  const listUrl = "{{ route('departments.list') }}";
-  const storeUrl = "{{ route('departments.store') }}";
-  const branches = @json($branches);
   let searchTimeout;
-  
-  loadDepartments();
+  loadCity();
 
-  function loadDepartments() {
-    let search = $('#search').val() || '';
-    let branch_id = $('#filterBranch').val() || '';
+  function loadCity(page = 1) {
+    let search = $('#search').val();
     
-    $('#departmentTableBody').html(`
+    $('#salesCityTable tbody').html(`
       <tr>
-        <td colspan="5" class="loading-state">
+        <td colspan="2" class="loading-state">
           <i class="bi bi-arrow-repeat spin"></i>
-          <p class="mt-2 mb-0">Loading departments...</p>
+          <p class="mt-2 mb-0">Loading cities...</p>
         </td>
       </tr>
     `);
     
-    $.get(`${listUrl}?search=${search}&branch_id=${branch_id}`, function (data) {
-      if (!data || data.length === 0) {
-        $('#departmentTableBody').html(`
+    $.get(`<?php echo e(route('city.fetch')); ?>?page=${page}&search=${search}`, function (data) {
+      if (!data.data || data.data.length === 0) {
+        $('#salesCityTable tbody').html(`
           <tr>
-            <td colspan="5" class="empty-state">
+            <td colspan="2" class="empty-state">
               <i class="bi bi-inbox"></i>
-              <h5>No Departments Found</h5>
-              <p>Get started by creating your first department.</p>
+              <h5>No Cities Found</h5>
+              <p>Get started by creating your first city.</p>
             </td>
           </tr>
         `);
+        $('#paginationLinks').empty();
         updateRangeInfo(0, 0, 0);
         return;
       }
       
       let rows = '';
-      $.each(data, function (i, row) {
-        const statusClass = row.status === 'active' ? 'badge-modern-success' : 'badge-modern-secondary';
+      $.each(data.data, function (i, s) {
         rows += `
           <tr style="animation-delay: ${i * 0.1}s;">
-            <td><strong>${escapeHtml(row.branch ? row.branch.name : '-')}</strong></td>
-            <td><strong class="text-gradient-primary">${escapeHtml(row.code)}</strong></td>
-            <td><strong>${escapeHtml(row.name)}</strong></td>
-            <td><span class="badge ${statusClass}">${escapeHtml(row.status || '')}</span></td>
+            <td><strong>${s.city_name}</strong></td>
             <td>
               <div class="d-flex gap-2 justify-content-center">
-                <button class="btn-action btn-action-edit edit-dept"
-                  data-dept='${JSON.stringify(row).replace(/\'/g, "&#39;")}' title="Edit">
+                <button class="btn-action btn-action-edit editBtn" data-id="${s.id}" data-name="${s.city_name}" title="Edit">
                   <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn-action btn-action-delete delete-dept" data-id="${row.id}" title="Delete">
+                <button class="btn-action btn-action-delete deleteBtn" data-id="${s.id}" title="Delete">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
@@ -567,116 +579,114 @@ $(function () {
           </tr>
         `;
       });
-      $('#departmentTableBody').html(rows);
-      updateRangeInfo(1, data.length, data.length);
-    }).fail(function(){
-      $('#departmentTableBody').html(`
-        <tr>
-          <td colspan="5" class="text-danger text-center py-4">
-            <i class="bi bi-exclamation-triangle"></i>
-            Failed to load departments. Please try again.
-          </td>
-        </tr>
-      `);
+      $('#salesCityTable tbody').html(rows);
+
+      // Simple pagination like myleads
+      buildSimplePagination($('#paginationLinks'), data.current_page || 1, data.last_page || 1);
+      updateRangeInfo(data.from, data.to, data.total);
     });
   }
 
-  // Filter input
-  $('#filterBranch').on('change', function() {
-      loadDepartments();
+  // Pagination click
+  $(document).on('click', '#paginationLinks .page-link', function (e) {
+    e.preventDefault();
+    const page = $(this).data('page');
+    if (page) {
+      loadCity(page);
+    }
   });
 
   // Search input
   $('#search').on('keyup', function() {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(function() {
-          loadDepartments();
+          loadCity(1);
       }, 300);
   });
-
-  function populateBranchSelect(selectId, selected) {
-    const select = $(selectId);
-    select.empty();
-    select.append('<option value="">Select Branch</option>');
-    branches.forEach(function(branch){
-      select.append(`<option value="${branch.id}" ${selected == branch.id ? 'selected' : ''}>${escapeHtml(branch.name)}</option>`);
-    });
-  }
-
-  function openModal(data){
-    $('#departmentForm')[0].reset();
-    populateBranchSelect('#department_branch_id', data && data.branch_id ? data.branch_id : null);
-    $('#department_id').val(data && data.id ? data.id : '');
-    $('#departmentModalLabel').html(data ? 
-      '<i class="bi bi-pencil-square text-white"></i> Edit Department' : 
-      '<i class="bi bi-diagram-3 text-white"></i> Add Department'
-    );
-    $('#departmentError').addClass('d-none').text('');
-    
-    if (data) {
-      $('#department_code').val(data.code || '');
-      $('#department_name').val(data.name || '');
-      $('#department_status').val(data.status || 'active');
-      $('#department_notes').val(data.notes || '');
-    } else {
-      $('#department_status').val('active');
-    }
-    
-    $('#departmentModal').modal('show');
-  }
-
-  $('#openDepartmentModal').on('click', function(){ openModal(null); });
   
-  $(document).on('click', '.edit-dept', function(){ 
-    const data = $(this).data('dept');
-    openModal(data); 
+  // Close modals when clicking outside
+  $(document).on('click', function (e) {
+      if ($(e.target).hasClass('modal')) {
+          $('.modal').modal('hide');
+      }
   });
 
-  $('#saveDepartment').on('click', function (e) {
-    e.preventDefault();
-    const id = $('#department_id').val();
-    const payload = {
-      _token: csrf,
-      branch_id: $('#department_branch_id').val(),
-      code: $('#department_code').val().trim(),
-      name: $('#department_name').val().trim(),
-      status: $('#department_status').val(),
-      notes: $('#department_notes').val().trim(),
-    };
-    
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `{{ url('/departments') }}/${id}` : storeUrl;
-    
-    const $btn = $(this);
-    $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Saving...');
-    
-    $.ajax({ url, method, data: payload })
-      .done(function(){
-        $('#departmentModal').modal('hide');
-        loadDepartments();
-        showAlert('success', id ? 'Department updated successfully!' : 'Department created successfully!');
-      })
-      .fail(function(xhr){
-        const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Unable to save.';
-        $('#departmentError').removeClass('d-none').text(msg);
-      })
-      .always(function(){
-        $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Save Department');
+  $('#createCityModal').on('show.bs.modal', function() {
+    $.get('/state', function(data) {
+      $('#state_id').empty();
+      $('#state_id').append('<option value="">Select State</option>');
+      $.each(data, function(key, value) {
+        $('#state_id').append(`<option value="${key}">${value}</option>`);
       });
+    });
   });
 
-  $(document).on('click', '.delete-dept', function () {
-    if (confirm('Are you sure you want to delete this department?')) {
+  $('#createCityForm').submit(function (e) {
+    e.preventDefault();
+    const $btn = $(this).find('button[type="submit"]');
+    $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Creating...');
+    
+    $.post("<?php echo e(route('city.store')); ?>", {
+      state_id: $('#state_id').val(),
+      city_name: $('#city_name').val(),
+      _token: '<?php echo e(csrf_token()); ?>'
+    }, function () {
+      $('#createCityModal').modal('hide');
+      $('#createCityForm')[0].reset();
+      loadCity();
+      showAlert('success', 'City created successfully.');
+    }).fail(function (xhr) {
+      alert(Object.values(xhr.responseJSON.errors || {}).join("\\n") || 'Failed to create city.');
+    }).always(function() {
+      $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Submit');
+    });
+  });
+
+  $(document).on('click', '.editBtn', function () {
+    $('#edit_city_id').val($(this).data('id'));
+    $('#edit_city_name').val($(this).data('name'));
+    $('#editCityModal').modal('show');
+  });
+
+  $('#editCityForm').submit(function (e) {
+    e.preventDefault();
+    const $btn = $(this).find('button[type="submit"]');
+    $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Updating...');
+    
+    let id = $('#edit_city_id').val();
+    $.ajax({
+      url: `/city/${id}`,
+      type: 'PUT',
+      data: {
+        city_name: $('#edit_city_name').val(),
+        _token: '<?php echo e(csrf_token()); ?>'
+      },
+      success: function () {
+        $('#editCityModal').modal('hide');
+        loadCity();
+        showAlert('success', 'City updated successfully.');
+      },
+      error: function(xhr) {
+        alert(Object.values(xhr.responseJSON.errors || {}).join("\\n") || 'Failed to update city.');
+      },
+      always: function() {
+        $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Update');
+      }
+    });
+  });
+
+  $(document).on('click', '.deleteBtn', function () {
+    if (confirm('Are you sure you want to delete this city?')) {
       $.ajax({
-        url: `{{ url('/departments') }}/${$(this).data('id')}`,
+        url: `/city/${$(this).data('id')}`,
         type: 'DELETE',
-        data: { _token: csrf },
+        data: { _token: '<?php echo e(csrf_token()); ?>' },
         success: function () {
-          loadDepartments();
-          showAlert('success', 'Department deleted successfully.');
+          loadCity();
+          showAlert('success', 'City deleted successfully.');
         },
         error: function() {
-          showAlert('error', 'Failed to delete department.');
+          showAlert('error', 'Failed to delete city.');
         }
       });
     }
@@ -692,4 +702,6 @@ $(function () {
     to { transform: rotate(360deg); }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/city.blade.php ENDPATH**/ ?>
