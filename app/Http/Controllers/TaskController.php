@@ -303,8 +303,8 @@ class TaskController extends Controller
             'recurrence_months' => 'nullable|array',
             'recurrence_months.*' => 'integer|min:1|max:12',
             'recurrence_end_date' => 'nullable|date|after_or_equal:today',
-            'due_date' => 'nullable|date',
-            'images.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,csv,txt,zip|max:5120' // Max 5MB per file
+            'images.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,csv,txt,zip|max:5120', // Max 5MB per file
+            'estimated_efforts' => 'nullable|string|max:255'
         ]);
 
         // Get current user ID from Auth or session
@@ -339,6 +339,7 @@ class TaskController extends Controller
             'task_priority_id' => $request->task_priority_id,
             'customer_project_id' => $request->customer_project_id ?? null,
             'workflow_task_id' => $request->workflow_task_id ?? null,
+            'estimated_efforts' => $request->estimated_efforts ?? null,
         ]);
 
         $this->syncTaskAssignees($task, $assigneeIds, $createdBy);
@@ -390,7 +391,8 @@ class TaskController extends Controller
             'recurrence_months.*' => 'integer|min:1|max:12',
             'recurrence_end_date' => 'nullable|date|after_or_equal:today',
             'due_date' => 'nullable|date',
-            'images.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,csv,txt,zip|max:5120' // Max 5MB per file
+            'images.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,csv,txt,zip|max:5120', // Max 5MB per file
+            'estimated_efforts' => 'nullable|string|max:255'
         ]);
 
         $task = Task::findOrFail($id);
@@ -430,6 +432,7 @@ class TaskController extends Controller
         if($request->has('workflow_task_id')) $updateData['workflow_task_id'] = $request->workflow_task_id;
         if($request->has('started_at')) $updateData['started_at'] = $request->started_at;
         if($request->has('completed_at')) $updateData['completed_at'] = $request->completed_at;
+        if($request->has('estimated_efforts')) $updateData['estimated_efforts'] = $request->estimated_efforts ?: null;
 
         $task->update($updateData);
 

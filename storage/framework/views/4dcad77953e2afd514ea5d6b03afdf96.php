@@ -653,6 +653,7 @@
             <th>Assigned To</th>
             <th>Customer</th>
             <th>Task Name</th>
+            <th>Estimated Efforts</th>
             <th>Type</th>
             <th>Priority</th>
             <th>Status</th>
@@ -666,7 +667,7 @@
         </thead>
         <tbody>
           <tr>
-            <td colspan="12" class="loading-state">
+            <td colspan="14" class="loading-state">
               <i class="bi bi-arrow-repeat"></i>
               <p class="mt-2 mb-0">Loading tasks...</p>
             </td>
@@ -801,6 +802,11 @@
           </div>
 
           <div class="mb-3">
+            <label for="edit_estimated_efforts" class="form-label">Estimated Efforts</label>
+            <input type="text" name="estimated_efforts" id="edit_estimated_efforts" class="form-control form-control-sm" placeholder="e.g. 2h, 3 days...">
+          </div>
+
+          <div class="mb-3">
             <label for="edit_due_date" class="form-label">Due Date</label>
             <input type="date" name="due_date" id="edit_due_date" class="form-control form-control-sm">
           </div>
@@ -891,7 +897,7 @@ function loadSummaryStats() {
 function loadTasks(page = 1) {
   $('#taskstable tbody').html(`
     <tr>
-      <td colspan="12" class="loading-state">
+      <td colspan="14" class="loading-state">
         <i class="bi bi-arrow-repeat"></i>
         <p class="mt-2 mb-0">Loading tasks...</p>
       </td>
@@ -918,7 +924,7 @@ function loadTasks(page = 1) {
       console.error('Error loading tasks:', xhr.responseText, status, error);
       $('#taskstable tbody').html(`
         <tr>
-          <td colspan="12" class="text-danger text-center py-4">
+          <td colspan="14" class="text-danger text-center py-4">
             <i class="bi bi-exclamation-triangle"></i>
             <p class="mt-2">Failed to load tasks. Please try again.</p>
           </td>
@@ -1035,7 +1041,7 @@ function renderTasksTable(tasks, page = 1) {
   
   if (paginatedTasks.length === 0) {
     html = `<tr>
-      <td colspan="12" class="empty-state">
+      <td colspan="14" class="empty-state">
         <i class="bi bi-inbox"></i>
         <h5>No Tasks Found</h5>
         <p>No tasks available at the moment.</p>
@@ -1130,6 +1136,11 @@ function renderTasksTable(tasks, page = 1) {
           <td>
             <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-decoration-none" style="color: #212529;" title="${task.task_name || ''}">
               ${(task.task_name || 'N/A').length > 7 ? (task.task_name || 'N/A').substring(0, 7) + '...' : (task.task_name || 'N/A')}
+            </a>
+          </td>
+          <td>
+            <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-dark text-decoration-none" title="${task.estimated_efforts || 'N/A'}">
+              ${task.estimated_efforts || 'N/A'}
             </a>
           </td>
           <td><span style="color: ${typeColor}">${typeBadge.toUpperCase()}</span></td>
@@ -1655,6 +1666,7 @@ window.editTask = function(id) {
         $('#edit_task_status_id').val(task.task_status_id);
         $('#edit_task_priority_id').val(task.task_priority_id);
         $('#edit_due_date').val(task.due_date ? task.due_date.substring(0, 10) : '');
+        $('#edit_estimated_efforts').val(task.estimated_efforts || '');
 
         const taskType = task.task_type || 'task';
         $(`input[name="edit_task_type"][value="${taskType}"]`).prop('checked', true);
@@ -1731,6 +1743,7 @@ $('#editTaskForm').on('submit', function(e) {
 
   const taskType = $('input[name="edit_task_type"]:checked').val() || 'task';
   formData.set('task_type', taskType);
+  formData.set('estimated_efforts', $('#edit_estimated_efforts').val() || '');
 
   // Append images
   if (selectedEditImages.length > 0) {

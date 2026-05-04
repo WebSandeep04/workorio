@@ -587,6 +587,7 @@
                                 <th scope="col" style="width: 40px;"><input type="checkbox" id="selectAllTasks" class="form-check-input"></th>
                                 <th scope="col" style="width: 15%;">Customer</th>
                                 <th scope="col" style="width: 20%;">Task</th>
+                                <th scope="col" style="width: 15%;">Estimated Efforts</th>
                                 <th scope="col" style="width: 5%;">Type</th>
                                 <th scope="col" style="width: 8%;">Priority</th>
                                 <th scope="col" style="width: 10%;">Status</th>
@@ -597,7 +598,7 @@
                         </thead>
                         <tbody id="taskTableBody">
                             <tr>
-                                <td colspan="10" class="text-center p-4 text-muted">Loading tasks...</td>
+                                <td colspan="11" class="text-center p-4 text-muted">Loading tasks...</td>
                             </tr>
                         </tbody>
                             </table>
@@ -904,7 +905,7 @@ $(document).ready(function() {
                 let overdueCount = 0;
                 let html = '';
                 if (!data || data.length === 0) {
-                    html = '<tr><td colspan="10" class="text-center p-4 text-muted">No tasks found</td></tr>';
+                    html = '<tr><td colspan="11" class="text-center p-4 text-muted">No tasks found</td></tr>';
                 } else {
                     $.each(data, function(index, task) {
                         // Check Overdue
@@ -979,6 +980,11 @@ $(document).ready(function() {
                                 <td>
                                     <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-decoration-none" style="color: #212529;" title="${escapeHtml(rawName)}">
                                         ${(task.task_name || 'N/A').length > 7 ? (task.task_name || 'N/A').substring(0, 7) + '...' : (task.task_name || 'N/A')}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-dark text-decoration-none" title="${task.estimated_efforts || 'N/A'}">
+                                        ${task.estimated_efforts || 'N/A'}
                                     </a>
                                 </td>
                                 <td>${typeBadge}</td>

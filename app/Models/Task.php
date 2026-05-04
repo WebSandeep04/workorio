@@ -35,6 +35,7 @@ class Task extends Model
         'workflow_task_id',
         'started_at',
         'completed_at',
+        'estimated_efforts',
     ];
 
     protected $casts = [

@@ -784,7 +784,7 @@
       <i class="bi bi-search"></i>
       <input type="text" id="search" placeholder="Search tasks..." />
     </div>
-    <button type="button" onclick="handleExport()" class="table-search-btn" style="background: #198754; border:none; color: white; box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);">
+    <button type="button" onclick="handleExport()" class="table-search-btn" style="background: #434afa; border:none; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);">
       <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
     </button>
     <button type="button" class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createTaskModal">
@@ -801,6 +801,7 @@
             <th>Assigned To</th>
             <th>Customer</th>
             <th>Task Name</th>
+            <th>Estimated Efforts</th>
             <th>Type</th>
             <th>Priority</th>
             <th>Status</th>
@@ -813,7 +814,7 @@
         </thead>
         <tbody>
           <tr>
-            <td colspan="12" class="loading-state">
+            <td colspan="13" class="loading-state">
               <i class="bi bi-arrow-repeat"></i>
               <p class="mt-2 mb-0">Loading tasks...</p>
             </td>
@@ -958,9 +959,14 @@
 
                     <!-- Task Name -->
                     <div class="row">
-                        <div class="mb-3 col-md-8">
+                        <div class="mb-3 col-md-5">
                             <label for="task_name" class="form-label" id="label_task_name">Task Name</label>
                             <input type="text" name="task_name" id="task_name" class="form-control form-control-sm" required placeholder="Enter task name...">
+                        </div>
+
+                        <div class="mb-3 col-md-3">
+                            <label for="estimated_efforts" class="form-label" id="label_estimated_efforts">Estimated Efforts</label>
+                            <input type="text" name="estimated_efforts" id="estimated_efforts" class="form-control form-control-sm" placeholder="e.g. 2h, 3 days...">
                         </div>
 
                         <div class="mb-3 col-md-4">
@@ -1244,9 +1250,14 @@
                     </div>
 
                   <div class="row">
-                      <div class="col-md-8">
+                      <div class="col-md-5">
                             <label for="edit_task_name" class="form-label">Task Name</label>
                             <input type="text" name="task_name" id="edit_task_name" class="form-control form-control-sm" required placeholder="Enter task name...">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="edit_estimated_efforts" class="form-label">Estimated Efforts</label>
+                            <input type="text" name="estimated_efforts" id="edit_estimated_efforts" class="form-control form-control-sm" placeholder="e.g. 2h, 3 days...">
                         </div>
 
                         <div class="col-md-4">
@@ -1325,6 +1336,7 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
+let selectedTaskIds = new Set();
 $(document).ready(function() {
     const $dueDateRow = $('#due_date').closest('.mb-3');
     const $editDueDateRow = $('#edit_due_date').closest('.mb-3');
@@ -1882,7 +1894,7 @@ $(document).ready(function() {
       
       if (paginatedTasks.length === 0) {
         html = `<tr>
-          <td colspan="12" class="empty-state">
+          <td colspan="13" class="empty-state">
             <i class="bi bi-inbox"></i>
             <h5>No Tasks Found</h5>
             <p>No tasks available at the moment.</p>
@@ -1965,6 +1977,11 @@ $(document).ready(function() {
               <td>
                 <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-decoration-none" style="color: #212529;" title="${task.task_name || ''}">
                   ${(task.task_name || 'N/A').length > 7 ? (task.task_name || 'N/A').substring(0, 7) + '...' : (task.task_name || 'N/A')}
+                </a>
+              </td>
+              <td>
+                <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-dark text-decoration-none" title="${task.estimated_efforts || 'N/A'}">
+                  ${task.estimated_efforts || 'N/A'}
                 </a>
               </td>
               <td><span class="fw-bold" style="color: ${typeColor}">${typeBadge.toUpperCase()}</span></td>
@@ -2085,9 +2102,7 @@ $(document).ready(function() {
     }
 
     function handleExport() {
-        const selectedIds = $('.task-checkbox:checked').map(function() {
-            return $(this).val();
-        }).get();
+        const selectedIds = Array.from(selectedTaskIds);
         
         const baseUrl = "<?php echo e(route('task.export')); ?>";
         const params = new URLSearchParams({
@@ -2112,7 +2127,34 @@ $(document).ready(function() {
 
     // Select All functionality
     $(document).on('change', '#selectAllTasks', function() {
-        $('.task-checkbox').prop('checked', $(this).prop('checked'));
+        const isChecked = $(this).prop('checked');
+        const filtered = applyFilters(allTasks || []);
+        if (isChecked) {
+            filtered.forEach(t => selectedTaskIds.add(t.id));
+        } else {
+            selectedTaskIds.clear();
+        }
+        $('.task-checkbox').prop('checked', isChecked);
+    });
+
+    // Individual checkbox change
+    $(document).on('change', '.task-checkbox', function() {
+        const id = parseInt($(this).val());
+        if ($(this).prop('checked')) {
+            selectedTaskIds.add(id);
+        } else {
+            selectedTaskIds.delete(id);
+            $('#selectAllTasks').prop('checked', false);
+        }
+    });
+
+    // Reset selection on filter change
+    $(document).on('change', '#filter_user, #filter_creator, #filter_customer, #filter_status, #filter_priority, #filter_type, #filter_date_from, #filter_date_to', function() {
+        currentPage = 1;
+        selectedTaskIds.clear();
+        $('#selectAllTasks').prop('checked', false);
+        loadTasks();
+        updateExportUrl();
     });
 
     let searchTimeout;
@@ -2656,9 +2698,10 @@ $(document).ready(function() {
                             typeBadge = '<span class="badge bg-warning text-dark">CP</span>';
                         }
                         
+                        const isChecked = selectedTaskIds.has(task.id) ? 'checked' : '';
                         html += `
                             <tr class="${task.is_done ? 'table-success' : ''}">
-                                <td><input type="checkbox" class="task-checkbox form-check-input" value="${task.id}"></td>
+                                <td><input type="checkbox" class="task-checkbox form-check-input" value="${task.id}" ${isChecked}></td>
                                 <td>
                                     <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-dark text-decoration-none" title="${assignedToText}">
                                         ${assignedToText.length > 7 ? assignedToText.substring(0, 7) + '...' : assignedToText}
@@ -2816,6 +2859,7 @@ $(document).ready(function() {
                     $('#edit_task_status_id').val(task.task_status_id);
                     $('#edit_task_priority_id').val(task.task_priority_id);
                     $('#edit_due_date').val(task.due_date ? task.due_date.substring(0, 10) : '');
+                    $('#edit_estimated_efforts').val(task.estimated_efforts || '');
                     
                     // Set task type
                     const taskType = task.task_type || 'task';
@@ -2941,6 +2985,7 @@ $(document).ready(function() {
         // Add task_type from radio button
         const taskType = $('input[name="edit_task_type"]:checked').val();
         formData.set('task_type', taskType || 'task');
+        formData.set('estimated_efforts', $('#edit_estimated_efforts').val() || '');
 
         // Include pasted images in edit as well
         if (selectedEditImages.length > 0) {
@@ -3110,6 +3155,7 @@ $(document).ready(function() {
 
       const taskType = $('input[name="edit_task_type"]:checked').val() || 'task';
       formData.set('task_type', taskType);
+      formData.set('estimated_efforts', $('#edit_estimated_efforts').val() || '');
 
       if (selectedEditImages.length > 0) {
           selectedEditImages.forEach((img) => {
