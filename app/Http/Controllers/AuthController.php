@@ -1,16 +1,18 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\PasswordResetOtp;
-use App\Mail\PasswordResetOtpMail;
-use Illuminate\Support\Facades\Hash;
-use App\Services\TenantDatabaseService;
 use App\Models\Tenant;
+use App\Mail\PasswordResetOtpMail;
+use App\Services\TenantDatabaseService;
 
 class AuthController extends Controller
 {
@@ -19,76 +21,47 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-   public function login(Request $request)
-{
-    \Log::error('AuthController@login start', ['email' => $request->input('email')]);
-    $credentials = $request->validate([
-        'email' => 'required|email',
-        'password' => 'required|min:6',
-    ]);
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|min:6',
+        ]);
 
-    // Try to find user in tenant databases
-    $user = $this->findUserInTenantDatabases($credentials['email'], $credentials['password']);
-    \Log::error('AuthController@login user lookup result', ['found' => (bool) $user, 'data' => $user]);
-    
-    if ($user) {
-        // Use tenant_id from lookup result instead of deriving from email
-        $tenantId = $user['tenant_id'] ?? null;
-        \Log::error('AuthController@login resolved tenant', ['tenant_id' => $tenantId]);
-        if ($tenantId) {
-            // Ensure tenant connection is the default for this request
-            \App\Services\TenantDatabaseService::setDefaultConnection((int) $tenantId);
+        // Try to find user in tenant databases
+        $user = $this->findUserInTenantDatabases($credentials['email'], $credentials['password']);
+        
+        if ($user) {
+            // Use tenant_id from lookup result instead of deriving from email
+            $tenantId = $user['tenant_id'] ?? null;
+            if ($tenantId) {
+                // Ensure tenant connection is the default for this request
+                TenantDatabaseService::setDefaultConnection((int) $tenantId);
 
-            session(['tenant_id' => $tenantId]);
-            session(['user_id' => $user['id']]);
-            session(['user_name' => $user['name']]);
-            session(['user_role' => $user['role_id']]);
-            
-            // Regenerate session for security
-            $request->session()->regenerate();
-            
-            return redirect()->intended('/dashboard')->with('success', 'Login successful! Welcome back, ' . $user['name']);
+                session(['tenant_id' => $tenantId]);
+                session(['user_id' => $user['id']]);
+                session(['user_name' => $user['name']]);
+                session(['user_role' => $user['role_id']]);
+                
+                // Regenerate session for security
+                $request->session()->regenerate();
+                
+                return redirect()->intended('/dashboard')->with('success', 'Login successful! Welcome back, ' . $user['name']);
+            }
         }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ]);
     }
 
-    return back()->withErrors([
-        'email' => 'The provided credentials do not match our records.',
-    ]);
-}
-
-
-public function logout(Request $request)
-{
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    $request->session()->forget(['user_id', 'user_name', 'tenant_id', 'user_role']);
-    return redirect('/');
-}
-
-
-public function showRegisterForm(){
-    return view('auth.register');
-}
-
-   public function register(Request $request)
+    public function logout(Request $request)
     {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|min:6',
-            'tenant_code' => 'required|string|exists:tenants,tenant_code']);
-        // Switch to master database for tenant queries
-        DB::setDefaultConnection('mysql');
-        $tenant = Tenant::where('tenant_code', $request->tenant_code)->first();
-
-       User::create([
-        'name'      => $request->name,
-        'email'     => $request->email,
-        'password'  => Hash::make($request->password),
-        'tenant_id' => $tenant->id]);
-
-        return redirect('/login')->with('success', 'Registration successful. Please login.');
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        $request->session()->forget(['user_id', 'user_name', 'tenant_id', 'user_role']);
+        return redirect('/');
     }
 
     // Show forgot password form
@@ -128,12 +101,9 @@ public function showRegisterForm(){
             session(['reset_email' => $request->email]);
             session(['reset_tenant_id' => $tenantId]);
             
-            \Log::info("sendOtp: Generated OTP {$otp->otp} for email {$request->email} in tenant {$tenantId} on connection " . DB::getDefaultConnection());
-
             return redirect('/verify-otp')->with('success', 'OTP has been sent to your email address.');
             
         } catch (\Exception $e) {
-            \Log::error('Send OTP failed', ['error' => $e->getMessage()]);
             return back()->withErrors(['email' => 'Failed to send OTP. Please try again.']);
         }
     }
@@ -158,30 +128,19 @@ public function showRegisterForm(){
 
         // Check if already verified in session (prevent double submission error)
         if (session('verified_otp') === $request->otp) {
-            \Log::info("verifyOtp: OTP already verified in session, redirecting.");
             return redirect('/reset-password');
         }
 
         $tenantId = session('reset_tenant_id');
         
-        \Log::info("verifyOtp: Attempting verification for {$request->email} with OTP {$request->otp}");
-        \Log::info("verifyOtp: Session tenant_id: " . ($tenantId ?? 'NULL'));
-
         if ($tenantId) {
              TenantDatabaseService::setDefaultConnection((int)$tenantId);
         }
         
-        \Log::info("verifyOtp: Current DB connection: " . DB::getDefaultConnection());
-
         $otp = PasswordResetOtp::where('email', $request->email)
             ->where('otp', $request->otp)
             ->where('used', false)
             ->first();
-
-        \Log::info("verifyOtp: Query Result: " . ($otp ? 'Found' : 'Not Found'));
-        if ($otp) {
-             \Log::info("verifyOtp: Expiry check - Expires at: {$otp->expires_at}, Now: " . now() . ", Is Past: " . ($otp->expires_at->isPast() ? 'Yes' : 'No'));
-        }
 
         if (!$otp || $otp->isExpired()) {
             return back()->withErrors(['otp' => 'Invalid or expired OTP. Please request a new one.']);
@@ -264,21 +223,13 @@ public function showRegisterForm(){
                 
                 // Set tenant connection
                 TenantDatabaseService::setDefaultConnection($tenant->id);
-                \Log::error('AuthController@login checking tenant', ['tenant_id' => $tenant->id]);
                 
                 // Try to find user in this tenant database
                 $user = User::where('email', $email)->first();
                 $passwordOk = $user ? Hash::check($password, $user->password) : false;
                 
-                // Check if user has login permission (default is 1 if column exists, but treat null as true for backward compatibility if needed, though migration sets default 1)
+                // Check if user has login permission
                 $isLoginAllowed = $user ? ($user->is_login ?? 1) : 0;
-                
-                \Log::error('AuthController@login user check', [
-                    'tenant_id' => $tenant->id, 
-                    'exists' => (bool) $user, 
-                    'password_ok' => $passwordOk,
-                    'is_login' => $isLoginAllowed
-                ]);
                 
                 if ($user && $passwordOk && $isLoginAllowed) {
                     return [
@@ -291,7 +242,6 @@ public function showRegisterForm(){
                 }
             } catch (\Exception $e) {
                 // Continue to next tenant if this one fails
-                \Log::warning('AuthController@login tenant check failed', ['tenant_id' => $tenant->id, 'error' => $e->getMessage()]);
                 continue;
             }
         }
@@ -317,7 +267,7 @@ public function showRegisterForm(){
                 $connectionName = TenantDatabaseService::getConnectionName($tenant->id);
                 TenantDatabaseService::setDefaultConnection($tenant->id);
                 
-                $user = \App\Models\User::on($connectionName)
+                $user = User::on($connectionName)
                     ->where('email', $email)
                     ->first();
                 
@@ -365,7 +315,6 @@ public function showRegisterForm(){
                 }
             } catch (\Exception $e) {
                 // Continue to next tenant if this one fails
-                \Log::warning('AuthController@findUserByEmailInTenants tenant check failed', ['tenant_id' => $tenant->id, 'error' => $e->getMessage()]);
                 continue;
             }
         }

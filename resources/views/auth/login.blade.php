@@ -81,9 +81,6 @@
             </div>
         @endif
 
-        <!-- <div class="text-center mt-4">
-            <span>Don't have an account? <a href="{{ url('/register') }}">Sign up</a></span>
-        </div> -->
     </div>
 </div>
 

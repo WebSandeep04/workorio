@@ -12,13 +12,10 @@ return [
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'alldata', 'title' => 'All Data', 'icon' => 'bi bi-collection', 'permission' => 'sales.alldata'],
-                // ['route' => 'sales-analytics', 'title' => 'Sales Analytics', 'icon' => 'bi bi-bar-chart', 'permission' => 'sales.analytics'],
-                // ['route' => 'lead', 'title' => 'Leads', 'icon' => 'bi bi-person-lines-fill', 'permission' => 'sales.leads'],
                 ['route' => 'myleads', 'title' => 'My Leads', 'icon' => 'bi bi-person', 'permission' => 'sales.myleads'],
                 ['route' => 'teamleads', 'title' => 'Team Leads', 'icon' => 'bi bi-people', 'condition' => 'has_subordinates', 'permission' => 'sales.teamleads'],
                 ['route' => 'assignedleads', 'title' => 'Assigned Leads', 'icon' => 'bi bi-person-check', 'condition' => 'is_manager', 'permission' => 'sales.assignedleads'],
                 ['route' => 'followup', 'title' => 'Follow Up', 'icon' => 'bi bi-bell', 'permission' => 'sales.followup'],
-
                 ['route' => 'quotation', 'title' => 'Quotation', 'icon' => 'bi bi-file-text', 'permission' => 'sales.quotation'],
                 ['route' => 'payment-followup', 'title' => 'Payment Followup', 'icon' => 'bi bi-cash-coin', 'permission' => 'sales.payment_followup'],
 

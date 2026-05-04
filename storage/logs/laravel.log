@@ -5550,3 +5550,20 @@
 #70 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\DontDelete\\\\l...')
 #71 {main}
 "} 
+[2026-05-04 06:47:16] local.INFO: Successfully created database for tenant: Triserv 360 Business Solutions (ID: 4)  
+[2026-05-04 08:15:59] local.ERROR: The "--short" option does not exist. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\RuntimeException(code: 0): The \"--short\" option does not exist. at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Input\\ArgvInput.php:226)
+[stacktrace]
+#0 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Input\\ArgvInput.php(155): Symfony\\Component\\Console\\Input\\ArgvInput->addLongOption('short', NULL)
+#1 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Input\\ArgvInput.php(88): Symfony\\Component\\Console\\Input\\ArgvInput->parseLongOption('--short')
+#2 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Input\\ArgvInput.php(77): Symfony\\Component\\Console\\Input\\ArgvInput->parseToken('--short', true)
+#3 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Input\\Input.php(53): Symfony\\Component\\Console\\Input\\ArgvInput->parse()
+#4 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Command\\Command.php(276): Symfony\\Component\\Console\\Input\\Input->bind(Object(Symfony\\Component\\Console\\Input\\InputDefinition))
+#5 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#6 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Application.php(1092): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#7 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Application.php(341): Symfony\\Component\\Console\\Application->doRunCommand(Object(Illuminate\\Foundation\\Console\\RouteListCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#8 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Application.php(192): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#9 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(197): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#10 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1234): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#11 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#12 {main}
+"} 

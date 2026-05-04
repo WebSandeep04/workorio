@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Services\TenantDatabaseService;
 use Symfony\Component\HttpFoundation\Response;
+use App\Models\Tenant;
 
 class SetTenantDatabase
 {
@@ -76,7 +77,7 @@ class SetTenantDatabase
     private function switchTenant($tenantId)
     {
         // Get tenant from master database
-        $tenant = \App\Models\Tenant::find($tenantId);
+        $tenant = Tenant::find($tenantId);
         
         if ($tenant) {
 

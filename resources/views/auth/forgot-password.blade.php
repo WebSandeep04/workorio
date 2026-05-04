@@ -21,9 +21,6 @@
     <div class="d-flex align-items-center">
         <img src="/img/logoblack.png" alt="Logo" style="height: 40px;" class="me-2">
     </div>
-    <div>
-        <span class="me-3" style="font-weight:600">Don't have an account?</span><a href="{{ url('/register') }}" class="btn singupbtn">Sign Up</a>
-    </div>
 </header>
 
 <div class="loginBox">
