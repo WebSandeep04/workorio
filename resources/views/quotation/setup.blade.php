@@ -429,11 +429,8 @@
                         <div class="form-group">
                             <label class="form-label-modern">Quotation Template</label>
                             <select class="form-control-modern" id="template_name" name="template_name">
-                                <option value="modern">Modern Pattern (Recommended)</option>
                                 <option value="triserv">Triserv Pattern (Premium)</option>
                                 <option value="uniqueac">Uniqueac Pattern</option>
-                                <option value="classic">Classic Pattern</option>
-                                <option value="compact">Compact Pattern</option>
                             </select>
                             <small class="text-muted mt-1 d-block">Choose the layout pattern for your quotation PDFs.</small>
                         </div>
@@ -546,7 +543,7 @@ function loadSettings() {
                 }
                 
                 // New Pattern fields
-                $('#template_name').val(data.template_name || 'modern');
+                $('#template_name').val(data.template_name || 'triserv');
                 $('#primary_color').val(data.primary_color || '#434AFA');
                 $('#primary_color_text').val(data.primary_color || '#434AFA');
                 $('#secondary_color').val(data.secondary_color || '#FF8C00');

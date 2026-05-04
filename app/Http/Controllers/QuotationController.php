@@ -677,7 +677,7 @@ class QuotationController extends Controller
         $settings = DB::table('quotation_settings')->first();
         if (!$settings) {
             $settings = (object) [
-                'template_name' => 'modern',
+                'template_name' => 'triserv',
                 'primary_color' => '#434AFA',
                 'secondary_color' => '#FF8C00'
             ];
@@ -721,11 +721,11 @@ class QuotationController extends Controller
             $quote->setRelation('prospect', \App\Models\Prospectus::find($quote->prospect_id));
         }
 
-        $template = $settings->template_name ?? 'modern';
+        $template = $settings->template_name ?? 'triserv';
         $viewPath = "quotation.templates.{$template}";
 
         if (!view()->exists($viewPath)) {
-            $viewPath = 'quotation.templates.modern';
+            $viewPath = 'quotation.templates.triserv';
         }
 
         // Prepare logo as base64 for better compatibility in PDFs
