@@ -828,6 +828,9 @@ function hoursClock(decimal){
 function statusBadge(status, holidayName = null){
     const map = {
         present:'success', 
+        'present with SL':'success',
+        'present with HD':'success',
+        'present (partial leave)':'success',
         leave:'warning', 
         holiday:'info', 
         sunday:'secondary', 

@@ -127,7 +127,8 @@ class AttendanceApprovalController extends Controller
                     $slHours = $slS->diffInMinutes($slE) / 60;
                 }
 
-                $statusInfo = $this->reportService->determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, null, $hasHalfDayLeave, $slHours);
+                $lType = ($leave && $leave->is_sl) ? 'SL' : null;
+                $statusInfo = $this->reportService->determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $lType, $hasHalfDayLeave, $slHours);
                 $status = $statusInfo['label'];
             }
 

@@ -168,27 +168,37 @@ class AttendanceReportService
      */
     public function determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false, $shortLeaveHr = 0)
     {
+        // For SL, we add the sl duration to worked hours
+        // For Half Day Leave, we assume it covers half the required hours
+        $effectiveHours = $hours + $shortLeaveHr + ($hasHalfDayLeave ? $halfDayHr : 0);
+
         if ($isWeeklyOff) {
             return [
-                'code' => 'S/W',
-                'label' => 'weekly off working',
-                'class' => 'text-info'
+                'code' => $hours > 0 ? 'W/O-W' : 'W/O',
+                'label' => $hours > 0 ? 'sunday working' : 'sunday',
+                'class' => $hours > 0 ? 'text-success' : 'text-secondary'
             ];
         }
 
         if ($isHoliday) {
             return [
-                'code' => 'H/W',
-                'label' => 'holiday working',
-                'class' => 'text-info'
+                'code' => $hours > 0 ? 'H/W' : 'H',
+                'label' => $hours > 0 ? 'holiday working' : 'holiday',
+                'class' => $hours > 0 ? 'text-success' : 'text-info'
             ];
         }
 
         if ($leaveType === 'SL') {
-            if ($hours >= $fullDayHr) {
+            if ($effectiveHours >= $fullDayHr) {
                 return [
                     'code' => 'P (SL)',
-                    'label' => 'present',
+                    'label' => 'present with SL',
+                    'class' => 'text-success'
+                ];
+            } elseif ($effectiveHours >= $halfDayHr) {
+                return [
+                    'code' => 'P (HD/SL)',
+                    'label' => 'present (partial leave)',
                     'class' => 'text-success'
                 ];
             } else {
@@ -200,12 +210,19 @@ class AttendanceReportService
             }
         }
 
-        $effectiveHours = $hours + $shortLeaveHr;
-
         if ($effectiveHours >= $fullDayHr) {
+            $code = 'P';
+            $label = 'present';
+            if ($shortLeaveHr > 0) {
+                $code = 'P (SL)';
+                $label = 'present with SL';
+            } elseif ($hasHalfDayLeave) {
+                $code = 'P (HD)';
+                $label = 'present with HD';
+            }
             return [
-                'code' => $shortLeaveHr > 0 ? 'P (SL)' : 'P',
-                'label' => 'present',
+                'code' => $code,
+                'label' => $label,
                 'class' => 'text-success'
             ];
         } elseif ($hours >= $halfDayHr || ($hasHalfDayLeave && $hours > 0) || ($effectiveHours >= $halfDayHr && $shortLeaveHr > 0)) {
@@ -249,6 +266,18 @@ class AttendanceReportService
         $lateLogs = [];
         
         $shift = $user ? ($user->employee->shiftRelation ?? null) : null;
+        
+        // Map leaves to date => type for easier lookup
+        $leaveMap = [];
+        if (is_array($leaves)) {
+            foreach ($leaves as $key => $val) {
+                if (is_int($key)) {
+                    $leaveMap[$val] = 'L'; // Default to Leave if only date is provided
+                } else {
+                    $leaveMap[$key] = $val;
+                }
+            }
+        }
         
         $currentDate = $startDate->copy();
         while ($currentDate->lte($endDate)) {
@@ -304,21 +333,25 @@ class AttendanceReportService
                     $halfDayHr = $halfDayHr / 2;
                 }
 
-                if ($dayHours >= $halfDayHr) {
+                $leaveType = $leaveMap[$dateStr] ?? null;
+                $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
+                $effectiveDayHours = $dayHours + $slHours;
+
+                if ($effectiveDayHours >= $halfDayHr) {
                     $attendanceDates[] = $dateStr;
                     $totalDaysWorked++;
                 }
 
-                if ($dayHours >= $fullDayHr) {
+                if ($effectiveDayHours >= $fullDayHr) {
                     $presentDays++;
-                } elseif ($dayHours >= $halfDayHr) {
+                } elseif ($effectiveDayHours >= $halfDayHr) {
                     $halfDays++;
                 }
 
                 [$origFullDayHr, $origHalfDayHr] = $this->getThresholds($shift);
-                if ($dayHours >= $origFullDayHr) {
+                if ($effectiveDayHours >= $origFullDayHr) {
                     $totalMore8_30++;
-                } elseif ($dayHours >= $halfDayHr) {
+                } elseif ($effectiveDayHours >= $halfDayHr) {
                     $totalLess8_30++;
                 }
                 
@@ -371,16 +404,14 @@ class AttendanceReportService
             }
         }
         
-        $uniqueLeaves = array_unique($leaves);
-        foreach ($uniqueLeaves as $leaveDate) {
-            $dateStr = is_string($leaveDate) ? $leaveDate : Carbon::parse($leaveDate)->format('Y-m-d');
+        $uniqueLeaves = array_unique(array_keys($leaveMap));
+        foreach ($uniqueLeaves as $dateStr) {
             if (!in_array($dateStr, $holidays) && !in_array($dateStr, $holidaysWithAttendance)) {
                 $totalLeaves++;
             }
         }
         
-        foreach ($uniqueLeaves as $leaveDate) {
-            $dateStr = is_string($leaveDate) ? $leaveDate : Carbon::parse($leaveDate)->format('Y-m-d');
+        foreach ($uniqueLeaves as $dateStr) {
             $leaveCarbon = Carbon::parse($dateStr);
             $dayName = $leaveCarbon->format('l');
             $isWeeklyOff = false;
@@ -521,7 +552,9 @@ class AttendanceReportService
                     $halfDayHr = $halfDayHr / 2;
                 }
                 
-                $statusInfo = $this->determineStatus($dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, $dayData['is_holiday'], $dayData['leave_type']);
+                $slHours = ($dayData['leave_type'] === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
+                $hasHalfDayLeave = ($dayData['leave_type'] === 'HD');
+                $statusInfo = $this->determineStatus($dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, $dayData['is_holiday'], $dayData['leave_type'], $hasHalfDayLeave, $slHours);
                 $dayData['status'] = $statusInfo['label'];
                 
                 if ($dayData['is_holiday'] && $holidaysData && isset($holidaysData[$dateStr])) {

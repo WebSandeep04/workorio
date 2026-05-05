@@ -1131,8 +1131,12 @@ class AttendanceController extends Controller
 
     public function reportView()
     {
-        // Get all users for the dropdown
+        // Get all users for the dropdown - excluding admin and inactive employees
         $users = User::select('id', 'name', 'email')
+            ->where('role_id', '!=', 1)
+            ->whereHas('employee', function($query) {
+                $query->where('status', 'active');
+            })
             ->orderBy('name')
             ->get();
             
@@ -1187,6 +1191,8 @@ class AttendanceController extends Controller
                             $leavesDetails[$d] = 'RH';
                         } elseif ($req->is_sl) {
                             $leavesDetails[$d] = 'SL';
+                        } elseif ($req->is_half_day) {
+                            $leavesDetails[$d] = 'HD';
                         } else {
                             $leavesDetails[$d] = 'L';
                         }
@@ -1196,7 +1202,7 @@ class AttendanceController extends Controller
         }
         $leaves = collect($leavesList)->unique()->values()->toArray();
 
-        $summary = $this->reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData, $user);
+        $summary = $this->reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
         
         $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $shift);
         
@@ -1288,7 +1294,12 @@ class AttendanceController extends Controller
         $leaves = collect();
         foreach ($leavesRaw as $req) {
             if (!$leaves->has($req->user_id)) {
-                $leaves->put($req->user_id, collect([(object)['date' => \Carbon\Carbon::parse($date), 'is_rh' => $req->is_rh, 'is_sl' => $req->is_sl]]));
+                $leaves->put($req->user_id, collect([(object)[
+                    'date' => \Carbon\Carbon::parse($date), 
+                    'is_rh' => $req->is_rh, 
+                    'is_sl' => $req->is_sl,
+                    'is_half_day' => $req->is_half_day
+                ]]));
             }
         }
 
@@ -1299,7 +1310,7 @@ class AttendanceController extends Controller
             $attendance = $attendances->get($user->id);
             $userLeaves = $leaves->get($user->id);
             $leaveObj = $userLeaves ? $userLeaves->first() : null;
-            $leaveType = $leaveObj ? ($leaveObj->is_rh ? 'RH' : ($leaveObj->is_sl ? 'SL' : 'L')) : null;
+            $leaveType = $leaveObj ? ($leaveObj->is_rh ? 'RH' : ($leaveObj->is_sl ? 'SL' : ($leaveObj->is_half_day ? 'HD' : 'L'))) : null;
             
             $dayData = [
                 'user' => [
@@ -1360,7 +1371,9 @@ class AttendanceController extends Controller
                     $halfDayHr = $halfDayHr / 2;
                 }
 
-                $statusInfo = $this->reportService->determineStatus($dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType);
+                $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
+                $hasHalfDayLeave = ($leaveType === 'HD');
+                $statusInfo = $this->reportService->determineStatus($dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours);
                 $dayData['status'] = $statusInfo['label'];
 
                 $descriptions = $attendance->movements
@@ -1651,7 +1664,8 @@ class AttendanceController extends Controller
                     $leavesData[$req->user_id]->push((object)[
                         'date' => \Carbon\Carbon::parse($d),
                         'is_rh' => $req->is_rh,
-                        'is_sl' => $req->is_sl
+                        'is_sl' => $req->is_sl,
+                        'is_half_day' => $req->is_half_day
                     ]);
                 }
             }
@@ -1684,6 +1698,8 @@ class AttendanceController extends Controller
                         $userLeavesDetails[$d] = 'RH';
                     } elseif ($l->is_sl) {
                         $userLeavesDetails[$d] = 'SL';
+                    } elseif ($l->is_half_day) {
+                        $userLeavesDetails[$d] = 'HD';
                     } else {
                         $userLeavesDetails[$d] = 'L';
                     }
@@ -1721,7 +1737,9 @@ class AttendanceController extends Controller
                     }
 
                     $leaveType = $userLeavesDetails[$dateStr] ?? null;
-                    $statusInfo = $this->reportService->determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType);
+                    $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
+                    $hasHalfDayLeave = ($leaveType === 'HD');
+                    $statusInfo = $this->reportService->determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours);
                     
                     $statusCode = $statusInfo['code'];
                     $statusClass = $statusInfo['class'];
@@ -1763,7 +1781,7 @@ class AttendanceController extends Controller
                 ->values()
                 ->toArray();
 
-            $summary = $this->reportService->calculateMonthlySummary($userAttendances, $startDate, $endDate, $holidays, $userLeavesSummary, null, $user);
+            $summary = $this->reportService->calculateMonthlySummary($userAttendances, $startDate, $endDate, $holidays, $userLeavesDetails, null, $user);
 
             $reportData[] = [
                 'user' => [
