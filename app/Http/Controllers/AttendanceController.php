@@ -450,6 +450,8 @@ class AttendanceController extends Controller
             ->where('status', 'approved')
             ->where('start_date', '<=', $today->toDateString())
             ->where('end_date', '>=', $today->toDateString())
+            ->where('is_half_day', 0)
+            ->where('is_sl', 0)
             ->first();
 
         if ($overlappingLeave) {
