@@ -166,7 +166,7 @@ class AttendanceReportService
     /**
      * Determine status label and class
      */
-    public function determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false)
+    public function determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false, $shortLeaveHr = 0)
     {
         if ($isWeeklyOff) {
             return [
@@ -200,17 +200,19 @@ class AttendanceReportService
             }
         }
 
-        if ($hours >= $fullDayHr) {
+        $effectiveHours = $hours + $shortLeaveHr;
+
+        if ($effectiveHours >= $fullDayHr) {
             return [
-                'code' => 'P',
+                'code' => $shortLeaveHr > 0 ? 'P (SL)' : 'P',
                 'label' => 'present',
                 'class' => 'text-success'
             ];
-        } elseif ($hours >= $halfDayHr || ($hasHalfDayLeave && $hours > 0)) {
+        } elseif ($hours >= $halfDayHr || ($hasHalfDayLeave && $hours > 0) || ($effectiveHours >= $halfDayHr && $shortLeaveHr > 0)) {
             return [
-                'code' => $hasHalfDayLeave ? 'P (HD Leave)' : 'P2',
-                'label' => $hasHalfDayLeave ? 'present (half day)' : 'halfday',
-                'class' => $hasHalfDayLeave ? 'text-success' : 'text-warning'
+                'code' => ($hasHalfDayLeave || $shortLeaveHr > 0) ? 'P (HD/SL)' : 'P2',
+                'label' => ($hasHalfDayLeave || $shortLeaveHr > 0) ? 'present (partial leave)' : 'halfday',
+                'class' => ($hasHalfDayLeave || $shortLeaveHr > 0) ? 'text-success' : 'text-warning'
             ];
         } else {
             return [

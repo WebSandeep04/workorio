@@ -661,9 +661,19 @@ $(document).ready(function() {
                             `;
                         }
 
-                        if (item.status.toLowerCase() === 'absent' || item.status.toLowerCase() === 'absent by less hr') {
-                            statusBadge += `<br><button class="btn btn-xs btn-outline-info p-0 px-1 mt-1" style="font-size: 0.55rem;" onclick="openQuickLeave(${item.user_id})" title="Apply leave for this employee">Apply Leave</button>`;
-                            rowClass = 'bg-light-red';
+                        const isAlreadyPresent = item.status.toLowerCase().includes('present');
+                        const hasLeave = item.leave_details !== null && item.leave_details !== '';
+
+                        if ((item.status.toLowerCase() === 'absent' || item.status.toLowerCase() === 'absent by less hr' || item.is_early_out) && !hasLeave && !isAlreadyPresent) {
+                            let slParams = `${item.user_id}`;
+                            if (item.is_early_out) {
+                                slParams = `${item.user_id}, true, '${item.suggested_sl_start}', '${item.suggested_sl_end}'`;
+                            }
+                            statusBadge += `<br><button class="btn btn-xs btn-outline-info p-0 px-1 mt-1" style="font-size: 0.55rem;" onclick="openQuickLeave(${slParams})" title="Apply leave for this employee">Apply Leave</button>`;
+                            
+                            if (item.status.toLowerCase() === 'absent' || item.status.toLowerCase() === 'absent by less hr') {
+                                rowClass = 'bg-light-red';
+                            }
                         }
 
                         rows += `
@@ -806,12 +816,22 @@ $(document).ready(function() {
         });
     }
 
-    window.openQuickLeave = function(userId) {
+    window.openQuickLeave = function(userId, isEarlyOut = false, slStart = '', slEnd = '') {
         $('#ql_user_id').val(userId);
-        $('#ql_reason').val('');
+        $('#ql_reason').val(isEarlyOut ? 'Short leave for early departure' : '');
+        $('#ql_sl_start').val(slStart);
+        $('#ql_sl_end').val(slEnd);
+        
         $('#ql_leave_type').html('<option value="">Loading balances...</option>');
         $('#ql_category_container, #ql_hd_fields, #ql_sl_fields').hide();
         $('#ql_cat_full').prop('checked', true);
+        
+        if (isEarlyOut) {
+            // We can't automatically select SL yet because balances haven't loaded,
+            // but we can set the radio button for when the type is selected.
+            $('#ql_cat_short').prop('checked', true);
+        }
+
         $('#quickLeaveModal').modal('show');
 
         $.get("/attendance/leave-balances/" + userId, function(res) {

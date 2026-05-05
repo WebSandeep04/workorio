@@ -101,6 +101,9 @@ class AttendanceApprovalController extends Controller
             $hours = 0;
             $leaveDetails = null;
             $leaveIdForOverlap = null;
+            $isEarlyOut = false;
+            $suggestedSlStart = '';
+            $suggestedSlEnd = '';
 
             if ($attendance) {
                 $shift = $employee->shiftRelation;
@@ -117,8 +120,14 @@ class AttendanceApprovalController extends Controller
                 $isHoliday = \App\Models\Holiday::where('holiday_date', $date)->exists();
 
                 $hasHalfDayLeave = ($leave && $leave->is_half_day && in_array(strtolower($leave->status), ['approved', 'pending']));
+                $slHours = 0;
+                if ($leave && $leave->is_sl && $leave->start_time && $leave->end_time) {
+                    $slS = Carbon::parse($leave->start_time);
+                    $slE = Carbon::parse($leave->end_time);
+                    $slHours = $slS->diffInMinutes($slE) / 60;
+                }
 
-                $statusInfo = $this->reportService->determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, null, $hasHalfDayLeave);
+                $statusInfo = $this->reportService->determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, null, $hasHalfDayLeave, $slHours);
                 $status = $statusInfo['label'];
             }
 
@@ -136,23 +145,30 @@ class AttendanceApprovalController extends Controller
                     $hasOverlap = true;
                     
                     // For Half Day/SL, check if they actually overlapped with the leave period
-                    if ($leave->is_half_day && $firstMovement) {
+                    if ($firstMovement) {
                         $punchInTime = Carbon::parse($firstMovement->time)->setTimezone('Asia/Kolkata');
+                        $punchOutTime = $lastMovement ? Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata') : null;
                         $shift = $employee->shiftRelation;
-                        if ($shift) {
+
+                        if ($leave->is_half_day && $shift) {
                             $shiftStart = Carbon::parse($date . ' ' . $shift->start_time, 'Asia/Kolkata');
                             $shiftEnd = Carbon::parse($date . ' ' . $shift->end_time, 'Asia/Kolkata');
                             $midPoint = $shiftStart->copy()->addMinutes($shiftStart->diffInMinutes($shiftEnd) / 2);
                             
                             if ($leave->half_day_period === 'pre_lunch') {
-                                // If they punched in AFTER midpoint, they didn't overlap with pre-lunch leave
                                 if ($punchInTime->gte($midPoint)) $hasOverlap = false;
                             } else {
-                                // Post lunch: overlap if they worked into the afternoon
-                                if ($lastMovement) {
-                                    $punchOutTime = Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata');
-                                    if ($punchOutTime->lte($midPoint)) $hasOverlap = false;
-                                }
+                                if ($punchOutTime && $punchOutTime->lte($midPoint)) $hasOverlap = false;
+                            }
+                        } elseif ($leave->is_sl && $leave->start_time && $leave->end_time) {
+                            $slStart = Carbon::parse($date . ' ' . $leave->start_time, 'Asia/Kolkata');
+                            $slEnd = Carbon::parse($date . ' ' . $leave->end_time, 'Asia/Kolkata');
+                            
+                            // No overlap if:
+                            // 1. Worked entirely BEFORE the SL started
+                            // 2. Started work entirely AFTER the SL ended
+                            if (($punchOutTime && $punchOutTime->lte($slStart)) || ($punchInTime->gte($slEnd))) {
+                                $hasOverlap = false;
                             }
                         }
                     }
@@ -169,6 +185,21 @@ class AttendanceApprovalController extends Controller
                     $status = (strtolower($leave->status) === 'approved') ? 'On Leave' : 'Pending Leave';
                     $leaveDetails = $leaveType;
                     $leaveIdForOverlap = null;
+                }
+            }
+
+            // Detect Early Out for Short Leave option
+            if ($attendance && $shift && $shift->end_time && $lastMovement && $lastMovement->movement_action === 'out') {
+                $punchOut = Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata');
+                $shiftEnd = Carbon::parse($date . ' ' . $shift->end_time, 'Asia/Kolkata');
+                
+                $slLimitMin = $shift->sl_end_limit ?? 0;
+                $slThreshold = $shiftEnd->copy()->subMinutes($slLimitMin);
+                
+                if ($punchOut->lt($slThreshold)) {
+                    $isEarlyOut = true;
+                    $suggestedSlStart = $punchOut->format('H:i');
+                    $suggestedSlEnd = $shiftEnd->format('H:i');
                 }
             }
 
@@ -194,6 +225,9 @@ class AttendanceApprovalController extends Controller
                 'is_wfh' => $attendance ? $attendance->is_wfh : false,
                 'leave_details' => $leaveDetails,
                 'is_edited' => ($attendance && $attendance->editLogs()->exists()),
+                'is_early_out' => $isEarlyOut,
+                'suggested_sl_start' => $suggestedSlStart,
+                'suggested_sl_end' => $suggestedSlEnd,
                 'edit_history' => ($attendance && $attendance->editLogs()->exists()) ? $attendance->editLogs->map(function($log) {
                     return [
                         'by' => $log->editor->name,
