@@ -410,10 +410,50 @@
         <div class="modal-body p-3">
           <div class="mb-3">
             <label class="form-label small fw-bold">Select Leave Type</label>
-            <select class="form-select form-select-sm" name="leave_type_id" id="ql_leave_type" required>
+            <select class="form-select form-select-sm" name="leave_type_id" id="ql_leave_type" required onchange="toggleQuickLeaveCategory()">
                 <option value="">Loading balances...</option>
             </select>
           </div>
+          
+          <div class="mb-3" id="ql_category_container" style="display:none;">
+            <label class="form-label small fw-bold">Leave Category</label>
+            <div class="d-flex gap-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="leave_category" id="ql_cat_full" value="full" checked onchange="togglePartialDayFields()">
+                    <label class="form-check-label small" for="ql_cat_full">Full Day</label>
+                </div>
+                <div class="form-check" id="ql_hd_option">
+                    <input class="form-check-input" type="radio" name="leave_category" id="ql_cat_half" value="half" onchange="togglePartialDayFields()">
+                    <label class="form-check-label small" for="ql_cat_half">Half Day</label>
+                </div>
+                <div class="form-check" id="ql_sl_option">
+                    <input class="form-check-input" type="radio" name="leave_category" id="ql_cat_short" value="short" onchange="togglePartialDayFields()">
+                    <label class="form-check-label small" for="ql_cat_short">Short Leave</label>
+                </div>
+            </div>
+          </div>
+
+          <div id="ql_hd_fields" style="display:none;" class="mb-3">
+            <label class="form-label small fw-bold">Half Day Period</label>
+            <select class="form-select form-select-sm" name="half_day_period">
+                <option value="pre_lunch">Pre-Lunch</option>
+                <option value="post_lunch">Post-Lunch</option>
+            </select>
+          </div>
+
+          <div id="ql_sl_fields" style="display:none;" class="mb-3">
+            <div class="row g-2">
+                <div class="col-6">
+                    <label class="form-label small fw-bold">Start Time</label>
+                    <input type="time" class="form-control form-control-sm" name="start_time" id="ql_sl_start">
+                </div>
+                <div class="col-6">
+                    <label class="form-label small fw-bold">End Time</label>
+                    <input type="time" class="form-control form-control-sm" name="end_time" id="ql_sl_end">
+                </div>
+            </div>
+          </div>
+
           <div class="mb-1">
             <label class="form-label small fw-bold">Reason/Remarks <span class="text-danger">*</span></label>
             <textarea class="form-control form-control-sm" name="reason" id="ql_reason" rows="2" required placeholder="Reason for adjusting absence..."></textarea>
@@ -429,6 +469,47 @@
 </div>
 
 <div class="table-range-meta" id="attendanceRangeInfo" style="font-size:0.75rem; color:#6b7280; padding: 0.5rem 1rem;">Showing 0-0 of 0 entries</div>
+</div>
+
+<!-- Manual Attendance Modal -->
+<div class="modal fade" id="manualAttendanceModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-dark text-white p-2">
+        <h6 class="modal-title ms-2">Mark Manual Attendance</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="manualAttendanceForm">
+        <?php echo csrf_field(); ?>
+        <input type="hidden" id="ma_user_id" name="user_id">
+        <div class="modal-body p-3">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Punch In Time <span class="text-danger">*</span></label>
+            <input type="time" class="form-control form-control-sm" name="in_time" id="ma_in_time" required>
+          </div>
+          <div class="mb-3">
+            <label class="small fw-bold">Punch Out Time</label>
+            <input type="time" class="form-control form-control-sm" name="out_time" id="ma_out_time">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Movement Type</label>
+            <select class="form-select form-select-sm" name="movement_type" id="ma_movement_type">
+                <option value="office">Office</option>
+                <option value="field">Field</option>
+                <option value="wfh">WFH</option>
+            </select>
+          </div>
+          <div class="alert alert-warning p-2 mb-0" style="font-size: 0.65rem;">
+            <i class="bi bi-info-circle-fill me-1"></i> Marking attendance will automatically approve the record.
+          </div>
+        </div>
+        <div class="modal-footer p-2 d-flex justify-content-center border-0">
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-dark px-3">Mark Present</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <!-- Reject Attendance Modal -->
@@ -513,53 +594,75 @@ $(document).ready(function() {
                         let inEntry = `${getBadge(item.in_type)} ${item.in_time}`;
                         let outEntry = `${getBadge(item.out_type)} ${item.out_time}`;
 
+                        // Determine Status Badge based on Calculated Status
                         let statusBadge = '';
                         let actions = '';
                         let checkbox = '';
                         let rowClass = '';
 
-                        if (item.status === 'Pending') {
-                            statusBadge = `<span class="badge bg-warning text-dark" style="font-size: 0.7rem;">${item.status}</span>`;
-                            
-                            if (item.is_edited) {
-                                let logTitle = item.edit_history.map(h => `${h.at}: ${h.reason} (by ${h.by})`).join('\n');
-                                statusBadge += `<br><span class="text-primary" style="cursor:help; font-size:0.7rem;" title="${logTitle}"><i class="bi bi-info-circle-fill"></i> Adjusted</span>`;
-                            }
+                        const statusColors = {
+                            'present': 'bg-success',
+                            'halfday': 'bg-warning text-dark',
+                            'absent by less hr': 'bg-danger-soft text-danger border-danger',
+                            'absent': 'bg-danger-soft text-danger border-danger',
+                            'weekly off': 'bg-info text-white',
+                            'holiday': 'bg-info text-white',
+                            'leave': 'bg-info text-white',
+                            'short leave': 'bg-info text-white',
+                            'restricted holiday': 'bg-info text-white',
+                            'weekly off working': 'bg-success',
+                            'holiday working': 'bg-success'
+                        };
 
+                        let bgColor = statusColors[item.status.toLowerCase()] || 'bg-secondary';
+                        statusBadge = `<span class="badge ${bgColor}" style="font-size: 0.7rem; text-transform: capitalize;">${item.status}</span>`;
+                        
+                        if (item.hours > 0) {
+                            statusBadge += `<br><small class="text-muted fw-bold" style="font-size:0.65rem;">⏱️ ${item.hours} hrs</small>`;
+                        }
+
+                        // Add Overlap Warning
+                        if (item.leave_details) {
+                            statusBadge += `<br><small class="text-danger fw-bold" style="font-size:0.6rem;">⚠️ ${item.leave_details}</small>`;
+                            if (item.leave_id) {
+                                statusBadge += ` <button class="btn btn-xs btn-outline-danger p-0 px-1 ms-1" style="font-size: 0.55rem;" onclick="processEarlyReturn(${item.leave_id})" title="Curtail Leave & Mark as Early Return">Early Return</button>`;
+                            }
+                        }
+
+                        // Add Adjusted Info
+                        if (item.is_edited) {
+                            let logTitle = item.edit_history.map(h => `${h.at}: ${h.reason} (by ${h.by})`).join('\n');
+                            statusBadge += `<br><span class="text-primary" style="cursor:help; font-size:0.7rem;" title="${logTitle}"><i class="bi bi-info-circle-fill"></i> Adjusted</span>`;
+                        }
+
+                        // Always allow editing times if attendance exists
+                        if (item.id) {
                             actions = `
                                 <button class="btn-action text-primary ms-1" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}')">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                            `;
-                            if (item.leave_details) {
-                                statusBadge += `<br><small class="text-danger fw-bold" style="font-size:0.6rem;">⚠️ ${item.leave_details}</small>`;
-                                if (item.leave_id) {
-                                    statusBadge += ` <button class="btn btn-xs btn-outline-danger p-0 px-1 ms-1" style="font-size: 0.55rem;" onclick="processEarlyReturn(${item.leave_id})" title="Curtail Leave & Mark as Early Return">Early Return</button>`;
-                                }
-                            }
-                        } else if (item.status === 'Approved') {
-                            statusBadge = `<span class="badge bg-success" style="font-size: 0.7rem;">${item.status}</span>`;
-                            
-                            if (item.is_edited) {
-                                let logTitle = item.edit_history.map(h => `${h.at}: ${h.reason} (by ${h.by})`).join('\n');
-                                statusBadge += `<br><span class="text-primary" style="cursor:help; font-size:0.7rem;" title="${logTitle}"><i class="bi bi-info-circle-fill"></i> Adjusted</span>`;
-                            }
-
-                            actions = `
-                                <button class="btn-action text-primary" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}')">
-                                    <i class="bi bi-pencil"></i>
+                                <button class="btn-action text-danger ms-1" title="Void Attendance (Make Absent)" onclick="voidAttendance(${item.id})">
+                                    <i class="bi bi-trash"></i>
                                 </button>
-                                <i class="bi bi-check-circle-fill text-success ms-1" title="Approved"></i>
                             `;
-                        } else if (item.status === 'On Leave') {
-                            statusBadge = `<span class="badge bg-info text-white" style="font-size: 0.7rem;">${item.status}</span><br><small class="text-muted" style="font-size:0.6rem;">${item.leave_details || ''}</small>`;
-                        } else if (item.status === 'Pending Leave') {
-                            statusBadge = `<span class="badge bg-warning text-dark border-warning" style="font-size: 0.7rem;">${item.status}</span><br><small class="text-muted" style="font-size:0.6rem;">${item.leave_details || ''}</small>`;
-                        } else if (item.status === 'Rejected') {
-                            statusBadge = `<span class="badge bg-danger" style="font-size: 0.7rem;">${item.status}</span>`;
-                        } else if (item.status === 'Absent') {
-                            statusBadge = `<span class="badge bg-danger-soft text-danger border-danger" style="font-size: 0.7rem; background-color: #fff1f0;">${item.status}</span>`;
-                            statusBadge += `<br><button class="btn btn-xs btn-outline-info p-0 px-1 mt-1" style="font-size: 0.55rem;" onclick="openQuickLeave(${item.user_id})" title="Apply leave for this absence">Apply Leave</button>`;
+                            
+                            // Add a small indicator for approval status
+                            if (item.is_approved == 1) {
+                                actions += `<i class="bi bi-check-circle-fill text-success ms-1" title="Approved"></i>`;
+                            } else if (item.is_approved == 2) {
+                                actions += `<i class="bi bi-x-circle-fill text-danger ms-1" title="Rejected"></i>`;
+                            }
+                        } else {
+                            // No attendance yet, allow manual punch
+                            actions = `
+                                <button class="btn-action text-dark ms-1" title="Manual Punch In" onclick="openManualAttendance(${item.user_id}, '${item.shift_in}', '${item.shift_out}')">
+                                    <i class="bi bi-plus-circle"></i>
+                                </button>
+                            `;
+                        }
+
+                        if (item.status.toLowerCase() === 'absent' || item.status.toLowerCase() === 'absent by less hr') {
+                            statusBadge += `<br><button class="btn btn-xs btn-outline-info p-0 px-1 mt-1" style="font-size: 0.55rem;" onclick="openQuickLeave(${item.user_id})" title="Apply leave for this employee">Apply Leave</button>`;
                             rowClass = 'bg-light-red';
                         }
 
@@ -707,20 +810,60 @@ $(document).ready(function() {
         $('#ql_user_id').val(userId);
         $('#ql_reason').val('');
         $('#ql_leave_type').html('<option value="">Loading balances...</option>');
+        $('#ql_category_container, #ql_hd_fields, #ql_sl_fields').hide();
+        $('#ql_cat_full').prop('checked', true);
         $('#quickLeaveModal').modal('show');
 
         $.get("/attendance/leave-balances/" + userId, function(res) {
             if (res.success) {
                 let options = '<option value="">-- Select Type --</option>';
                 res.balances.forEach(b => {
-                    let disabled = b.remaining < 1 ? 'disabled' : '';
-                    options += `<option value="${b.type_id}" ${disabled}>${b.type_name} (${b.remaining} days left)</option>`;
+                    let disabled = b.remaining <= 0 ? 'disabled' : '';
+                    options += `<option value="${b.type_id}" ${disabled} 
+                        data-is-sl="${b.is_sl ? 1 : 0}" 
+                        data-allow-hd="${b.allow_hd ? 1 : 0}"
+                        data-rem="${b.remaining}">
+                        ${b.type_name} (${b.remaining} days left)
+                    </option>`;
                 });
                 $('#ql_leave_type').html(options);
             } else {
                 alert('Error loading balances');
             }
         });
+    }
+
+    window.toggleQuickLeaveCategory = function() {
+        const selected = $('#ql_leave_type option:selected');
+        const isSl = selected.data('is-sl') == 1;
+        const allowHd = selected.data('allow-hd') == 1;
+        
+        if (selected.val()) {
+            $('#ql_category_container').show();
+            if (isSl) $('#ql_sl_option').show(); else $('#ql_sl_option').hide();
+            if (allowHd) $('#ql_hd_option').show(); else $('#ql_hd_option').hide();
+            
+            // If currently selected category is hidden, reset to full
+            if ((isSl === false && $('#ql_cat_short').is(':checked')) || (allowHd === false && $('#ql_cat_half').is(':checked'))) {
+                $('#ql_cat_full').prop('checked', true);
+            }
+        } else {
+            $('#ql_category_container').hide();
+        }
+        togglePartialDayFields();
+    }
+
+    window.togglePartialDayFields = function() {
+        const cat = $('input[name="leave_category"]:checked').val();
+        $('#ql_hd_fields').toggle(cat === 'half');
+        $('#ql_sl_fields').toggle(cat === 'short');
+        
+        // Reset required state if needed (optional but good practice)
+        if (cat === 'short') {
+            $('#ql_sl_start, #ql_sl_end').attr('required', true);
+        } else {
+            $('#ql_sl_start, #ql_sl_end').removeAttr('required');
+        }
     }
 
     $('#quickLeaveForm').submit(function(e) {
@@ -748,6 +891,64 @@ $(document).ready(function() {
             error: function(xhr) {
                 submitBtn.text(originalText).prop('disabled', false);
                 let msg = xhr.responseJSON ? xhr.responseJSON.message : "Error applying leave.";
+                alert(msg);
+            }
+        });
+    });
+
+    window.openManualAttendance = function(userId, shiftIn = '', shiftOut = '') {
+        $('#ma_user_id').val(userId);
+        $('#ma_in_time').val(shiftIn);
+        $('#ma_out_time').val(shiftOut);
+        $('#manualAttendanceModal').modal('show');
+    }
+
+    window.voidAttendance = function(id) {
+        if (!confirm('Are you sure you want to VOID this attendance? All movements for this day will be deleted and the status will become ABSENT.')) return;
+
+        $.ajax({
+            url: "<?php echo e(route('attendance.void')); ?>",
+            type: 'POST',
+            data: { _token: "<?php echo e(csrf_token()); ?>", id: id },
+            success: function(response) {
+                if (response.success) {
+                    fetchAttendance(currentPage);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                let msg = xhr.responseJSON ? xhr.responseJSON.message : "Error voiding attendance.";
+                alert(msg);
+            }
+        });
+    }
+
+    $('#manualAttendanceForm').submit(function(e) {
+        e.preventDefault();
+        const date = $('#filterDate').val();
+        if (!date) return alert('Select date first.');
+
+        let submitBtn = $(this).find('button[type="submit"]');
+        let originalText = submitBtn.text();
+        submitBtn.text('Marking...').prop('disabled', true);
+
+        $.ajax({
+            url: "<?php echo e(route('attendance.mark-attendance')); ?>",
+            type: 'POST',
+            data: $(this).serialize() + '&date=' + date,
+            success: function(response) {
+                submitBtn.text(originalText).prop('disabled', false);
+                if (response.success) {
+                    $('#manualAttendanceModal').modal('hide');
+                    fetchAttendance(currentPage);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                submitBtn.text(originalText).prop('disabled', false);
+                let msg = xhr.responseJSON ? xhr.responseJSON.message : "Error marking attendance.";
                 alert(msg);
             }
         });

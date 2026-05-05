@@ -11,8 +11,17 @@ use App\Mail\AttendanceRejectedMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
+use App\Services\AttendanceReportService;
+
 class AttendanceApprovalController extends Controller
 {
+    protected $reportService;
+
+    public function __construct(AttendanceReportService $reportService)
+    {
+        $this->reportService = $reportService;
+    }
+
     public function index()
     {
         $users = User::orderBy('name')->get();
@@ -24,7 +33,7 @@ class AttendanceApprovalController extends Controller
         $date = $request->filled('date') ? $request->date : Carbon::today('Asia/Kolkata')->toDateString();
         
         // 1. Fetch Active Employees who have a login account (Excluding Admins with Role ID 1)
-        $empQuery = \App\Models\Employee::with('user')
+        $empQuery = \App\Models\Employee::with(['user', 'shiftRelation'])
             ->where('status', 'active')
             ->whereHas('user', function($q) {
                 $q->where('role_id', '!=', 1);
@@ -73,25 +82,44 @@ class AttendanceApprovalController extends Controller
             // Check Leave (Any type: Full, Half, or SL)
             $leave = \App\Models\LeaveRequest::with('leaveType')
                 ->where('user_id', $user->id)
-                ->where(function($q) {
-                    $q->whereRaw('LOWER(status) = ?', ['approved'])
-                      ->orWhereRaw('LOWER(status) = ?', ['pending']);
-                })
                 ->whereDate('start_date', '<=', $date)
                 ->whereDate('end_date', '>=', $date)
+                ->where(function($q) {
+                    $q->whereIn(DB::raw('LOWER(status)'), ['approved', 'pending']);
+                })
                 ->first();
+
+            $shift = $employee->shiftRelation;
+            $shiftIn = $shift ? Carbon::parse($shift->start_time)->format('H:i') : '';
+            $shiftOut = $shift ? Carbon::parse($shift->end_time)->format('H:i') : '';
 
             $firstMovement = $attendance ? $attendance->movements->sortBy('id')->first() : null;
             $lastMovement = $attendance ? $attendance->movements->sortByDesc('id')->first() : null;
 
-            // Determine Status and Display Badge
+            // Determine Calculated Status based on Hours
             $status = 'Absent';
+            $hours = 0;
             $leaveDetails = null;
+            $leaveIdForOverlap = null;
 
             if ($attendance) {
-                if ($attendance->is_approved == 1) $status = 'Approved';
-                elseif ($attendance->is_approved == 2) $status = 'Rejected';
-                else $status = 'Pending';
+                $shift = $employee->shiftRelation;
+                $hours = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
+                
+                [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
+                
+                // Check if it's a Weekly Off or Holiday
+                $dayName = Carbon::parse($date)->format('l');
+                $isWeeklyOff = false;
+                if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
+                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
+                }
+                $isHoliday = \App\Models\Holiday::where('holiday_date', $date)->exists();
+
+                $hasHalfDayLeave = ($leave && $leave->is_half_day && in_array(strtolower($leave->status), ['approved', 'pending']));
+
+                $statusInfo = $this->reportService->determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, null, $hasHalfDayLeave);
+                $status = $statusInfo['label'];
             }
 
             if ($leave) {
@@ -105,16 +133,48 @@ class AttendanceApprovalController extends Controller
                 
                 // If they punched in but also have leave (Overlap)
                 if ($attendance) {
-                    $leaveDetails = "Overlap with {$leaveType} (" . ucfirst($leave->status) . ")";
+                    $hasOverlap = true;
+                    
+                    // For Half Day/SL, check if they actually overlapped with the leave period
+                    if ($leave->is_half_day && $firstMovement) {
+                        $punchInTime = Carbon::parse($firstMovement->time)->setTimezone('Asia/Kolkata');
+                        $shift = $employee->shiftRelation;
+                        if ($shift) {
+                            $shiftStart = Carbon::parse($date . ' ' . $shift->start_time, 'Asia/Kolkata');
+                            $shiftEnd = Carbon::parse($date . ' ' . $shift->end_time, 'Asia/Kolkata');
+                            $midPoint = $shiftStart->copy()->addMinutes($shiftStart->diffInMinutes($shiftEnd) / 2);
+                            
+                            if ($leave->half_day_period === 'pre_lunch') {
+                                // If they punched in AFTER midpoint, they didn't overlap with pre-lunch leave
+                                if ($punchInTime->gte($midPoint)) $hasOverlap = false;
+                            } else {
+                                // Post lunch: overlap if they worked into the afternoon
+                                if ($lastMovement) {
+                                    $punchOutTime = Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata');
+                                    if ($punchOutTime->lte($midPoint)) $hasOverlap = false;
+                                }
+                            }
+                        }
+                    }
+
+                    if ($hasOverlap) {
+                        $leaveDetails = "Overlap with {$leaveType} (" . ucfirst($leave->status) . ")";
+                        $leaveIdForOverlap = $leave->id;
+                    } else {
+                        // Clean split: Leave in one half, Work in the other.
+                        $leaveDetails = $leaveType;
+                        $leaveIdForOverlap = null;
+                    }
                 } else {
                     $status = (strtolower($leave->status) === 'approved') ? 'On Leave' : 'Pending Leave';
                     $leaveDetails = $leaveType;
+                    $leaveIdForOverlap = null;
                 }
             }
 
             return [
                 'id' => $attendance ? $attendance->id : null,
-                'leave_id' => ($leave && $attendance) ? $leave->id : null, // Send leave ID only for overlap
+                'leave_id' => $leaveIdForOverlap, // Send leave ID only for actual overlap
                 'user_id' => $user->id,
                 'user_name' => $user->name,
                 'emp_id' => $employee->employee_code,
@@ -125,7 +185,11 @@ class AttendanceApprovalController extends Controller
                 'out_time' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata')->format('h:i A') : '-',
                 'out_time_raw' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata')->format('H:i') : '',
                 'out_type' => ($lastMovement && $lastMovement->id !== ($firstMovement ? $firstMovement->id : null)) ? $lastMovement->movement_type : null,
+                'shift_in' => $shiftIn,
+                'shift_out' => $shiftOut,
                 'status' => $status,
+                'hours' => round($hours, 2),
+                'is_approved' => $attendance ? $attendance->is_approved : 0,
                 'is_emergency' => $attendance ? $attendance->is_emergency : false,
                 'is_wfh' => $attendance ? $attendance->is_wfh : false,
                 'leave_details' => $leaveDetails,
@@ -384,6 +448,10 @@ class AttendanceApprovalController extends Controller
                 return [
                     'type_id' => $type->id,
                     'type_name' => $type->name,
+                    'is_sl' => (bool)$type->is_short_leave,
+                    'allow_hd' => (bool)$type->allow_half_day,
+                    'hd_weight' => (float)$type->half_day_weight,
+                    'fd_weight' => (float)$type->full_day_weight,
                     'remaining' => $latestLedger ? (float)$latestLedger->balance_after : 0
                 ];
             });
@@ -400,6 +468,10 @@ class AttendanceApprovalController extends Controller
             'user_id' => 'required|exists:users,id',
             'date' => 'required|date',
             'leave_type_id' => 'required|exists:leave_types,id',
+            'leave_category' => 'required|in:full,half,short',
+            'half_day_period' => 'nullable|required_if:leave_category,half|in:pre_lunch,post_lunch',
+            'start_time' => 'nullable|required_if:leave_category,short',
+            'end_time' => 'nullable|required_if:leave_category,short',
             'reason' => 'required|string|min:5'
         ]);
 
@@ -419,6 +491,17 @@ class AttendanceApprovalController extends Controller
             $userId = $request->user_id;
             $leaveTypeId = $request->leave_type_id;
             $date = $request->date;
+            $category = $request->leave_category;
+
+            $leaveType = \App\Models\LeaveType::findOrFail($leaveTypeId);
+            
+            // Calculate total days
+            $totalDays = (float)$leaveType->full_day_weight;
+            if ($category === 'half') {
+                $totalDays = (float)$leaveType->half_day_weight;
+            } elseif ($category === 'short') {
+                $totalDays = (float)$leaveType->full_day_weight; 
+            }
 
             // 1. Check Balance (Latest entry)
             $latestLedger = \App\Models\LeaveLedger::where('user_id', $userId)
@@ -428,17 +511,22 @@ class AttendanceApprovalController extends Controller
 
             $currentBalance = $latestLedger ? (float)$latestLedger->balance_after : 0;
 
-            if ($currentBalance < 1) {
-                return response()->json(['success' => false, 'message' => 'Insufficient leave balance.'], 422);
+            if ($currentBalance < $totalDays) {
+                return response()->json(['success' => false, 'message' => 'Insufficient leave balance. Required: ' . $totalDays], 422);
             }
 
             // 2. Create Leave Request
             $leave = \App\Models\LeaveRequest::create([
                 'user_id' => $userId,
                 'leave_type_id' => $leaveTypeId,
+                'is_sl' => $category === 'short',
+                'is_half_day' => $category === 'half',
+                'half_day_period' => $category === 'half' ? $request->half_day_period : null,
+                'start_time' => $category === 'short' ? $request->start_time : null,
+                'end_time' => $category === 'short' ? $request->end_time : null,
                 'start_date' => $date,
                 'end_date' => $date,
-                'total_days' => 1,
+                'total_days' => $totalDays,
                 'status' => 'approved',
                 'reason' => $request->reason,
                 'approved_by' => $editorId
@@ -449,11 +537,11 @@ class AttendanceApprovalController extends Controller
                 'user_id' => $userId,
                 'leave_type_id' => $leaveTypeId,
                 'transaction_type' => 'debit',
-                'amount' => 1,
-                'balance_after' => $currentBalance - 1,
+                'amount' => $totalDays,
+                'balance_after' => $currentBalance - $totalDays,
                 'reference_type' => 'App\Models\LeaveRequest',
                 'reference_id' => $leave->id,
-                'remarks' => "Absence adjusted: " . $request->reason
+                'remarks' => "Absence adjusted (" . ucfirst($category) . "): " . $request->reason
             ]);
 
             DB::commit();
@@ -517,6 +605,30 @@ class AttendanceApprovalController extends Controller
             return response()->json(['success' => true, 'message' => 'Attendance marked successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error marking attendance: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function voidAttendance(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:attendance,id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+            $attendance = Attendance::findOrFail($request->id);
+            
+            // Delete all movements
+            $attendance->movements()->delete();
+            
+            // Delete the attendance record itself
+            $attendance->delete();
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Attendance voided successfully. Row is now Absent.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 }

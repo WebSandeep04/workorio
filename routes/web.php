@@ -834,7 +834,8 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Attendance Approval
     Route::get('/attendance/approval', [AttendanceApprovalController::class, 'index'])->name('attendance.approval');
     Route::get('/attendance/approval/fetch', [AttendanceApprovalController::class, 'fetch'])->name('attendance.approval.fetch');
-    Route::post('/attendance/mark', [AttendanceApprovalController::class, 'markAttendance'])->name('attendance.mark');
+    Route::post('/attendance/mark', [AttendanceApprovalController::class, 'markAttendance'])->name('attendance.mark-attendance');
+    Route::post('/attendance/void', [AttendanceApprovalController::class, 'voidAttendance'])->name('attendance.void');
     Route::post('/attendance/approve/{id}', [AttendanceApprovalController::class, 'approve'])->name('attendance.approve');
     Route::post('/attendance/reject/{id}', [AttendanceApprovalController::class, 'reject'])->name('attendance.reject');
     Route::post('/attendance/approve-bulk', [AttendanceApprovalController::class, 'bulkApprove'])->name('attendance.approve-bulk');

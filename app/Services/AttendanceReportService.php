@@ -90,7 +90,7 @@ class AttendanceReportService
             
             if ($shift->start_time) {
                 $shiftStartTime = Carbon::parse($shift->start_time)->format('H:i:s');
-                $startLimit = Carbon::parse($shiftDate . ' ' . $shiftStartTime, 'UTC')->setTimezone('Asia/Kolkata');
+                $startLimit = Carbon::parse($shiftDate . ' ' . $shiftStartTime, 'Asia/Kolkata');
                 if ($firstPunchIn->lt($startLimit)) {
                     $firstPunchIn = $startLimit;
                 }
@@ -98,7 +98,7 @@ class AttendanceReportService
             
             if ($shift->end_time) {
                 $shiftEndTime = Carbon::parse($shift->end_time)->format('H:i:s');
-                $endLimit = Carbon::parse($shiftDate . ' ' . $shiftEndTime, 'UTC')->setTimezone('Asia/Kolkata');
+                $endLimit = Carbon::parse($shiftDate . ' ' . $shiftEndTime, 'Asia/Kolkata');
                 
                 if ($shift->extended_hr > 0) {
                     $endLimit->addMinutes((int)($shift->extended_hr * 60));
@@ -166,7 +166,7 @@ class AttendanceReportService
     /**
      * Determine status label and class
      */
-    public function determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null)
+    public function determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false)
     {
         if ($isWeeklyOff) {
             return [
@@ -206,11 +206,11 @@ class AttendanceReportService
                 'label' => 'present',
                 'class' => 'text-success'
             ];
-        } elseif ($hours >= $halfDayHr) {
+        } elseif ($hours >= $halfDayHr || ($hasHalfDayLeave && $hours > 0)) {
             return [
-                'code' => 'P2',
-                'label' => 'halfday',
-                'class' => 'text-warning'
+                'code' => $hasHalfDayLeave ? 'P (HD Leave)' : 'P2',
+                'label' => $hasHalfDayLeave ? 'present (half day)' : 'halfday',
+                'class' => $hasHalfDayLeave ? 'text-success' : 'text-warning'
             ];
         } else {
             return [
