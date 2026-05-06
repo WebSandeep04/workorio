@@ -66,6 +66,7 @@ class SendNightAttendanceMail extends Command
             
             // Get users (excluding admins, per the PHP code: role_id != 1 AND e.status = 'active')
             $users = User::where('role_id', '!=', 1)
+                ->where('is_attendance', 1)
                 ->whereHas('employee', function ($q) {
                     $q->where('status', 'active');
                 })
@@ -175,11 +176,12 @@ class SendNightAttendanceMail extends Command
 
             // Who gets the email? "Send to all users including admin - filter valid emails"
             // where e.status = 'active'
-            $recipientEmails = User::whereHas('employee', function ($q) {
-                $q->where('status', 'active');
-            })->whereNotNull('email')->pluck('email')->filter(function ($email) {
-                return filter_var($email, FILTER_VALIDATE_EMAIL);
-            })->toArray();
+            $recipientEmails = User::where('is_attendance', 1)
+                ->whereHas('employee', function ($q) {
+                    $q->where('status', 'active');
+                })->whereNotNull('email')->pluck('email')->filter(function ($email) {
+                    return filter_var($email, FILTER_VALIDATE_EMAIL);
+                })->toArray();
 
             if (empty($recipientEmails)) {
                 $this->info("  No valid emails to send the report to in {$tenant->tenant_name}");

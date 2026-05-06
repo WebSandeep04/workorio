@@ -68,6 +68,7 @@ class SendMorningAttendanceMail extends Command
             // And data excludes role 1 
             // So we'll fetch data for all users mapped to an active employee where role_id != 1
             $users = User::where('role_id', '!=', 1)
+                ->where('is_attendance', 1)
                 ->whereHas('employee', function ($q) {
                     $q->where('status', 'active');
                 })
@@ -111,11 +112,12 @@ class SendMorningAttendanceMail extends Command
             }
 
             // Who gets the email? "Send to all active users - filter valid emails"
-            $recipientEmails = User::whereHas('employee', function ($q) {
-                $q->where('status', 'active');
-            })->whereNotNull('email')->pluck('email')->filter(function ($email) {
-                return filter_var($email, FILTER_VALIDATE_EMAIL);
-            })->toArray();
+            $recipientEmails = User::where('is_attendance', 1)
+                ->whereHas('employee', function ($q) {
+                    $q->where('status', 'active');
+                })->whereNotNull('email')->pluck('email')->filter(function ($email) {
+                    return filter_var($email, FILTER_VALIDATE_EMAIL);
+                })->toArray();
 
             if (empty($recipientEmails)) {
                 $this->info("  No valid emails to send the report to in {$tenant->tenant_name}");
