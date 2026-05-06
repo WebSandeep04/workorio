@@ -354,7 +354,7 @@ function renderTable() {
                 <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>
                 <td>${reasonHtml}</td>
                 <td class="text-center">
-                    <button class="btn-action text-info" title="User History" onclick="viewUserHistory(${leave.user_id}, '${escapeHtml(leave.user ? leave.user.name : '')}')"><i class="bi bi-clock-history"></i></button>
+                    <button class="btn-action" style="color: #434AFA;" title="User History" onclick="viewUserHistory(${leave.user_id}, '${escapeHtml(leave.user ? leave.user.name : '')}')"><i class="bi bi-clock-history"></i></button>
                     ${leave.status === 'pending' ? `
                     <button class="btn-action text-success" title="Approve" onclick="performAction(${leave.id}, 'approve')"><i class="bi bi-check-lg"></i></button>
                     <button class="btn-action text-danger" title="Reject" onclick="performAction(${leave.id}, 'reject')"><i class="bi bi-x-lg"></i></button>

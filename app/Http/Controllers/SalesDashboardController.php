@@ -606,7 +606,7 @@ public function calendarSummary(Request $request)
     {
         $due = 0;
         $count = 0;
-        $list = [];
+        $list = collect([]);
 
         if (Schema::hasTable('invoices')) {
             $query = DB::table('invoices')->where('status', '!=', 'paid');
@@ -632,34 +632,76 @@ public function calendarSummary(Request $request)
             }
             $totalPaid = $totalPaid ? $totalPaid->sum('if.amount_paid') : 0;
             
-            $due = $totalAmount - $totalPaid;
-            $count = (clone $query)->count();
+            $due += $totalAmount - $totalPaid;
+            $count += (clone $query)->count();
 
             $listQuery = DB::table('invoices as i')
                 ->leftJoin('sales_records as sr', 'i.sales_record_id', '=', 'sr.id')
                 ->where('i.status', '!=', 'paid');
 
             if ($request->get('team') == 1) {
+                $userId = $this->getCurrentUserId();
+                $subordinateIds = $this->getSubordinateIds($userId);
                 $listQuery->whereIn('i.sales_record_id', function($q) use ($subordinateIds) {
                     $q->select('id')->from('sales_records')->whereIn('user_id', $subordinateIds);
                 });
             }
 
-            $list = $listQuery->select('i.*', 'sr.leads_name as customer_name')
+            $invList = $listQuery->select('i.*', 'sr.leads_name as customer_name')
                 ->orderBy('i.due_date', 'asc')
                 ->limit(5)
                 ->get();
             
-            foreach ($list as $item) {
+            foreach ($invList as $item) {
                 $item->paid = Schema::hasTable('invoice_followups') ? DB::table('invoice_followups')->where('invoice_id', $item->id)->sum('amount_paid') : 0;
                 $item->remaining = $item->amount - $item->paid;
+                $item->source_type = 'invoice';
+                $list->push($item);
             }
         }
+
+        if (Schema::hasTable('subscription_histories')) {
+            $subQuery = DB::table('subscription_histories')->where('status', 'Invoice/PI Sent');
+            
+            if ($request->get('team') == 1) {
+                $userId = $this->getCurrentUserId();
+                $subordinateIds = $this->getSubordinateIds($userId);
+                $subQuery->whereIn('user_id', $subordinateIds);
+            }
+            
+            $due += (clone $subQuery)->sum('amount');
+            $count += (clone $subQuery)->count();
+            
+            $subListQuery = DB::table('subscription_histories as sh')
+                ->join('subscriptions as s', 's.id', '=', 'sh.subscription_id')
+                ->join('customers as c', 'c.id', '=', 's.customer_id')
+                ->where('sh.status', 'Invoice/PI Sent');
+                
+            if ($request->get('team') == 1) {
+                $userId = $this->getCurrentUserId();
+                $subordinateIds = $this->getSubordinateIds($userId);
+                $subListQuery->whereIn('sh.user_id', $subordinateIds);
+            }
+
+            $subList = $subListQuery->select('sh.id', 'sh.due_date', 'sh.amount', 'c.name as customer_name')
+                ->orderBy('sh.due_date', 'asc')
+                ->limit(5)
+                ->get();
+                
+            foreach ($subList as $item) {
+                $item->paid = 0;
+                $item->remaining = $item->amount;
+                $item->source_type = 'subscription';
+                $list->push($item);
+            }
+        }
+
+        $finalList = $list->sortBy('due_date')->take(5)->values()->all();
 
         return response()->json([
             'total_due' => $due,
             'count' => $count,
-            'list' => $list
+            'list' => $finalList
         ]);
     }
 
@@ -959,7 +1001,7 @@ public function calendarSummary(Request $request)
             $query = DB::table('leave_requests as lr')
                 ->join('users as u', 'u.id', '=', 'lr.user_id')
                 ->join('leave_types as lt', 'lt.id', '=', 'lr.leave_type_id')
-                ->whereIn('lr.status', ['approved', 'pending'])
+                ->where('lr.status', 'approved')
                 ->whereDate('lr.start_date', '>=', $today);
 
             if (Schema::hasTable('employees') && Schema::hasColumn('employees', 'user_id')) {

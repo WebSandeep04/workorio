@@ -891,8 +891,12 @@ function renderPayments(list) {
     let html = '';
     list.forEach(p => {
         const due = new Date(p.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        const badgeColor = p.source_type === 'subscription' ? 'background:#dbeafe;color:#1e3a8a;' : 'background:#f3e8ff;color:#6b21a8;';
+        const badgeText = p.source_type === 'subscription' ? 'Subscription' : 'Invoice';
+        const badgeHtml = `<span style="font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; padding:2px 6px; border-radius:4px; margin-left:6px; vertical-align:middle; ${badgeColor}">${badgeText}</span>`;
+        
         html += `<div class="pdi">
-            <div class="pdi-top"><div><div class="pdi-nm">${p.customer_name || 'Customer'}</div><div class="pdi-due">Due ${due}</div></div><div class="pdi-amt">₹${p.remaining.toLocaleString()}</div></div>
+            <div class="pdi-top"><div><div class="pdi-nm" style="display:flex;align-items:center;">${p.customer_name || 'Customer'} ${badgeHtml}</div><div class="pdi-due">Due ${due}</div></div><div class="pdi-amt">₹${Number(p.remaining).toLocaleString()}</div></div>
         </div>`;
     });
     cont.innerHTML = html;
