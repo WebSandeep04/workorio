@@ -1373,7 +1373,7 @@ class AttendanceController extends Controller
 
                 $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                 $hasHalfDayLeave = ($leaveType === 'HD');
-                $statusInfo = $this->reportService->determineStatus($dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours);
+                $statusInfo = $this->reportService->determineStatus($date, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours);
                 $dayData['status'] = $statusInfo['label'];
 
                 $descriptions = $attendance->movements
@@ -1739,7 +1739,7 @@ class AttendanceController extends Controller
                     $leaveType = $userLeavesDetails[$dateStr] ?? null;
                     $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                     $hasHalfDayLeave = ($leaveType === 'HD');
-                    $statusInfo = $this->reportService->determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours);
+                    $statusInfo = $this->reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours);
                     
                     $statusCode = $statusInfo['code'];
                     $statusClass = $statusInfo['class'];

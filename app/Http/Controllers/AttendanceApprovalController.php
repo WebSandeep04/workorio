@@ -6,20 +6,24 @@ use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\User;
 use App\Models\Movement;
+use App\Models\Holiday;
+use App\Models\LeaveType;
+use App\Services\LeaveBalanceService;
 use Carbon\Carbon;
 use App\Mail\AttendanceRejectedMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-
 use App\Services\AttendanceReportService;
 
 class AttendanceApprovalController extends Controller
 {
     protected $reportService;
+    protected $leaveBalanceService;
 
-    public function __construct(AttendanceReportService $reportService)
+    public function __construct(AttendanceReportService $reportService, LeaveBalanceService $leaveBalanceService)
     {
         $this->reportService = $reportService;
+        $this->leaveBalanceService = $leaveBalanceService;
     }
 
     public function index()
@@ -128,7 +132,7 @@ class AttendanceApprovalController extends Controller
                 }
 
                 $lType = ($leave && $leave->is_sl) ? 'SL' : null;
-                $statusInfo = $this->reportService->determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $lType, $hasHalfDayLeave, $slHours);
+                $statusInfo = $this->reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $lType, $hasHalfDayLeave, $slHours);
                 $status = $statusInfo['label'];
             }
 
@@ -272,6 +276,9 @@ class AttendanceApprovalController extends Controller
             $attendance->is_approved = 1;
             $attendance->save();
             
+            // Grant 1 credit if it's a Weekly Off or Holiday and they are present
+            $this->creditHolidayWorking($attendance);
+            
             return response()->json(['success' => true, 'message' => 'Attendance approved successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error approving attendance: ' . $e->getMessage()], 500);
@@ -317,7 +324,7 @@ class AttendanceApprovalController extends Controller
         ]);
 
         try {
-            $attendances = Attendance::with('user')->whereIn('id', $request->ids)->get();
+            $attendances = Attendance::with(['user.employee.shiftRelation', 'movements'])->whereIn('id', $request->ids)->get();
             
             foreach ($attendances as $attendance) {
                 // Check if any previous date for this user is pending AND NOT in the list being approved
@@ -336,9 +343,13 @@ class AttendanceApprovalController extends Controller
                 }
             }
 
-            Attendance::whereIn('id', $request->ids)->update([
-                'is_approved' => 1
-            ]);
+            foreach ($attendances as $attendance) {
+                $attendance->is_approved = 1;
+                $attendance->save();
+                
+                // Grant 1 credit if it's a Weekly Off or Holiday and they are present
+                $this->creditHolidayWorking($attendance);
+            }
             return response()->json(['success' => true, 'message' => 'Selected records approved successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error approving records: ' . $e->getMessage()], 500);
@@ -354,37 +365,42 @@ class AttendanceApprovalController extends Controller
         $date = $request->date;
 
         try {
-            // Find all pending records for this date
-            $pendingAttendances = Attendance::with('user')
+            // Find all records for this date to ensure credits are processed
+            $attendances = Attendance::with(['user.employee.shiftRelation', 'movements'])
                 ->whereDate('date', $date)
-                ->where('is_approved', 0)
                 ->get();
 
-            if ($pendingAttendances->isEmpty()) {
-                return response()->json(['success' => false, 'message' => 'No pending records to post for this date.'], 422);
+            if ($attendances->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'No attendance records found for this date.'], 422);
             }
 
             DB::beginTransaction();
 
-            foreach ($pendingAttendances as $attendance) {
-                // Restriction: Check for previous pending records for each user
-                $hasPreviousPending = Attendance::where('user_id', $attendance->user_id)
-                    ->where('date', '<', $attendance->date)
-                    ->where('is_approved', 0)
-                    ->exists();
+            foreach ($attendances as $attendance) {
+                // Only handle approval logic for pending records
+                if ($attendance->is_approved == 0) {
+                    $hasPreviousPending = Attendance::where('user_id', $attendance->user_id)
+                        ->where('date', '<', $attendance->date)
+                        ->where('is_approved', 0)
+                        ->exists();
 
-                if ($hasPreviousPending) {
-                    DB::rollBack();
-                    $dateStr = Carbon::parse($attendance->date)->format('d M Y');
-                    return response()->json([
-                        'success' => false, 
-                        'message' => "Cannot post. User '{$attendance->user->name}' has pending attendance from a date before {$dateStr}. Please resolve previous dates first."
-                    ], 422);
+                    if ($hasPreviousPending) {
+                        DB::rollBack();
+                        $dateStr = Carbon::parse($attendance->date)->format('d M Y');
+                        return response()->json([
+                            'success' => false, 
+                            'message' => "Cannot post. User '{$attendance->user->name}' has pending attendance from a date before {$dateStr}. Please resolve previous dates first."
+                        ], 422);
+                    }
+
+                    // Approve the record
+                    $attendance->is_approved = 1;
+                    $attendance->save();
                 }
 
-                // Approve the record
-                $attendance->is_approved = 1;
-                $attendance->save();
+                // Grant 1 credit if it's a Weekly Off or Holiday and they are present
+                // (Already credited records are skipped inside this method)
+                $this->creditHolidayWorking($attendance);
             }
 
             DB::commit();
@@ -637,6 +653,9 @@ class AttendanceApprovalController extends Controller
                 ]);
             }
 
+            // Grant 1 credit if it's a Weekly Off or Holiday and they are present
+            $this->creditHolidayWorking($attendance->fresh(['user.employee.shiftRelation', 'movements']));
+
             return response()->json(['success' => true, 'message' => 'Attendance marked successfully']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error marking attendance: ' . $e->getMessage()], 500);
@@ -665,5 +684,96 @@ class AttendanceApprovalController extends Controller
             DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
+    }
+
+    private function creditHolidayWorking($attendance)
+    {
+        $date = $attendance->date;
+        $user = $attendance->user;
+        
+        \Log::info("--- Starting creditHolidayWorking for {$user->name} on {$date} ---");
+
+        // Ensure user and employee relation exists
+        if (!$user || !$user->employee) {
+            \Log::info("User or Employee relation missing for attendance ID: {$attendance->id}");
+            return;
+        }
+
+        $employee = $user->employee;
+        $shift = $employee->shiftRelation;
+
+        // 1. Determine if it's a weekly off or holiday
+        $isHoliday = Holiday::where('holiday_date', $date)->exists();
+        
+        $dayName = Carbon::parse($date)->format('l');
+        $isWeeklyOff = false;
+        if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
+            $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
+        }
+
+        \Log::info("Holiday Check: " . ($isHoliday ? 'YES' : 'NO') . " | Weekly Off Check: " . ($isWeeklyOff ? 'YES' : 'NO'));
+
+        if ($isHoliday || $isWeeklyOff) {
+            // 2. Check if they are present (worked any hours)
+            $hours = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
+            \Log::info("Hours worked on this day: " . $hours);
+            
+            if ($hours > 0) {
+                // 3. Find the leave type for "Holiday Working" or "Compensatory Off"
+                $leaveType = LeaveType::where('name', 'like', '%Holiday Working%')
+                    ->orWhere('name', 'like', '%Compensatory%')
+                    ->orWhere('name', 'like', '%Comp Off%')
+                    ->orWhere('name', 'like', '%Comp-Off%')
+                    ->orWhere('name', 'like', '%C.Off%')
+                    ->orWhere('name', 'like', '%C-OFF%')
+                    ->first();
+
+                if (!$leaveType) {
+                    \Log::info("No matching Leave Type found. Creating 'Holiday Working' leave type...");
+                    $leaveType = LeaveType::create([
+                        'name' => 'Holiday Working',
+                        'is_paid' => true,
+                        'is_deductible' => false,
+                        'full_day_weight' => 1.0,
+                        'half_day_weight' => 1.0,
+                        'allow_half_day' => false,
+                        'color_code' => '#1cc88a',
+                        'status' => true,
+                        'description' => 'Automatically created for holiday/weekly off working credits.'
+                    ]);
+                    \Log::info("Created Leave Type: " . $leaveType->name . " (ID: " . $leaveType->id . ")");
+                }
+
+                if ($leaveType) {
+                    \Log::info("Target Leave Type: " . $leaveType->name . " (ID: " . $leaveType->id . ")");
+                    
+                    // Check if already credited for this reference to avoid duplicates
+                    $exists = \App\Models\LeaveLedger::where('user_id', $user->id)
+                        ->where('leave_type_id', $leaveType->id)
+                        ->where('reference_type', get_class($attendance))
+                        ->where('reference_id', $attendance->id)
+                        ->exists();
+
+                    if (!$exists) {
+                        \Log::info("No previous credit found. Proceeding to grant 1.0 credit.");
+                        $this->leaveBalanceService->creditLeave(
+                            $user->id,
+                            $leaveType->id,
+                            1.0,
+                            $attendance,
+                            "Auto-credit for working on " . ($isHoliday ? "Holiday" : "Weekly Off") . " (" . Carbon::parse($date)->format('d M Y') . ")"
+                        );
+                        \Log::info("Credit granted successfully.");
+                    } else {
+                        \Log::info("Credit ALREADY exists for this attendance record. Skipping.");
+                    }
+                }
+            } else {
+                \Log::info("Skipping credit: Worked hours is 0.");
+            }
+        } else {
+            \Log::info("Skipping credit: Not a Holiday or Weekly Off.");
+        }
+        \Log::info("--- Finished creditHolidayWorking for {$user->name} ---");
     }
 }

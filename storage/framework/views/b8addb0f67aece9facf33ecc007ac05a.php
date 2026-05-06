@@ -602,6 +602,9 @@ $(document).ready(function() {
 
                         const statusColors = {
                             'present': 'bg-success',
+                            'present with sl': 'bg-success',
+                            'present with hd': 'bg-success',
+                            'present (partial leave)': 'bg-success',
                             'halfday': 'bg-warning text-dark',
                             'absent by less hr': 'bg-danger-soft text-danger border-danger',
                             'absent': 'bg-danger-soft text-danger border-danger',
@@ -976,13 +979,18 @@ $(document).ready(function() {
 
     window.postDailyAttendance = function() {
         const date = $('#filterDate').val();
+        console.log("Post Daily Attendance triggered for date:", date);
         if (!date) return alert('Please select a date.');
 
-        if (!confirm(`Are you sure you want to Post all pending attendance for ${date}? This action cannot be undone.`)) return;
+        if (!confirm(`Are you sure you want to Post all pending attendance for ${date}? This action cannot be undone.`)) {
+            console.log("Posting cancelled by user.");
+            return;
+        }
 
         const btn = $('#btnPostDaily');
         const originalText = btn.html();
         btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Posting...');
+        console.log("Sending AJAX request to post daily attendance...");
 
         $.ajax({
             url: "<?php echo e(route('attendance.post-daily')); ?>",
@@ -992,6 +1000,7 @@ $(document).ready(function() {
                 date: date
             },
             success: function(response) {
+                console.log("Post Daily Attendance Response:", response);
                 btn.prop('disabled', false).html(originalText);
                 if (response.success) {
                     alert(response.message);
@@ -1001,6 +1010,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
+                console.error("Post Daily Attendance AJAX Error:", xhr);
                 btn.prop('disabled', false).html(originalText);
                 let msg = 'Error posting attendance';
                 if (xhr.responseJSON && xhr.responseJSON.message) {

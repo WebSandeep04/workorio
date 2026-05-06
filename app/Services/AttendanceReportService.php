@@ -166,16 +166,17 @@ class AttendanceReportService
     /**
      * Determine status label and class
      */
-    public function determineStatus($hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false, $shortLeaveHr = 0)
+    public function determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false, $shortLeaveHr = 0)
     {
         // For SL, we add the sl duration to worked hours
         // For Half Day Leave, we assume it covers half the required hours
         $effectiveHours = $hours + $shortLeaveHr + ($hasHalfDayLeave ? $halfDayHr : 0);
 
         if ($isWeeklyOff) {
+            $dayName = Carbon::parse($date)->format('l');
             return [
                 'code' => $hours > 0 ? 'W/O-W' : 'W/O',
-                'label' => $hours > 0 ? 'sunday working' : 'sunday',
+                'label' => $hours > 0 ? "$dayName Working" : strtolower($dayName),
                 'class' => $hours > 0 ? 'text-success' : 'text-secondary'
             ];
         }
