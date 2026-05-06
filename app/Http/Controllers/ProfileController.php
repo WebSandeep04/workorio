@@ -237,6 +237,43 @@ class ProfileController extends Controller
         return response()->file($path);
     }
 
+    public function showChangePasswordForm()
+    {
+        $user = $this->getAuthenticatedUser();
+        if (!$user) {
+             return redirect()->route('login');
+        }
+        return view('profile.change-password');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $user = $this->getAuthenticatedUser();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
+        }
+
+        $validated = $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The current password you entered is incorrect.'
+            ], 422);
+        }
+
+        $user->password = bcrypt($request->new_password);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Your password has been updated successfully.'
+        ]);
+    }
+
     private function getAuthenticatedUser()
     {
         if (Auth::check()) {

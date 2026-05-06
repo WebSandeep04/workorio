@@ -520,6 +520,8 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('profile.change-password');
+    Route::post('/profile/change-password', [ProfileController::class, 'changePassword'])->name('profile.change-password.post');
     Route::post('/profile/documents', [ProfileController::class, 'storeDocument'])->name('profile.documents.store');
     Route::delete('/profile/documents/{document}', [ProfileController::class, 'destroyDocument'])->name('profile.documents.destroy');
     Route::get('/profile/picture/{id}', [ProfileController::class, 'getProfilePicture'])->name('profile.picture');

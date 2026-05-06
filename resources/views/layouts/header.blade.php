@@ -79,6 +79,11 @@
                         <i class="bi bi-person me-2 text-primary"></i> My Profile
                     </a>
                 </li>
+                <li>
+                    <a class="dropdown-item py-2" href="{{ route('profile.change-password') }}">
+                        <i class="bi bi-shield-lock me-2 text-primary"></i> Change Password
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
