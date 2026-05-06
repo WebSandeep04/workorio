@@ -548,9 +548,7 @@
                         <input class="form-check-input" type="checkbox" id="edit_is_task" name="is_task">
                         <label class="form-check-label" for="edit_is_task">Task Access</label>
                     </div>
-                </div>
-                <div class="col-md-6">
-                     <div class="form-check mb-2">
+                    <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="edit_is_indiaMart" name="is_indiaMart">
                         <label class="form-check-label" for="edit_is_indiaMart">IndiaMart Access</label>
                     </div>
@@ -558,6 +556,8 @@
                         <input class="form-check-input" type="checkbox" id="edit_is_calander" name="is_calander">
                         <label class="form-check-label" for="edit_is_calander">Calendar Access</label>
                     </div>
+                </div>
+                <div class="col-md-6">
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="edit_is_login" name="is_login">
                         <label class="form-check-label" for="edit_is_login">Login Enabled</label>
@@ -565,6 +565,14 @@
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="edit_is_attendance" name="is_attendance">
                         <label class="form-check-label" for="edit_is_attendance">Attendance Access</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="edit_is_subscription" name="is_subscription">
+                        <label class="form-check-label" for="edit_is_subscription">Subscription Access</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="edit_is_tally_calling" name="is_tally_calling">
+                        <label class="form-check-label" for="edit_is_tally_calling">Tally Calling Access</label>
                     </div>
                 </div>
             </div>
@@ -631,7 +639,7 @@
                 <div class="col-md-12">
                      <label class="form-label-modern mb-3">Permissions</label>
                 </div>
-                 <div class="col-md-6">
+                <div class="col-md-6">
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="create_is_worklog" name="is_worklog">
                         <label class="form-check-label" for="create_is_worklog">Worklog Access</label>
@@ -644,9 +652,7 @@
                         <input class="form-check-input" type="checkbox" id="create_is_task" name="is_task">
                         <label class="form-check-label" for="create_is_task">Task Access</label>
                     </div>
-                </div>
-                <div class="col-md-6">
-                     <div class="form-check mb-2">
+                    <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="create_is_indiaMart" name="is_indiaMart">
                         <label class="form-check-label" for="create_is_indiaMart">IndiaMart Access</label>
                     </div>
@@ -654,6 +660,8 @@
                         <input class="form-check-input" type="checkbox" id="create_is_calander" name="is_calander">
                         <label class="form-check-label" for="create_is_calander">Calendar Access</label>
                     </div>
+                </div>
+                <div class="col-md-6">
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="create_is_login" name="is_login" checked>
                         <label class="form-check-label" for="create_is_login">Login Enabled</label>
@@ -661,6 +669,14 @@
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="create_is_attendance" name="is_attendance">
                         <label class="form-check-label" for="create_is_attendance">Attendance Access</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="create_is_subscription" name="is_subscription">
+                        <label class="form-check-label" for="create_is_subscription">Subscription Access</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="create_is_tally_calling" name="is_tally_calling">
+                        <label class="form-check-label" for="create_is_tally_calling">Tally Calling Access</label>
                     </div>
                 </div>
             </div>
@@ -965,6 +981,8 @@ function openEditModal(user) {
   $('#edit_is_calander').prop('checked', user.is_calander == 1);
   $('#edit_is_login').prop('checked', user.is_login == 1);
   $('#edit_is_attendance').prop('checked', user.is_attendance == 1);
+  $('#edit_is_subscription').prop('checked', user.is_subscription == 1);
+  $('#edit_is_tally_calling').prop('checked', user.is_tally_calling == 1);
 
   // Load roles dropdown
   $.ajax({
@@ -1085,7 +1103,9 @@ $('#editUserForm').submit(function (e) {
       is_indiaMart: $('#edit_is_indiaMart').is(':checked') ? 1 : 0,
       is_calander: $('#edit_is_calander').is(':checked') ? 1 : 0,
       is_login: $('#edit_is_login').is(':checked') ? 1 : 0,
-      is_attendance: $('#edit_is_attendance').is(':checked') ? 1 : 0
+      is_attendance: $('#edit_is_attendance').is(':checked') ? 1 : 0,
+      is_subscription: $('#edit_is_subscription').is(':checked') ? 1 : 0,
+      is_tally_calling: $('#edit_is_tally_calling').is(':checked') ? 1 : 0
     },
     success: function () {
       $('#editUserModal').modal('hide');
@@ -1113,6 +1133,8 @@ $('#createUserModal').on('show.bs.modal', function () {
   $('#create_is_calander').prop('checked', false);
   $('#create_is_login').prop('checked', true);
   $('#create_is_attendance').prop('checked', false);
+  $('#create_is_subscription').prop('checked', false);
+  $('#create_is_tally_calling').prop('checked', false);
 
   // Load roles dropdown
   $.ajax({
@@ -1189,7 +1211,9 @@ $('#createUserForm').submit(function (e) {
       is_indiaMart: $('#create_is_indiaMart').is(':checked') ? 1 : 0,
       is_calander: $('#create_is_calander').is(':checked') ? 1 : 0,
       is_login: $('#create_is_login').is(':checked') ? 1 : 0,
-      is_attendance: $('#create_is_attendance').is(':checked') ? 1 : 0
+      is_attendance: $('#create_is_attendance').is(':checked') ? 1 : 0,
+      is_subscription: $('#create_is_subscription').is(':checked') ? 1 : 0,
+      is_tally_calling: $('#create_is_tally_calling').is(':checked') ? 1 : 0
     },
     success: function () {
       $('#createUserModal').modal('hide');
