@@ -83,6 +83,9 @@
 
   .btn-action { background: transparent !important; border: none !important; padding: 0.25rem; color: #6c757d; transition: all 0.2s ease; cursor: pointer; }
   .btn-action:hover { color: #434afa; transform: scale(1.1); }
+  
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 <?php $__env->stopPush(); ?>
 
@@ -159,6 +162,37 @@
             </div>
             <div class="modal-body p-4 bg-white">
                 <p id="fullReasonText" class="mb-0" style="font-size: 14px; white-space: pre-wrap; color:#333;"></p>
+            </div>
+            <div class="modal-footer border-0 p-3 bg-light" style="border-top: 1px solid #f0f0f0 !important;">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History Modal -->
+<div class="modal fade" id="historyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow" style="border-radius: 0px !important;">
+            <div class="modal-header bg-primary text-white border-0" style="background: #434AFA !important; border-radius: 0px !important;">
+                <h5 class="modal-title" style="font-size: 1rem;"><i class="bi bi-clock-history me-2"></i>Leave History for <span id="historyUserName"></span> (Current Year)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-white table-responsive">
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th>From Date</th>
+                            <th>To Date</th>
+                            <th>Days</th>
+                            <th>Leave Type</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr><td colspan="5" class="text-center py-4 text-muted">Loading history...</td></tr>
+                    </tbody>
+                </table>
             </div>
             <div class="modal-footer border-0 p-3 bg-light" style="border-top: 1px solid #f0f0f0 !important;">
                 <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
@@ -320,10 +354,11 @@ function renderTable() {
                 <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>
                 <td>${reasonHtml}</td>
                 <td class="text-center">
+                    <button class="btn-action text-info" title="User History" onclick="viewUserHistory(${leave.user_id}, '${escapeHtml(leave.user ? leave.user.name : '')}')"><i class="bi bi-clock-history"></i></button>
                     ${leave.status === 'pending' ? `
                     <button class="btn-action text-success" title="Approve" onclick="performAction(${leave.id}, 'approve')"><i class="bi bi-check-lg"></i></button>
                     <button class="btn-action text-danger" title="Reject" onclick="performAction(${leave.id}, 'reject')"><i class="bi bi-x-lg"></i></button>
-                    ` : '-'}
+                    ` : ''}
                 </td>
             </tr>`;
         });
@@ -410,6 +445,49 @@ function renderPagination(total) {
 }
 
 function changePage(p) { currentPage = p; renderTable(); }
+
+function viewUserHistory(userId, userName) {
+    if (!userId) return;
+    $('#historyUserName').text(userName);
+    $('#historyTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat spin"></i> Loading history...</td></tr>');
+    const modal = new bootstrap.Modal(document.getElementById('historyModal'));
+    modal.show();
+
+    $.get(`/leave/user-history/${userId}`, function(res) {
+        if (res.success && res.data) {
+            let html = '';
+            if (res.data.length === 0) {
+                html = '<tr><td colspan="5" class="text-center py-4 text-muted">No leaves taken this year.</td></tr>';
+            } else {
+                res.data.forEach(leave => {
+                    let badge = 'pending';
+                    if(leave.status === 'approved') badge = 'approved';
+                    if(leave.status === 'rejected') badge = 'rejected';
+
+                    let typeName = leave.leave_type ? leave.leave_type.name : '-';
+                    if (leave.is_rh) typeName = 'Restricted Holiday (RH)';
+                    if (leave.is_sl) typeName = 'Short Leave (SL)';
+                    if (leave.is_half_day) {
+                        typeName += ' (Half Day)';
+                    }
+                    
+                    html += `<tr>
+                        <td>${new Date(leave.start_date).toLocaleDateString()}</td>
+                        <td>${new Date(leave.end_date).toLocaleDateString()}</td>
+                        <td>${leave.total_days}</td>
+                        <td>${typeName}</td>
+                        <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>
+                    </tr>`;
+                });
+            }
+            $('#historyTableBody').html(html);
+        } else {
+            $('#historyTableBody').html('<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load history.</td></tr>');
+        }
+    }).fail(function() {
+        $('#historyTableBody').html('<tr><td colspan="5" class="text-center py-4 text-danger">Error fetching history.</td></tr>');
+    });
+}
 </script>
 <?php $__env->stopPush(); ?>
 

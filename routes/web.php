@@ -743,6 +743,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/leave/approvals/fetch', [LeaveController::class, 'fetchApprovals'])->name('leave.approvals.fetch');
     Route::post('/leave/approvals/{id}/approve', [LeaveController::class, 'approve'])->name('leave.approve');
     Route::post('/leave/approvals/{id}/reject', [LeaveController::class, 'reject'])->name('leave.reject');
+    Route::get('/leave/user-history/{userId}', [LeaveController::class, 'userHistory'])->name('leave.user-history');
 
     Route::get('/leave', [LeaveController::class, 'index'])->name('leave.index');
     Route::get('/leave/fetch', [LeaveController::class, 'fetch'])->name('leave.fetch');

@@ -747,4 +747,20 @@ class LeaveController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to reject leave: ' . $e->getMessage()], 500);
         }
     }
+
+    public function userHistory($userId)
+    {
+        try {
+            $year = Carbon::now()->year;
+            $leaves = LeaveRequest::with(['leaveType'])
+                ->where('user_id', $userId)
+                ->whereYear('start_date', $year)
+                ->orderBy('start_date', 'desc')
+                ->get();
+            return response()->json(['success' => true, 'data' => $leaves]);
+        } catch (\Exception $e) {
+            \Log::error('fetch history Error: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
+            return response()->json(['success' => false, 'message' => 'Failed to fetch history: ' . $e->getMessage()], 500);
+        }
+    }
 }
