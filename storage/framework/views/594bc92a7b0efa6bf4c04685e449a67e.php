@@ -987,6 +987,9 @@
             notes: $('#employee_notes').val().trim(),
             is_place_allowed: $('#employee_place_allowed').is(':checked') ? 1 : 0,
             is_tracking: $('#employee_is_tracking').is(':checked') ? 1 : 0,
+            is_login: $('#employee_is_login').is(':checked') ? 1 : 0,
+            password: $('#employee_password').val(),
+            role_id: $('#employee_role').val(),
             working_type: $('#employee_working_type').val(),
             places: selectedPlaceIds
         };
@@ -1187,6 +1190,8 @@
             // Places
             $('#employee_place_allowed').prop('checked', !!data.is_place_allowed);
             $('#employee_is_tracking').prop('checked', !!data.is_tracking);
+            $('#login_toggle_container').hide();
+            $('#login_credentials_section').hide();
             selectedPlaceIds = [];
             if (data.is_place_allowed) {
                 $('#btnSelectPlaces').removeClass('d-none');
@@ -1222,6 +1227,12 @@
             $('#selected_places_count').addClass('d-none');
             selectedPlaceIds = [];
             updateSelectedCount();
+
+            // Login Setup
+            $('#login_toggle_container').show();
+            $('#employee_is_login').prop('checked', false).trigger('change');
+            $('#employee_password').val('');
+            $('#employee_role').val('');
         }
         new bootstrap.Modal('#employeeModal').show();
     }
@@ -1785,6 +1796,29 @@
     });
     // --- Places Logic End ---
 
+    $('#employee_is_login').change(function() {
+        if ($(this).is(':checked')) {
+            $('#login_credentials_section').show();
+            if ($('#employee_role option').length <= 1) {
+                $.ajax({
+                    url: '<?php echo e(route("fetchrole")); ?>',
+                    method: 'GET',
+                    success: function (roles) {
+                        let roleSelect = $('#employee_role');
+                        roleSelect.empty().append('<option value="">Select Role</option>');
+                        roles.forEach(role => {
+                            if (role.role_name !== 'Super Admin' && role.role_name !== 'super_admin') {
+                                roleSelect.append(`<option value="${role.id}">${role.role_name}</option>`);
+                            }
+                        });
+                    }
+                });
+            }
+        } else {
+            $('#login_credentials_section').hide();
+        }
+    });
+
     $(document).ready(loadEmployees);
 })();
 </script>
@@ -2096,6 +2130,27 @@
                             <select id="employee_shift_select" class="form-select form-select-sm">
                                 <option value="">Select Shift</option>
                             </select>
+                        </div>
+                        <div class="col-md-4" id="login_toggle_container">
+                            <label class="form-label">Login</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" id="employee_is_login">
+                                <label class="form-check-label" for="employee_is_login">Is Login Enabled</label>
+                            </div>
+                        </div>
+                        <div class="col-12" id="login_credentials_section" style="display: none;">
+                            <div class="row g-2 mt-1 p-2 border rounded bg-light">
+                                <div class="col-md-6">
+                                    <label class="form-label">Password <span class="text-danger">*</span></label>
+                                    <input type="password" id="employee_password" class="form-control form-control-sm" placeholder="Enter password for user">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Role <span class="text-danger">*</span></label>
+                                    <select id="employee_role" class="form-select form-select-sm">
+                                        <option value="">Select Role</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-12">
                             <hr>

@@ -31,9 +31,6 @@
         <h4 class="header-title"><?php echo $__env->yieldContent('page_title', 'Dashboard'); ?></h4>
     </div>
     <div class="app-header-actions">
-        <a href="<?php echo e(route('tracking.index')); ?>" class="header-icon" title="Tracking" style="text-decoration: none;">
-            <i class="bi bi-geo-alt"></i>
-        </a>
         <?php if($headerRole === 'admin'): ?>
         <a href="<?php echo e(route('role-master')); ?>" class="header-icon" title="Software Setup" style="text-decoration: none;">
             <i class="bi bi-gear"></i>

@@ -59,6 +59,14 @@ class EmployeeController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        if ($request->boolean('is_login')) {
+            $request->validate([
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|min:6',
+                'role_id' => 'required|exists:roles,id'
+            ]);
+        }
+
         $data = $this->validateEmployee($request);
         $autoGenerate = empty($data['employee_code']);
         
@@ -78,6 +86,17 @@ class EmployeeController extends Controller
             }
         } else {
             $employee->places()->detach();
+        }
+
+        if ($request->boolean('is_login')) {
+            \App\Models\User::create([
+                'name' => $employee->name,
+                'email' => $employee->email,
+                'password' => \Illuminate\Support\Facades\Hash::make($request->input('password')),
+                'role_id' => $request->input('role_id'),
+                'employee_id' => $employee->id,
+                'is_login' => 1,
+            ]);
         }
 
         return response()->json([
