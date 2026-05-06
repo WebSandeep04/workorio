@@ -101,7 +101,8 @@ public function update(Request $request, $id)
             'is_task' => 'nullable',
             'is_indiaMart' => 'nullable',
             'is_calander' => 'nullable',
-            'is_login' => 'nullable'
+            'is_login' => 'nullable',
+            'is_attendance' => 'nullable'
         ];
         
         // Only validate employee_id exists if employees table exists
@@ -140,7 +141,8 @@ public function update(Request $request, $id)
         'is_task' => $request->is_task,
         'is_indiaMart' => $request->is_indiaMart,
         'is_calander' => $request->is_calander,
-        'is_login' => $request->is_login]);
+        'is_login' => $request->is_login,
+        'is_attendance' => $request->is_attendance]);
 
     // Sync managers
     if ($request->has('manager_ids')) {
@@ -171,7 +173,8 @@ public function store(Request $request)
             'is_task' => 'nullable',
             'is_indiaMart' => 'nullable',
             'is_calander' => 'nullable',
-            'is_login' => 'nullable'
+            'is_login' => 'nullable',
+            'is_attendance' => 'nullable'
         ];
         
         // Only validate employee_id exists if employees table exists
@@ -202,7 +205,8 @@ public function store(Request $request)
             'is_task' => $request->is_task ?? 0,
             'is_indiaMart' => $request->is_indiaMart ?? 0,
             'is_calander' => $request->is_calander ?? 0,
-            'is_login' => $request->is_login ?? 1];
+            'is_login' => $request->is_login ?? 1,
+            'is_attendance' => $request->is_attendance ?? 0];
 
         $user = User::create($userData);
 

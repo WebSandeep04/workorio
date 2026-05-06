@@ -41,6 +41,7 @@ class User extends Authenticatable
         'is_tracking',
         'is_workflow',
         'is_master',
+        'is_attendance',
         'is_attandance',
         'is_reports',
         'is_document',

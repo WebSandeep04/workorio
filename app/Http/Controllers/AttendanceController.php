@@ -1134,6 +1134,7 @@ class AttendanceController extends Controller
         // Get all users for the dropdown - excluding admin and inactive employees
         $users = User::select('id', 'name', 'email')
             ->where('role_id', '!=', 1)
+            ->where('is_attendance', 1)
             ->whereHas('employee', function($query) {
                 $query->where('status', 'active');
             })
@@ -1270,6 +1271,7 @@ class AttendanceController extends Controller
         
         $users = User::with(['employee.shiftRelation'])
             ->where('role_id', '!=', 1)
+            ->where('is_attendance', 1)
             ->whereHas('employee', function($query) {
                 $query->where('status', 'active');
             })
@@ -1619,6 +1621,7 @@ class AttendanceController extends Controller
         // Get all users who are active employees AND not admin (role_id != 1)
         $users = User::with(['employee.shiftRelation'])
             ->where('role_id', '!=', 1)
+            ->where('is_attendance', 1)
             ->whereHas('employee', function($query) {
                 $query->where('status', 'active');
             })
