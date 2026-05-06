@@ -44,13 +44,16 @@ class ProjectsController extends Controller
 
     public function fetch(Request $request)
     {
-        $query = CustomerProject::with(['customer', 'service', 'assignedUsers'])->where('status', 'Ongoing');
+        $query = CustomerProject::select('customer_projects.*')
+            ->leftJoin('customers', 'customer_projects.customer_id', '=', 'customers.id')
+            ->with(['customer', 'service', 'assignedUsers'])
+            ->where('customer_projects.status', 'Ongoing');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('project_name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
+                $q->where('customer_projects.project_name', 'like', "%{$search}%")
+                  ->orWhere('customer_projects.description', 'like', "%{$search}%")
                   ->orWhereHas('customer', function($cq) use ($search) {
                       $cq->where('name', 'like', "%{$search}%");
                   })
@@ -62,27 +65,27 @@ class ProjectsController extends Controller
         
         // Filter by Status
         if ($request->filled('project_status')) {
-            $query->where('status', $request->project_status);
+            $query->where('customer_projects.status', $request->project_status);
         }
         
         // Filter by Customer
         if ($request->filled('customer_id')) {
-            $query->where('customer_id', $request->customer_id);
+            $query->where('customer_projects.customer_id', $request->customer_id);
         }
 
         // Filter by Service
         if ($request->filled('service_id')) {
-            $query->where('service_id', $request->service_id);
+            $query->where('customer_projects.service_id', $request->service_id);
         }
 
         // Filter by Starred
         if ($request->boolean('is_starred')) {
-            $query->where('is_favourite', 1);
+            $query->where('customer_projects.is_favourite', 1);
         } else {
-            $query->where('is_favourite', 0);
+            $query->where('customer_projects.is_favourite', 0);
         }
 
-        $projects = $query->orderBy('updated_at', 'desc')->paginate(50);
+        $projects = $query->orderBy('customers.company_name', 'asc')->paginate(50);
 
         return response()->json($projects);
     }
