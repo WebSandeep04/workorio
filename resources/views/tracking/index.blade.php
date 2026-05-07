@@ -265,6 +265,74 @@
     height: 8px;
     border-radius: 50%;
   }
+
+  /* Vertical Timeline Styles */
+  .timeline-container {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-top: 1rem;
+    border-left: 2px dashed #cbd5e1;
+  }
+  
+  .timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  
+  .timeline-dot {
+    position: absolute;
+    left: calc(-1.5rem - 7px);
+    top: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #3b82f6;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+  }
+  
+  .timeline-dot.stoppage {
+    background-color: #f97316;
+    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+  }
+  
+  .timeline-dot.start {
+    background-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+  }
+  
+  .timeline-dot.end {
+    background-color: #ef4444;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+  }
+  
+  .timeline-content {
+    background: #ffffff;
+    padding: 0.75rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  
+  .timeline-time {
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 0.2rem;
+  }
+  
+  .timeline-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+  }
+  
+  .timeline-meta {
+    font-size: 10px;
+    color: #64748b;
+    margin-top: 0.2rem;
+  }
 </style>
 @endpush
 
@@ -337,31 +405,63 @@
         <!-- Live Map Interface Panel -->
         <div class="col-12 col-md-8 col-lg-9">
             <div class="map-card position-relative">
-                <!-- Map Header Overlay Stats -->
-                <div class="map-stats-overlay">
-                    <div class="map-stat-item">
-                        <span class="map-stat-dot" style="background-color: #10b981;"></span>
-                        <span>Active: <span id="stat-active-count">0</span></span>
+                <!-- Map Content Row -->
+                <div class="d-flex flex-row w-100 h-100" style="overflow: hidden;">
+                    <!-- Map Container -->
+                    <div id="mapContainer" class="position-relative" style="flex: 1; height: 100%; transition: all 0.3s ease;">
+                        <!-- Map Header Overlay Stats -->
+                        <div class="map-stats-overlay">
+                            <div class="map-stat-item">
+                                <span class="map-stat-dot" style="background-color: #10b981;"></span>
+                                <span>Active: <span id="stat-active-count">0</span></span>
+                            </div>
+                            <div class="map-stat-item">
+                                <span class="map-stat-dot" style="background-color: #f59e0b;"></span>
+                                <span>On Break: <span id="stat-break-count">0</span></span>
+                            </div>
+                            <div class="map-stat-item">
+                                <span class="map-stat-dot" style="background-color: #94a3b8;"></span>
+                                <span>Offline: <span id="stat-inactive-count">0</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Spinner Overlay -->
+                        <div id="loadingOverlay" class="position-absolute w-100 h-100 d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 1000;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading map data...</span>
+                            </div>
+                        </div>
+
+                        <!-- Ola Maps Container -->
+                        <div id="map" style="height: 100%; width: 100%;"></div>
                     </div>
-                    <div class="map-stat-item">
-                        <span class="map-stat-dot" style="background-color: #f59e0b;"></span>
-                        <span>On Break: <span id="stat-break-count">0</span></span>
-                    </div>
-                    <div class="map-stat-item">
-                        <span class="map-stat-dot" style="background-color: #94a3b8;"></span>
-                        <span>Offline: <span id="stat-inactive-count">0</span></span>
+
+                    <!-- Tracking Details Sidebar Panel -->
+                    <div id="trackingDetailsPanel" class="d-none border-start bg-light h-100 animate__animated animate__fadeInRight" style="width: 320px; overflow-y: auto; transition: all 0.3s ease; font-family: 'Montserrat', sans-serif; min-width: 320px; z-index: 5;">
+                        <div class="p-3 bg-white border-bottom sticky-top shadow-sm d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 13px;">
+                                <i class="bi bi-clock-history text-primary"></i> Tracking Log
+                            </h6>
+                        </div>
+                        <!-- Compact Metrics Bar -->
+                        <div class="px-3 py-2 bg-white border-bottom d-flex align-items-center gap-3 text-muted" style="font-size: 11px;">
+                            <span class="d-flex align-items-center gap-1">
+                                <i class="bi bi-speedometer2 text-primary"></i>
+                                <span>Distance:</span>
+                                <strong id="metricsDistance" class="text-dark" style="font-family: 'Montserrat', sans-serif;">0.00 km</strong>
+                            </span>
+                            <span class="text-secondary">|</span>
+                            <span class="d-flex align-items-center gap-1">
+                                <i class="bi bi-pause-circle text-warning"></i>
+                                <span>Stays:</span>
+                                <strong id="metricsStays" class="text-dark" style="font-family: 'Montserrat', sans-serif;">0</strong>
+                            </span>
+                        </div>
+                        <div class="p-3" id="trackingTimelineContent">
+                            <!-- Timeline logs rendered dynamically in JS -->
+                        </div>
                     </div>
                 </div>
-
-                <!-- Spinner Overlay -->
-                <div id="loadingOverlay" class="position-absolute w-100 h-100 d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 1000;">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading map data...</span>
-                    </div>
-                </div>
-
-                <!-- Ola Maps Container -->
-                <div id="map" style="height: 100%; width: 100%;"></div>
             </div>
         </div>
     </div>
@@ -405,6 +505,13 @@
                 center: [80.3429, 26.4983],
                 zoom: 12,
             });
+
+            // Safe mock to prevent _getUIString TypeError inside some Ola Maps SDK builds
+            if (myMap && !myMap._getUIString) {
+                myMap._getUIString = function(key) {
+                    return '';
+                };
+            }
             
             console.log("Ola Map loaded successfully");
             fetchLocations(); // Initial Fetch
@@ -641,7 +748,8 @@
                         ...startPoint,
                         latitude: (clusterSumLat / clusterCount).toFixed(8),
                         longitude: (clusterSumLng / clusterCount).toFixed(8),
-                        tracked_at: filtered[j - 1].tracked_at
+                        tracked_at: filtered[j - 1].tracked_at,
+                        isClusterCentroid: true
                     });
                 } else {
                     clustered.push(startPoint);
@@ -658,19 +766,37 @@
             markers.forEach(marker => marker.remove());
             markers = [];
 
-            // Clear existing route line layer and source if they exist
-            if (myMap.getLayer('route-line')) {
-                myMap.removeLayer('route-line');
-            }
-            if (myMap.getSource('route-source')) {
-                myMap.removeSource('route-source');
-            }
+            // Clear existing route line layer and source safely
+            try {
+                if (typeof myMap.getLayer === 'function' && myMap.getLayer('route-line')) {
+                    myMap.removeLayer('route-line');
+                } else if (typeof myMap.removeLayer === 'function') {
+                    myMap.removeLayer('route-line');
+                }
+            } catch (e) {}
 
-            if (!locations || locations.length === 0) return;
+            try {
+                if (typeof myMap.getSource === 'function' && myMap.getSource('route-source')) {
+                    myMap.removeSource('route-source');
+                } else if (typeof myMap.removeSource === 'function') {
+                    myMap.removeSource('route-source');
+                }
+            } catch (e) {}
+
+            if (!locations || locations.length === 0) {
+                const detailsPanel = document.getElementById('trackingDetailsPanel');
+                if (detailsPanel) detailsPanel.classList.add('d-none');
+                return;
+            }
 
             // Clean, filter and cluster points to remove drift and starburst patterns
             const cleanedLocations = filterAndSmoothRoute(locations, isSingleEmployee);
-            if (cleanedLocations.length === 0) return;
+            if (cleanedLocations.length === 0) {
+                const detailsPanel = document.getElementById('trackingDetailsPanel');
+                if (detailsPanel) detailsPanel.classList.add('d-none');
+                return;
+            }
+
 
             let pointsToRender = [];
 
@@ -790,6 +916,98 @@
                         }
                     });
                 }
+            }
+
+            // Render Dynamic Vertical Timeline of stops and track logs
+            const detailsPanel = document.getElementById('trackingDetailsPanel');
+            if (isSingleEmployee) {
+                if (detailsPanel) detailsPanel.classList.remove('d-none');
+
+                // Calculate Distance & Stays dynamically
+                let totalDistanceMeters = 0;
+                let totalStaysCount = 0;
+
+                for (let idx = 1; idx < pointsToRender.length; idx++) {
+                    const p1 = pointsToRender[idx - 1];
+                    const p2 = pointsToRender[idx];
+                    const dist = getDistanceInMeters(
+                        parseFloat(p1.latitude), parseFloat(p1.longitude),
+                        parseFloat(p2.latitude), parseFloat(p2.longitude)
+                    );
+                    totalDistanceMeters += dist;
+                }
+
+                pointsToRender.forEach(loc => {
+                    if (loc.isClusterCentroid) {
+                        totalStaysCount++;
+                    }
+                });
+
+                const totalKM = (totalDistanceMeters / 1000).toFixed(2);
+                const distanceEl = document.getElementById('metricsDistance');
+                const staysEl = document.getElementById('metricsStays');
+                if (distanceEl) distanceEl.textContent = `${totalKM} km`;
+                if (staysEl) staysEl.textContent = totalStaysCount;
+
+                let timelineHtml = '<div class="timeline-container">';
+
+                if (pointsToRender.length === 0) {
+                    timelineHtml += `
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-geo-alt-fill fs-3 d-block mb-2"></i>
+                            <span class="small" style="font-size:11px;">No logs recorded for today</span>
+                        </div>`;
+                } else {
+                    // Start of day
+                    const firstLoc = pointsToRender[0];
+                    const startTimeStr = new Date(firstLoc.tracked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    timelineHtml += `
+                        <div class="timeline-item">
+                            <div class="timeline-dot start"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-time">${startTimeStr}</div>
+                                <h6 class="timeline-title">Track Started</h6>
+                                <div class="timeline-meta" style="font-size: 9px;">Started today's live journey</div>
+                            </div>
+                        </div>`;
+
+                    // Intermediary Stops / Movement points
+                    pointsToRender.slice(1, -1).forEach(loc => {
+                        const timeStr = new Date(loc.tracked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        const isStop = loc.isClusterCentroid || false;
+                        
+                        timelineHtml += `
+                            <div class="timeline-item">
+                                <div class="timeline-dot ${isStop ? 'stoppage' : ''}"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-time">${timeStr}</div>
+                                    <h6 class="timeline-title">${isStop ? '<span class="text-warning"><i class="bi bi-pause-circle-fill"></i> Stoppage / Stop</span>' : '<span class="text-primary"><i class="bi bi-arrow-right-circle-fill"></i> Location Logged</span>'}</h6>
+                                    <div class="timeline-meta" style="font-size: 9px;">Lat: ${parseFloat(loc.latitude).toFixed(5)}, Lng: ${parseFloat(loc.longitude).toFixed(5)}</div>
+                                </div>
+                            </div>`;
+                    });
+
+                    // Latest / End location
+                    if (pointsToRender.length > 1) {
+                        const lastLoc = pointsToRender[pointsToRender.length - 1];
+                        const endTimeStr = new Date(lastLoc.tracked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        timelineHtml += `
+                            <div class="timeline-item">
+                                <div class="timeline-dot end"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-time">${endTimeStr}</div>
+                                    <h6 class="timeline-title">Latest Location</h6>
+                                    <div class="timeline-meta" style="font-size: 9px;">Last active location node</div>
+                                </div>
+                            </div>`;
+                    }
+                }
+
+                timelineHtml += '</div>';
+                const containerEl = document.getElementById('trackingTimelineContent');
+                if (containerEl) containerEl.innerHTML = timelineHtml;
+            } else {
+                if (detailsPanel) detailsPanel.classList.add('d-none');
             }
 
             // Adjust map viewport boundary to enclose all active markers nicely
