@@ -789,7 +789,7 @@ function loadDashboardMetrics() {
             url: '/due-payments/summary' + qp,
             method: 'GET',
             success: function(res) {
-                renderPayments(res.list || []);
+                renderPayments(res.list || [], res.total_due || 0, res.count || 0);
             }
         });
     }
@@ -914,7 +914,7 @@ function renderUpcomingLeaves(list) {
     cont.innerHTML = html;
 }
 
-function renderPayments(list) {
+function renderPayments(list, totalDue = 0, totalCount = 0) {
     const cont = document.getElementById('due-payments-list');
     if (!cont) return;
     if (!list.length) {
@@ -922,7 +922,11 @@ function renderPayments(list) {
         $('#overdue-badge').hide();
         return;
     }
-    $('#overdue-badge').text(list.length + ' Pending').show();
+    if (!totalDue) {
+        totalDue = list.reduce((sum, p) => sum + parseFloat(p.remaining || 0), 0);
+    }
+    const badgeCount = totalCount || list.length;
+    $('#overdue-badge').text(badgeCount + ' Pending (₹' + Number(totalDue).toLocaleString('en-IN') + ')').show();
     let html = '';
     list.forEach(p => {
         const due = new Date(p.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
