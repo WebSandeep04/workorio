@@ -93,24 +93,58 @@
 
         <div class="hcards">
             <?php if($isAttendance): ?>
-            <div class="card">
-                <div class="chead"><span class="ctitle">Team Attendance Today</span><span class="va" onclick="location.href='<?php echo e(route('attendance.history')); ?>'">view all</span></div>
-                <div style="display:grid;grid-template-columns:2.5fr 1fr;gap:16px;">
-                    <div id="att-present-block" style="background:#f0fdf4;border-radius:9px;padding:16px;border:1px solid #dcfce7" title="No employees present">
-                        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #dcfce7;margin-bottom:12px">
-                            <div style="font-size:14px;color:#15803d;font-weight:600">Present</div>
-                            <div style="font-size:32px;font-weight:700;color:#16a34a;line-height:1" id="att-present">0</div>
+            <div class="card" style="border: 1px solid #e5e7eb; border-radius: 16px; padding: 20px;">
+                <div class="chead" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <span class="ctitle" style="font-size: 15px; font-weight: 700; color: #1e293b;">Team Attendance Today</span>
+                    <span class="va" onclick="location.href='<?php echo e(route('attendance.history')); ?>'" style="color: #2563eb; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none;">view all</span>
+                </div>
+                <div class="att-grid" style="display: grid; grid-template-columns: 2.3fr 1fr; gap: 16px;">
+                    <!-- Present Block -->
+                    <div id="att-present-block" style="background: #f4fbf7; border: 1px solid #c6f6d5; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; position: relative;" title="No employees present">
+                        
+                        <!-- Top Row: Present Text, Large Number, and the Icon on the Right -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                            <div>
+                                <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Present Today</div>
+                                <div style="font-size: 40px; font-weight: 800; color: #15803d; line-height: 1;" id="att-present">0</div>
+                            </div>
+                            
+                            <!-- Icon Box -->
+                            <div style="background: #e6f9ed; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </div>
                         </div>
-                        <div style="grid-template-columns:1fr 1fr;gap:12px 24px;font-size:12.5px;color:#15803d;display:grid">
-                            <div style="display:flex;justify-content:space-between"><span>In Office</span><b style="color:#16a34a" id="att-office">0</b></div>
-                            <div style="display:flex;justify-content:space-between"><span>Remote</span><b style="color:#16a34a" id="att-remote">0</b></div>
-                            <div style="display:flex;justify-content:space-between"><span>In Field</span><b style="color:#16a34a" id="att-field">0</b></div>
-                            <div style="display:flex;justify-content:space-between"><span>WFH</span><b style="color:#16a34a" id="att-wfh">0</b></div>
+                        
+                        <!-- Bottom Row: Pills -->
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 20px;">
+                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 9999px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: #334155;">
+                                <span style="display: inline-block; width: 6px; height: 6px; background: #16a34a; border-radius: 50%;"></span>
+                                In Office <b style="color: #15803d; font-weight: 700; margin-left: 2px;" id="att-office">0</b>
+                            </div>
+                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 9999px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: #334155;">
+                                <span style="display: inline-block; width: 6px; height: 6px; background: #16a34a; border-radius: 50%;"></span>
+                                Remote <b style="color: #15803d; font-weight: 700; margin-left: 2px;" id="att-remote">0</b>
+                            </div>
+                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 9999px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: #334155;">
+                                <span style="display: inline-block; width: 6px; height: 6px; background: #16a34a; border-radius: 50%;"></span>
+                                In Field <b style="color: #15803d; font-weight: 700; margin-left: 2px;" id="att-field">0</b>
+                            </div>
+                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 9999px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: #334155;">
+                                <span style="display: inline-block; width: 6px; height: 6px; background: #16a34a; border-radius: 50%;"></span>
+                                WFH <b style="color: #15803d; font-weight: 700; margin-left: 2px;" id="att-wfh">0</b>
+                            </div>
                         </div>
                     </div>
-                    <div id="att-absent-block" style="background:#fef2f2;border-radius:9px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #fee2e2" title="No employees absent">
-                        <div style="font-size:42px;font-weight:700;color:#ef4444;line-height:1" id="att-absent">0</div>
-                        <div style="font-size:13px;color:#b91c1c;font-weight:600;margin-top:8px">Absent</div>
+                    
+                    <!-- Absent Block -->
+                    <div id="att-absent-block" style="background: #fff5f5; border: 1px solid #fee2e2; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;" title="No employees absent">
+                        <div style="font-size: 46px; font-weight: 800; color: #ef4444; line-height: 1;" id="att-absent">0</div>
+                        <div style="font-size: 13.5px; color: #b91c1c; font-weight: 700; margin-top: 8px; text-transform: capitalize;">Absent</div>
                     </div>
                 </div>
             </div>
@@ -425,6 +459,7 @@
     .pstages { grid-template-columns: repeat(3, 1fr); }
     .wbar { flex-direction: column; align-items: flex-start; gap: 12px; }
     .pibtn { width: 100%; }
+    .att-grid { grid-template-columns: 1fr !important; }
 }
 </style>
 <?php $__env->stopPush(); ?>

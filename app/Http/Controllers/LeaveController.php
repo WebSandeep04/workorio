@@ -757,7 +757,60 @@ class LeaveController extends Controller
                 ->whereYear('start_date', $year)
                 ->orderBy('start_date', 'desc')
                 ->get();
-            return response()->json(['success' => true, 'data' => $leaves]);
+
+            $user = \App\Models\User::find($userId);
+            $empTypeId = $user->employee->employment_type_id ?? null;
+
+            $balances = [];
+            if (!empty($empTypeId) && Schema::hasTable('employment_type_leave_rules')) {
+                $rules = \App\Models\EmploymentTypeLeaveRule::with('leaveType')
+                    ->where('employment_type_id', $empTypeId)
+                    ->get();
+
+                $balanceService = app(LeaveBalanceService::class);
+
+                foreach ($rules as $rule) {
+                    if (!$rule->leaveType) continue;
+                    $type = $rule->leaveType;
+                    
+                    $totalAllowed = (float) $rule->value;
+                    $pending = (float) \App\Models\LeaveRequest::where('user_id', $userId)
+                        ->where('leave_type_id', $type->id)
+                        ->where('status', 'pending')
+                        ->sum('total_days');
+
+                    $consumed = (float) \App\Models\LeaveRequest::where('user_id', $userId)
+                        ->where('leave_type_id', $type->id)
+                        ->where('status', 'approved')
+                        ->sum('total_days');
+
+                    if ($type->quota_type === 'monthly') {
+                        $takenThisMonth = \App\Models\LeaveRequest::where('user_id', $userId)
+                            ->where('leave_type_id', $type->id)
+                            ->whereIn('status', ['pending', 'approved'])
+                            ->whereYear('start_date', now()->year)
+                            ->whereMonth('start_date', now()->month)
+                            ->count();
+                        $remaining = max(0, $totalAllowed - $takenThisMonth);
+                    } else {
+                        $remaining = (float) $balanceService->getBalance($userId, $type->id);
+                    }
+
+                    $balances[] = [
+                        'leave_type_name' => $type->name,
+                        'allowed' => $totalAllowed,
+                        'consumed' => $consumed,
+                        'pending' => $pending,
+                        'remaining' => $remaining
+                    ];
+                }
+            }
+
+            return response()->json([
+                'success' => true, 
+                'data' => $leaves,
+                'balances' => $balances
+            ]);
         } catch (\Exception $e) {
             \Log::error('fetch history Error: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
             return response()->json(['success' => false, 'message' => 'Failed to fetch history: ' . $e->getMessage()], 500);

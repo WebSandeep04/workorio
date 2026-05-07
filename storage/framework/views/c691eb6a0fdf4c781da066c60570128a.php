@@ -178,21 +178,32 @@
                 <h5 class="modal-title" style="font-size: 1rem;"><i class="bi bi-clock-history me-2"></i>Leave History for <span id="historyUserName"></span> (Current Year)</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4 bg-white table-responsive">
-                <table class="table custom-table">
-                    <thead>
-                        <tr>
-                            <th>From Date</th>
-                            <th>To Date</th>
-                            <th>Days</th>
-                            <th>Leave Type</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTableBody">
-                        <tr><td colspan="5" class="text-center py-4 text-muted">Loading history...</td></tr>
-                    </tbody>
-                </table>
+            <div class="modal-body p-4 bg-white">
+                <div class="mb-4">
+                    <div class="row row-cols-1 row-cols-md-3 g-3" id="quotaTilesContainer">
+                        <div class="col-12 text-center py-3 text-muted">Loading quotas...</div>
+                    </div>
+                </div>
+
+                <div>
+                    <h6 class="fw-bold mb-3" style="color: #434AFA; display: flex; align-items: center; gap: 0.35rem; font-size: 0.9rem;"><i class="bi bi-list-stars"></i> Detailed History Log</h6>
+                    <div class="table-responsive">
+                        <table class="table custom-table" style="min-width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>From Date</th>
+                                    <th>To Date</th>
+                                    <th>Days</th>
+                                    <th>Leave Type</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <tr><td colspan="5" class="text-center py-3 text-muted">Loading history...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer border-0 p-3 bg-light" style="border-top: 1px solid #f0f0f0 !important;">
                 <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
@@ -449,42 +460,89 @@ function changePage(p) { currentPage = p; renderTable(); }
 function viewUserHistory(userId, userName) {
     if (!userId) return;
     $('#historyUserName').text(userName);
+    $('#quotaTilesContainer').html('<div class="col-12 text-center py-3 text-muted"><i class="bi bi-arrow-repeat spin"></i> Loading quotas...</div>');
     $('#historyTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat spin"></i> Loading history...</td></tr>');
     const modal = new bootstrap.Modal(document.getElementById('historyModal'));
     modal.show();
 
     $.get(`/leave/user-history/${userId}`, function(res) {
-        if (res.success && res.data) {
-            let html = '';
-            if (res.data.length === 0) {
-                html = '<tr><td colspan="5" class="text-center py-4 text-muted">No leaves taken this year.</td></tr>';
-            } else {
-                res.data.forEach(leave => {
-                    let badge = 'pending';
-                    if(leave.status === 'approved') badge = 'approved';
-                    if(leave.status === 'rejected') badge = 'rejected';
-
-                    let typeName = leave.leave_type ? leave.leave_type.name : '-';
-                    if (leave.is_rh) typeName = 'Restricted Holiday (RH)';
-                    if (leave.is_sl) typeName = 'Short Leave (SL)';
-                    if (leave.is_half_day) {
-                        typeName += ' (Half Day)';
+        if (res.success) {
+            // 1. Render Quotas & Balances in Card Tiles
+            if (res.balances && res.balances.length > 0) {
+                let quotaHtml = '';
+                res.balances.forEach(b => {
+                    let iconClass = 'bi-calendar-check';
+                    let iconColor = '#434AFA';
+                    if (b.leave_type_name.toLowerCase().includes('sick')) {
+                        iconClass = 'bi-activity';
+                        iconColor = '#10b981';
+                    } else if (b.leave_type_name.toLowerCase().includes('short') || b.leave_type_name.toLowerCase().includes('permission')) {
+                        iconClass = 'bi-clock-history';
+                        iconColor = '#f59e0b';
+                    } else if (b.leave_type_name.toLowerCase().includes('pay') || b.leave_type_name.toLowerCase().includes('lwp')) {
+                        iconClass = 'bi-cash-stack';
+                        iconColor = '#ef4444';
                     }
-                    
-                    html += `<tr>
-                        <td>${new Date(leave.start_date).toLocaleDateString()}</td>
-                        <td>${new Date(leave.end_date).toLocaleDateString()}</td>
-                        <td>${leave.total_days}</td>
-                        <td>${typeName}</td>
-                        <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>
-                    </tr>`;
+
+                    quotaHtml += `
+                        <div class="col">
+                            <div class="card border shadow-sm" style="background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb !important;">
+                                <div class="card-body p-3 d-flex flex-column justify-content-between" style="min-height: 90px;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi ${iconClass} me-2" style="color: ${iconColor} !important; font-size: 1rem;"></i>
+                                        <span class="text-muted" style="font-size: 0.75rem; font-weight: 500; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 80%;" title="${b.leave_type_name}">${b.leave_type_name}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-baseline">
+                                        <span class="fw-bold text-dark" style="font-size: 1.5rem; line-height: 1;">${b.remaining} <span style="font-size: 0.7rem; font-weight: 500; color: #6b7280; margin-left: 2px;">Left</span></span>
+                                        <span style="font-size: 0.7rem; color: #9ca3af; font-weight: 500;">
+                                            ${b.allowed} <span style="font-size: 0.65rem; color: #9ca3af;">Total</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 });
+                $('#quotaTilesContainer').html(quotaHtml);
+            } else {
+                $('#quotaTilesContainer').html('<div class="col-12 text-center py-3 text-muted">No leave quotas defined for this employment type.</div>');
             }
-            $('#historyTableBody').html(html);
+
+            // 2. Render History Log
+            if (res.data) {
+                let html = '';
+                if (res.data.length === 0) {
+                    html = '<tr><td colspan="5" class="text-center py-4 text-muted">No leaves taken this year.</td></tr>';
+                } else {
+                    res.data.forEach(leave => {
+                        let badge = 'pending';
+                        if(leave.status === 'approved') badge = 'approved';
+                        if(leave.status === 'rejected') badge = 'rejected';
+
+                        let typeName = leave.leave_type ? leave.leave_type.name : '-';
+                        if (leave.is_rh) typeName = 'Restricted Holiday (RH)';
+                        if (leave.is_sl) typeName = 'Short Leave (SL)';
+                        if (leave.is_half_day) {
+                            typeName += ' (Half Day)';
+                        }
+                        
+                        html += `<tr>
+                            <td>${new Date(leave.start_date).toLocaleDateString()}</td>
+                            <td>${new Date(leave.end_date).toLocaleDateString()}</td>
+                            <td>${leave.total_days}</td>
+                            <td>${typeName}</td>
+                            <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>
+                        </tr>`;
+                    });
+                }
+                $('#historyTableBody').html(html);
+            }
         } else {
+            $('#quotaTilesContainer').html('<div class="col-12 text-center py-3 text-danger">Failed to load quotas.</div>');
             $('#historyTableBody').html('<tr><td colspan="5" class="text-center py-4 text-danger">Failed to load history.</td></tr>');
         }
     }).fail(function() {
+        $('#quotaTilesContainer').html('<div class="col-12 text-center py-3 text-danger">Error fetching quotas.</div>');
         $('#historyTableBody').html('<tr><td colspan="5" class="text-center py-4 text-danger">Error fetching history.</td></tr>');
     });
 }
