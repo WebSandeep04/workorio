@@ -424,6 +424,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/filter', [FollowupController::class, 'filter'])->name('filter');
     Route::post('/filterdate', [FollowupController::class, 'filterdate'])->name('filterdate');
     Route::get('/sales-records', [FollowupController::class, 'getSalesRecords'])->name('sales.records');
+    Route::get('/followup/search', [FollowupController::class, 'search'])->name('search');
 
     Route::get('/quotation', [QuotationController::class, 'index'])->name('quotation');
     Route::get('/quotation/create', [QuotationController::class, 'create'])->name('quotation.create');
