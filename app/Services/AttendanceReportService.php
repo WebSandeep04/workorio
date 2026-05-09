@@ -555,7 +555,7 @@ class AttendanceReportService
                 
                 $slHours = ($dayData['leave_type'] === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                 $hasHalfDayLeave = ($dayData['leave_type'] === 'HD');
-                $statusInfo = $this->determineStatus($dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, $dayData['is_holiday'], $dayData['leave_type'], $hasHalfDayLeave, $slHours);
+                $statusInfo = $this->determineStatus($dateStr, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, $dayData['is_holiday'], $dayData['leave_type'], $hasHalfDayLeave, $slHours);
                 $dayData['status'] = $statusInfo['label'];
                 
                 if ($dayData['is_holiday'] && $holidaysData && isset($holidaysData[$dateStr])) {
