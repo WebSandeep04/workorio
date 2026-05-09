@@ -662,6 +662,13 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Location Tracking
     Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking.index');
     Route::get('/tracking/fetch-locations', [TrackingController::class, 'fetchLocations'])->name('tracking.fetch-locations');
+    Route::get('/tracking/report', [TrackingController::class, 'reportView'])->name('tracking.report');
+    Route::post('/tracking/report-data', [TrackingController::class, 'getReportData'])->name('tracking.report-data');
+    Route::post('/tracking/monthly-report-data', [TrackingController::class, 'getMonthlyReportData'])->name('tracking.monthly-report-data');
+    Route::post('/tracking/date-report-data', [TrackingController::class, 'getDateReportData'])->name('tracking.date-report-data');
+    Route::get('/tracking/export-user-report', [TrackingController::class, 'exportUserReport'])->name('tracking.export-user-report');
+    Route::get('/tracking/export-monthly-report', [TrackingController::class, 'exportMonthlyReport'])->name('tracking.export-monthly-report');
+    Route::get('/tracking/export-date-report', [TrackingController::class, 'exportDateReport'])->name('tracking.export-date-report');
 
     // Team Leads (Managers Only)
     Route::get('/teamleads', [TeamLeadsController::class, 'index'])->name('teamleads');

@@ -168,6 +168,7 @@ return [
 
                 ['route' => 'attendance.report', 'title' => 'Attendance Report', 'icon' => 'bi bi-file-earmark-text', 'permission' => 'attendance.report'],
                 ['route' => 'reports.worklog', 'title' => 'Timesheet Report', 'icon' => 'bi bi-journals', 'permission' => 'reports.worklog', 'feature_flag' => 'is_worklog_enabled'],
+                ['route' => 'tracking.report', 'title' => 'Tracking Report', 'icon' => 'bi bi-geo-alt', 'permission' => 'tracking.view', 'feature_flag' => 'is_tracking_enabled'],
                 // ['route' => 'reports.user-worklog', 'title' => 'User-wise Report', 'icon' => 'bi bi-person-lines-fill'],
             ],
         ],
