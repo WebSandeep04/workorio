@@ -1261,7 +1261,7 @@ function updateExportUrl() {
     // This is no longer needed as handleExport handles it, but we keep it empty to avoid errors from other calls
 }
 
-function handleExport() {
+window.handleExport = function() {
     const selectedIds = Array.from(selectedTaskIds);
     
     const baseUrl = "{{ route('task.export') }}";

@@ -1024,7 +1024,7 @@ $(document).ready(function() {
         // No longer needed
     }
 
-    function handleExport() {
+    window.handleExport = function() {
         const selectedIds = Array.from(selectedTaskIds);
         
         const baseUrl = "<?php echo e(route('task.export')); ?>";

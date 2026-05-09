@@ -2101,7 +2101,7 @@ $(document).ready(function() {
         // This is no longer needed as handleExport handles it
     }
 
-    function handleExport() {
+    window.handleExport = function() {
         const selectedIds = Array.from(selectedTaskIds);
         
         const baseUrl = "{{ route('task.export') }}";
