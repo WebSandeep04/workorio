@@ -323,8 +323,8 @@
                                 <tr>
                                     <th style="min-width:140px;">Date</th>
                                     <th>Status</th>
+                                    <th>Total Hours</th>
                                     <th>KM Travelled</th>
-                                    <th>Locations Logged</th>
                                     <th>View Map Journey</th>
                                 </tr>
                             </thead>
@@ -334,8 +334,8 @@
                             <tfoot>
                                 <tr>
                                     <td colspan="2" class="text-end">TOTAL</td>
+                                    <td id="ftTotalHours" class="fw-bold">0.00 hrs</td>
                                     <td id="ftTotalDistance" class="fw-bold">0.00 km</td>
-                                    <td id="ftTotalLocations" class="fw-bold">0</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -440,8 +440,8 @@
                                 <tr>
                                     <th>User</th>
                                     <th>Status</th>
+                                    <th>Total Hours</th>
                                     <th>KM Travelled</th>
-                                    <th>Locations Logged</th>
                                     <th>View Map Journey</th>
                                 </tr>
                             </thead>
@@ -452,8 +452,8 @@
                                 <tr>
                                     <td class="text-end">TOTAL</td>
                                     <td></td>
+                                    <td id="ftDailyTotalHours" class="fw-bold">0.00 hrs</td>
                                     <td id="ftDailyTotalDistance" class="fw-bold">0.00 km</td>
-                                    <td id="ftDailyTotalLocations" class="fw-bold">0</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -538,7 +538,7 @@ function loadReport(){
             
             tbody.innerHTML = '';
             let totalKm = 0;
-            let totalLogs = 0;
+            let totalHours = 0;
             
             if(res.daily_data && res.daily_data.length > 0) {
                 res.daily_data.forEach(function(d){
@@ -556,20 +556,20 @@ function loadReport(){
                     tr.innerHTML = `
                         <td class="fw-bold text-dark">${d.display_date} (${d.day_name})</td>
                         <td>${statusBadge(d.status)}</td>
-                        <td class="fw-bold text-primary font-monospace" style="color: #434afa !important;">${d.km_travelled > 0 ? d.km_travelled.toFixed(2) + ' km' : '-'}</td>
-                        <td class="font-monospace">${d.locations_count > 0 ? d.locations_count : '-'}</td>
+                        <td class="fw-bold text-dark font-monospace">${d.hours > 0 ? d.hours.toFixed(2) + ' hrs' : '-'}</td>
+                        <td class="fw-bold text-dark font-monospace">${d.km_travelled > 0 ? d.km_travelled.toFixed(2) + ' km' : '-'}</td>
                         <td>${viewMapBtn}</td>`;
                     tbody.appendChild(tr);
                     
                     totalKm += d.km_travelled;
-                    totalLogs += d.locations_count;
+                    totalHours += d.hours;
                 });
             } else {
                  tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No data found for this period.</td></tr>';
             }
             
+            document.getElementById('ftTotalHours').textContent = totalHours.toFixed(2) + ' hrs';
             document.getElementById('ftTotalDistance').textContent = totalKm.toFixed(2) + ' km';
-            document.getElementById('ftTotalLocations').textContent = totalLogs;
         },
         error: function(xhr){
             let msg = 'Failed to load report. Please try again.';
@@ -638,12 +638,14 @@ function loadMonthlySummary(){
                              let bgStyle = '';
                              if(dayStat.code === 'S' || dayStat.code === 'H') bgStyle = 'background-color:#f8f9fa;'; 
                              
-                             let displayContent = dayStat.code;
+                             let displayContent = '-';
+                             let displayClass = 'text-muted';
                              if (dayStat.km_travelled > 0) {
-                                 displayContent = `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill font-monospace" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">${dayStat.km_travelled.toFixed(1)}k</span>`;
+                                 displayContent = `${dayStat.km_travelled.toFixed(2)}`;
+                                 displayClass = 'text-dark font-monospace';
                              }
                              
-                             rowHtml += `<td class="text-center ${dayStat.class}" style="${bgStyle} font-size:0.85rem;">
+                             rowHtml += `<td class="text-center ${displayClass}" style="${bgStyle} font-size:0.75rem; white-space:nowrap; padding:0.4rem 0.2rem;">
                                 ${displayContent}
                              </td>`;
                         });
@@ -702,7 +704,7 @@ function loadDailyReport(){
             
             tbody.innerHTML = '';
             let totalKm = 0;
-            let totalLogs = 0;
+            let totalHours = 0;
             
             if(res.data && res.data.length > 0) {
                 res.data.forEach(function(d){
@@ -716,20 +718,20 @@ function loadDailyReport(){
                     tr.innerHTML = `
                         <td class="fw-bold text-dark">${d.user.name}</td>
                         <td>${statusBadge(d.status)}</td>
-                        <td class="fw-bold text-primary font-monospace" style="color: #434afa !important;">${d.km_travelled > 0 ? d.km_travelled.toFixed(2) + ' km' : '-'}</td>
-                        <td class="font-monospace">${d.locations_count > 0 ? d.locations_count : '-'}</td>
+                        <td class="fw-bold text-dark font-monospace">${d.hours > 0 ? d.hours.toFixed(2) + ' hrs' : '-'}</td>
+                        <td class="fw-bold text-dark font-monospace">${d.km_travelled > 0 ? d.km_travelled.toFixed(2) + ' km' : '-'}</td>
                         <td>${viewMapBtn}</td>`;
                     tbody.appendChild(tr);
                     
                     totalKm += d.km_travelled;
-                    totalLogs += d.locations_count;
+                    totalHours += d.hours;
                 });
             } else {
                  tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No active tracking users found.</td></tr>';
             }
             
+            document.getElementById('ftDailyTotalHours').textContent = totalHours.toFixed(2) + ' hrs';
             document.getElementById('ftDailyTotalDistance').textContent = totalKm.toFixed(2) + ' km';
-            document.getElementById('ftDailyTotalLocations').textContent = totalLogs;
         },
         error: function(xhr){
             let msg = 'Failed to load daily report. Please try again.';

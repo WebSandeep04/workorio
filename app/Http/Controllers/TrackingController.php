@@ -318,6 +318,7 @@ class TrackingController extends Controller
             }
 
             $statusLabel = 'absent';
+            $hours = 0.0;
 
             if ($attendance) {
                 $hours = $reportService->calculateTotalHours($attendance->movements, $shift, $dateStr);
@@ -368,6 +369,7 @@ class TrackingController extends Controller
                 'is_present' => $isPresent,
                 'km_travelled' => $kmTravelled,
                 'locations_count' => $dayLocations->count(),
+                'hours' => round($hours, 2),
             ];
 
             $curr->addDay();
@@ -695,6 +697,7 @@ class TrackingController extends Controller
             }
 
             $statusLabel = 'absent';
+            $hours = 0.0;
             if ($attendance) {
                 $hours = $reportService->calculateTotalHours($attendance->movements, $shift, $dateStr);
                 [$fullDayHr, $halfDayHr] = $reportService->getThresholds($shift);
@@ -744,6 +747,7 @@ class TrackingController extends Controller
                 'status' => $statusLabel,
                 'km_travelled' => $kmTravelled,
                 'locations_count' => $dayLocations->count(),
+                'hours' => round($hours, 2),
             ];
         }
 
@@ -851,7 +855,7 @@ class TrackingController extends Controller
         $callback = function() use ($startDate, $endDate, $attendances, $leavesDetails, $holidaysData, $holidays, $shift, $locationsByDate, $reportService) {
             $file = fopen('php://output', 'w');
             
-            fputcsv($file, ['Date', 'Day', 'Status', 'KM Travelled', 'Logged Points']);
+            fputcsv($file, ['Date', 'Day', 'Status', 'Total Hours', 'KM Travelled', 'Logged Points']);
 
             $curr = $startDate->copy();
             $totalDistanceKm = 0.0;
@@ -877,6 +881,7 @@ class TrackingController extends Controller
                 }
 
                 $statusLabel = 'absent';
+                $hours = 0.0;
                 if ($attendance) {
                     $hours = $reportService->calculateTotalHours($attendance->movements, $shift, $dateStr);
                     [$fullDayHr, $halfDayHr] = $reportService->getThresholds($shift);
@@ -919,6 +924,7 @@ class TrackingController extends Controller
                     $curr->format('Y-m-d'),
                     $dayName,
                     ucwords($statusLabel),
+                    round($hours, 2),
                     $kmTravelled > 0 ? "{$kmTravelled} km" : "0.00 km",
                     $dayLocations->count()
                 ]);
@@ -1139,9 +1145,9 @@ class TrackingController extends Controller
                     }
 
                     if ($kmTravelled > 0) {
-                        $row[] = round($kmTravelled, 2) . 'k';
+                        $row[] = round($kmTravelled, 2) . ' km';
                     } else {
-                        $row[] = $statusCode;
+                        $row[] = '-';
                     }
                 }
 
@@ -1218,7 +1224,7 @@ class TrackingController extends Controller
         $callback = function() use ($users, $attendances, $leavesData, $locations, $holiday, $date, $dateStr, $reportService) {
             $file = fopen('php://output', 'w');
             
-            fputcsv($file, ['Employee Name', 'Status', 'KM Travelled', 'Logged Points Count']);
+            fputcsv($file, ['Employee Name', 'Status', 'Total Hours', 'KM Travelled', 'Logged Points Count']);
 
             $totalDistanceSum = 0.0;
             $presentCount = 0;
@@ -1250,6 +1256,7 @@ class TrackingController extends Controller
                 }
 
                 $statusLabel = 'absent';
+                $hours = 0.0;
                 if ($attendance) {
                     $hours = $reportService->calculateTotalHours($attendance->movements, $shift, $dateStr);
                     [$fullDayHr, $halfDayHr] = $reportService->getThresholds($shift);
@@ -1294,6 +1301,7 @@ class TrackingController extends Controller
                 fputcsv($file, [
                     $user->name,
                     ucwords($statusLabel),
+                    round($hours, 2),
                     $kmTravelled > 0 ? "{$kmTravelled} km" : "0.00 km",
                     $dayLocations->count()
                 ]);
