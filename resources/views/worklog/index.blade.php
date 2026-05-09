@@ -447,6 +447,7 @@ $(function () {
             work_date: $('#work_date').val(),
             entry_type_id: $('#entry_type_id').val(),
             customer_id: $('#customer_id').val(),
+            project_name: $('#project_name').val(),
             service_id: $('#service_id').val(),
             module_id: $('#module_id').val(),
             hours: $('#hours').val(),

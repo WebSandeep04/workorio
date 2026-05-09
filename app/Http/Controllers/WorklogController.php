@@ -186,6 +186,7 @@ class WorklogController extends Controller
             'work_date' => 'required|date',
             'entry_type_id' => 'required|exists:entry_types,id',
             'customer_id' => 'required|exists:customers,id',
+            'project_name' => 'required|string',
             'service_id' => 'required|exists:services,id',
             'module_id' => 'required|exists:modules,id',
             'hours' => 'required|integer|min:0|max:24',
@@ -209,6 +210,7 @@ class WorklogController extends Controller
         $existingWorklog = Worklog::where('work_date', $request->work_date)
             ->where('entry_type_id', $request->entry_type_id)
             ->where('customer_id', $request->customer_id)
+            ->where('customer_project_name', $request->project_name)
             ->where('service_id', $request->service_id)
             ->where('module_id', $request->module_id)
             ->where('user_id', $user->id)
@@ -228,6 +230,7 @@ class WorklogController extends Controller
         
         // Find matching customer_project for traceability
         $customerProject = CustomerProject::where('customer_id', $request->customer_id)
+            ->where('project_name', $request->project_name)
             ->where('service_id', $request->service_id)
             ->first();
         $customerProjectId = $customerProject->id ?? null;
@@ -384,6 +387,7 @@ class WorklogController extends Controller
                 $existingWorklog = Worklog::where('work_date', $entry['work_date'])
                     ->where('entry_type_id', $entry['entry_type_id'])
                     ->where('customer_id', $entry['customer_id'])
+                    ->where('customer_project_name', $entry['customer_project_name'])
                     ->where('service_id', $entry['service_id'])
                     ->where('module_id', $entry['module_id'])
                     ->where('user_id', $user->id)
