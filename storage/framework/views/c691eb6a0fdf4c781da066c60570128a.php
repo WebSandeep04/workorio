@@ -161,7 +161,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4 bg-white">
-                <p id="fullReasonText" class="mb-0" style="font-size: 14px; white-space: pre-wrap; color:#333;"></p>
+                <p id="fullReasonText" class="mb-0" style="font-size: 14px; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; color:#333;"></p>
             </div>
             <div class="modal-footer border-0 p-3 bg-light" style="border-top: 1px solid #f0f0f0 !important;">
                 <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
