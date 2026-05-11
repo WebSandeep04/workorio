@@ -113,7 +113,7 @@ class AuthController extends Controller
                         'name' => $user->name,
                         'email' => $user->email,
                         'role_id' => $user->role_id,
-                        'role_name' => $user->role ? $user->role->name : 'user',
+                        'role_name' => $user->role ? $user->role->role_name : 'not found',
                         'is_manager' => $user->is_manager ?? 0,
                         'has_subordinates' => $user->subordinates()->exists(),
                         'permissions' => $user->rolePermissions(),
