@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\Tenant;
 use App\Services\TenantDatabaseService;
+use App\Services\MenuBuilder;
 
 class AuthController extends Controller
 {
@@ -50,6 +51,25 @@ class AuthController extends Controller
             'success' => false,
             'message' => 'The provided credentials do not match our records.'
         ], 401);
+    }
+
+    public function getMenus(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.'
+            ], 401);
+        }
+
+        // Standard filtering for currently authenticated user
+        $menus = MenuBuilder::build($user);
+
+        return response()->json([
+            'success' => true,
+            'data' => $menus
+        ]);
     }
 
     /**
@@ -126,39 +146,40 @@ class AuthController extends Controller
                             'shift' => $shiftDetails
                         ] : null,
                         'feature_flags' => [
-                            'is_sales_enabled' => $user->is_sales ?? 0,
-                            'is_tally_calling_enabled' => $user->is_tally_calling ?? 0,
-                            'is_leadgen_enabled' => $user->is_sales ?? 0,
-                            'is_projects_enabled' => $user->is_projects ?? 0,
-                            'is_subscription_enabled' => $user->is_subscription_and_renewal ?? 0,
-                            'is_tracking_enabled' => $user->is_tracking ?? 0,
-                            'is_worklog_enabled' => $user->is_worklog ?? 0,
-                            'is_workflow_enabled' => $user->is_workflow ?? 0,
-                            'is_social_media_calendar_enabled' => $user->is_calander ?? 0,
-                            'is_setup_enabled' => $user->is_master ?? 0,
-                            'is_task_reminders_enabled' => $user->is_task ?? 0,
-                            'is_attendance_enabled' => $user->is_attandance ?? 0,
-                            'is_reports_enabled' => $user->is_reports ?? 0,
-                            'is_document_management_enabled' => $user->is_document ?? 0,
-                            'is_petty_cash_enable' => $user->is_petty_cash ?? 0,
-                            'is_approval_enabled' => ($user->is_petty_cash || $user->is_worklog || $user->is_attandance) ? 1 : 0,
-                            'is_contact_management' => $user->is_contact_management ?? 0,
-                            'is_asset_management_enable' => $user->is_asset_management ?? 0,
-                            'is_email_marketing_enable' => $user->is_email_marketing ?? 0,
-                            'is_core_setup_enabled' => $user->is_core_setup ?? 0,
-                            'is_user_setup_enabled' => $user->is_user_setup ?? 0,
-                            'is_master_setup_enabled' => $user->is_master_setup ?? 0,
-                            'is_sales_setup_enabled' => $user->is_sales_setup ?? 0,
-                            'is_tally_calling_setup_enabled' => $user->is_tally_calling_setup ?? 0,
-                            'is_petty_cash_setup_enabled' => $user->is_petty_cash_setup ?? 0,
-                            'is_projects_setup_enabled' => $user->is_projects_setup ?? 0,
-                            'is_work_setup_enabled' => $user->is_work_setup ?? 0,
-                            'is_attendance_setup_enabled' => $user->is_attendance_setup ?? 0,
-                            'is_task_setup_enabled' => $user->is_task_setup ?? 0,
-                            'is_subscription_setup_enabled' => $user->is_subscription_setup ?? 0,
-                            'is_calendar_setup_enabled' => $user->is_calendar_setup ?? 0,
-                            'is_asset_management_setup_enabled' => $user->is_asset_management_setup ?? 0,
-                        ]
+                            'is_sales_enabled' => $tenant->is_sales_enabled ?? 0,
+                            'is_tally_calling_enabled' => $tenant->is_tally_calling_enabled ?? 0,
+                            'is_leadgen_enabled' => $tenant->is_leadgen_enabled ?? 0,
+                            'is_projects_enabled' => $tenant->is_projects_enabled ?? 0,
+                            'is_subscription_enabled' => $tenant->is_subscription_enabled ?? 0,
+                            'is_tracking_enabled' => $tenant->is_tracking_enabled ?? 0,
+                            'is_worklog_enabled' => $tenant->is_worklog_enabled ?? 0,
+                            'is_workflow_enabled' => $tenant->is_workflow_enabled ?? 0,
+                            'is_social_media_calendar_enabled' => $tenant->is_social_media_calendar_enabled ?? 0,
+                            'is_setup_enabled' => $tenant->is_setup_enabled ?? 0,
+                            'is_task_reminders_enabled' => $tenant->is_task_reminders_enabled ?? 0,
+                            'is_attendance_enabled' => $tenant->is_attendance_enabled ?? 0,
+                            'is_reports_enabled' => $tenant->is_reports_enabled ?? 0,
+                            'is_document_management_enabled' => $tenant->is_document_management_enabled ?? 0,
+                            'is_petty_cash_enable' => $tenant->is_petty_cash_enable ?? 0,
+                            'is_approval_enabled' => $tenant->is_approval_enabled ?? 0,
+                            'is_contact_management' => $tenant->is_contact_management ?? 0,
+                            'is_asset_management_enable' => $tenant->is_asset_management_enable ?? 0,
+                            'is_email_marketing_enable' => $tenant->is_email_marketing_enable ?? 0,
+                            'is_core_setup_enabled' => $tenant->is_core_setup_enabled ?? 0,
+                            'is_user_setup_enabled' => $tenant->is_user_setup_enabled ?? 0,
+                            'is_master_setup_enabled' => $tenant->is_master_setup_enabled ?? 0,
+                            'is_sales_setup_enabled' => $tenant->is_sales_setup_enabled ?? 0,
+                            'is_tally_calling_setup_enabled' => $tenant->is_tally_calling_setup_enabled ?? 0,
+                            'is_petty_cash_setup_enabled' => $tenant->is_petty_cash_setup_enabled ?? 0,
+                            'is_projects_setup_enabled' => $tenant->is_projects_setup_enabled ?? 0,
+                            'is_work_setup_enabled' => $tenant->is_work_setup_enabled ?? 0,
+                            'is_attendance_setup_enabled' => $tenant->is_attendance_setup_enabled ?? 0,
+                            'is_task_setup_enabled' => $tenant->is_task_setup_enabled ?? 0,
+                            'is_subscription_setup_enabled' => $tenant->is_subscription_setup_enabled ?? 0,
+                            'is_calendar_setup_enabled' => $tenant->is_calendar_setup_enabled ?? 0,
+                            'is_asset_management_setup_enabled' => $tenant->is_asset_management_setup_enabled ?? 0,
+                        ],
+                        'menus' => MenuBuilder::build($user)
                     ];
                 }
             } catch (\Exception $e) {

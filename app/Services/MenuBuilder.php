@@ -10,12 +10,14 @@ use App\Models\Role;
 
 class MenuBuilder
 {
-    public static function build(): array
+    public static function build(?User $user = null): array
     {
-        // Check if user is authenticated through Laravel Auth (master database users)
-        $user = Auth::user();
+        // If not passed, check if user is authenticated through Laravel Auth (master database users)
+        if (!$user) {
+            $user = Auth::user();
+        }
         
-        // If not authenticated through Auth, check session for tenant users
+        // If not authenticated through Auth or passed, check session for tenant users
         if (!$user) {
             $userId = session('user_id');
             $userName = session('user_name');

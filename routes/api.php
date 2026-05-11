@@ -14,6 +14,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Attendance Routes - Requires Tenant Database Connection & Authentication
 Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
+    Route::get('/menus', [AuthController::class, 'getMenus']);
     Route::get('/attendance/today-status', [AttendanceController::class, 'getTodayStatus']);
     Route::post('/attendance/punch-in', [AttendanceController::class, 'punchIn']);
     Route::post('/attendance/punch-out', [AttendanceController::class, 'punchOut']);
