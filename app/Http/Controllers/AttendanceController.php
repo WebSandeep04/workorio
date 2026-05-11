@@ -979,6 +979,9 @@ class AttendanceController extends Controller
             return response()->json(['error' => 'User not authenticated'], 401);
         }
 
+        // Eager load relation to ensure parity with _fetchUserReportData logic
+        $user->loadMissing(['employee.shiftRelation']);
+
         if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('attendance.history')) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
@@ -1004,51 +1007,50 @@ class AttendanceController extends Controller
             ->get();
         
         // Fetch leaves and holidays for summary
-        $holidays = Holiday::whereBetween('holiday_date', [$startDate, $endDate])
+        $holidaysData = Holiday::whereBetween('holiday_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->get()
-            ->map(function($h) {
-                return Carbon::parse($h->holiday_date)->format('Y-m-d');
-            })
-            ->toArray();
+            ->keyBy(function($holiday) {
+                return $holiday->holiday_date->format('Y-m-d');
+            });
+        
+        $holidays = $holidaysData->keys()->toArray();
 
-        $leaves = LeaveRequest::where('user_id', $user->id)
+        $leaveRequests = LeaveRequest::where('user_id', $user->id)
             ->where('status', 'approved')
             ->where(function($query) use ($startDate, $endDate) {
-                $query->whereBetween('start_date', [$startDate, $endDate])
-                    ->orWhereBetween('end_date', [$startDate, $endDate])
-                    ->orWhere(function($q) use ($startDate, $endDate) {
-                        $q->where('start_date', '<=', $startDate)
-                          ->where('end_date', '>=', $endDate);
-                    });
-            })
-            ->get();
+                $query->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                      ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                      ->orWhere(function($q) use ($startDate, $endDate) {
+                          $q->where('start_date', '<=', $startDate->format('Y-m-d'))
+                            ->where('end_date', '>=', $endDate->format('Y-m-d'));
+                      });
+            })->get();
             
-        $leaveDates = [];
-        foreach ($leaves as $leave) {
-            $from = Carbon::parse($leave->start_date);
-            $to = Carbon::parse($leave->end_date);
-            $current = $from->copy();
-            while ($current->lte($to)) {
-                if ($current->between($startDate, $endDate)) {
-                    $d = $current->format('Y-m-d');
-                    if (!isset($leaveDates[$d])) {
-                        if ($leave->is_rh) {
-                            $leaveDates[$d] = 'RH';
-                        } elseif ($leave->is_sl) {
-                            $leaveDates[$d] = 'SL';
+        $leavesDetails = [];
+        foreach ($leaveRequests as $req) {
+            $period = new \DatePeriod(new \DateTime($req->start_date), new \DateInterval('P1D'), (new \DateTime($req->end_date))->modify('+1 day'));
+            foreach ($period as $dt) {
+                if ($dt >= new \DateTime($startDate->format('Y-m-d')) && $dt <= new \DateTime($endDate->format('Y-m-d'))) {
+                    $d = $dt->format('Y-m-d');
+                    if (!isset($leavesDetails[$d])) {
+                        if ($req->is_rh) {
+                            $leavesDetails[$d] = 'RH';
+                        } elseif ($req->is_sl) {
+                            $leavesDetails[$d] = 'SL';
+                        } elseif ($req->is_half_day) {
+                            $leavesDetails[$d] = 'HD';
                         } else {
-                            $leaveDates[$d] = 'L';
+                            $leavesDetails[$d] = 'L';
                         }
                     }
                 }
-                $current->addDay();
             }
         }
 
-        $summary = $this->reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leaveDates, null, $user);
+        $summary = $this->reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
         
         $shift = $user->employee->shiftRelation ?? null;
-        $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaveDates, null, $shift);
+        $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $shift);
 
         return response()->json([
             'attendances' => $dailyBreakdown,

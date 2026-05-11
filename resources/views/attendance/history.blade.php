@@ -278,14 +278,20 @@ function displayAttendanceData(attendances, summary) {
         let statusBadge = '';
         let rowClass = '';
         
+        const displayLabel = status.replace(/\b\w/g, l => l.toUpperCase());
+        
         switch(status) {
             case 'present':
-                statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2">Present</span>';
+            case 'present with sl':
+            case 'present with hd':
+            case 'present (partial leave)':
+                statusBadge = `<span class="badge bg-success-subtle text-success border border-success-subtle px-2">${displayLabel}</span>`;
                 break;
             case 'halfday':
                 statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2">Half-Day</span>';
                 break;
             case 'weekly off':
+            case 'sunday':
                 statusBadge = '<span class="badge bg-info-subtle text-info border border-info-subtle px-2">Weekly Off</span>';
                 rowClass = 'table-light text-muted';
                 break;
@@ -296,14 +302,19 @@ function displayAttendanceData(attendances, summary) {
             case 'leave':
             case 'short leave':
             case 'restricted holiday':
-                statusBadge = `<span class="badge bg-purple-subtle text-purple border border-purple-subtle px-2" style="background-color: #f3e8ff; color: #7e22ce;">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+                statusBadge = `<span class="badge bg-purple-subtle text-purple border border-purple-subtle px-2" style="background-color: #f3e8ff; color: #7e22ce;">${displayLabel}</span>`;
                 break;
             case 'absent':
             case 'absent by less hr':
-                statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2">Absent</span>';
+                statusBadge = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2">${displayLabel}</span>`;
                 break;
             default:
-                statusBadge = `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2">${status}</span>`;
+                // Check for 'working' suffix which handles dynamic 'Monday Working', etc.
+                if (status.includes('working')) {
+                    statusBadge = `<span class="badge bg-info-subtle text-info border border-info-subtle px-2">${displayLabel}</span>`;
+                } else {
+                    statusBadge = `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2">${displayLabel}</span>`;
+                }
         }
 
         html += `<tr class="${rowClass}">
