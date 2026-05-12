@@ -75,11 +75,21 @@ class AttendanceController extends Controller
                 ->exists();
 
             if (!$hasAttendance) {
-                // If no attendance, we only skip if it's a Sunday or Holiday
+                // If no attendance, we only skip if it's a Weekoff or Holiday
                 $isHoliday = Holiday::where('holiday_date', $dateStr)->exists();
-                $isSunday = $checkDate->dayOfWeek === Carbon::SUNDAY;
                 
-                if ($isHoliday || $isSunday) {
+                // Dynamic weekoff from Shift
+                $isWeekoff = false;
+                $employee = $user->employee;
+                if ($employee && $employee->shiftRelation && is_array($employee->shiftRelation->week_offs)) {
+                    // Carbon dayOfWeek returns 0 (Sunday) to 6 (Saturday)
+                    $isWeekoff = in_array($checkDate->dayOfWeek, $employee->shiftRelation->week_offs);
+                } else {
+                    // Fallback to hardcoded Sunday if no shift or weekoffs defined
+                    $isWeekoff = $checkDate->dayOfWeek === Carbon::SUNDAY;
+                }
+                
+                if ($isHoliday || $isWeekoff) {
                     $checkDate->addDay();
                     continue;
                 }
@@ -300,18 +310,8 @@ class AttendanceController extends Controller
                                 
                             $monthlyLateAllowance = (int) ($shift->min_per_month_late_allow ?? 0);
                             
-                            // Block if allowance exceeded and no leave covers today
-                            if ($monthlyLateAllowance > 0 && ($alreadyUsedLateMinutes + $lateMinutesToRecord) > $monthlyLateAllowance) {
-                                 return response()->json([
-                                     'success' => false,
-                                     'late_allowance_exceeded' => true,
-                                     'message' => 'You have exceeded your monthly late allowance (' . $alreadyUsedLateMinutes . '/' . $monthlyLateAllowance . ' min). Today\'s late of ' . $lateMinutesToRecord . ' min would put you at ' . ($alreadyUsedLateMinutes + $lateMinutesToRecord) . ' min. Please apply for a Short Leave (SL) or Half-Day leave instead.',
-                                     'used' => $alreadyUsedLateMinutes,
-                                     'today_late' => $lateMinutesToRecord,
-                                     'allowance' => $monthlyLateAllowance,
-                                     'leave_url' => route('leave.index')
-                                 ], 403);
-                            }
+                            // The late allowance check is now only for information/logging, not a blocker.
+                            // We previously blocked punch-in here if (alreadyUsedLateMinutes + lateMinutesToRecord) > monthlyLateAllowance.
 
                             // User is late; require reason
                             if (empty($request->late_reason)) {
@@ -390,6 +390,24 @@ class AttendanceController extends Controller
             'mode' => 'mobile',
             'place' => $detectedPlaceName,
         ]);
+
+        // Smart Early Return Detection
+        $overlappingLeave = LeaveRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->where('start_date', '<=', $today->toDateString())
+            ->where('end_date', '>=', $today->toDateString())
+            ->where('is_half_day', 0)
+            ->where('is_sl', 0)
+            ->first();
+
+        if ($overlappingLeave) {
+            $overlappingLeave->update(['has_attendance_overlap' => true]);
+            Log::info('Smart Early Return detected (API)', [
+                'user_id' => $user->id,
+                'leave_id' => $overlappingLeave->id,
+                'date' => $today->toDateString()
+            ]);
+        }
 
         Log::info('Punch-in movement created (API)', [
             'user_id' => $user->id,
