@@ -41,8 +41,8 @@ class AttendanceController extends Controller
             return ['can_perform' => true, 'message' => ''];
         }
         
-        $today = Carbon::today();
-        $userCreatedDate = $user->created_at ? Carbon::parse($user->created_at)->startOfDay() : Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
+        $userCreatedDate = $user->created_at ? Carbon::parse($user->created_at)->startOfDay() : Carbon::today('Asia/Kolkata');
         
         // Start checking from the user's creation date
         $checkDate = $userCreatedDate;
@@ -146,7 +146,7 @@ class AttendanceController extends Controller
             ], 403);
         }
         
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
         
         // Check if user is currently on break - if so, prevent punch in/out actions.
         $existingAttendance = Attendance::where('user_id', $user->id)
@@ -287,10 +287,10 @@ class AttendanceController extends Controller
 
                 if ($employee && $employee->shiftRelation && $employee->shiftRelation->start_time) {
                     $shift = $employee->shiftRelation;
-                    $shiftStart = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->start_time);
+                    $shiftStart = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->start_time, 'Asia/Kolkata');
                     $allowedLateMinutes = (int) ($shift->late_min ?? 0);
                     $cutoffTime = $shiftStart->copy()->addMinutes($allowedLateMinutes);
-                    $now = Carbon::now();
+                    $now = Carbon::now('Asia/Kolkata');
 
                     Log::info('Late check: timing comparison', [
                         'user_id' => $user->id,
@@ -318,7 +318,7 @@ class AttendanceController extends Controller
                             $lateMinutesToRecord = (int) abs($now->diffInMinutes($cutoffTime));
 
                             // Check if monthly late allowance exceeded
-                            $thisMonth = Carbon::now()->startOfMonth();
+                            $thisMonth = Carbon::now('Asia/Kolkata')->startOfMonth();
                             $alreadyUsedLateMinutes = (int) abs(Attendance::where('user_id', $user->id)
                                 ->where('date', '>=', $thisMonth)
                                 ->sum('late_minutes'));
@@ -518,7 +518,7 @@ class AttendanceController extends Controller
             ], 403);
         }
         
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
 
         $existingAttendance = Attendance::where('user_id', $user->id)
             ->where('date', $today)
@@ -644,7 +644,7 @@ class AttendanceController extends Controller
             ], 403);
         }
         
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
         
         $attendance = Attendance::firstOrCreate([
             'user_id' => $user->id,
@@ -714,7 +714,7 @@ class AttendanceController extends Controller
             ], 403);
         }
         
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
         
         $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $today)
@@ -788,7 +788,7 @@ class AttendanceController extends Controller
     public function getTodayStatus(): JsonResponse
     {
         $user = $this->getCurrentUser();
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
         
         // Check if user can perform attendance actions
         $attendanceCheck = $this->canPerformAttendanceAction();
@@ -988,14 +988,14 @@ class AttendanceController extends Controller
         
         
         $perPage = $request->get('per_page', 15);
-        $month = $request->get('month', Carbon::now()->format('Y-m'));
+        $month = $request->get('month', Carbon::now('Asia/Kolkata')->format('Y-m'));
         
         try {
             $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
             $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
         } catch (\Exception $e) {
-            $startDate = Carbon::now()->startOfMonth();
-            $endDate = Carbon::now()->endOfMonth();
+            $startDate = Carbon::now('Asia/Kolkata')->startOfMonth();
+            $endDate = Carbon::now('Asia/Kolkata')->endOfMonth();
         }
 
         $attendances = Attendance::with(['movements' => function($query) {
@@ -1061,8 +1061,8 @@ class AttendanceController extends Controller
     public function getAttendanceStats(): JsonResponse
     {
         $user = $this->getCurrentUser();
-        $today = Carbon::today();
-        $thisMonth = Carbon::now()->startOfMonth();
+        $today = Carbon::today('Asia/Kolkata');
+        $thisMonth = Carbon::now('Asia/Kolkata')->startOfMonth();
         
         $stats = [
             'today_hours' => 0,

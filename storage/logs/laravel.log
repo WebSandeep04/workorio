@@ -939,3 +939,28 @@
 #21 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #22 {main}
 "} 
+[2026-05-12 08:18:35] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.48166087212809","long":"80.3459161719331"} 
+[2026-05-12 08:18:36] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-05-12 08:18:36] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-05-12 08:18:36] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-05-12 10:00:00","late_min":15,"cutoff_time":"2026-05-12 10:15:00","now":"2026-05-12 08:18:36","is_late":false} 
+[2026-05-12 08:18:36] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":1799,"date":"2026-05-12"} 
+[2026-05-12 08:18:36] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":1799} 
+[2026-05-12 08:18:36] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":1799,"movement_id":4220,"movement_type":"office","description":null} 
+[2026-05-12 09:14:06] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481669911189982","long":"80.34588453234608"} 
+[2026-05-12 09:14:07] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-05-12 09:14:07] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-05-12 09:14:07] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-05-12 10:00:00","late_min":15,"cutoff_time":"2026-05-12 10:15:00","now":"2026-05-12 14:44:07","is_late":true} 
+[2026-05-12 09:14:07] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-05-12 09:38:39] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481666140625126","long":"80.34589257551126"} 
+[2026-05-12 09:38:39] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-05-12 09:38:39] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-05-12 09:38:39] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-05-12 10:00:00","late_min":15,"cutoff_time":"2026-05-12 10:15:00","now":"2026-05-12 15:08:39","is_late":true} 
+[2026-05-12 09:38:39] local.INFO: Late punch-in requires reason (no DB write) {"user_id":4,"movement_type":"office"} 
+[2026-05-12 09:38:44] local.INFO: Punch-in started {"user_id":4,"movement_type":"office","lat":"26.481666140625126","long":"80.34589257551126"} 
+[2026-05-12 09:38:44] local.INFO: Punch-in check: first IN detection {"user_id":4,"movement_type":"office","has_any_in":false} 
+[2026-05-12 09:38:44] local.INFO: Late check: employee + shift lookup {"user_id":4,"employee_id":2,"has_shift":true} 
+[2026-05-12 09:38:44] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-05-12 10:00:00","late_min":15,"cutoff_time":"2026-05-12 10:15:00","now":"2026-05-12 15:08:44","is_late":true} 
+[2026-05-12 09:38:44] local.INFO: Late check: timing comparison {"user_id":4,"shift_start":"2026-05-12 10:00:00","late_min":15,"cutoff_time":"2026-05-12 10:15:00","now":"2026-05-12 15:08:44","is_late":true,"late_minutes":293,"has_leave":false} 
+[2026-05-12 09:38:44] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":1800,"date":"2026-05-12"} 
+[2026-05-12 09:38:44] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":1800} 
+[2026-05-12 09:38:44] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":1800,"movement_id":4222,"movement_type":"office","description":"Late punch-in: Family emergency (unplanned)"} 

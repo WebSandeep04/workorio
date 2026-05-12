@@ -59,8 +59,8 @@ class AttendanceController extends Controller
             return ['can_perform' => true, 'message' => ''];
         }
         
-        $today = Carbon::today();
-        $userCreatedDate = $user->created_at ? Carbon::parse($user->created_at)->startOfDay() : Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
+        $userCreatedDate = $user->created_at ? Carbon::parse($user->created_at)->startOfDay() : Carbon::today('Asia/Kolkata');
         
         // Start checking from the user's creation date
         $checkDate = $userCreatedDate;
@@ -144,7 +144,7 @@ class AttendanceController extends Controller
             ], 403);
         }
         
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
         
         $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $today)
@@ -274,10 +274,10 @@ class AttendanceController extends Controller
                 $employee = $user->employee;
                 if ($employee && $employee->shiftRelation && $employee->shiftRelation->start_time) {
                     $shift = $employee->shiftRelation;
-                    $shiftStart = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->start_time);
+                    $shiftStart = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->start_time, 'Asia/Kolkata');
                     $allowedLateMinutes = (int) ($shift->late_min ?? 0);
                     $cutoffTime = $shiftStart->copy()->addMinutes($allowedLateMinutes);
-                    $now = Carbon::now();
+                    $now = Carbon::now('Asia/Kolkata');
 
                     if ($now->greaterThan($cutoffTime)) {
                         // Check if user already has an approved or pending leave for today
@@ -293,7 +293,7 @@ class AttendanceController extends Controller
                             $lateMinutesToRecord = (int) abs($now->diffInMinutes($cutoffTime));
 
                             // Check if monthly late allowance exceeded
-                            $thisMonth = Carbon::now()->startOfMonth();
+                            $thisMonth = Carbon::now('Asia/Kolkata')->startOfMonth();
                             $alreadyUsedLateMinutes = (int) abs(Attendance::where('user_id', $user->id)
                                 ->where('date', '>=', $thisMonth)
                                 ->sum('late_minutes'));
@@ -458,7 +458,7 @@ class AttendanceController extends Controller
             ], 403);
         }
         
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
 
         // Check for pending tasks not updated today (Blocker)
         if (in_array($request->movement_type, ['office', 'field'])) {
@@ -578,7 +578,7 @@ class AttendanceController extends Controller
             ], 403);
         }
         
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
         
         $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $today)
@@ -653,7 +653,7 @@ class AttendanceController extends Controller
             ], 403);
         }
         
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
         
         $attendance = Attendance::where('user_id', $user->id)
             ->where('date', $today)
@@ -728,7 +728,7 @@ class AttendanceController extends Controller
     public function getTodayStatus(): JsonResponse
     {
         $user = $this->getCurrentUser();
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Kolkata');
         
         // Check if user has worklog access
         $attendanceCheck = $this->canPerformAttendanceAction();
