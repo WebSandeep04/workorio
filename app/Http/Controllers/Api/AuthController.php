@@ -112,9 +112,9 @@ class AuthController extends Controller
                         // Assuming times are stored as H:i:s and are in UTC (as per request)
                         // parsing them as today's time in UTC then converting to IST
                         try {
-                            // Using today's date + time string
-                            $startTime = \Carbon\Carbon::parse($shift->start_time, 'UTC')->setTimezone('Asia/Kolkata')->format('H:i:s');
-                            $endTime = \Carbon\Carbon::parse($shift->end_time, 'UTC')->setTimezone('Asia/Kolkata')->format('H:i:s');
+                            // Return native DB values as-is, avoiding implicit UTC-to-IST additions if they are already regional values.
+                            $startTime = $shift->start_time ? \Carbon\Carbon::parse($shift->start_time)->format('H:i:s') : null;
+                            $endTime = $shift->end_time ? \Carbon\Carbon::parse($shift->end_time)->format('H:i:s') : null;
                         } catch (\Exception $e) {
                             $startTime = $shift->start_time; // Fallback
                             $endTime = $shift->end_time;

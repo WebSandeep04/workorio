@@ -994,3 +994,5 @@
 [stacktrace]
 #0 {main}
 "} 
+[2026-05-12 12:01:47] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
+[2026-05-12 12:01:48] local.INFO: Punch-in movement created (API) {"user_id":7,"attendance_id":1803,"movement_id":4243} 
