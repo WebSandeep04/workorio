@@ -964,3 +964,13 @@
 [2026-05-12 09:38:44] local.INFO: Punch-in attendance resolved {"user_id":4,"attendance_id":1800,"date":"2026-05-12"} 
 [2026-05-12 09:38:44] local.INFO: Auto punch-out field executed from office punch-in {"user_id":4,"attendance_id":1800} 
 [2026-05-12 09:38:44] local.INFO: Punch-in movement created {"user_id":4,"attendance_id":1800,"movement_id":4222,"movement_type":"office","description":"Late punch-in: Family emergency (unplanned)"} 
+[2026-05-12 10:50:54] local.INFO: Punch-in started (API) {"user_id":13,"movement_type":"office"} 
+[2026-05-12 10:50:54] local.INFO: Punch-in movement created (API) {"user_id":13,"attendance_id":1801,"movement_id":4223} 
+[2026-05-12 10:54:26] local.INFO: Punch-in started (API) {"user_id":13,"movement_type":"field"} 
+[2026-05-12 10:54:26] local.INFO: Punch-in movement created (API) {"user_id":13,"attendance_id":1801,"movement_id":4225} 
+[2026-05-12 10:54:34] local.INFO: Punch-in started (API) {"user_id":13,"movement_type":"office"} 
+[2026-05-12 10:54:34] local.INFO: Punch-in movement created (API) {"user_id":13,"attendance_id":1801,"movement_id":4227} 
+[2026-05-12 10:55:06] local.INFO: Punch-in started (API) {"user_id":13,"movement_type":"office"} 
+[2026-05-12 10:55:06] local.INFO: Punch-in movement created (API) {"user_id":13,"attendance_id":1801,"movement_id":4231} 
+[2026-05-12 10:55:19] local.INFO: Punch-in started (API) {"user_id":13,"movement_type":"office"} 
+[2026-05-12 10:55:19] local.INFO: Punch-in movement created (API) {"user_id":13,"attendance_id":1801,"movement_id":4233} 

@@ -536,17 +536,19 @@ class AttendanceController extends Controller
         }
 
         // Check if punched in for this type
+        // Check if currently punched in for this type
         $punchInMovement = Movement::where('attendance_id', $attendance->id)
             ->where('movement_type', $request->movement_type)
-            ->where('movement_action', 'in')
+            ->orderBy('time', 'desc')
             ->first();
 
-        if (!$punchInMovement) {
+        if (!$punchInMovement || $punchInMovement->movement_action !== 'in') {
             return response()->json([
                 'success' => false,
-                'message' => 'Not punched in for ' . $request->movement_type
+                'message' => 'Not punched in for ' . $request->movement_type . '. Please punch in first.'
             ]);
         }
+
 
         // Create punch out movement
         $movement = Movement::create([
@@ -1024,7 +1026,8 @@ class AttendanceController extends Controller
         }
 
         // If there's an active in/start action, the current cycle is cycles + 1
-        return $inAction ? $cycles + 1 : $cycles + 1;
+        // If not active (just completed), return the count of the just-finished cycle.
+        return $inAction ? $cycles + 1 : $cycles;
     }
 
     /**
@@ -1228,10 +1231,10 @@ class AttendanceController extends Controller
     {
         $fieldInMovement = Movement::where('attendance_id', $attendance->id)
             ->where('movement_type', 'field')
-            ->where('movement_action', 'in')
+            ->orderBy('time', 'desc')
             ->first();
 
-        if ($fieldInMovement) {
+        if ($fieldInMovement && $fieldInMovement->movement_action === 'in') {
             // Create automatic field punch out
             Movement::create([
                 'attendance_id' => $attendance->id,
@@ -1249,10 +1252,10 @@ class AttendanceController extends Controller
     {
         $officeInMovement = Movement::where('attendance_id', $attendance->id)
             ->where('movement_type', 'office')
-            ->where('movement_action', 'in')
+            ->orderBy('time', 'desc')
             ->first();
 
-        if ($officeInMovement) {
+        if ($officeInMovement && $officeInMovement->movement_action === 'in') {
             // Create automatic office punch out
             Movement::create([
                 'attendance_id' => $attendance->id,
