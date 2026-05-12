@@ -3,81 +3,162 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\Worklog;
+use App\Services\LeaveBalanceService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\LeaveStatusMail;
 
 class LeaveController extends Controller
 {
-    /**
-     * Get current authenticated user
-     */
-    private function getCurrentUser()
-    {
-        return auth()->user();
-    }
-
     /**
      * Fetch all leaves for the authenticated user
      */
     public function index(): JsonResponse
     {
-        $user = $this->getCurrentUser();
-        
-        // Check if leaves table exists
-        if (!DB::getSchemaBuilder()->hasTable('leave_requests')) {
-            return response()->json([
-                'success' => true,
-                'data' => []
-            ]);
+        $user = Auth::user();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+        try {
+            if (!Schema::hasTable('leave_requests')) {
+                return response()->json(['success' => true, 'data' => []]);
+            }
+
+            $query = LeaveRequest::with(['leaveType'])
+                ->where('user_id', $user->id)
+                ->orderBy('start_date', 'desc');
+
+            if (Schema::hasColumn('leave_requests', 'is_early_return')) {
+                $query->where('is_early_return', 0);
+            }
+
+            $leaves = $query->get();
+
+            return response()->json(['success' => true, 'data' => $leaves]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to fetch history.', 'data' => []]);
         }
-
-        $leaves = LeaveRequest::with(['leaveType'])
-            ->where('user_id', $user->id)
-            ->orderBy('start_date', 'desc')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $leaves
-        ]);
     }
 
     /**
-     * Fetch leave types (entry types with working_hours = 0)
+     * Fetch valid active leave types along with live user balances/rules.
      */
     public function getLeaveTypes(): JsonResponse
     {
-        // Check if leave_types table exists
-        if (!DB::getSchemaBuilder()->hasTable('leave_types')) {
-            return response()->json([
-                'success' => true,
-                'data' => []
-            ]);
+        $user = Auth::user();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+        try {
+            if (!Schema::hasTable('leave_types')) {
+                return response()->json(['success' => true, 'data' => []]);
+            }
+
+            $query = LeaveType::where('status', true)->orderBy('name');
+
+            // Get the employee's employment type safely
+            $empTypeId = $user->employee->employment_type_id ?? null;
+
+            if (!empty($empTypeId) && Schema::hasTable('employment_type_leave_rules')) {
+                $allowedLeaveIds = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                    ->pluck('leave_type_id');
+                $query->whereIn('id', $allowedLeaveIds);
+            }
+
+            $leaveTypes = $query->get();
+            $balanceService = app(LeaveBalanceService::class);
+
+            $mapped = $leaveTypes->map(function ($type) use ($balanceService, $user, $empTypeId) {
+                $balance = 0;
+                $totalAllowed = 0;
+                $pending = 0;
+
+                // 1. Fetch Quota (Max Allowed) from Rules
+                $isUnlimited = false;
+                if (!empty($empTypeId) && Schema::hasTable('employment_type_leave_rules')) {
+                    $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                        ->where('leave_type_id', $type->id)
+                        ->first();
+                    if ($rule) {
+                        $totalAllowed = $rule->value;
+                        if (($rule->generation_type ?? '') === 'unlimited') {
+                            $isUnlimited = true;
+                        }
+                    }
+                }
+
+                // 2. Fetch Balance/Remaining based on Type
+                if ($type->quota_type === 'monthly') {
+                    // Monthly Balance: TotalAllowed - TakenThisMonth
+                    $takenThisMonth = \App\Models\LeaveRequest::where('user_id', $user->id)
+                        ->where('leave_type_id', $type->id)
+                        ->whereIn('status', ['pending', 'approved'])
+                        ->whereYear('start_date', now()->year)
+                        ->whereMonth('start_date', now()->month)
+                        ->count();
+                    $balance = max(0, $totalAllowed - $takenThisMonth);
+                } else {
+                    // Yearly/Ledger Balance
+                    if (Schema::hasTable('leave_ledgers')) {
+                        $balance = $balanceService->getBalance($user->id, $type->id);
+                    }
+                }
+                
+                // 3. Fetch Pending
+                if (Schema::hasTable('leave_requests')) {
+                     $pending = \App\Models\LeaveRequest::where('user_id', $user->id)
+                         ->where('leave_type_id', $type->id)
+                         ->where('status', 'pending')
+                         ->sum('total_days');
+                }
+
+                $type->is_unlimited = $isUnlimited;
+                $type->balance = $balance;
+                $type->total_allowed = $totalAllowed;
+                $type->pending = $pending;
+                
+                // 4. Attach special lists (RH list) if needed
+                if ($type->is_restricted) {
+                    $type->rh_list = \App\Models\Holiday::where('is_rh', 1)
+                        ->whereYear('holiday_date', date('Y'))
+                        ->orderBy('holiday_date', 'asc')
+                        ->get(['id', 'name', 'holiday_date']);
+                }
+
+                return $type;
+            });
+
+            return response()->json(['success' => true, 'data' => $mapped]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'data' => []]);
         }
-
-        $leaveTypes = LeaveType::where('status', 1)
-            ->orderBy('name')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $leaveTypes
-        ]);
     }
 
     /**
-     * Store a new leave request
+     * Store a new leave request containing advanced validations synced with Web implementation.
      */
     public function store(Request $request): JsonResponse
     {
+        if (!Schema::hasTable('leave_requests')) {
+            return response()->json(['success' => false, 'message' => 'System migration pending.'], 500);
+        }
+
         $validator = Validator::make($request->all(), [
-            'date' => 'required|date',
-            'leave_type_id' => 'required|exists:leave_types,id',
+            'start_date' => 'required|date|after:today',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'leave_type_id' => 'required',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
+            'sl_period' => 'nullable|in:morning,evening',
+            'is_half_day' => 'nullable|boolean',
+            'half_day_period' => 'nullable|in:pre_lunch,post_lunch',
             'reason' => 'nullable|string|max:1000'
         ]);
 
@@ -89,66 +170,224 @@ class LeaveController extends Controller
             ], 422);
         }
 
-        $user = $this->getCurrentUser();
-
-        // Check if leave already exists for this date
-        $existingLeave = LeaveRequest::where('user_id', $user->id)
-            ->where('start_date', '<=', $request->date)
-            ->where('end_date', '>=', $request->date)
-            ->where('status', '!=', 'rejected')
-            ->first();
-
-        if ($existingLeave) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave already exists for this date.'
-            ], 422);
+        $user = Auth::user();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        
+        $leaveType = LeaveType::find($request->leave_type_id);
+        if (!$leaveType) {
+            return response()->json(['success' => false, 'message' => 'Invalid leave type selected.'], 422);
         }
 
-        // Check if worklog exists for this date
+        // Step 1: Calculate Total Days based on Dynamic Weights
+        try {
+            $isHalfDay = $request->boolean('is_half_day');
+            
+            if ($isHalfDay) {
+                if (!$leaveType->allow_half_day) {
+                    return response()->json(['success' => false, 'message' => "Half days are not allowed for {$leaveType->name}."], 422);
+                }
+                $totalDays = (float) $leaveType->half_day_weight;
+                // Force end_date to be start_date for half days
+                $request->merge(['end_date' => $request->start_date]);
+            } else {
+                $start = Carbon::parse($request->start_date);
+                $end = Carbon::parse($request->end_date);
+                $dayCount = $start->diffInDays($end) + 1;
+                $totalDays = $dayCount * (float) $leaveType->full_day_weight;
+            }
+        } catch (\Exception $e) {
+             return response()->json(['success' => false, 'message' => 'Invalid date format.'], 422);
+        }
+
+        // Step 2: Short Leave (Dynamic Shift Limits)
+        if ($leaveType->is_short_leave) {
+            $employee = $user->employee;
+            if (!$employee || !$employee->shiftRelation) {
+                return response()->json(['success' => false, 'message' => 'Active shift required for Short Leave logic.'], 422);
+            }
+
+            $shift = $employee->shiftRelation;
+            try {
+                $shiftEnd = Carbon::parse($shift->end_time);
+                $endLimitHours = (int) ($shift->sl_end_limit ?? 0);
+                $eveningMin = (clone $shiftEnd)->subHours($endLimitHours);
+
+                $request->merge(['sl_period' => 'evening']);
+                $request->merge([
+                    'start_time' => $eveningMin->format('H:i'),
+                    'end_time' => $shiftEnd->format('H:i')
+                ]);
+
+                $reqStart = Carbon::parse($request->start_time);
+                $reqEnd = Carbon::parse($request->end_time);
+                
+                $isValidEvening = ($reqStart->format('H:i:s') >= $eveningMin->format('H:i:s') && $reqEnd->format('H:i:s') <= $shiftEnd->format('H:i:s'));
+
+                if (!$isValidEvening) {
+                    $eveningWindow = $eveningMin->format('h:i A') . " - " . $shiftEnd->format('h:i A');
+                    return response()->json(['success' => false, 'message' => "Short Leave is only allowed during: $eveningWindow"], 422);
+                }
+            } catch (\Exception $e) {
+                return response()->json(['success' => false, 'message' => 'Error validating SL timing.'], 422);
+            }
+        }
+
+        // Step 3: Restricted Holiday Validation
+        if ($leaveType->is_restricted) {
+            $isHoliday = \App\Models\Holiday::where('holiday_date', $request->start_date)->where('is_rh', 1)->exists();
+            if (!$isHoliday) {
+                return response()->json(['success' => false, 'message' => 'Selected date is not a valid Restricted Holiday.'], 422);
+            }
+        }
+
+        // Step 4: Max Monthly Usage Capping Rule
+        $empTypeId = $user->employee->employment_type_id ?? null;
+        if ($empTypeId) {
+            $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                ->where('leave_type_id', $leaveType->id)
+                ->first();
+            if ($rule && $rule->generation_type === 'prefill' && !empty($rule->max_use_per_month) && $rule->max_use_per_month > 0) {
+                $startOfMonth = Carbon::parse($request->start_date)->startOfMonth()->toDateString();
+                $endOfMonth = Carbon::parse($request->start_date)->endOfMonth()->toDateString();
+                
+                $monthUsage = LeaveRequest::where('user_id', $user->id)
+                    ->where('leave_type_id', $leaveType->id)
+                    ->whereIn('status', ['pending', 'approved'])
+                    ->where(function ($query) use ($startOfMonth, $endOfMonth) {
+                        $query->whereBetween('start_date', [$startOfMonth, $endOfMonth])
+                              ->orWhereBetween('end_date', [$startOfMonth, $endOfMonth]);
+                    })
+                    ->sum('total_days');
+
+                if (($monthUsage + $totalDays) > $rule->max_use_per_month) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Monthly usage limit reached. You can only use up to {$rule->max_use_per_month} day(s) per month for this leave type."
+                    ], 422);
+                }
+            }
+        }
+
+        // Step 5: Verify Balance Quota (Ledger checks)
+        if ($leaveType->is_deductible || $leaveType->is_restricted || $leaveType->is_short_leave) {
+            $empTypeId = $user->employee->employment_type_id ?? null;
+            $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                ->where('leave_type_id', $leaveType->id)
+                ->first();
+            $maxAllowed = $rule ? (float) $rule->value : 0;
+
+            if ($leaveType->quota_type === 'monthly') {
+                $usage = LeaveRequest::where('user_id', $user->id)
+                    ->where('leave_type_id', $leaveType->id)
+                    ->whereIn('status', ['pending', 'approved'])
+                    ->whereYear('start_date', Carbon::parse($request->start_date)->year)
+                    ->whereMonth('start_date', Carbon::parse($request->start_date)->month)
+                    ->count(); 
+
+                if (($usage + 1) > $maxAllowed) {
+                    return response()->json(['success' => false, 'message' => "Monthly limit reached. You are allowed {$maxAllowed} per month."], 422);
+                }
+            } else {
+                if ($leaveType->is_deductible) {
+                    $balanceService = app(LeaveBalanceService::class);
+                    $currentBalance = $balanceService->getBalance($user->id, $leaveType->id);
+
+                    if ($currentBalance < $totalDays) {
+                         return response()->json(['success' => false, 'message' => "Insufficient balance. Available: {$currentBalance}, Requested: {$totalDays}"], 422);
+                    }
+                } else if ($leaveType->is_restricted) {
+                    $usage = LeaveRequest::where('user_id', $user->id)
+                        ->where('leave_type_id', $leaveType->id)
+                        ->whereIn('status', ['pending', 'approved'])
+                        ->whereYear('start_date', Carbon::parse($request->start_date)->year)
+                        ->sum('total_days');
+
+                    if (($usage + $totalDays) > $maxAllowed) {
+                        return response()->json(['success' => false, 'message' => "Yearly RH limit reached. You have {$maxAllowed} days per year."], 422);
+                    }
+                }
+            }
+        }
+
+        // Step 6: Check if worklog already covers requested dates (Legacy Protection Sync)
         $existingWorklog = Worklog::where('user_id', $user->id)
-            ->where('work_date', $request->date)
+            ->where(function($q) use ($request){
+                $q->whereBetween('work_date', [$request->start_date, $request->end_date]);
+            })
             ->first();
 
         if ($existingWorklog) {
             return response()->json([
                 'success' => false,
-                'message' => 'Cannot apply leave for a date when worklog already exists.'
+                'message' => 'Cannot apply leave for a period where a worklog entry already exists.'
             ], 422);
         }
 
+        // Step 7: Check Overlapping Leaves
+        $overlappingLeave = LeaveRequest::where('user_id', $user->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->where(function ($query) use ($request) {
+                $query->where('start_date', '<=', $request->end_date)
+                      ->where('end_date', '>=', $request->start_date);
+            })
+            ->first();
+
+        if ($overlappingLeave) {
+            return response()->json(['success' => false, 'message' => 'You already have an active leave request overlapping these dates.'], 422);
+        }
+
+        // Commit and Immediate Ledger Debit
+        DB::beginTransaction();
         try {
-            $leave = LeaveRequest::create([
+            $leaveReq = LeaveRequest::create([
                 'user_id' => $user->id,
-                'leave_type_id' => $request->leave_type_id,
-                'start_date' => $request->date,
-                'end_date' => $request->date,
-                'total_days' => 1,
+                'leave_type_id' => $leaveType->id,
+                'is_rh' => $leaveType->is_restricted,
+                'is_sl' => $leaveType->is_short_leave,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'start_time' => $leaveType->is_short_leave ? $request->start_time : null,
+                'end_time' => $leaveType->is_short_leave ? $request->end_time : null,
+                'sl_period' => $leaveType->is_short_leave ? $request->sl_period : null,
+                'is_half_day' => $isHalfDay ? 1 : 0,
+                'half_day_period' => $isHalfDay ? $request->half_day_period : null,
+                'total_days' => $totalDays,
                 'reason' => $request->reason,
-                'status' => 'approved' // Automatically approved
+                'status' => 'pending' 
             ]);
+
+            if ($leaveType->is_deductible) {
+                $balanceService = app(LeaveBalanceService::class);
+                $balanceService->debitLeave(
+                    $user->id, 
+                    $leaveType->id, 
+                    $totalDays, 
+                    $leaveReq, 
+                    'Immediate deduction upon API leave application'
+                );
+            }
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Leave applied successfully.',
-                'data' => $leave
+                'message' => "Leave application for {$totalDays} days submitted. Balance deducted and pending approval.",
+                'data' => $leaveReq
             ], 201);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to apply leave. Please try again.'
-            ], 500);
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to apply leave: ' . $e->getMessage()], 500);
         }
     }
 
     /**
-     * Update an existing leave
+     * Update an existing leave with latest constraints.
      */
     public function update(Request $request, $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'date' => 'required|date',
-            'leave_type_id' => 'required|exists:leave_types,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'reason' => 'nullable|string|max:1000'
         ]);
 
@@ -160,86 +399,82 @@ class LeaveController extends Controller
             ], 422);
         }
 
-        $user = $this->getCurrentUser();
+        $user = Auth::user();
         
-        $leave = LeaveRequest::where('id', $id)
+        $leaveReq = LeaveRequest::where('id', $id)
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$leave) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave not found.'
-            ], 404);
+        if (!$leaveReq) {
+            return response()->json(['success' => false, 'message' => 'Leave request not found.'], 404);
         }
 
-        // Check if leave already exists for this date (excluding current leave)
-        $existingLeave = LeaveRequest::where('user_id', $user->id)
-            ->where('start_date', '<=', $request->date)
-            ->where('end_date', '>=', $request->date)
-            ->where('status', '!=', 'rejected')
-            ->where('id', '!=', $id)
-            ->first();
-
-        if ($existingLeave) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave already exists for this date.'
-            ], 422);
+        if ($leaveReq->status === 'approved') {
+             return response()->json(['success' => false, 'message' => 'Cannot edit an already approved leave request. Please cancel it instead.'], 422);
         }
 
         try {
-            $leave->update([
-                'start_date' => $request->date,
-                'end_date' => $request->date,
-                'total_days' => 1,
-                'leave_type_id' => $request->leave_type_id,
+            $start = Carbon::parse($request->start_date);
+            $end = Carbon::parse($request->end_date);
+            $totalDays = $start->diffInDays($end) + 1; 
+
+            $leaveReq->update([
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'total_days' => $totalDays,
                 'reason' => $request->reason
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Leave updated successfully.',
-                'data' => $leave
+                'message' => 'Leave request updated successfully.',
+                'data' => $leaveReq
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update leave. Please try again.'
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to update leave.'], 500);
         }
     }
 
     /**
-     * Delete a leave
+     * Cancel a leave request and process immediate balance refund.
      */
     public function destroy($id): JsonResponse
     {
-        $user = $this->getCurrentUser();
+        $user = Auth::user();
         
-        $leave = LeaveRequest::where('id', $id)
+        $leaveReq = LeaveRequest::where('id', $id)
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$leave) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Leave not found.'
-            ], 404);
+        if (!$leaveReq) {
+            return response()->json(['success' => false, 'message' => 'Leave not found.'], 404);
         }
 
+        DB::beginTransaction();
         try {
-            $leave->delete();
-
+            // Immediate Refund Logic for cancelled/deducted leaves
+            if (in_array($leaveReq->status, ['pending', 'approved']) && $leaveReq->leaveType && $leaveReq->leaveType->is_deductible) {
+                $balanceService = app(LeaveBalanceService::class);
+                $balanceService->creditLeave(
+                    $leaveReq->user_id,
+                    $leaveReq->leave_type_id,
+                    $leaveReq->total_days,
+                    $leaveReq,
+                    'Refund for cancelled leave via API'
+                );
+            }
+            
+            // Status marked as cancelled instead of hard deleting for audit trailing
+            $leaveReq->update(['status' => 'cancelled']);
+            
+            DB::commit();
             return response()->json([
                 'success' => true,
-                'message' => 'Leave deleted successfully.'
+                'message' => 'Leave cancelled and balance refunded successfully.'
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to delete leave. Please try again.'
-            ], 500);
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to cancel leave: ' . $e->getMessage()], 500);
         }
     }
 }
