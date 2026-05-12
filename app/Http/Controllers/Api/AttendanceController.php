@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use App\Services\AttendanceReportService;
 
 class AttendanceController extends Controller
 {
@@ -1078,94 +1079,209 @@ class AttendanceController extends Controller
             'per_page' => 'nullable|integer|min:1|max:100'
         ]);
 
-        $query = Attendance::with(['movements' => function ($q) {
-                $q->orderBy('time', 'asc');
-            }])
-            ->where('user_id', $user->id);
-
-        // Filter by Month/Year if provided, otherwise default to full history paginate
+        // Establish strict window of observation
         if ($request->has('month') && $request->has('year')) {
             $startDate = Carbon::createFromDate($request->year, $request->month, 1)->startOfMonth();
             $endDate = Carbon::createFromDate($request->year, $request->month, 1)->endOfMonth();
-            $query->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+        } else {
+            $startDate = Carbon::now('Asia/Kolkata')->startOfMonth();
+            $endDate = Carbon::now('Asia/Kolkata')->endOfMonth();
         }
 
-        $attendances = $query->orderBy('date', 'desc')
-            ->paginate($request->input('per_page', 15));
+        // Cache actual Attendance transactions keying by physical date
+        $attendances = Attendance::with(['movements' => function ($q) {
+                $q->orderBy('time', 'asc');
+            }])
+            ->where('user_id', $user->id)
+            ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->get()
+            ->keyBy(function($item) {
+                return Carbon::parse($item->date)->format('Y-m-d');
+            });
 
-        $data = $attendances->getCollection()->map(function ($attendance) {
-            $movements = $attendance->movements;
-            
-            // Filter movements by type
-            $officeMovements = $movements->where('movement_type', 'office');
-            $fieldMovements = $movements->where('movement_type', 'field');
-            $breakMovements = $movements->where('movement_type', 'break');
-            
-            // Calculate Times (Sum of durations)
-            // Note: If columns start existing in DB, we can prefer them:
-            // $officeTime = $attendance->total_office_time ?? $this->calculateDuration($officeMovements);
-            $officeTime = $this->calculateDuration($officeMovements);
-            $fieldTime = $this->calculateDuration($fieldMovements);
-            $breakTime = $this->calculateDuration($breakMovements); 
-            
-            // Calculate Cycles
-            $cycles = [
-                'office' => $this->calculateCycles($officeMovements),
-                'field' => $this->calculateCycles($fieldMovements),
-                'break' => $this->calculateCycles($breakMovements),
-            ];
-            
-            // Determine Punch In / Out details
-            $firstPunchIn = $movements->whereIn('movement_type', ['office', 'field'])
-                ->where('movement_action', 'in')
-                ->sortBy('time')
-                ->first();
-                
-            $lastPunchOut = $movements->whereIn('movement_type', ['office', 'field'])
-                ->where('movement_action', 'out')
-                ->sortByDesc('time')
-                ->first();
+        // Standard Unified Business Logic Instantiation
+        $reportService = app(AttendanceReportService::class);
+        $user->loadMissing(['employee.shiftRelation']);
+        $shift = $user->employee->shiftRelation ?? null;
+        [$fullDayHr, $halfDayHr] = $reportService->getThresholds($shift);
 
-            $firstFieldIn = $fieldMovements->where('movement_action', 'in')->sortBy('time')->first();
-            $lastFieldOut = $fieldMovements->where('movement_action', 'out')->sortByDesc('time')->first();
+        // Sync External Dependencies (Holidays & Approved Overlaps)
+        $holidayDates = Holiday::whereBetween('holiday_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->pluck('holiday_date')
+            ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
+            ->toArray();
 
-            // Status Logic
-            $status = 'Absent';
-            if ($firstPunchIn) {
-                $status = 'Present';
-                // Detect Late?
-                // if ($attendance->is_late) $status = 'Late'; 
+        $leavesRaw = LeaveRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->where(function($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                  ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                  ->orWhere(function($sq) use ($startDate, $endDate) {
+                      $sq->where('start_date', '<=', $startDate->format('Y-m-d'))->where('end_date', '>=', $endDate->format('Y-m-d'));
+                  });
+            })->get();
+
+        $leavesMap = [];
+        foreach ($leavesRaw as $lr) {
+            $walk = Carbon::parse($lr->start_date);
+            $term = Carbon::parse($lr->end_date);
+            while ($walk->lte($term)) {
+                $dStr = $walk->format('Y-m-d');
+                if (!isset($leavesMap[$dStr])) {
+                    if ($lr->is_rh) $leavesMap[$dStr] = 'RH';
+                    elseif ($lr->is_sl) $leavesMap[$dStr] = 'SL';
+                    elseif ($lr->is_half_day) $leavesMap[$dStr] = 'HD';
+                    else $leavesMap[$dStr] = 'L';
+                }
+                $walk->addDay();
+            }
+        }
+
+        // Loop synthesis covering every temporal slot in reversed desc sequence
+        $dailyBreakdown = [];
+        $pointer = $endDate->copy();
+        $now = Carbon::now('Asia/Kolkata');
+
+        // Secure only past/present dates to avoid future projection bloat
+        if ($pointer->gt($now)) {
+            $pointer = $now->copy();
+        }
+
+        while ($pointer->gte($startDate)) {
+            $targetDate = $pointer->format('Y-m-d');
+            $dayName = $pointer->format('l');
+            
+            $att = $attendances->get($targetDate);
+            
+            $isWeeklyOff = false;
+            $isHalfDayWorking = false;
+            if ($shift) {
+                if ($shift->week_offs && is_array($shift->week_offs)) {
+                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
+                }
+                if ($shift->half_days && is_array($shift->half_days)) {
+                    $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
+                }
+            }
+            $isHoliday = in_array($targetDate, $holidayDates);
+            
+            $leaveType = $leavesMap[$targetDate] ?? null;
+            $hasHalfDayLeave = ($leaveType === 'HD');
+            $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
+            
+            $activeFullHr = $fullDayHr;
+            $activeHalfHr = $halfDayHr;
+            if ($isHalfDayWorking) {
+                $activeFullHr = $halfDayHr;
+                $activeHalfHr = $halfDayHr / 2;
             }
 
-            return [
-                'id' => $attendance->id,
-                'date' => $attendance->date->format('Y-m-d'),
-                'display_date' => $attendance->date->format('D, M d, Y'),
-                'status' => $status,
-                'punch_in' => $firstPunchIn ? Carbon::parse($firstPunchIn->time)->timezone('Asia/Kolkata')->format('h:i A') : '-',
-                'punch_out' => $lastPunchOut ? Carbon::parse($lastPunchOut->time)->timezone('Asia/Kolkata')->format('h:i A') : '-',
-                'field_in' => $firstFieldIn ? Carbon::parse($firstFieldIn->time)->timezone('Asia/Kolkata')->format('h:i A') : '-',
-                'field_out' => $lastFieldOut ? Carbon::parse($lastFieldOut->time)->timezone('Asia/Kolkata')->format('h:i A') : '-',
-                'total_office_time' => $this->formatDuration($officeTime),
-                'total_field_time' => $this->formatDuration($fieldTime),
-                'total_break_time' => $this->formatDuration($breakTime),
-                'total_office_minutes' => $officeTime,
-                'total_field_minutes' => $fieldTime,
-                'total_break_minutes' => $breakTime,
-                'cycles' => $cycles,
-                'movements_count' => $movements->count(),
+            $statusLabel = 'Absent';
+
+            if ($att) {
+                // Actual Record Exists: Delegate to Full Analytics Engine
+                $workedHours = $reportService->calculateTotalHours($att->movements, $shift, $targetDate);
+                $statusInfo = $reportService->determineStatus(
+                    $targetDate, 
+                    $workedHours, 
+                    $activeFullHr, 
+                    $activeHalfHr, 
+                    $isWeeklyOff, 
+                    $isHoliday, 
+                    $leaveType, 
+                    $hasHalfDayLeave, 
+                    $slHours
+                );
+                $statusLabel = ucwords($statusInfo['label'] ?? 'Absent');
+            } else {
+                // Virtual Slot: Determine Structural State
+                if ($isWeeklyOff) {
+                    $statusLabel = 'Weekly Off';
+                } elseif ($isHoliday) {
+                    $statusLabel = 'Holiday';
+                } elseif ($leaveType) {
+                    if ($leaveType === 'RH') $statusLabel = 'Restricted Holiday';
+                    elseif ($leaveType === 'SL') $statusLabel = 'Short Leave';
+                    else $statusLabel = 'Leave';
+                } else {
+                    $statusLabel = 'Absent';
+                }
+            }
+
+            // Compose the concrete delivery object mirroring legacy response schema
+            $row = [
+                'id' => $att ? $att->id : 'v_' . $targetDate,
+                'date' => $targetDate,
+                'display_date' => $pointer->format('D, M d, Y'),
+                'status' => $statusLabel,
+                'punch_in' => '-',
+                'punch_out' => '-',
+                'field_in' => '-',
+                'field_out' => '-',
+                'total_office_time' => '0h 0m',
+                'total_field_time' => '0h 0m',
+                'total_break_time' => '0h 0m',
+                'total_office_minutes' => 0,
+                'total_field_minutes' => 0,
+                'total_break_minutes' => 0,
                 'formatted_hours' => [
-                   'office' => $this->formatHoursMinutes($officeTime),
-                   'field' => $this->formatHoursMinutes($fieldTime),
-                   'total' => $this->formatHoursMinutes($officeTime + $fieldTime)
+                   'office' => '0h 0m',
+                   'field' => '0h 0m',
+                   'total' => '0h 0m'
                 ]
             ];
-        });
 
-        // Set the transformed collection back to paginator
-        $attendances->setCollection($data);
+            // Hydrate specific operational times IF real transactional data exists
+            if ($att) {
+                $moves = $att->movements;
+                $officeMoves = $moves->where('movement_type', 'office');
+                $fieldMoves = $moves->where('movement_type', 'field');
+                $breakMoves = $moves->where('movement_type', 'break');
+                
+                $officeTime = $this->calculateDuration($officeMoves);
+                $fieldTime = $this->calculateDuration($fieldMoves);
+                $breakTime = $this->calculateDuration($breakMoves);
 
-        return response()->json($attendances);
+                $firstPunchIn = $moves->whereIn('movement_type', ['office', 'field'])
+                    ->where('movement_action', 'in')->sortBy('time')->first();
+                $lastPunchOut = $moves->whereIn('movement_type', ['office', 'field'])
+                    ->where('movement_action', 'out')->sortByDesc('time')->first();
+                
+                $fIn = $fieldMoves->where('movement_action', 'in')->sortBy('time')->first();
+                $fOut = $fieldMoves->where('movement_action', 'out')->sortByDesc('time')->first();
+
+                $row['punch_in'] = $firstPunchIn ? Carbon::parse($firstPunchIn->time)->timezone('Asia/Kolkata')->format('h:i A') : '-';
+                $row['punch_out'] = $lastPunchOut ? Carbon::parse($lastPunchOut->time)->timezone('Asia/Kolkata')->format('h:i A') : '-';
+                $row['field_in'] = $fIn ? Carbon::parse($fIn->time)->timezone('Asia/Kolkata')->format('h:i A') : '-';
+                $row['field_out'] = $fOut ? Carbon::parse($fOut->time)->timezone('Asia/Kolkata')->format('h:i A') : '-';
+                
+                $row['total_office_minutes'] = $officeTime;
+                $row['total_field_minutes'] = $fieldTime;
+                $row['total_break_minutes'] = $breakTime;
+
+                $row['total_office_time'] = $this->formatDuration($officeTime);
+                $row['total_field_time'] = $this->formatDuration($fieldTime);
+                $row['total_break_time'] = $this->formatDuration($breakTime);
+
+                $row['formatted_hours'] = [
+                    'office' => $this->formatHoursMinutes($officeTime),
+                    'field' => $this->formatHoursMinutes($fieldTime),
+                    'total' => $this->formatHoursMinutes($officeTime + $fieldTime)
+                ];
+            }
+
+            $dailyBreakdown[] = $row;
+            $pointer->subDay();
+        }
+
+        // Structure the response adhering strictly to valid Paginator contract schemas assumed by Redux state.
+        return response()->json([
+            'data' => $dailyBreakdown,
+            'current_page' => 1,
+            'last_page' => 1,
+            'per_page' => count($dailyBreakdown),
+            'total' => count($dailyBreakdown),
+        ]);
     }
     
     /**

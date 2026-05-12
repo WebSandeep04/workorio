@@ -974,3 +974,23 @@
 [2026-05-12 10:55:06] local.INFO: Punch-in movement created (API) {"user_id":13,"attendance_id":1801,"movement_id":4231} 
 [2026-05-12 10:55:19] local.INFO: Punch-in started (API) {"user_id":13,"movement_type":"office"} 
 [2026-05-12 10:55:19] local.INFO: Punch-in movement created (API) {"user_id":13,"attendance_id":1801,"movement_id":4233} 
+[2026-05-12 11:40:03] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-05-12 11:41:46] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-05-12 11:41:48] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-05-12 11:42:01] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-05-12 11:42:02] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1802,"movement_id":4235} 
+[2026-05-12 11:42:45] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"field"} 
+[2026-05-12 11:42:46] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1802,"movement_id":4237} 
+[2026-05-12 11:43:09] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"field"} 
+[2026-05-12 11:43:44] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"office"} 
+[2026-05-12 11:43:45] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1802,"movement_id":4239} 
+[2026-05-12 11:43:52] local.INFO: Punch-in started (API) {"user_id":4,"movement_type":"field"} 
+[2026-05-12 11:43:53] local.INFO: Punch-in movement created (API) {"user_id":4,"attendance_id":1802,"movement_id":4241} 
+[2026-05-12 11:54:10] local.ERROR: Cannot use App\Models\Holiday as Holiday because the name is already in use {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot use App\\Models\\Holiday as Holiday because the name is already in use at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\app\\Http\\Controllers\\Api\\AttendanceController.php:21)
+[stacktrace]
+#0 {main}
+"} 
+[2026-05-12 11:54:12] local.ERROR: Cannot use App\Models\Holiday as Holiday because the name is already in use {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot use App\\Models\\Holiday as Holiday because the name is already in use at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\app\\Http\\Controllers\\Api\\AttendanceController.php:21)
+[stacktrace]
+#0 {main}
+"} 
