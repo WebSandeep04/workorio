@@ -91,6 +91,19 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/leads/cities/{stateId}', [\App\Http\Controllers\Api\LeadApiController::class, 'getCitiesByState']);
     Route::get('/leads/team-members', [\App\Http\Controllers\Api\LeadApiController::class, 'getTeamMembers']);
 
+    // IndiaMART / External Leads API Group
+    Route::get('/indiamart/leads', [\App\Http\Controllers\IndiaMartLeadsController::class, 'fetch']);
+    Route::get('/indiamart/junk-leads', [\App\Http\Controllers\IndiaMartLeadsController::class, 'junkFetch']);
+    Route::get('/indiamart/stats', [\App\Http\Controllers\IndiaMartLeadsController::class, 'summaryStats']);
+    Route::get('/indiamart/status-counts', [\App\Http\Controllers\IndiaMartLeadsController::class, 'statusCounts']);
+    Route::get('/indiamart/filter-options', [\App\Http\Controllers\IndiaMartLeadsController::class, 'filterOptions']);
+    Route::post('/indiamart/assign', [\App\Http\Controllers\IndiaMartLeadsController::class, 'assign']);
+    Route::post('/indiamart/junk', [\App\Http\Controllers\IndiaMartLeadsController::class, 'junk']);
+    Route::post('/indiamart/junk/restore', [\App\Http\Controllers\IndiaMartLeadsController::class, 'junkRestore']);
+    Route::post('/indiamart/junk/delete', [\App\Http\Controllers\IndiaMartLeadsController::class, 'junkDelete']);
+    Route::get('/indiamart/leads/{id}/followups', [\App\Http\Controllers\IndiaMartLeadsController::class, 'getFollowups']);
+    Route::post('/indiamart/leads/followup', [\App\Http\Controllers\IndiaMartLeadsController::class, 'storeFollowup']);
+
     // Prospect Management Routes
     Route::get('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'index']);
     Route::post('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'store']);
