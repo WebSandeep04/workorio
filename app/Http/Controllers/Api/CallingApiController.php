@@ -351,6 +351,9 @@ class CallingApiController extends Controller
         if ($request->filled('campaign_id')) {
             $query->whereHas('campaigns', function($q) use ($request) {
                 $q->where('calling_campaigns.id', $request->campaign_id);
+                if ($request->boolean('is_locking')) {
+                    $q->where('calling_campaign_calling.is_locked', 0);
+                }
             });
         }
             
@@ -461,6 +464,9 @@ class CallingApiController extends Controller
         if (!empty($filters['campaign_id'])) {
             $query->whereHas('campaigns', function($q) use ($filters) {
                 $q->where('calling_campaigns.id', $filters['campaign_id']);
+                if (!empty($filters['is_locking'])) {
+                    $q->where('calling_campaign_calling.is_locked', 0);
+                }
             });
         }
         if (!empty($filters['name'])) {
@@ -473,5 +479,62 @@ class CallingApiController extends Controller
         if (!empty($filters['list_id'])) $query->where('list_id', $filters['list_id']);
 
         return $query->pluck('id')->toArray();
+    }
+
+    /**
+     * Lock selected campaign leads assigning ownership to current user.
+     */
+    public function lockLeadsMobile(Request $request)
+    {
+        $request->validate([
+            'campaign_id' => 'required|exists:calling_campaigns,id',
+            'all_matching' => 'nullable|boolean',
+            'filters' => 'nullable|array',
+            'calling_ids' => 'nullable|array'
+        ]);
+
+        try {
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Auth required.'], 401);
+            }
+            $userId = $user->id;
+            
+            $idList = [];
+            if ($request->all_matching) {
+                $filters = $request->filters ?? [];
+                $filters['campaign_id'] = $request->campaign_id; 
+                $filters['is_locking'] = true;
+                $idList = $this->getMatchingIdsForMobile($filters);
+            } else {
+                $idList = $request->calling_ids ?? [];
+            }
+
+            if (empty($idList)) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Operation invalid: You must select at least 1 contact to lock.'
+                ], 400);
+            }
+
+            DB::table('calling_campaign_calling')
+                ->where('calling_campaign_id', $request->campaign_id)
+                ->whereIn('calling_id', $idList)
+                ->update([
+                    'user_id' => $userId,
+                    'is_locked' => 1,
+                    'updated_at' => now()
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => count($idList) . ' campaign leads successfully assigned and locked to your session.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to lock leads: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
