@@ -892,4 +892,122 @@ class CallingApiController extends Controller
             }
         }
     }
+
+    /**
+     * Fetch agent's scheduled leads that are due today or outstanding (<= today).
+     */
+    public function getTodaysCalls(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+        
+        $perPage = $request->get('per_page', 10);
+        $today = now()->toDateString();
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+
+        $query = DB::table('calling_campaign_calling')
+            ->join('callings', 'calling_campaign_calling.calling_id', '=', 'callings.id')
+            ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
+            ->where('calling_campaign_calling.user_id', $user->id)
+            ->where('calling_campaign_calling.is_locked', 1)
+            ->whereNotNull('calling_campaign_calling.next_followup_date')
+            ->whereDate('calling_campaign_calling.next_followup_date', '<=', $today)
+            ->where(function($q) use ($junkTypeId) {
+                if ($junkTypeId) {
+                    $q->where('calling_campaign_calling.calling_type_id', '!=', $junkTypeId)
+                      ->orWhereNull('calling_campaign_calling.calling_type_id');
+                }
+            });
+
+        // Standard search filters
+        if ($request->filled('search')) {
+            $term = trim((string) $request->search);
+            $query->where(function ($q) use ($term) {
+                $like = '%'.$term.'%';
+                $q->where('callings.name', 'like', $like)
+                  ->orWhere('callings.email', 'like', $like)
+                  ->orWhere('callings.phone', 'like', $like);
+            });
+        }
+
+        if ($request->filled('campaign_id')) {
+            $query->where('calling_campaign_calling.calling_campaign_id', $request->campaign_id);
+        }
+        if ($request->filled('state_name')) {
+            $query->where('callings.state', $request->state_name);
+        }
+        if ($request->filled('city_name')) {
+            $query->where('callings.city', $request->city_name);
+        }
+
+        $query->select(
+            'callings.*',
+            'calling_campaigns.name as campaign_name',
+            'calling_campaign_calling.calling_campaign_id',
+            'calling_types.name as pivot_status',
+            'calling_campaign_calling.next_followup_date as pivot_followup',
+            DB::raw('(SELECT remark FROM calling_remarks WHERE calling_id = callings.id ORDER BY id DESC LIMIT 1) as latest_remark_text')
+        );
+
+        $paginated = $query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage);
+
+        $paginated->getCollection()->transform(function($item) {
+            $item->latest_remark = $item->latest_remark_text ? (object)['remark' => $item->latest_remark_text] : null;
+            $item->calling_type = $item->pivot_status ? (object)['name' => $item->pivot_status] : null;
+            $item->calling_type_name = $item->pivot_status; 
+            $item->next_follow_up_date = $item->pivot_followup; 
+            return $item;
+        });
+
+        return response()->json($paginated);
+    }
+
+    /**
+     * Load filters specifically within the agent's outstanding schedules.
+     */
+    public function getTodaysCallsFilterOptions(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+        $today = now()->toDateString();
+
+        $campaigns = DB::table('calling_campaign_calling')
+            ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->where('calling_campaign_calling.user_id', $user->id)
+            ->where('calling_campaign_calling.is_locked', 1)
+            ->whereNotNull('calling_campaign_calling.next_followup_date')
+            ->whereDate('calling_campaign_calling.next_followup_date', '<=', $today)
+            ->select('calling_campaigns.id', 'calling_campaigns.name')
+            ->distinct()
+            ->get();
+
+        $leadIds = DB::table('calling_campaign_calling')
+            ->where('user_id', $user->id)
+            ->where('is_locked', 1)
+            ->whereNotNull('next_followup_date')
+            ->whereDate('next_followup_date', '<=', $today)
+            ->pluck('calling_id');
+
+        $states = Calling::whereIn('id', $leadIds)
+            ->whereNotNull('state')
+            ->distinct()
+            ->orderBy('state')
+            ->pluck('state')
+            ->toArray();
+
+        $cities = Calling::whereIn('id', $leadIds)
+            ->whereNotNull('city')
+            ->distinct()
+            ->orderBy('city')
+            ->pluck('city')
+            ->toArray();
+
+        return response()->json([
+            'campaigns' => $campaigns,
+            'states' => $states,
+            'cities' => $cities
+        ]);
+    }
 }

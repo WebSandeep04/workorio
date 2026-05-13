@@ -119,6 +119,8 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/calling/lock-leads', [\App\Http\Controllers\Api\CallingApiController::class, 'lockLeadsMobile']);
     Route::get('/calling/my-calls', [\App\Http\Controllers\Api\CallingApiController::class, 'getMyCalls']);
     Route::get('/calling/my-filters', [\App\Http\Controllers\Api\CallingApiController::class, 'getMyCallsFilterOptions']);
+    Route::get('/calling/todays-calls', [\App\Http\Controllers\Api\CallingApiController::class, 'getTodaysCalls']);
+    Route::get('/calling/todays-filters', [\App\Http\Controllers\Api\CallingApiController::class, 'getTodaysCallsFilterOptions']);
 
     // Prospect Management Routes
     Route::get('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'index']);
