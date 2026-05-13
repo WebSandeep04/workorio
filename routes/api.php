@@ -107,7 +107,9 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     // Tele Calling API Group
     Route::get('/calling/all', [\App\Http\Controllers\Api\CallingApiController::class, 'getAllCallings']);
     Route::get('/calling/filter-options', [\App\Http\Controllers\Api\CallingApiController::class, 'getFilterOptions']);
+    Route::get('/calling/remarks/meta', [\App\Http\Controllers\Api\CallingApiController::class, 'getRemarksMeta']);
     Route::get('/calling/{id}/remarks', [\App\Http\Controllers\Api\CallingApiController::class, 'getRemarks']);
+    Route::post('/calling/{id}/remarks', [\App\Http\Controllers\Api\CallingApiController::class, 'storeRemarkMobile']);
     Route::get('/calling/lists', [\App\Http\Controllers\Api\CallingApiController::class, 'getCallingLists']);
     Route::post('/calling/lists', [\App\Http\Controllers\Api\CallingApiController::class, 'storeCallingList']);
     Route::delete('/calling/lists/{id}', [\App\Http\Controllers\Api\CallingApiController::class, 'deleteCallingList']);
@@ -115,6 +117,8 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/calling/master', [\App\Http\Controllers\Api\CallingApiController::class, 'getCallingMaster']);
     Route::post('/calling/campaigns', [\App\Http\Controllers\Api\CallingApiController::class, 'createCampaignMobile']);
     Route::post('/calling/lock-leads', [\App\Http\Controllers\Api\CallingApiController::class, 'lockLeadsMobile']);
+    Route::get('/calling/my-calls', [\App\Http\Controllers\Api\CallingApiController::class, 'getMyCalls']);
+    Route::get('/calling/my-filters', [\App\Http\Controllers\Api\CallingApiController::class, 'getMyCallsFilterOptions']);
 
     // Prospect Management Routes
     Route::get('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'index']);
