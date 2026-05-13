@@ -169,6 +169,15 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/subscriptions', [SubscriptionApiController::class, 'store']);
     Route::post('/subscriptions/{id}/status', [SubscriptionApiController::class, 'updateStatus']);
     Route::get('/subscriptions/{id}/history', [SubscriptionApiController::class, 'getHistory']);
+
+    // Mobile Petty Cash APIs
+    Route::get('/petty-cash', [\App\Http\Controllers\Api\PettyCashApiController::class, 'index']);
+    Route::get('/petty-cash/stats', [\App\Http\Controllers\Api\PettyCashApiController::class, 'getStats']);
+    Route::get('/petty-cash/form-options', [\App\Http\Controllers\Api\PettyCashApiController::class, 'getFormOptions']);
+    Route::post('/petty-cash', [\App\Http\Controllers\Api\PettyCashApiController::class, 'store']);
+    Route::post('/petty-cash/{id}', [\App\Http\Controllers\Api\PettyCashApiController::class, 'update']); // Use POST for multipart updates
+    Route::post('/petty-cash/{id}/toggle-approval', [\App\Http\Controllers\Api\PettyCashApiController::class, 'toggleApproval']);
+    Route::delete('/petty-cash/{id}', [\App\Http\Controllers\Api\PettyCashApiController::class, 'destroy']);
 });
 
 
