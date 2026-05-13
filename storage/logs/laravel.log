@@ -1022,3 +1022,7 @@
 #9 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\scratch\\dump_history.php(6): Illuminate\\Database\\Query\\Builder->first()
 #10 {main}
 "} 
+[2026-05-13 06:12:04] local.INFO: getRemarks called with ID: 5621  
+[2026-05-13 06:12:04] local.INFO: Sales record found: 5621  
+[2026-05-13 06:12:04] local.INFO: Remarks count: 3  
+[2026-05-13 06:12:04] local.INFO: Returning response successfully  

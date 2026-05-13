@@ -803,4 +803,204 @@ class LeadApiController extends Controller
 
         return response()->json(['success' => true, 'data' => $statusCounts]);
     }
+
+    /**
+     * Get leads belonging to subordinates of the current manager (Team Leads)
+     */
+    public function teamLeads(Request $request)
+    {
+        $userId = Auth::id();
+        $perPage = $request->get('per_page', 10);
+        $today = Carbon::today()->toDateString();
+
+        $query = SalesRecord::with([
+            'status',
+            'prospectus',
+            'city',
+            'state',
+            'businessType',
+            'leadSource',
+            'product',
+            'latestRemark',
+            'user',
+            'creatorLog.assignedBy'
+        ])
+        ->whereHas('user.managers', function($q) use ($userId) {
+            $q->where('manager_id', $userId); // Subordinates only
+        });
+
+        // Apply filters
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+
+        if ($request->filled('filter_type')) {
+            $filter = $request->filter_type;
+            $excludedStatuses = [1, 2, 15, 20];
+
+            switch ($filter) {
+                case 'today_followups':
+                    $query->where(function ($q) use ($today) {
+                        $q->whereDate('next_follow_up_date', '<=', $today)
+                          ->orWhere(function ($sub) use ($today) {
+                              $sub->whereDate('next_follow_up_date', '>', $today)
+                                  ->whereDate('updatedat', $today);
+                          });
+                    })->whereNotIn('status_id', $excludedStatuses);
+                    break;
+                
+                case 'under_process':
+                    $query->whereDate('updatedat', $today)
+                          ->whereDate('next_follow_up_date', $today)
+                          ->whereNotIn('status_id', $excludedStatuses);
+                    break;
+
+                case 'today_completed':
+                    $query->whereDate('updatedat', $today)
+                          ->whereDate('next_follow_up_date', '>', $today)
+                          ->whereNotIn('status_id', $excludedStatuses);
+                    break;
+
+                case 'today_pending':
+                    $query->where(function ($q) use ($today) {
+                        $q->whereDate('next_follow_up_date', '<=', $today)
+                          ->orWhereNull('next_follow_up_date');
+                    })->whereNotIn('status_id', $excludedStatuses);
+                    break;
+
+                case 'today_new':
+                    $query->whereDate('createdat', $today)
+                          ->whereNotIn('status_id', $excludedStatuses);
+                    break;
+            }
+        }
+
+        if ($request->filled('state_id')) {
+            $query->whereHas('prospectus', function($q) use ($request) {
+                $q->where('state_id', $request->state_id);
+            });
+        }
+
+        if ($request->filled('city_id')) {
+            $query->whereHas('prospectus', function($q) use ($request) {
+                $q->where('city_id', $request->city_id);
+            });
+        }
+
+        if ($request->filled('business_type_id')) {
+            $query->whereHas('prospectus', function($q) use ($request) {
+                $q->where('business_type_id', $request->business_type_id);
+            });
+        }
+
+        if ($request->filled('lead_source_id')) {
+            $query->where('lead_source_id', $request->lead_source_id);
+        }
+
+        if ($request->filled('products_id')) {
+            $query->where('products_id', $request->products_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('leads_name', 'like', "%{$search}%")
+                  ->orWhere('contact_person', 'like', "%{$search}%")
+                  ->orWhere('contact_number', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhereHas('prospectus', function($pq) use ($search) {
+                      $pq->where('prospectus_name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $fromDate = $request->date_from ?? $request->start_date;
+        $toDate = $request->date_to ?? $request->end_date;
+
+        if ($fromDate) {
+            $query->whereDate('next_follow_up_date', '>=', $fromDate);
+        }
+
+        if ($toDate) {
+            $query->whereDate('next_follow_up_date', '<=', $toDate);
+        }
+
+        $records = $query->orderBy('createdat', 'desc')->paginate($perPage);
+
+        return response()->json($records);
+    }
+
+    /**
+     * Get summary statistics for team leads
+     */
+    public function getTeamSummaryStats()
+    {
+        $userId = Auth::id();
+        $today = Carbon::today()->toDateString();
+        $excludedStatuses = [1, 2, 15, 20];
+
+        $baseQuery = SalesRecord::whereHas('user.managers', function($q) use ($userId) {
+            $q->where('manager_id', $userId);
+        });
+
+        $stats = [
+            'today_followups' => (clone $baseQuery)->where(function ($q) use ($today) {
+                    $q->whereDate('next_follow_up_date', '<=', $today)
+                      ->orWhere(function ($sub) use ($today) {
+                          $sub->whereDate('next_follow_up_date', '>', $today)
+                              ->whereDate('updatedat', $today);
+                      });
+                })->whereNotIn('status_id', $excludedStatuses)->count(),
+
+            'under_process' => (clone $baseQuery)->whereDate('updatedat', $today)
+                ->whereDate('next_follow_up_date', $today)
+                ->whereNotIn('status_id', $excludedStatuses)->count(),
+
+            'today_completed' => (clone $baseQuery)->whereDate('updatedat', $today)
+                ->whereDate('next_follow_up_date', '>', $today)
+                ->whereNotIn('status_id', $excludedStatuses)->count(),
+
+            'today_pending' => (clone $baseQuery)->where(function ($q) use ($today) {
+                    $q->whereDate('next_follow_up_date', '<=', $today)
+                      ->orWhereNull('next_follow_up_date');
+                })->whereNotIn('status_id', $excludedStatuses)->count(),
+
+            'today_new' => (clone $baseQuery)->whereDate('createdat', $today)
+                ->whereNotIn('status_id', $excludedStatuses)->count()
+        ];
+
+        return response()->json(['success' => true, 'data' => $stats]);
+    }
+
+    /**
+     * Get status counts for team leads
+     */
+    public function getTeamStatusCounts()
+    {
+        $userId = Auth::id();
+
+        $statusCounts = DB::table('sales_status')
+            ->leftJoin('sales_records', function ($join) use ($userId) {
+                $join->on('sales_status.id', '=', 'sales_records.status_id')
+                     ->whereIn('sales_records.user_id', function($q) use ($userId) {
+                         $q->select('user_id')
+                           ->from('user_managers')
+                           ->where('manager_id', $userId);
+                     });
+            })
+            ->select(
+                'sales_status.id',
+                'sales_status.status_name',
+                DB::raw('COUNT(sales_records.id) as count')
+            )
+            ->groupBy('sales_status.id', 'sales_status.status_name')
+            ->orderBy('sales_status.status_name')
+            ->get();
+
+        return response()->json(['success' => true, 'data' => $statusCounts]);
+    }
 }
