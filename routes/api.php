@@ -125,6 +125,9 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/calling/junk-filters', [\App\Http\Controllers\Api\CallingApiController::class, 'getJunkCallsFilterOptions']);
     Route::post('/calling/junk/{pivotId}/restore', [\App\Http\Controllers\Api\CallingApiController::class, 'restoreJunkLeadMobile']);
     Route::delete('/calling/junk/{pivotId}', [\App\Http\Controllers\Api\CallingApiController::class, 'deleteJunkLeadMobile']);
+    Route::get('/calling/team-calls', [\App\Http\Controllers\Api\CallingApiController::class, 'getTeamCalls']);
+    Route::get('/calling/team-filters', [\App\Http\Controllers\Api\CallingApiController::class, 'getTeamCallsFilterOptions']);
+    Route::post('/calling/team/reassign', [\App\Http\Controllers\Api\CallingApiController::class, 'reassignTeamCallMobile']);
 
     // Prospect Management Routes
     Route::get('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'index']);
