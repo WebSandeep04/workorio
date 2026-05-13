@@ -11,6 +11,7 @@ use App\Models\State;
 use App\Models\City;
 use App\Models\CallingType;
 use App\Models\CallingList;
+use App\Models\CallingCampaign;
 use Illuminate\Support\Facades\Validator;
 
 class CallingApiController extends Controller
@@ -300,5 +301,177 @@ class CallingApiController extends Controller
             'lead' => $lead,
             'remarks' => $remarks
         ]);
+    }
+
+    /**
+     * Fetch Filter Options tailored for Campaigns creation (Includes active Campaigns, Lists, and unique States)
+     */
+    public function getCampaignFilterOptions()
+    {
+        $campaigns = CallingCampaign::orderBy('id', 'desc')->get(['id', 'name']);
+        $lists = CallingList::orderBy('name', 'asc')->get(['id', 'name']);
+
+        $states = Calling::distinct()
+            ->whereNotNull('state')
+            ->orderBy('state')
+            ->pluck('state')
+            ->toArray();
+
+        $cities = Calling::distinct()
+            ->whereNotNull('city')
+            ->orderBy('city')
+            ->pluck('city')
+            ->toArray();
+
+        return response()->json([
+            'campaigns' => $campaigns,
+            'lists' => $lists,
+            'states' => $states,
+            'cities' => $cities
+        ]);
+    }
+
+    /**
+     * Fetch and Filter Master Lead Pool for the Selection Engine.
+     */
+    public function getCallingMaster(Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+        
+        $query = Calling::query();
+
+        if ($junkTypeId) {
+            $query->whereDoesntHave('campaigns', function($q) use ($junkTypeId) {
+                $q->where('calling_campaign_calling.calling_type_id', $junkTypeId);
+            });
+        }
+
+        // Filter by Campaign if provided
+        if ($request->filled('campaign_id')) {
+            $query->whereHas('campaigns', function($q) use ($request) {
+                $q->where('calling_campaigns.id', $request->campaign_id);
+            });
+        }
+            
+        if ($request->filled('name')) {
+            $term = trim((string) $request->name);
+            $query->where(function ($q) use ($term) {
+                $like = '%' . $term . '%';
+                $q->where('name', 'like', $like)
+                  ->orWhere('email', 'like', $like)
+                  ->orWhere('phone', 'like', $like)
+                  ->orWhere('address', 'like', $like);
+            });
+        }
+
+        if ($request->filled('state_id')) {
+            $query->where('state', 'like', '%' . $request->state_id . '%');
+        }
+
+        if ($request->filled('city_id')) {
+            $query->where('city', 'like', '%' . $request->city_id . '%');
+        }
+
+        if ($request->filled('list_id')) {
+            $query->where('list_id', $request->list_id);
+        }
+
+        $paginated = $query->orderBy('id', 'desc')->paginate($perPage);
+            
+        return response()->json($paginated);
+    }
+
+    /**
+     * Secure creation of a Calling Campaign with direct parameter selections.
+     */
+    public function createCampaignMobile(Request $request)
+    {
+        $request->validate([
+            'campaign_name' => 'required|string|max:255',
+            'all_matching' => 'nullable|boolean',
+            'filters' => 'nullable|array',
+            'calling_ids' => 'nullable|array'
+        ]);
+
+        try {
+            DB::beginTransaction();
+            
+            $idList = [];
+            
+            if ($request->all_matching) {
+                $idList = $this->getMatchingIdsForMobile($request->filters ?? []);
+            } else {
+                $idList = $request->calling_ids ?? [];
+            }
+
+            if (empty($idList)) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Constraint violation: You must select at least 1 contact to create a campaign.'
+                ], 400);
+            }
+
+            // 1. Persist campaign record
+            $campaign = CallingCampaign::create([
+                'name' => $request->campaign_name
+            ]);
+
+            // 2. Map and transactional bulk insert pivot associations
+            $pivotData = array_map(fn($id) => [
+                'calling_id' => $id, 
+                'calling_campaign_id' => $campaign->id, 
+                'user_id' => null, 
+                'is_locked' => 0, 
+                'calling_type_id' => null, 
+                'created_at' => now(), 
+                'updated_at' => now()
+            ], $idList);
+
+            foreach (array_chunk($pivotData, 500) as $chunk) {
+                DB::table('calling_campaign_calling')->insert($chunk);
+            }
+
+            DB::commit();
+            return response()->json([
+                'success' => true, 
+                'message' => "Campaign '{$campaign->name}' established successfully with " . count($idList) . " contacts."
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false, 
+                'message' => 'Campaign establishment aborted: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Internal filter resolving matching Contact IDs globally.
+     */
+    private function getMatchingIdsForMobile($filters)
+    {
+        $query = Calling::query();
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+        if ($junkTypeId) {
+            $query->whereDoesntHave('campaigns', fn($q) => $q->where('calling_campaign_calling.calling_type_id', $junkTypeId));
+        }
+        
+        if (!empty($filters['campaign_id'])) {
+            $query->whereHas('campaigns', function($q) use ($filters) {
+                $q->where('calling_campaigns.id', $filters['campaign_id']);
+            });
+        }
+        if (!empty($filters['name'])) {
+            $term = trim((string) $filters['name']); 
+            $like = '%' . $term . '%';
+            $query->where(fn($q) => $q->where('name', 'like', $like)->orWhere('email', 'like', $like)->orWhere('phone', 'like', $like));
+        }
+        if (!empty($filters['state_id'])) $query->where('state', 'like', '%' . $filters['state_id'] . '%');
+        if (!empty($filters['city_id'])) $query->where('city', 'like', '%' . $filters['city_id'] . '%');
+        if (!empty($filters['list_id'])) $query->where('list_id', $filters['list_id']);
+
+        return $query->pluck('id')->toArray();
     }
 }
