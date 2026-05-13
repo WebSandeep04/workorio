@@ -104,6 +104,11 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/indiamart/leads/{id}/followups', [\App\Http\Controllers\IndiaMartLeadsController::class, 'getFollowups']);
     Route::post('/indiamart/leads/followup', [\App\Http\Controllers\IndiaMartLeadsController::class, 'storeFollowup']);
 
+    // Tele Calling API Group
+    Route::get('/calling/all', [\App\Http\Controllers\Api\CallingApiController::class, 'getAllCallings']);
+    Route::get('/calling/filter-options', [\App\Http\Controllers\Api\CallingApiController::class, 'getFilterOptions']);
+    Route::get('/calling/{id}/remarks', [\App\Http\Controllers\Api\CallingApiController::class, 'getRemarks']);
+
     // Prospect Management Routes
     Route::get('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'index']);
     Route::post('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'store']);
