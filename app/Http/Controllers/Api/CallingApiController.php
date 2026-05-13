@@ -1355,13 +1355,199 @@ class CallingApiController extends Controller
             });
 
             $agentName = User::where('id', $newUserId)->value('name');
+            return response()->json(['success' => true, 'message' => 'Lead successfully reassigned to ' . ($agentName ?? 'Agent')]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Reassignment failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get calls explicitly assigned by the current user to others.
+     */
+    public function getAssignedCalls(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+        $perPage = $request->get('per_page', 10);
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+
+        $query = DB::table('calling_campaign_calling')
+            ->join('callings', 'calling_campaign_calling.calling_id', '=', 'callings.id')
+            ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
+            ->leftJoin('users', 'calling_campaign_calling.user_id', '=', 'users.id')
+            ->whereExists(function ($subQuery) use ($user) {
+                $subQuery->select(DB::raw(1))
+                    ->from('calling_assignment_logs')
+                    ->whereColumn('calling_assignment_logs.calling_id', 'callings.id')
+                    ->where('calling_assignment_logs.assigned_by', $user->id);
+            })
+            ->where('calling_campaign_calling.user_id', '!=', $user->id);
+
+        if ($junkTypeId) {
+            $query->where(function($q) use ($junkTypeId) {
+                $q->where('calling_campaign_calling.calling_type_id', '!=', $junkTypeId)
+                  ->orWhereNull('calling_campaign_calling.calling_type_id');
+            });
+        }
+
+        if ($request->filled('search')) {
+            $term = trim((string) $request->search);
+            $query->where(function ($q) use ($term) {
+                $like = '%' . $term . '%';
+                $q->where('callings.name', 'like', $like)
+                  ->orWhere('callings.email', 'like', $like)
+                  ->orWhere('callings.phone', 'like', $like)
+                  ->orWhere('users.name', 'like', $like);
+            });
+        }
+
+        if ($request->filled('campaign_id')) {
+            $query->where('calling_campaign_calling.calling_campaign_id', $request->campaign_id);
+        }
+        if ($request->filled('state_name')) {
+            $query->where('callings.state', $request->state_name);
+        }
+        if ($request->filled('city_name')) {
+            $query->where('callings.city', $request->city_name);
+        }
+        if ($request->filled('current_owner_id')) {
+            $query->where('calling_campaign_calling.user_id', $request->current_owner_id);
+        }
+
+        $query->select(
+            'callings.*',
+            'calling_campaigns.name as campaign_name',
+            'calling_campaign_calling.calling_campaign_id',
+            'calling_campaign_calling.user_id as current_owner_id',
+            'users.name as current_owner_name',
+            'calling_types.name as pivot_status',
+            'calling_campaign_calling.id as pivot_id',
+            DB::raw('(SELECT remark FROM calling_remarks WHERE calling_id = callings.id ORDER BY id DESC LIMIT 1) as latest_remark_text')
+        );
+
+        $paginated = $query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage);
+
+        $paginated->getCollection()->transform(function($item) {
+            $item->latest_remark = $item->latest_remark_text ? (object)['remark' => $item->latest_remark_text] : null;
+            $item->calling_type = $item->pivot_status ? (object)['name' => $item->pivot_status] : null;
+            $item->calling_type_name = $item->pivot_status; 
+            return $item;
+        });
+
+        return response()->json($paginated);
+    }
+
+    /**
+     * Extract filtering taxonomies scoped inside assigned sets.
+     */
+    public function getAssignedCallsFilterOptions(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+        $assignedLeadIds = DB::table('calling_assignment_logs')
+            ->where('assigned_by', $user->id)
+            ->pluck('calling_id')
+            ->unique();
+
+        $campaigns = DB::table('calling_campaign_calling')
+            ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->whereIn('calling_campaign_calling.calling_id', $assignedLeadIds)
+            ->select('calling_campaigns.id', 'calling_campaigns.name')
+            ->distinct()
+            ->get();
+
+        $owners = DB::table('calling_campaign_calling')
+            ->join('users', 'calling_campaign_calling.user_id', '=', 'users.id')
+            ->whereIn('calling_campaign_calling.calling_id', $assignedLeadIds)
+            ->where('users.id', '!=', $user->id)
+            ->select('users.id', 'users.name')
+            ->distinct()
+            ->orderBy('users.name')
+            ->get();
+
+        $states = Calling::whereIn('id', $assignedLeadIds)
+            ->whereNotNull('state')
+            ->distinct()
+            ->orderBy('state')
+            ->pluck('state')
+            ->toArray();
+
+        $cities = Calling::whereIn('id', $assignedLeadIds)
+            ->whereNotNull('city')
+            ->distinct()
+            ->orderBy('city')
+            ->pluck('city')
+            ->toArray();
+
+        return response()->json([
+            'campaigns' => $campaigns,
+            'owners' => $owners,
+            'states' => $states,
+            'cities' => $cities
+        ]);
+    }
+
+    /**
+     * Reassign an active item from assigned stack to another team member.
+     */
+    public function reassignAssignedCallMobile(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+        $pivotId = $request->get('pivot_id');
+        $newUserId = $request->get('new_user_id');
+
+        if (!$pivotId || !$newUserId) {
+            return response()->json(['success' => false, 'message' => 'Parameters invalid.'], 400);
+        }
+
+        $pivot = DB::table('calling_campaign_calling')->where('id', $pivotId)->first();
+        if (!$pivot) {
+            return response()->json(['success' => false, 'message' => 'Assignment reference not located.'], 404);
+        }
+
+        // Verify the assignment link was originally performed by the authenticated user
+        $logExists = \App\Models\CallingAssignmentLog::where('calling_id', $pivot->calling_id)
+            ->where('assigned_by', $user->id)
+            ->exists();
+
+        if (!$logExists) {
+            return response()->json(['success' => false, 'message' => 'Management authority not established.'], 403);
+        }
+
+        $oldUserId = $pivot->user_id;
+
+        try {
+            DB::transaction(function() use ($pivotId, $pivot, $oldUserId, $newUserId, $user) {
+                DB::table('calling_campaign_calling')
+                    ->where('id', $pivotId)
+                    ->update([
+                        'user_id' => $newUserId,
+                        'updated_at' => now()
+                    ]);
+
+                \App\Models\CallingAssignmentLog::create([
+                    'calling_id' => $pivot->calling_id,
+                    'calling_campaign_id' => $pivot->calling_campaign_id,
+                    'from_user_id' => $oldUserId,
+                    'to_user_id' => $newUserId,
+                    'assigned_by' => $user->id,
+                    'remark' => 'Re-assigned via Assigned mobile view'
+                ]);
+            });
+
+            $name = User::where('id', $newUserId)->value('name');
             return response()->json([
                 'success' => true,
-                'message' => 'Lead successfully reassigned to ' . ($agentName ?? 'Agent')
+                'message' => 'Lead successfully reassigned to ' . ($name ?? 'Executive')
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Reassignment failed: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Failed saving rewrite: ' . $e->getMessage()], 500);
         }
     }
 }
