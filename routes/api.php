@@ -131,6 +131,8 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/calling/assigned-calls', [\App\Http\Controllers\Api\CallingApiController::class, 'getAssignedCalls']);
     Route::get('/calling/assigned-filters', [\App\Http\Controllers\Api\CallingApiController::class, 'getAssignedCallsFilterOptions']);
     Route::post('/calling/assigned/reassign', [\App\Http\Controllers\Api\CallingApiController::class, 'reassignAssignedCallMobile']);
+    Route::get('/calling/converted-calls', [\App\Http\Controllers\Api\CallingApiController::class, 'getConvertedCalls']);
+    Route::get('/calling/converted-filters', [\App\Http\Controllers\Api\CallingApiController::class, 'getConvertedCallsFilterOptions']);
 
     // Prospect Management Routes
     Route::get('/prospects', [\App\Http\Controllers\Api\ProspectusApiController::class, 'index']);

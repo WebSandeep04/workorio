@@ -1540,7 +1540,6 @@ class CallingApiController extends Controller
                 ]);
             });
 
-            $name = User::where('id', $newUserId)->value('name');
             return response()->json([
                 'success' => true,
                 'message' => 'Lead successfully reassigned to ' . ($name ?? 'Executive')
@@ -1549,5 +1548,117 @@ class CallingApiController extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Failed saving rewrite: ' . $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Get leads successfully converted by the authenticated caller.
+     */
+    public function getConvertedCalls(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+        $perPage = $request->get('per_page', 10);
+        $junkTypeId = CallingType::where('name', 'Junk')->value('id');
+
+        $query = DB::table('calling_campaign_calling')
+            ->join('callings', 'calling_campaign_calling.calling_id', '=', 'callings.id')
+            ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->leftJoin('calling_types', 'calling_campaign_calling.calling_type_id', '=', 'calling_types.id')
+            ->leftJoin('users', 'calling_campaign_calling.user_id', '=', 'users.id')
+            ->where('calling_campaign_calling.is_assigned', 1)
+            ->where('calling_campaign_calling.user_id', $user->id);
+
+        if ($junkTypeId) {
+            $query->where(function($q) use ($junkTypeId) {
+                $q->where('calling_campaign_calling.calling_type_id', '!=', $junkTypeId)
+                  ->orWhereNull('calling_campaign_calling.calling_type_id');
+            });
+        }
+
+        if ($request->filled('search')) {
+            $term = trim((string) $request->search);
+            $query->where(function ($q) use ($term) {
+                $like = '%' . $term . '%';
+                $q->where('callings.name', 'like', $like)
+                  ->orWhere('callings.email', 'like', $like)
+                  ->orWhere('callings.phone', 'like', $like);
+            });
+        }
+
+        if ($request->filled('campaign_id')) {
+            $query->where('calling_campaign_calling.calling_campaign_id', $request->campaign_id);
+        }
+        if ($request->filled('state_name')) {
+            $query->where('callings.state', $request->state_name);
+        }
+        if ($request->filled('city_name')) {
+            $query->where('callings.city', $request->city_name);
+        }
+
+        $query->select(
+            'callings.*',
+            'calling_campaigns.name as campaign_name',
+            'calling_campaign_calling.calling_campaign_id',
+            'calling_campaign_calling.user_id as current_owner_id',
+            'users.name as current_owner_name',
+            'calling_types.name as pivot_status',
+            'calling_campaign_calling.id as pivot_id',
+            DB::raw('(SELECT remark FROM calling_remarks WHERE calling_id = callings.id ORDER BY id DESC LIMIT 1) as latest_remark_text'),
+            DB::raw('(SELECT u.name FROM calling_assign_logs cal JOIN users u ON cal.assigned_to = u.id WHERE cal.calling_id = callings.id ORDER BY cal.id DESC LIMIT 1) as converted_to_sales_name')
+        );
+
+        $paginated = $query->orderBy('calling_campaign_calling.id', 'desc')->paginate($perPage);
+
+        $paginated->getCollection()->transform(function($item) {
+            $item->latest_remark = $item->latest_remark_text ? (object)['remark' => $item->latest_remark_text] : null;
+            $item->calling_type = $item->pivot_status ? (object)['name' => $item->pivot_status] : null;
+            $item->calling_type_name = $item->pivot_status; 
+            return $item;
+        });
+
+        return response()->json($paginated);
+    }
+
+    /**
+     * Fetch dynamic segmentation options for converted call listings.
+     */
+    public function getConvertedCallsFilterOptions(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) return response()->json(['message' => 'Unauthenticated'], 401);
+
+        $convertedLeadIds = DB::table('calling_campaign_calling')
+            ->where('user_id', $user->id)
+            ->where('is_assigned', 1)
+            ->pluck('calling_id')
+            ->unique();
+
+        $campaigns = DB::table('calling_campaign_calling')
+            ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->whereIn('calling_campaign_calling.calling_id', $convertedLeadIds)
+            ->select('calling_campaigns.id', 'calling_campaigns.name')
+            ->distinct()
+            ->get();
+
+        $states = Calling::whereIn('id', $convertedLeadIds)
+            ->whereNotNull('state')
+            ->distinct()
+            ->orderBy('state')
+            ->pluck('state')
+            ->toArray();
+
+        $cities = Calling::whereIn('id', $convertedLeadIds)
+            ->whereNotNull('city')
+            ->distinct()
+            ->orderBy('city')
+            ->pluck('city')
+            ->toArray();
+
+        return response()->json([
+            'campaigns' => $campaigns,
+            'states' => $states,
+            'cities' => $cities
+        ]);
     }
 }
