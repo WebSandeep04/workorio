@@ -1,9 +1,7 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Subscriptions'); ?>
+<?php $__env->startSection('page_title', 'Subscriptions'); ?>
 
-@section('title', 'Subscriptions')
-@section('page_title', 'Subscriptions')
-
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   .container-fluid {
     padding: 0.5rem;
@@ -456,15 +454,15 @@
     text-decoration: none;
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid px-2">
   <div class="d-flex justify-content-between align-items-center mb-2 mt-2">
-    <a href="{{ route('subscriptions.index') }}" class="back-btn mb-0">
+    <a href="<?php echo e(route('subscriptions.index')); ?>" class="back-btn mb-0">
       <i class="bi bi-arrow-left"></i> Back to Customers
     </a>
-    <h5 class="mb-0 fw-bold" style="font-family: Montserrat;">{{ $customer->name }}</h5>
+    <h5 class="mb-0 fw-bold" style="font-family: Montserrat;"><?php echo e($customer->name); ?></h5>
   </div>
   <!-- Filters -->
   <div class="filterBox mb-2">
@@ -593,7 +591,7 @@
       </div>
       <div class="modal-body">
         <form id="editSubscriptionForm">
-          @csrf
+          <?php echo csrf_field(); ?>
           <input type="hidden" id="edit_subscription_id" name="subscription_id">
           <div class="row">
             <div class="col-md-12 mb-3">
@@ -603,8 +601,8 @@
             </div>
             <div class="col-md-6 mb-3">
               <label for="edit_customer_id" class="form-label">Customer</label>
-              <input type="text" class="form-control" value="{{ $customer->name }}" readonly>
-              <input type="hidden" id="edit_customer_id" name="customer_id" value="{{ $customer->id }}">
+              <input type="text" class="form-control" value="<?php echo e($customer->name); ?>" readonly>
+              <input type="hidden" id="edit_customer_id" name="customer_id" value="<?php echo e($customer->id); ?>">
             </div>
             <div class="col-md-6 mb-3">
               <label for="edit_product_id" class="form-label">Product</label>
@@ -767,13 +765,13 @@
 </div>
 
 <div id="toastContainer" class="toast-container"></div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 let currentPage = 1;
 let subscriptionStatuses = [];
-const viewCustomerName = @json($customer->name);
+const viewCustomerName = <?php echo json_encode($customer->name, 15, 512) ?>;
 
 // ---------- Date helpers ----------
 function formatDateOnly(value) {
@@ -976,13 +974,13 @@ function renderSubscriptionsTable(data, paginationElement, hideElements) {
 
 function loadSubscriptions(page = 1) {
     // Current customer context
-    const customerId = "{{ $customer->id }}";
+    const customerId = "<?php echo e($customer->id); ?>";
     
     $.ajax({
-        url: '{{ route("subscriptions.filter") }}?page=' + page,
+        url: '<?php echo e(route("subscriptions.filter")); ?>?page=' + page,
         type: 'POST',
         data: {
-            _token: '{{ csrf_token() }}',
+            _token: '<?php echo e(csrf_token()); ?>',
             per_page: 10,
             customer_id: customerId
         },
@@ -999,7 +997,7 @@ function loadSubscriptions(page = 1) {
 // Load filter options
 $(document).ready(function() {
     $.ajax({
-        url: '{{ route("subscriptions.filter-options") }}',
+        url: '<?php echo e(route("subscriptions.filter-options")); ?>',
         type: 'GET',
         success: function(data) {
             // Load products
@@ -1012,7 +1010,7 @@ $(document).ready(function() {
 
     // Load subscription statuses from master
     $.ajax({
-        url: '{{ route("subscription-status.list") }}',
+        url: '<?php echo e(route("subscription-status.list")); ?>',
         type: 'GET',
         success: function(data) {
             subscriptionStatuses = data || [];
@@ -1066,7 +1064,7 @@ $(document).ready(function() {
     // Load Products for Dropdowns (Add and Edit modals)
     function loadProductsForDropdown() {
         $.ajax({
-            url: '{{ route("subscriptions.products") }}',
+            url: '<?php echo e(route("subscriptions.products")); ?>',
             type: 'GET',
             success: function(data) {
                 const options = '<option value="">Select Product</option>' + 
@@ -1095,7 +1093,7 @@ $(document).ready(function() {
 $(document).on('click', '.edit-subscription', function() {
     const subscriptionId = $(this).data('id');
     $.ajax({
-        url: `{{ route("subscriptions.show", ":id") }}`.replace(':id', subscriptionId),
+        url: `<?php echo e(route("subscriptions.show", ":id")); ?>`.replace(':id', subscriptionId),
         type: 'GET',
         success: function(response) {
             const sub = response.subscription || response;
@@ -1208,7 +1206,7 @@ $(document).on('click', '.view-details-trigger', function() {
 $('#updateSubscriptionBtn').on('click', function() {
     const subscriptionId = $('#edit_subscription_id').val();
     const formData = new FormData();
-    formData.append('_token', '{{ csrf_token() }}');
+    formData.append('_token', '<?php echo e(csrf_token()); ?>');
     formData.append('_method', 'PUT');
     formData.append('subscription_name', $('#edit_subscription_name').val());
     formData.append('customer_id', $('#edit_customer_id').val());
@@ -1244,7 +1242,7 @@ $('#updateSubscriptionBtn').on('click', function() {
     }
     
     $.ajax({
-        url: `{{ route("subscriptions.update", ":id") }}`.replace(':id', subscriptionId),
+        url: `<?php echo e(route("subscriptions.update", ":id")); ?>`.replace(':id', subscriptionId),
         type: 'POST',
         data: formData,
         processData: false,
@@ -1268,7 +1266,7 @@ $(document).on('click', '.delete-subscription', function() {
     if (!confirm('Are you sure you want to delete this subscription?')) return;
     const subscriptionId = $(this).data('id');
     $.ajax({
-        url: `{{ route("subscriptions.destroy", ":id") }}`.replace(':id', subscriptionId),
+        url: `<?php echo e(route("subscriptions.destroy", ":id")); ?>`.replace(':id', subscriptionId),
         type: 'DELETE',
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -1295,17 +1293,17 @@ $.ajaxSetup({
 
 function loadFilteredSubscriptions(page = 1) {
     $.ajax({
-        url: '{{ route("subscriptions.filter") }}?page=' + page,
+        url: '<?php echo e(route("subscriptions.filter")); ?>?page=' + page,
         type: 'POST',
         data: {
-            _token: '{{ csrf_token() }}',
+            _token: '<?php echo e(csrf_token()); ?>',
             status: $('#status').val(),
             products_id: $('#product_type').val(),
             is_recurring: $('#filter_is_recurring').val(),
             recurrence_type: $('#filter_recurrence_type').val(),
             is_active: $('#filter_is_active').val(),
             per_page: 10,
-            customer_id: "{{ $customer->id }}"
+            customer_id: "<?php echo e($customer->id); ?>"
         },
         success: function (response) {
             renderSubscriptionsTable(response, $('#paginationfilterLinks'), ['#paginationLinks', '#paginationsearchLinks', '#paginationdateLinks']);
@@ -1329,13 +1327,13 @@ $("#search").on("keyup", function () {
     
     searchTimeout = setTimeout(function() {
         $.ajax({
-            url: '{{ route("subscriptions.filter") }}?page=1',
+            url: '<?php echo e(route("subscriptions.filter")); ?>?page=1',
             type: 'POST',
             data: {
-                _token: '{{ csrf_token() }}',
+                _token: '<?php echo e(csrf_token()); ?>',
                 search: search,
                 per_page: 10,
-                customer_id: "{{ $customer->id }}"
+                customer_id: "<?php echo e($customer->id); ?>"
             },
             success: function (response) {
                 renderSubscriptionsTable(response, $('#paginationsearchLinks'), ['#paginationLinks', '#paginationfilterLinks', '#paginationdateLinks']);
@@ -1363,5 +1361,7 @@ $(document).on('click', '#paginationLinks .page-link, #paginationfilterLinks .pa
     }
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
 
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/subscription/customer_subscriptions.blade.php ENDPATH**/ ?>

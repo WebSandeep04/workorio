@@ -996,3 +996,29 @@
 "} 
 [2026-05-12 12:01:47] local.INFO: Punch-in started (API) {"user_id":7,"movement_type":"office"} 
 [2026-05-12 12:01:48] local.INFO: Punch-in movement created (API) {"user_id":7,"attendance_id":1803,"movement_id":4243} 
+[2026-05-12 13:13:28] local.ERROR: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'workorio.subscription_histories' doesn't exist (Connection: mysql, SQL: select * from `subscription_histories` limit 1) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'workorio.subscription_histories' doesn't exist (Connection: mysql, SQL: select * from `subscription_histories` limit 1) at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:824)
+[stacktrace]
+#0 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(778): Illuminate\\Database\\Connection->runQueryCallback('select * from `...', Array, Object(Closure))
+#1 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(397): Illuminate\\Database\\Connection->run('select * from `...', Array, Object(Closure))
+#2 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3188): Illuminate\\Database\\Connection->select('select * from `...', Array, true)
+#3 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3173): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3763): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3172): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Concerns\\BuildsQueries.php(366): Illuminate\\Database\\Query\\Builder->get(Array)
+#7 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\scratch\\dump_history.php(6): Illuminate\\Database\\Query\\Builder->first()
+#8 {main}
+
+[previous exception] [object] (PDOException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'workorio.subscription_histories' doesn't exist at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:406)
+[stacktrace]
+#0 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(406): PDO->prepare('select * from `...')
+#1 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(811): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select * from `...', Array)
+#2 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(778): Illuminate\\Database\\Connection->runQueryCallback('select * from `...', Array, Object(Closure))
+#3 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(397): Illuminate\\Database\\Connection->run('select * from `...', Array, Object(Closure))
+#4 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3188): Illuminate\\Database\\Connection->select('select * from `...', Array, true)
+#5 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3173): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3763): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#7 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3172): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#8 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Concerns\\BuildsQueries.php(366): Illuminate\\Database\\Query\\Builder->get(Array)
+#9 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\scratch\\dump_history.php(6): Illuminate\\Database\\Query\\Builder->first()
+#10 {main}
+"} 

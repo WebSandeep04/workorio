@@ -32,6 +32,37 @@ class SubscriptionController extends Controller
             });
         }
 
+        // Apply subscription filters to group view
+        if ($request->filled('customer_id')) {
+            $query->where('id', $request->customer_id);
+        }
+
+        if ($request->filled('products_id') || $request->filled('status') || $request->filled('is_recurring') || $request->filled('recurrence_type') || $request->filled('is_active')) {
+            $query->whereHas('subscriptions', function($q) use ($request) {
+                if ($request->filled('status')) {
+                    $status = $request->status;
+                    $q->where(function($subQ) use ($status) {
+                        $subQ->where('status', $status)
+                             ->orWhereHas('histories', function($hq) use ($status) {
+                                 $hq->where('status', $status);
+                             });
+                    });
+                }
+                if ($request->filled('products_id')) {
+                    $q->where('product_id', $request->products_id);
+                }
+                if ($request->filled('is_recurring')) {
+                    $q->where('is_recurring', $request->is_recurring);
+                }
+                if ($request->filled('recurrence_type')) {
+                    $q->where('recurrence_type', $request->recurrence_type);
+                }
+                if ($request->filled('is_active')) {
+                    $q->where('is_active', $request->is_active);
+                }
+            });
+        }
+
         $customers = $query->select('id', 'name', 'email', 'phone', 'company_name')
             ->withCount('subscriptions')
             ->paginate(10);
@@ -166,8 +197,7 @@ class SubscriptionController extends Controller
         ])
         ->withCount(['histories' => function ($query) {
             $query->where('status', '!=', 'Payment Received');
-        }])
-        ->where('user_id', $userId);
+        }]);
 
         // Filter by customer_id if provided
         if ($request->filled('customer_id')) {
@@ -176,7 +206,13 @@ class SubscriptionController extends Controller
 
         // Apply filters
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $status = $request->status;
+            $query->where(function($q) use ($status) {
+                $q->where('status', $status)
+                  ->orWhereHas('histories', function($hq) use ($status) {
+                      $hq->where('status', $status);
+                  });
+            });
         }
 
         if ($request->filled('products_id')) {
@@ -187,6 +223,7 @@ class SubscriptionController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('notes', 'like', "%{$search}%")
+                  ->orWhere('subscription_name', 'like', "%{$search}%")
                   ->orWhereHas('customer', function($cq) use ($search) {
                       $cq->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")

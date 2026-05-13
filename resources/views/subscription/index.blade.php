@@ -896,16 +896,14 @@ $(document).ready(function() {
         };
         
         if (currentView === 'group') {
-             // For group view, we might not use all individual filters effectively unless backend supports them on Customer level
-             // Passing them anyway if backend supports or ignores them
-             loadCustomers(page, search);
+             loadCustomers(page, params);
         } else {
              loadSubscriptions(page, params);
         }
     }
 
     // Load customers (Group View)
-    function loadCustomers(page, search) {
+    function loadCustomers(page, params) {
          // Setup Table Headers for Group
          $('#table_head').html(`
             <tr>
@@ -921,10 +919,7 @@ $(document).ready(function() {
         $.ajax({
             url: '{{ route("subscriptions.index") }}',
             type: 'GET',
-            data: {
-                page: page,
-                search: search
-            },
+            data: params,
             success: function(response) {
                 renderCustomersTable(response);
             },
