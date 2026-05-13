@@ -1003,4 +1003,79 @@ class LeadApiController extends Controller
 
         return response()->json(['success' => true, 'data' => $statusCounts]);
     }
+
+    /**
+     * Get follow-up leads for current user (next follow up <= today)
+     */
+    public function followupLeads(Request $request)
+    {
+        $userId = Auth::id();
+        $perPage = $request->get('per_page', 10);
+        $today = Carbon::today()->toDateString();
+
+        $query = SalesRecord::with([
+            'status',
+            'prospectus',
+            'city',
+            'state',
+            'businessType',
+            'leadSource',
+            'product',
+            'latestRemark',
+            'user',
+            'creatorLog.assignedBy'
+        ])
+        ->where('user_id', $userId)
+        ->whereDate('next_follow_up_date', '<=', $today)
+        ->whereNotIn('status_id', [1, 2, 15, 20]);
+
+        // Apply filters
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+
+        if ($request->filled('state_id')) {
+            $query->whereHas('prospectus', function($q) use ($request) {
+                $q->where('state_id', $request->state_id);
+            });
+        }
+
+        if ($request->filled('city_id')) {
+            $query->whereHas('prospectus', function($q) use ($request) {
+                $q->where('city_id', $request->city_id);
+            });
+        }
+
+        if ($request->filled('business_type_id')) {
+            $query->whereHas('prospectus', function($q) use ($request) {
+                $q->where('business_type_id', $request->business_type_id);
+            });
+        }
+
+        if ($request->filled('lead_source_id')) {
+            $query->where('lead_source_id', $request->lead_source_id);
+        }
+
+        if ($request->filled('products_id')) {
+            $query->where('products_id', $request->products_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('leads_name', 'like', "%{$search}%")
+                  ->orWhere('contact_person', 'like', "%{$search}%")
+                  ->orWhere('contact_number', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhereHas('prospectus', function($pq) use ($search) {
+                      $pq->where('prospectus_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $records = $query->orderBy('next_follow_up_date', 'asc')->paginate($perPage);
+
+        return response()->json($records);
+    }
 }
