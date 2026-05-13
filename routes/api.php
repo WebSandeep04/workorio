@@ -152,6 +152,13 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
 
     // Employee Location Tracking
     Route::post('/employee/location', [\App\Http\Controllers\Api\EmployeeLocationController::class, 'store']);
+
+    // Mobile Lead Generation APIs
+    Route::get('/leadgen/my-leads', [\App\Http\Controllers\Api\LeadGenApiController::class, 'getMyLeads']);
+    Route::get('/leadgen/my-filters', [\App\Http\Controllers\Api\LeadGenApiController::class, 'getFilterOptions']);
+    Route::get('/leadgen/my-stats', [\App\Http\Controllers\Api\LeadGenApiController::class, 'getLeadGenStats']);
+    Route::post('/leadgen/my/reassign', [\App\Http\Controllers\Api\LeadGenApiController::class, 'reassignLeadGenLead']);
+    Route::post('/leadgen/my/store', [\App\Http\Controllers\Api\LeadGenApiController::class, 'storeLeadGenLead']);
 });
 
 
