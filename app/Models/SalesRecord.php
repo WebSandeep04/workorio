@@ -123,4 +123,9 @@ class SalesRecord extends Model
     {
         return $this->hasMany(LeadAssignmentLog::class, 'sales_record_id')->latest();
     }
+
+    public function creatorLog()
+    {
+        return $this->hasOne(LeadAssignmentLog::class, 'sales_record_id')->oldestOfMany();
+    }
 }

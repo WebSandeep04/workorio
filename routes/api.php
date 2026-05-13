@@ -74,7 +74,10 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     // Leads Management Routes
     Route::get('/leads/stats', [\App\Http\Controllers\Api\LeadApiController::class, 'getSummaryStats']);
     Route::get('/leads/status-counts', [\App\Http\Controllers\Api\LeadApiController::class, 'getStatusCounts']);
+    Route::get('/leads/all-stats', [\App\Http\Controllers\Api\LeadApiController::class, 'getAllSummaryStats']);
+    Route::get('/leads/all-status-counts', [\App\Http\Controllers\Api\LeadApiController::class, 'getAllStatusCounts']);
     Route::get('/leads/my-leads', [\App\Http\Controllers\Api\LeadApiController::class, 'index']);
+    Route::get('/leads/all-leads', [\App\Http\Controllers\Api\LeadApiController::class, 'allLeads']);
     Route::post('/leads/add', [\App\Http\Controllers\Api\LeadApiController::class, 'store']);
     Route::post('/leads/assign', [\App\Http\Controllers\Api\LeadApiController::class, 'assign']);
     Route::get('/leads/filter-options', [\App\Http\Controllers\Api\LeadApiController::class, 'getFilterOptions']);
