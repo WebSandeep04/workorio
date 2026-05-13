@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\TaskApiController;
+use App\Http\Controllers\Api\SubscriptionApiController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -159,6 +160,15 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/leadgen/my-stats', [\App\Http\Controllers\Api\LeadGenApiController::class, 'getLeadGenStats']);
     Route::post('/leadgen/my/reassign', [\App\Http\Controllers\Api\LeadGenApiController::class, 'reassignLeadGenLead']);
     Route::post('/leadgen/my/store', [\App\Http\Controllers\Api\LeadGenApiController::class, 'storeLeadGenLead']);
+
+    // Mobile Subscription & Renewal APIs
+    Route::get('/subscriptions', [SubscriptionApiController::class, 'getSubscriptions']);
+    Route::get('/subscriptions/stats', [SubscriptionApiController::class, 'getStats']);
+    Route::get('/subscriptions/form-options', [SubscriptionApiController::class, 'getFormOptions']);
+    Route::get('/subscriptions/{id}', [SubscriptionApiController::class, 'show']);
+    Route::post('/subscriptions', [SubscriptionApiController::class, 'store']);
+    Route::post('/subscriptions/{id}/status', [SubscriptionApiController::class, 'updateStatus']);
+    Route::get('/subscriptions/{id}/history', [SubscriptionApiController::class, 'getHistory']);
 });
 
 
