@@ -10,9 +10,155 @@ use App\Models\Calling;
 use App\Models\State;
 use App\Models\City;
 use App\Models\CallingType;
+use App\Models\CallingList;
+use Illuminate\Support\Facades\Validator;
 
 class CallingApiController extends Controller
 {
+    /**
+     * Securely create segmented lists from Multipart CSV/TXT streams uploaded from mobile client.
+     */
+    public function storeCallingList(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'excel_file' => 'required|file|mimes:csv,txt,xlsx,xls'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+            
+            $list = CallingList::create([
+                'name' => $request->name,
+                'total_records' => 0
+            ]);
+
+            $file = $request->file('excel_file');
+            $filePath = $file->getRealPath();
+            
+            $records = [];
+            $header = null;
+            $total = 0;
+
+            // Restrict to CSV/TXT parsing similar to master Web controller
+            $extension = $file->getClientOriginalExtension();
+            if (!in_array(strtolower($extension), ['csv', 'txt'])) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Parsing failure: Only CSV and TXT files are natively supported for parsing.'
+                ], 400);
+            }
+
+            if (($handle = fopen($filePath, "r")) !== FALSE) {
+                while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                    if (empty(array_filter($data))) continue; // Skip empty rows
+
+                    if (!$header) {
+                        $header = array_map('trim', $data);
+                        continue;
+                    }
+                    
+                    if (count($header) !== count($data)) {
+                        if (count($data) < count($header)) {
+                            $data = array_pad($data, count($header), null);
+                        } else {
+                            $data = array_slice($data, 0, count($header));
+                        }
+                    }
+
+                    $row = array_combine($header, $data);
+                    
+                    $records[] = [
+                        'list_id' => $list->id,
+                        'name'    => $row['Name'] ?? ($row['name'] ?? null),
+                        'company_name'   => $row['Company Name'] ?? ($row['company_name'] ?? ($row['Company'] ?? ($row['company'] ?? null))),
+                        'contact_person' => $row['Contact Person'] ?? ($row['contact_person'] ?? ($row['Contact person'] ?? null)),
+                        'email'   => $row['Email'] ?? ($row['email'] ?? null),
+                        'phone'   => $row['Phone'] ?? ($row['phone'] ?? ($row['Contact'] ?? ($row['Mobile'] ?? null))),
+                        'address' => $row['Address'] ?? ($row['address'] ?? null),
+                        'city'    => $row['City'] ?? ($row['city'] ?? null),
+                        'state'   => $row['State'] ?? ($row['state'] ?? null),
+                        'legal_status' => $row['Legal Status'] ?? ($row['legal_status'] ?? null),
+                        'gst_number'   => $row['GST Number'] ?? ($row['gst_number'] ?? ($row['GST'] ?? null)),
+                        'turnover'     => $row['Turnover'] ?? ($row['turnover'] ?? ($row['Turn Over'] ?? null)),
+                    ];
+                    $total++;
+                    
+                    if (count($records) >= 500) {
+                        Calling::insert($records);
+                        $records = [];
+                    }
+                }
+                fclose($handle);
+            }
+
+            if (!empty($records)) {
+                Calling::insert($records);
+            }
+
+            $list->update(['total_records' => $total]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Lead segment '$request->name' imported successfully with $total records."
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Import breakdown: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Retrieve dynamic segments lists with pagination and record aggregates.
+     */
+    public function getCallingLists(Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        $lists = CallingList::orderBy('id', 'desc')->paginate($perPage);
+        $totalLeads = CallingList::sum('total_records');
+
+        return response()->json([
+            'lists' => $lists,
+            'total_leads' => $totalLeads
+        ]);
+    }
+
+    /**
+     * Perform cascaded deletion of segmented list and its associated leads.
+     */
+    public function deleteCallingList($id)
+    {
+        try {
+            DB::beginTransaction();
+            $list = CallingList::findOrFail($id);
+            // Cascading deletion of associated child records
+            Calling::where('list_id', $id)->delete();
+            $list->delete();
+            
+            DB::commit();
+            return response()->json([
+                'success' => true, 
+                'message' => 'Segment and associated lead records deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false, 
+                'message' => 'Failed to remove segment: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Fetch and filter All Callings data.
      */
