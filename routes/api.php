@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\SubscriptionApiController;
+use App\Http\Controllers\Api\AttendanceReportApiController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -32,6 +33,12 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/attendance/unlock-logs', [AttendanceController::class, 'fetchUnlockLogs']);
     Route::post('/attendance/unlock-by-date', [AttendanceController::class, 'unlockByDate']);
     Route::post('/attendance/unlock-individual/{id}', [AttendanceController::class, 'unlockIndividual']);
+
+    // Attendance Reports (Admin)
+    Route::get('/attendance/report/users', [AttendanceReportApiController::class, 'fetchReportUsers']);
+    Route::get('/attendance/report/user-wise', [AttendanceReportApiController::class, 'getUserWiseReport']);
+    Route::get('/attendance/report/monthly', [AttendanceReportApiController::class, 'getMonthlySummaryReport']);
+    Route::get('/attendance/report/date-wise', [AttendanceReportApiController::class, 'getDateWiseReport']);
 
     // Active Employees Birthdays
     Route::get('/employees/birthdays', [\App\Http\Controllers\Api\EmployeeController::class, 'getActiveEmployeesBirthdayList']);
