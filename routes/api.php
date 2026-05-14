@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\SubscriptionApiController;
 use App\Http\Controllers\Api\AttendanceReportApiController;
+use App\Http\Controllers\Api\WorklogReportApiController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -75,6 +76,12 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/worklog/reject-group', [\App\Http\Controllers\Api\WorklogApiController::class, 'rejectGroup']);
     Route::post('/worklog/approve-bulk', [\App\Http\Controllers\Api\WorklogApiController::class, 'approveBulk']);
     Route::post('/worklog/reject-bulk', [\App\Http\Controllers\Api\WorklogApiController::class, 'rejectBulk']);
+
+    // Worklog Reports API Group
+    Route::get('/worklog/report/filters', [WorklogReportApiController::class, 'fetchFilters']);
+    Route::get('/worklog/report/projects', [WorklogReportApiController::class, 'fetchCustomerProjects']);
+    Route::get('/worklog/report/general', [WorklogReportApiController::class, 'fetchGeneralReport']);
+    Route::get('/worklog/report/user-wise', [WorklogReportApiController::class, 'fetchUserWiseReport']);
 
     // Task Routes
     Route::get('/tasks/form-data', [TaskApiController::class, 'getFormData']);
