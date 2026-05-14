@@ -51,6 +51,13 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::put('/employees/{id}', [\App\Http\Controllers\Api\EmployeeController::class, 'update']);
     Route::delete('/employees/{id}', [\App\Http\Controllers\Api\EmployeeController::class, 'destroy']);
 
+    // Unified Calendar Endpoint
+    Route::get('/calendar/events', [\App\Http\Controllers\Api\CalendarApiController::class, 'getEvents']);
+    Route::get('/calendar/date/{date}/handles', [\App\Http\Controllers\Api\CalendarApiController::class, 'dateHandles']);
+    Route::post('/calendar/date/handle/toggle', [\App\Http\Controllers\Api\CalendarApiController::class, 'toggleDateHandle']);
+    Route::get('/calendar/status/{id}/checklists', [\App\Http\Controllers\Api\CalendarApiController::class, 'statusChecklists']);
+    Route::post('/calendar/date/client/status', [\App\Http\Controllers\Api\CalendarApiController::class, 'saveDateClientStatus']);
+
     // Upcoming Holidays
     Route::get('/holidays/upcoming', [\App\Http\Controllers\Api\HolidayController::class, 'getUpcomingHolidays']);
 
