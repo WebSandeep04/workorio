@@ -28,6 +28,11 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     // Attendance History/Summary
     Route::get('/attendance/history', [AttendanceController::class, 'getHistory']);
 
+    // Unlock Attendance (Admin)
+    Route::get('/attendance/unlock-logs', [AttendanceController::class, 'fetchUnlockLogs']);
+    Route::post('/attendance/unlock-by-date', [AttendanceController::class, 'unlockByDate']);
+    Route::post('/attendance/unlock-individual/{id}', [AttendanceController::class, 'unlockIndividual']);
+
     // Active Employees Birthdays
     Route::get('/employees/birthdays', [\App\Http\Controllers\Api\EmployeeController::class, 'getActiveEmployeesBirthdayList']);
 

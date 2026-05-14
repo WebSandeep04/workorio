@@ -1395,4 +1395,125 @@ class AttendanceController extends Controller
             })
             ->exists();
     }
+
+    /**
+     * Fetch Attendance Unlock Logs (Admin only)
+     */
+    public function fetchUnlockLogs(Request $request): JsonResponse
+    {
+        $user = $this->getCurrentUser();
+        if (!$user || $user->role_id != 1) {
+            return response()->json(['success' => false, 'message' => 'Forbidden. Admin access required.'], 403);
+        }
+
+        try {
+            $query = DB::table('attendance_unlock_logs')
+                ->leftJoin('users', 'attendance_unlock_logs.unlocked_by', '=', 'users.id')
+                ->select('attendance_unlock_logs.*', 'users.name as unlocked_by_name');
+
+            if ($request->search) {
+                $searchTerm = $request->search;
+                $query->where(function($q) use ($searchTerm) {
+                    $q->where('attendance_unlock_logs.reason', 'like', "%{$searchTerm}%")
+                      ->orWhere('users.name', 'like', "%{$searchTerm}%");
+                });
+            }
+
+            $logs = $query->orderBy('attendance_unlock_logs.created_at', 'desc')->paginate(20);
+
+            $logs->getCollection()->transform(function ($log) {
+                return [
+                    'id' => $log->id,
+                    'date' => Carbon::parse($log->date)->format('d M Y'),
+                    'unlock_date' => Carbon::parse($log->unlock_date)->format('d M Y'),
+                    'reason' => $log->reason,
+                    'unlocked_by' => $log->unlocked_by_name ?? 'System',
+                    'unlocked_by_id' => $log->unlocked_by,
+                    'created_at' => Carbon::parse($log->created_at)->setTimezone('Asia/Kolkata')->format('d M Y h:i A'),
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $logs->items(),
+                'pagination' => [
+                    'current_page' => $logs->currentPage(),
+                    'last_page' => $logs->lastPage(),
+                    'per_page' => $logs->perPage(),
+                    'total' => $logs->total(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error fetching unlock logs: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Unlock Attendance records by Date (Admin only)
+     */
+    public function unlockByDate(Request $request): JsonResponse
+    {
+        $user = $this->getCurrentUser();
+        if (!$user || $user->role_id != 1) {
+            return response()->json(['success' => false, 'message' => 'Forbidden. Admin access required.'], 403);
+        }
+
+        $request->validate([
+            'date' => 'required|date',
+            'reason' => 'required|string|max:1000'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Update all attendance records for that date (unlock approval and lock)
+            $affected = Attendance::whereDate('date', $request->date)
+                ->update([
+                    'is_approved' => 0,
+                    'is_locked' => 0
+                ]);
+
+            // Create log entry
+            DB::table('attendance_unlock_logs')->insert([
+                'date' => Carbon::now('Asia/Kolkata')->toDateString(),
+                'unlock_date' => $request->date,
+                'reason' => $request->reason,
+                'unlocked_by' => $user->id,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true, 
+                'message' => "Successfully unlocked {$affected} records for " . Carbon::parse($request->date)->format('d M Y')
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Error unlocking by date: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Unlock individual Attendance Record (Admin only)
+     */
+    public function unlockIndividual($id): JsonResponse
+    {
+        $user = $this->getCurrentUser();
+        if (!$user || $user->role_id != 1) {
+            return response()->json(['success' => false, 'message' => 'Forbidden. Admin access required.'], 403);
+        }
+
+        try {
+            $attendance = Attendance::findOrFail($id);
+            $attendance->is_approved = 0;
+            $attendance->is_locked = 0; // Unlock the record
+            $attendance->save();
+            
+            return response()->json(['success' => true, 'message' => 'Attendance record unlocked successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error unlocking attendance record: ' . $e->getMessage()], 500);
+        }
+    }
 }
