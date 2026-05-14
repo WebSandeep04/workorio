@@ -84,11 +84,27 @@ class PettyCashController extends Controller
             ->sum('price');
             
         $remainingBalance = $totalOpeningBalance - $totalExpense;
+
+        $totalPendingCount = PettyCashData::query()
+            ->when($departmentId, function($q) use ($departmentId) {
+                return $q->where('department_id', $departmentId);
+            })
+            ->where('is_approved', false)
+            ->count();
+
+        $totalPendingAmount = PettyCashData::query()
+            ->when($departmentId, function($q) use ($departmentId) {
+                return $q->where('department_id', $departmentId);
+            })
+            ->where('is_approved', false)
+            ->sum('price');
         
         return response()->json([
             'total_opening_balance' => $totalOpeningBalance,
             'total_expense' => $totalExpense,
             'remaining_balance' => $remainingBalance,
+            'total_pending_count' => $totalPendingCount,
+            'total_pending_amount' => $totalPendingAmount,
         ]);
     }
 

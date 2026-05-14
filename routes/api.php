@@ -50,6 +50,13 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/worklog/submit', [\App\Http\Controllers\Api\WorklogApiController::class, 'submit']);
     Route::get('/worklog/history', [\App\Http\Controllers\Api\WorklogApiController::class, 'history']);
     Route::delete('/worklog/{id}', [\App\Http\Controllers\Api\WorklogApiController::class, 'destroy']);
+    
+    // Worklog Approval Routes
+    Route::get('/worklog/pending-approvals', [\App\Http\Controllers\Api\WorklogApiController::class, 'getPendingApprovals']);
+    Route::post('/worklog/{id}/approve', [\App\Http\Controllers\Api\WorklogApiController::class, 'approveWorklog']);
+    Route::post('/worklog/{id}/reject', [\App\Http\Controllers\Api\WorklogApiController::class, 'rejectWorklog']);
+    Route::post('/worklog/approve-group', [\App\Http\Controllers\Api\WorklogApiController::class, 'approveGroup']);
+    Route::post('/worklog/reject-group', [\App\Http\Controllers\Api\WorklogApiController::class, 'rejectGroup']);
 
     // Task Routes
     Route::get('/tasks/form-data', [TaskApiController::class, 'getFormData']);
@@ -177,6 +184,7 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/petty-cash', [\App\Http\Controllers\Api\PettyCashApiController::class, 'store']);
     Route::post('/petty-cash/{id}', [\App\Http\Controllers\Api\PettyCashApiController::class, 'update']); // Use POST for multipart updates
     Route::post('/petty-cash/{id}/toggle-approval', [\App\Http\Controllers\Api\PettyCashApiController::class, 'toggleApproval']);
+    Route::post('/petty-cash/approve-bulk', [\App\Http\Controllers\Api\PettyCashApiController::class, 'approveBulk']);
     Route::delete('/petty-cash/{id}', [\App\Http\Controllers\Api\PettyCashApiController::class, 'destroy']);
 });
 

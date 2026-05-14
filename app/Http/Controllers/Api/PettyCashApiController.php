@@ -33,12 +33,29 @@ class PettyCashApiController extends Controller
             
         $remainingBalance = $totalOpeningBalance - $totalExpense;
 
+        // Calculate Pending counts for stats ribbon in approvals
+        $totalPendingCount = PettyCashData::query()
+            ->when($departmentId, function($q) use ($departmentId) {
+                return $q->where('department_id', $departmentId);
+            })
+            ->where('is_approved', false)
+            ->count();
+
+        $totalPendingAmount = PettyCashData::query()
+            ->when($departmentId, function($q) use ($departmentId) {
+                return $q->where('department_id', $departmentId);
+            })
+            ->where('is_approved', false)
+            ->sum('price');
+
         return response()->json([
             'success' => true,
             'data' => [
                 'total_opening_balance' => (float)$totalOpeningBalance,
                 'total_expense' => (float)$totalExpense,
                 'remaining_balance' => (float)$remainingBalance,
+                'total_pending_count' => (int)$totalPendingCount,
+                'total_pending_amount' => (float)$totalPendingAmount,
             ]
         ]);
     }
@@ -202,6 +219,21 @@ class PettyCashApiController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Petty cash record deleted successfully.'
+        ]);
+    }
+
+    public function approveBulk(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:petty_cash_datas,id'
+        ]);
+
+        PettyCashData::whereIn('id', $request->ids)->update(['is_approved' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => count($request->ids) . ' entries approved successfully.'
         ]);
     }
 }

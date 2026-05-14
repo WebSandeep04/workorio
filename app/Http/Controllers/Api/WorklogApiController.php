@@ -13,6 +13,7 @@ use App\Models\Module;
 use App\Models\CustomerProject;
 use App\Models\Holiday;
 use App\Models\LeaveRequest;
+use App\Models\WorklogApproval;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -348,5 +349,262 @@ class WorklogApiController extends Controller
             $currentDate = date('Y-m-d', strtotime($currentDate . ' +1 day'));
         }
         return $missingDates;
+    }
+
+    /**
+     * Get Pending Worklog Approvals Grouped by User and Work Date
+     */
+    public function getPendingApprovals(): JsonResponse
+    {
+        $user = auth()->user();
+        
+        if ($user->role_id == 1) {
+            // Admin: Show worklogs from users who have no manager
+            $pendingWorklogs = Worklog::where('status', 'pending')
+                ->whereHas('user', function($query) {
+                    $query->whereDoesntHave('managers')
+                          ->where('is_worklog', 1);
+                })
+                ->with(['user', 'entryType', 'customer', 'customerProject', 'service', 'module'])
+                ->orderBy('user_id')
+                ->orderBy('work_date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            // Manager: Show worklogs from their subordinates
+            $pendingWorklogs = Worklog::where('status', 'pending')
+                ->whereHas('user', function($query) use ($user) {
+                    $query->whereHas('managers', function($q) use ($user) {
+                        $q->where('manager_id', $user->id);
+                    });
+                })
+                ->with(['user', 'entryType', 'customer', 'customerProject', 'service', 'module'])
+                ->orderBy('user_id')
+                ->orderBy('work_date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        // Group worklogs by user and date
+        $groupedWorklogs = $pendingWorklogs->groupBy(function($worklog) {
+            return ($worklog->user->name ?? 'Unknown') . '|' . $worklog->work_date;
+        })->map(function($group) {
+            return [
+                'user_name' => $group->first()->user->name ?? 'Unknown',
+                'work_date' => $group->first()->work_date,
+                'entries' => $group->values()
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $groupedWorklogs
+        ]);
+    }
+
+    /**
+     * Approve Individual Worklog
+     */
+    public function approveWorklog(Request $request, $id): JsonResponse
+    {
+        $user = auth()->user();
+        
+        $validator = Validator::make($request->all(), [
+            'rating' => 'required|in:met,below,exceeded',
+            'remark' => 'required|string|min:2|max:1000'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        $query = Worklog::where('id', $id)->where('status', 'pending');
+        if ($user->role_id == 1) {
+            $worklog = $query->whereHas('user', function($q) {
+                $q->whereDoesntHave('managers')->where('is_worklog', 1);
+            })->first();
+        } else {
+            $worklog = $query->whereHas('user', function($q) use ($user) {
+                $q->whereHas('managers', function($qm) use ($user) {
+                    $qm->where('manager_id', $user->id);
+                });
+            })->first();
+        }
+
+        if (!$worklog) {
+            return response()->json(['success' => false, 'message' => 'Worklog not found or access denied.'], 404);
+        }
+
+        DB::transaction(function () use ($worklog, $user, $request) {
+            $worklog->update(['status' => 'approved']);
+            WorklogApproval::create([
+                'worklog_id' => $worklog->id,
+                'approved_by' => $user->id,
+                'status' => 'approved',
+                'rating' => $request->rating,
+                'remark' => $request->remark
+            ]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Worklog approved successfully.']);
+    }
+
+    /**
+     * Reject Individual Worklog
+     */
+    public function rejectWorklog(Request $request, $id): JsonResponse
+    {
+        $user = auth()->user();
+
+        $validator = Validator::make($request->all(), [
+            'remark' => 'required|string|min:2|max:1000'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        $query = Worklog::where('id', $id)->where('status', 'pending');
+        if ($user->role_id == 1) {
+            $worklog = $query->whereHas('user', function($q) {
+                $q->whereDoesntHave('managers')->where('is_worklog', 1);
+            })->first();
+        } else {
+            $worklog = $query->whereHas('user', function($q) use ($user) {
+                $q->whereHas('managers', function($qm) use ($user) {
+                    $qm->where('manager_id', $user->id);
+                });
+            })->first();
+        }
+
+        if (!$worklog) {
+            return response()->json(['success' => false, 'message' => 'Worklog not found or access denied.'], 404);
+        }
+
+        DB::transaction(function () use ($worklog, $user, $request) {
+            $worklog->update(['status' => 'rejected']);
+            WorklogApproval::create([
+                'worklog_id' => $worklog->id,
+                'approved_by' => $user->id,
+                'status' => 'rejected',
+                'rating' => null,
+                'remark' => $request->remark
+            ]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Worklog rejected successfully.']);
+    }
+
+    /**
+     * Approve Group of Worklogs
+     */
+    public function approveGroup(Request $request): JsonResponse
+    {
+        $user = auth()->user();
+        
+        $validator = Validator::make($request->all(), [
+            'user_name' => 'required|string',
+            'work_date' => 'required|date',
+            'rating' => 'required|in:met,below,exceeded',
+            'remark' => 'required|string|min:2|max:2000'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        $query = Worklog::where('status', 'pending')->where('work_date', $request->work_date);
+        if ($user->role_id == 1) {
+            $worklogs = $query->whereHas('user', function($q) use ($request) {
+                $q->where('name', $request->user_name)
+                  ->whereDoesntHave('managers')
+                  ->where('is_worklog', 1);
+            })->get();
+        } else {
+            $worklogs = $query->whereHas('user', function($q) use ($request, $user) {
+                $q->where('name', $request->user_name)
+                  ->whereHas('managers', function($qm) use ($user) {
+                      $qm->where('manager_id', $user->id);
+                  });
+            })->get();
+        }
+
+        if ($worklogs->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No pending worklogs found for this date and user.'], 404);
+        }
+
+        DB::transaction(function () use ($worklogs, $user, $request) {
+            $worklogs->each(function($worklog) use ($user, $request) {
+                $worklog->update(['status' => 'approved']);
+                WorklogApproval::create([
+                    'worklog_id' => $worklog->id,
+                    'approved_by' => $user->id,
+                    'status' => 'approved',
+                    'rating' => $request->rating,
+                    'remark' => $request->remark
+                ]);
+            });
+        });
+
+        return response()->json([
+            'success' => true, 
+            'message' => "All entries for {$request->user_name} on {$request->work_date} have been approved."
+        ]);
+    }
+
+    /**
+     * Reject Group of Worklogs
+     */
+    public function rejectGroup(Request $request): JsonResponse
+    {
+        $user = auth()->user();
+
+        $validator = Validator::make($request->all(), [
+            'user_name' => 'required|string',
+            'work_date' => 'required|date',
+            'remark' => 'required|string|min:2|max:2000'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        $query = Worklog::where('status', 'pending')->where('work_date', $request->work_date);
+        if ($user->role_id == 1) {
+            $worklogs = $query->whereHas('user', function($q) use ($request) {
+                $q->where('name', $request->user_name)
+                  ->whereDoesntHave('managers')
+                  ->where('is_worklog', 1);
+            })->get();
+        } else {
+            $worklogs = $query->whereHas('user', function($q) use ($request, $user) {
+                $q->where('name', $request->user_name)
+                  ->whereHas('managers', function($qm) use ($user) {
+                      $qm->where('manager_id', $user->id);
+                  });
+            })->get();
+        }
+
+        if ($worklogs->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No pending worklogs found for this date and user.'], 404);
+        }
+
+        DB::transaction(function () use ($worklogs, $user, $request) {
+            $worklogs->each(function($worklog) use ($user, $request) {
+                $worklog->update(['status' => 'rejected']);
+                WorklogApproval::create([
+                    'worklog_id' => $worklog->id,
+                    'approved_by' => $user->id,
+                    'status' => 'rejected',
+                    'rating' => null,
+                    'remark' => $request->remark
+                ]);
+            });
+        });
+
+        return response()->json([
+            'success' => true, 
+            'message' => "All entries for {$request->user_name} on {$request->work_date} have been rejected."
+        ]);
     }
 }
