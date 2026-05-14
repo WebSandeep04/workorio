@@ -42,8 +42,14 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/attendance/report/monthly', [AttendanceReportApiController::class, 'getMonthlySummaryReport']);
     Route::get('/attendance/report/date-wise', [AttendanceReportApiController::class, 'getDateWiseReport']);
 
-    // Active Employees Birthdays
+    // Master Employees CRUD
     Route::get('/employees/birthdays', [\App\Http\Controllers\Api\EmployeeController::class, 'getActiveEmployeesBirthdayList']);
+    Route::get('/employees/form-options', [\App\Http\Controllers\Api\EmployeeController::class, 'getFormOptions']);
+    Route::get('/employees/city-options', [\App\Http\Controllers\Api\EmployeeController::class, 'cityOptions']);
+    Route::get('/employees', [\App\Http\Controllers\Api\EmployeeController::class, 'index']);
+    Route::post('/employees', [\App\Http\Controllers\Api\EmployeeController::class, 'store']);
+    Route::put('/employees/{id}', [\App\Http\Controllers\Api\EmployeeController::class, 'update']);
+    Route::delete('/employees/{id}', [\App\Http\Controllers\Api\EmployeeController::class, 'destroy']);
 
     // Upcoming Holidays
     Route::get('/holidays/upcoming', [\App\Http\Controllers\Api\HolidayController::class, 'getUpcomingHolidays']);
