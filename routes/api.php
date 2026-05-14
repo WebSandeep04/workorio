@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\SubscriptionApiController;
 use App\Http\Controllers\Api\AttendanceReportApiController;
 use App\Http\Controllers\Api\WorklogReportApiController;
+use App\Http\Controllers\Api\TrackingReportApiController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -82,6 +83,12 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/worklog/report/projects', [WorklogReportApiController::class, 'fetchCustomerProjects']);
     Route::get('/worklog/report/general', [WorklogReportApiController::class, 'fetchGeneralReport']);
     Route::get('/worklog/report/user-wise', [WorklogReportApiController::class, 'fetchUserWiseReport']);
+
+    // Tracking Reports API Group
+    Route::get('/tracking/report/users', [TrackingReportApiController::class, 'fetchReportUsers']);
+    Route::get('/tracking/report/user-wise', [TrackingReportApiController::class, 'getUserWiseReport']);
+    Route::get('/tracking/report/monthly', [TrackingReportApiController::class, 'getMonthlySummaryReport']);
+    Route::get('/tracking/report/date-wise', [TrackingReportApiController::class, 'getDateWiseReport']);
 
     // Task Routes
     Route::get('/tasks/form-data', [TaskApiController::class, 'getFormData']);
