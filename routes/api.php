@@ -40,6 +40,10 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::put('/leave/{id}', [\App\Http\Controllers\Api\LeaveController::class, 'update']);
     Route::delete('/leave/{id}', [\App\Http\Controllers\Api\LeaveController::class, 'destroy']);
     Route::get('/leave/types', [\App\Http\Controllers\Api\LeaveController::class, 'getLeaveTypes']);
+    Route::get('/leave/approvals', [\App\Http\Controllers\Api\LeaveController::class, 'fetchApprovals']);
+    Route::post('/leave/{id}/approve', [\App\Http\Controllers\Api\LeaveController::class, 'approve']);
+    Route::post('/leave/{id}/reject', [\App\Http\Controllers\Api\LeaveController::class, 'reject']);
+    Route::get('/leave/user-history/{userId}', [\App\Http\Controllers\Api\LeaveController::class, 'userHistory']);
 
     // Worklog Routes
     Route::get('/worklog/form-data', [\App\Http\Controllers\Api\WorklogApiController::class, 'getFormData']);
@@ -57,6 +61,8 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/worklog/{id}/reject', [\App\Http\Controllers\Api\WorklogApiController::class, 'rejectWorklog']);
     Route::post('/worklog/approve-group', [\App\Http\Controllers\Api\WorklogApiController::class, 'approveGroup']);
     Route::post('/worklog/reject-group', [\App\Http\Controllers\Api\WorklogApiController::class, 'rejectGroup']);
+    Route::post('/worklog/approve-bulk', [\App\Http\Controllers\Api\WorklogApiController::class, 'approveBulk']);
+    Route::post('/worklog/reject-bulk', [\App\Http\Controllers\Api\WorklogApiController::class, 'rejectBulk']);
 
     // Task Routes
     Route::get('/tasks/form-data', [TaskApiController::class, 'getFormData']);

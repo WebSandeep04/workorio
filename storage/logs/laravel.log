@@ -4866,3 +4866,6 @@
 #34 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\DontDelete\\\\l...')
 #35 {main}
 "} 
+[2026-05-14 09:53:29] local.INFO: API History Trace Request {"auth_user_id":13,"auth_user_role":1,"target_user_id":"7"} 
+[2026-05-14 09:54:25] local.INFO: API History Trace Request {"auth_user_id":13,"auth_user_role":1,"target_user_id":"7"} 
+[2026-05-14 09:54:50] local.INFO: API History Trace Request {"auth_user_id":13,"auth_user_role":1,"target_user_id":"7"} 

@@ -607,4 +607,111 @@ class WorklogApiController extends Controller
             'message' => "All entries for {$request->user_name} on {$request->work_date} have been rejected."
         ]);
     }
+
+    /**
+     * Bulk Approve multiple specific worklogs
+     */
+    public function approveBulk(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array',
+            'ids.*' => 'exists:worklogs,id',
+            'rating' => 'required|in:below,met,exceeded',
+            'remark' => 'required|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = auth()->user();
+        $query = Worklog::whereIn('id', $request->ids)->where('status', 'pending');
+
+        if ($user->role_id == 1) {
+            $worklogs = $query->whereHas('user', function($q) {
+                $q->whereDoesntHave('managers')->where('is_worklog', 1);
+            })->get();
+        } else {
+            $worklogs = $query->whereHas('user', function($q) use ($user) {
+                $q->whereHas('managers', function($qm) use ($user) {
+                    $qm->where('manager_id', $user->id);
+                });
+            })->get();
+        }
+
+        if ($worklogs->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No valid pending worklogs found to approve.'], 400);
+        }
+
+        DB::transaction(function () use ($worklogs, $user, $request) {
+            foreach ($worklogs as $worklog) {
+                $worklog->update(['status' => 'approved']);
+                WorklogApproval::create([
+                    'worklog_id' => $worklog->id,
+                    'approved_by' => $user->id,
+                    'status' => 'approved',
+                    'rating' => $request->rating,
+                    'remark' => $request->remark,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => count($worklogs) . ' timesheet entries approved.'
+        ]);
+    }
+
+    /**
+     * Bulk Reject multiple specific worklogs
+     */
+    public function rejectBulk(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array',
+            'ids.*' => 'exists:worklogs,id',
+            'remark' => 'required|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = auth()->user();
+        $query = Worklog::whereIn('id', $request->ids)->where('status', 'pending');
+
+        if ($user->role_id == 1) {
+            $worklogs = $query->whereHas('user', function($q) {
+                $q->whereDoesntHave('managers')->where('is_worklog', 1);
+            })->get();
+        } else {
+            $worklogs = $query->whereHas('user', function($q) use ($user) {
+                $q->whereHas('managers', function($qm) use ($user) {
+                    $qm->where('manager_id', $user->id);
+                });
+            })->get();
+        }
+
+        if ($worklogs->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No valid pending worklogs found to reject.'], 400);
+        }
+
+        DB::transaction(function () use ($worklogs, $user, $request) {
+            foreach ($worklogs as $worklog) {
+                $worklog->update(['status' => 'rejected']);
+                WorklogApproval::create([
+                    'worklog_id' => $worklog->id,
+                    'approved_by' => $user->id,
+                    'status' => 'rejected',
+                    'rating' => null,
+                    'remark' => $request->remark,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => count($worklogs) . ' timesheet entries rejected.'
+        ]);
+    }
 }

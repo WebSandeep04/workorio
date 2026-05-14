@@ -477,4 +477,278 @@ class LeaveController extends Controller
             return response()->json(['success' => false, 'message' => 'Failed to cancel leave: ' . $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Fetch all leave requests pending/processed for approval by manager or admin
+     */
+    public function fetchApprovals(): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+        try {
+            if (!Schema::hasTable('leave_requests')) {
+                return response()->json(['success' => true, 'data' => []]);
+            }
+
+            if ($user->role_id == 1) {
+                // Admin sees all requests
+                $leaves = LeaveRequest::with(['leaveType', 'user'])
+                    ->whereIn('status', ['pending', 'approved', 'rejected'])
+                    ->where('is_early_return', 0)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            } else {
+                // Manager: subordinates mapping
+                $actualUser = \App\Models\User::find($user->id);
+                $subordinateIds = $actualUser ? $actualUser->subordinates()->pluck('users.id')->toArray() : [];
+
+                if (!empty($subordinateIds)) {
+                    $leaves = LeaveRequest::with(['leaveType', 'user'])
+                        ->whereIn('status', ['pending', 'approved', 'rejected'])
+                        ->whereIn('user_id', $subordinateIds)
+                        ->where('is_early_return', 0)
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+                } else {
+                    $leaves = collect([]);
+                }
+            }
+
+            return response()->json(['success' => true, 'data' => $leaves]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error fetching approvals.', 'data' => []]);
+        }
+    }
+
+    /**
+     * Approve a specific leave request
+     */
+    public function approve(Request $request, $id): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+        try {
+            if ($user->role_id == 1) {
+                $leaveReq = LeaveRequest::where('id', $id)->firstOrFail();
+            } else {
+                $actualUser = \App\Models\User::find($user->id);
+                $subordinateIds = $actualUser ? $actualUser->subordinates()->pluck('users.id')->toArray() : [];
+                $leaveReq = LeaveRequest::where('id', $id)
+                    ->whereIn('user_id', $subordinateIds)
+                    ->firstOrFail();
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Leave not found or unauthorized.'], 404);
+        }
+
+        if ($leaveReq->status !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'Leave is already ' . $leaveReq->status], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $leaveReq->status = 'approved';
+            $leaveReq->approved_by = $user->id;
+            $leaveReq->save();
+
+            DB::commit();
+
+            // Optional: Mailer Notification
+            if ($leaveReq->user && $leaveReq->user->email && ($leaveReq->user->employee && $leaveReq->user->employee->status === 'active')) {
+                try {
+                    Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
+                        'leave_request_id' => $leaveReq->id,
+                        'user_id' => $leaveReq->user->id,
+                        'status' => 'approved'
+                    ]));
+                } catch (\Exception $e) {
+                    \Log::error("Failed to send API leave approval email: " . $e->getMessage());
+                }
+            }
+
+            return response()->json(['success' => true, 'message' => 'Leave request approved successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to approve leave.'], 500);
+        }
+    }
+
+    /**
+     * Reject a specific leave request
+     */
+    public function reject(Request $request, $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'reason' => 'required|string|max:1000'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Rejection reason is required.', 'errors' => $validator->errors()], 422);
+        }
+
+        $user = Auth::user();
+        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+
+        try {
+            if ($user->role_id == 1) {
+                $leaveReq = LeaveRequest::where('id', $id)->firstOrFail();
+            } else {
+                $actualUser = \App\Models\User::find($user->id);
+                $subordinateIds = $actualUser ? $actualUser->subordinates()->pluck('users.id')->toArray() : [];
+                $leaveReq = LeaveRequest::where('id', $id)
+                    ->whereIn('user_id', $subordinateIds)
+                    ->firstOrFail();
+            }
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Leave not found or unauthorized.'], 404);
+        }
+
+        if ($leaveReq->status !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'Leave is already ' . $leaveReq->status], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $leaveReq->status = 'rejected';
+            $leaveReq->approved_by = $user->id;
+            $leaveReq->reject_reason = $request->reason;
+            $leaveReq->save();
+
+            // Refund deductible balance back
+            if ($leaveReq->leaveType && $leaveReq->leaveType->is_deductible) {
+                $balanceService = app(LeaveBalanceService::class);
+                $balanceService->creditLeave(
+                    $leaveReq->user_id,
+                    $leaveReq->leave_type_id,
+                    $leaveReq->total_days,
+                    $leaveReq,
+                    'Refund for rejected leave request via API'
+                );
+            }
+
+            DB::commit();
+
+            if ($leaveReq->user && $leaveReq->user->email && ($leaveReq->user->employee && $leaveReq->user->employee->status === 'active')) {
+                try {
+                    Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
+                        'leave_request_id' => $leaveReq->id,
+                        'user_id' => $leaveReq->user->id,
+                        'status' => 'rejected',
+                        'reason' => $request->reason
+                    ]));
+                } catch (\Exception $e) {
+                    \Log::error("Failed to send API leave rejection email: " . $e->getMessage());
+                }
+            }
+
+            return response()->json(['success' => true, 'message' => 'Leave request rejected successfully.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Failed to reject leave.'], 500);
+        }
+    }
+
+    /**
+     * Get detailed annual leave history and current year balance breakdown for an employee
+     */
+    public function userHistory($userId): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$user) {
+            \Log::warning("API History Trace: User unauthorized.");
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        \Log::info("API History Trace Request", [
+            'auth_user_id' => $user->id,
+            'auth_user_role' => $user->role_id,
+            'target_user_id' => $userId
+        ]);
+
+        // Security check: ensure user is admin OR the manager of the target user
+        if ($user->role_id != 1) {
+            $actualUser = \App\Models\User::find($user->id);
+            $subordinateIds = $actualUser ? $actualUser->subordinates()->pluck('users.id')->toArray() : [];
+            
+            \Log::info("API History Subordinate Scan", [
+                'subordinate_count' => count($subordinateIds),
+                'subordinate_ids' => $subordinateIds
+            ]);
+
+            if (!in_array($userId, $subordinateIds) && $user->id != $userId) {
+                \Log::warning("API History Access Blocked: Reporting mismatch.", [
+                    'auth' => $user->id,
+                    'target' => $userId
+                ]);
+                return response()->json(['success' => false, 'message' => 'Forbidden. Employee reporting conflict.'], 403);
+            }
+        }
+
+        try {
+            $year = Carbon::now()->year;
+            $leaves = LeaveRequest::with(['leaveType'])
+                ->where('user_id', $userId)
+                ->whereYear('start_date', $year)
+                ->orderBy('start_date', 'desc')
+                ->get();
+
+            $targetUser = \App\Models\User::find($userId);
+            $empTypeId = $targetUser->employee->employment_type_id ?? null;
+
+            $balances = [];
+            if (!empty($empTypeId) && Schema::hasTable('employment_type_leave_rules')) {
+                $rules = \App\Models\EmploymentTypeLeaveRule::with('leaveType')
+                    ->where('employment_type_id', $empTypeId)
+                    ->get();
+
+                $balanceService = app(LeaveBalanceService::class);
+
+                foreach ($rules as $rule) {
+                    if (!$rule->leaveType) continue;
+                    $type = $rule->leaveType;
+                    
+                    $totalAllowed = (float) $rule->value;
+                    $pending = (float) \App\Models\LeaveRequest::where('user_id', $userId)
+                        ->where('leave_type_id', $type->id)
+                        ->where('status', 'pending')
+                        ->sum('total_days');
+
+                    $consumed = (float) \App\Models\LeaveRequest::where('user_id', $userId)
+                        ->where('leave_type_id', $type->id)
+                        ->where('status', 'approved')
+                        ->sum('total_days');
+
+                    if ($type->quota_type === 'monthly') {
+                        $takenThisMonth = \App\Models\LeaveRequest::where('user_id', $userId)
+                            ->where('leave_type_id', $type->id)
+                            ->whereIn('status', ['pending', 'approved'])
+                            ->whereYear('start_date', now()->year)
+                            ->whereMonth('start_date', now()->month)
+                            ->count();
+                        $remaining = max(0, $totalAllowed - $takenThisMonth);
+                    } else {
+                        $remaining = (float) $balanceService->getBalance($userId, $type->id);
+                    }
+
+                    $balances[] = [
+                        'leave_type_name' => $type->name,
+                        'allowed' => $totalAllowed,
+                        'consumed' => $consumed,
+                        'pending' => $pending,
+                        'remaining' => $remaining
+                    ];
+                }
+            }
+
+            return response()->json([
+                'success' => true, 
+                'data' => $leaves,
+                'balances' => $balances
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to fetch trail: ' . $e->getMessage()], 500);
+        }
+    }
 }

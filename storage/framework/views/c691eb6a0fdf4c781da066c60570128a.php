@@ -300,7 +300,8 @@ function loadApprovals() {
     });
 }
 
-function showReason(reasonStr) {
+function showReason(element) {
+    const reasonStr = $(element).attr('data-reason');
     $('#fullReasonText').text(reasonStr);
     const modal = new bootstrap.Modal(document.getElementById('reasonModal'));
     modal.show();
@@ -350,7 +351,7 @@ function renderTable() {
             if (leave.reason) {
                 const escapedReason = escapeHtml(leave.reason);
                 if (leave.reason.length > 6) {
-                    reasonHtml = `<span class="truncate-reason" onclick="showReason('${escapedReason.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">${escapeHtml(truncateString(leave.reason, 6))}</span>`;
+                    reasonHtml = `<span class="truncate-reason" data-reason="${escapedReason}" onclick="showReason(this)">${escapeHtml(truncateString(leave.reason, 6))}</span>`;
                 } else {
                     reasonHtml = escapedReason;
                 }
@@ -365,7 +366,7 @@ function renderTable() {
                 <td><span class="badge-status badge-${badge}">${(leave.status || 'unknown').toUpperCase()}</span></td>
                 <td>${reasonHtml}</td>
                 <td class="text-center">
-                    <button class="btn-action" style="color: #434AFA;" title="User History" onclick="viewUserHistory(${leave.user_id}, '${escapeHtml(leave.user ? leave.user.name : '')}')"><i class="bi bi-clock-history"></i></button>
+                    <button class="btn-action" style="color: #434AFA;" title="User History" data-user-name="${escapeHtml(leave.user ? leave.user.name : '')}" onclick="viewUserHistory(this, ${leave.user_id})"><i class="bi bi-clock-history"></i></button>
                     ${leave.status === 'pending' ? `
                     <button class="btn-action text-success" title="Approve" onclick="performAction(${leave.id}, 'approve')"><i class="bi bi-check-lg"></i></button>
                     <button class="btn-action text-danger" title="Reject" onclick="performAction(${leave.id}, 'reject')"><i class="bi bi-x-lg"></i></button>
@@ -457,7 +458,8 @@ function renderPagination(total) {
 
 function changePage(p) { currentPage = p; renderTable(); }
 
-function viewUserHistory(userId, userName) {
+function viewUserHistory(element, userId) {
+    const userName = $(element).attr('data-user-name');
     if (!userId) return;
     $('#historyUserName').text(userName);
     $('#quotaTilesContainer').html('<div class="col-12 text-center py-3 text-muted"><i class="bi bi-arrow-repeat spin"></i> Loading quotas...</div>');
