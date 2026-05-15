@@ -1114,7 +1114,7 @@
         
         <div class="bg-light rounded-3 p-3 border border-light">
             <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-file-text me-2"></i>Description</h6>
-            <p id="view_task_description" class="mb-0 text-secondary" style="white-space: pre-wrap; font-size: 0.9rem; line-height: 1.6;"></p>
+            <p id="view_task_description" class="mb-0 text-secondary" style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; font-size: 0.9rem; line-height: 1.6;"></p>
         </div>
 
         <!-- Images Section -->
@@ -1962,8 +1962,11 @@ $(document).ready(function() {
             ? `<button class="btn btn-sm btn-secondary action-btn" onclick="toggleDone(${task.id})" title="Mark as Pending"><i class="bi bi-x-circle"></i></button>`
             : `<button class="btn btn-sm btn-success action-btn" onclick="toggleDone(${task.id})" title="Mark as Done"><i class="bi bi-check-circle"></i></button>`;
           
+          const isChecked = selectedTaskIds.has(task.id) ? 'checked' : '';
+
           html += `
             <tr class="${rowClass}">
+              <td><input type="checkbox" class="task-checkbox form-check-input" value="${task.id}" ${isChecked}></td>
               <td>
                 <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-dark text-decoration-none" title="${assignedTo}">
                   ${assignedTo.length > 7 ? assignedTo.substring(0, 7) + '...' : assignedTo}

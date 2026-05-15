@@ -309,7 +309,10 @@
         <div class="hcards">
             @if($isAttendance)
             <div class="card">
-                <!-- <div class="chead"><span class="ctitle">Upcoming Holidays</span><span class="va" onclick="location.href='{{ route('holidays.index') }}'">View all</span></div> -->
+                <div class="chead">
+                    <span class="ctitle">Upcoming Holidays</span>
+                    <!-- <span class="va" onclick="location.href='{{ route('holidays.index') }}'">View all</span> -->
+                </div>
                 <div id="holidays-list" style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading holidays...</div>
                 </div>

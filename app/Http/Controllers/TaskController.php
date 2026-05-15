@@ -1014,6 +1014,14 @@ class TaskController extends Controller
                 });
             }
 
+            if ($request->filled('customer_id')) {
+                $query->where('customer_id', $request->input('customer_id'));
+            }
+
+            if ($request->filled('creator_id')) {
+                $query->where('created_by', $request->input('creator_id'));
+            }
+
             if ($request->filled('status')) {
                 $status = $request->input('status');
                 if ($status === 'done') {

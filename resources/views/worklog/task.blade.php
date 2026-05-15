@@ -1962,8 +1962,11 @@ $(document).ready(function() {
             ? `<button class="btn btn-sm btn-secondary action-btn" onclick="toggleDone(${task.id})" title="Mark as Pending"><i class="bi bi-x-circle"></i></button>`
             : `<button class="btn btn-sm btn-success action-btn" onclick="toggleDone(${task.id})" title="Mark as Done"><i class="bi bi-check-circle"></i></button>`;
           
+          const isChecked = selectedTaskIds.has(task.id) ? 'checked' : '';
+
           html += `
             <tr class="${rowClass}">
+              <td><input type="checkbox" class="task-checkbox form-check-input" value="${task.id}" ${isChecked}></td>
               <td>
                 <a href="javascript:void(0)" onclick="viewTaskDetails(${task.id})" class="text-dark text-decoration-none" title="${assignedTo}">
                   ${assignedTo.length > 7 ? assignedTo.substring(0, 7) + '...' : assignedTo}
