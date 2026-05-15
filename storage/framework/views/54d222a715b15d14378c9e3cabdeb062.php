@@ -187,6 +187,8 @@
                         <tr>
                             <th>Date</th>
                             <th>Status</th>
+                            <th>First In</th>
+                            <th>Last Out</th>
                             <th>Office Hours</th>
                             <th>Field Hours</th>
                             <th>Total Hours</th>
@@ -194,7 +196,7 @@
                         </tr>
                     </thead>
                     <tbody id="attendanceTableBody">
-                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading...</td></tr>
+                        <tr><td colspan="8" class="text-center py-4 text-muted">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -238,7 +240,7 @@ function loadAttendanceHistory() {
     const tbody = document.getElementById('attendanceTableBody');
     const month = document.getElementById('monthFilter').value;
     
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</td></tr>';
     
     $.ajax({
         url: '/attendance/history/data',
@@ -248,11 +250,11 @@ function loadAttendanceHistory() {
             if (response && response.attendances) {
                 displayAttendanceData(response.attendances, response.summary);
             } else {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Data format error</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Data format error</td></tr>';
             }
         },
         error: function(xhr) {
-             tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load attendance history</td></tr>';
+             tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Failed to load attendance history</td></tr>';
         }
     });
 }
@@ -262,7 +264,7 @@ function displayAttendanceData(attendances, summary) {
     const tbody = document.getElementById('attendanceTableBody');
     
     if (!attendances || attendances.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No attendance records found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No attendance records found</td></tr>';
         updateSummaryStats([], summary);
         return;
     }
@@ -320,6 +322,8 @@ function displayAttendanceData(attendances, summary) {
         html += `<tr class="${rowClass}">
             <td class="fw-bold">${dateStr}</td>
             <td>${statusBadge}</td>
+            <td>${attendance.first_in || '-'}</td>
+            <td>${attendance.last_out || '-'}</td>
             <td>${officeHours > 0 ? formatHoursMinutes(officeHours) : '-'}</td>
             <td>${fieldHours > 0 ? formatHoursMinutes(fieldHours) : '-'}</td>
             <td class="fw-bold text-dark">${totalHours > 0 ? formatHoursMinutes(totalHours) : '-'}</td>

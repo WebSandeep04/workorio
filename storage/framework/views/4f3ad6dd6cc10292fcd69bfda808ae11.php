@@ -927,7 +927,8 @@ function loadAttendanceStats() {
             const lateTotal = parseInt(response.late_allowance || 0);
             const lateRemaining = Math.max(0, lateTotal - lateUsed);
             
-            document.getElementById('lateAllowanceDisplay').textContent = `${lateUsed}/${lateTotal}`;
+            const displayUsed = Math.min(lateUsed, lateTotal);
+            document.getElementById('lateAllowanceDisplay').textContent = `${displayUsed}/${lateTotal}`;
             document.getElementById('lateAllowanceRemaining').textContent = `Remaining: ${lateRemaining} min`;
             
             // Static color format as requested

@@ -516,6 +516,8 @@ class AttendanceReportService
                 'field_hours' => 0,
                 'break_time' => 0,
                 'cycles' => ['office' => 0, 'field' => 0, 'break' => 0],
+                'first_in' => '-',
+                'last_out' => '-',
                 'movements' => []
             ];
             
@@ -528,6 +530,16 @@ class AttendanceReportService
                 $dayData['cycles'] = $this->calculateDayCycles($attendance->movements);
                 $dayData['late_minutes'] = (int) ($attendance->late_minutes ?? 0);
                 $dayData['is_wfh'] = $attendance->is_wfh;
+                
+                $firstInMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'in')->first();
+                if ($firstInMov) {
+                    $dayData['first_in'] = Carbon::parse($firstInMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
+                }
+                
+                $lastOutMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->last();
+                if ($lastOutMov) {
+                    $dayData['last_out'] = Carbon::parse($lastOutMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
+                }
                 
                 $dayData['movements'] = $attendance->movements->map(function($movement) {
                     return [
