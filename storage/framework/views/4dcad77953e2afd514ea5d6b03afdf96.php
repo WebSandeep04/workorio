@@ -744,7 +744,7 @@
         
         <div class="bg-light rounded-3 p-3 border border-light">
             <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-file-text me-2"></i>Description</h6>
-            <p id="view_task_description" class="mb-0 text-secondary" style="white-space: pre-wrap; font-size: 0.9rem; line-height: 1.6;"></p>
+            <p id="view_task_description" class="mb-0 text-secondary" style="white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; font-size: 0.9rem; line-height: 1.6;"></p>
         </div>
 
         <!-- Images Section -->
@@ -1261,7 +1261,7 @@ function updateExportUrl() {
     // This is no longer needed as handleExport handles it, but we keep it empty to avoid errors from other calls
 }
 
-function handleExport() {
+window.handleExport = function() {
     const selectedIds = Array.from(selectedTaskIds);
     
     const baseUrl = "<?php echo e(route('task.export')); ?>";

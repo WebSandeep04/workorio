@@ -553,17 +553,19 @@ public function calendarSummary(Request $request)
             return response()->json([]);
         }
 
-        $query = DB::table('sales_lead_sources as sls')
-            ->leftJoin('sales_records as sr', 'sls.id', '=', 'sr.lead_source_id');
+        $userId = $this->getCurrentUserId();
+        $isTeam = $request->get('team') == 1;
+        $subordinateIds = $isTeam ? $this->getSubordinateIds($userId) : [];
 
-        if ($request->get('team') == 1) {
-            $userId = $this->getCurrentUserId();
-            $subordinateIds = $this->getSubordinateIds($userId);
-            $query->whereIn('sr.user_id', $subordinateIds);
-        } else {
-            $userId = $this->getCurrentUserId();
-            $query->where('sr.user_id', $userId);
-        }
+        $query = DB::table('sales_lead_sources as sls')
+            ->leftJoin('sales_records as sr', function ($join) use ($isTeam, $userId, $subordinateIds) {
+                $join->on('sls.id', '=', 'sr.lead_source_id');
+                if ($isTeam) {
+                    $join->whereIn('sr.user_id', $subordinateIds);
+                } else {
+                    $join->where('sr.user_id', $userId);
+                }
+            });
 
         $data = $query->select('sls.source_name as label', DB::raw('COUNT(sr.id) as value'))
             ->groupBy('sls.source_name')

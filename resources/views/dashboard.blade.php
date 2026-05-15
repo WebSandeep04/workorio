@@ -45,7 +45,7 @@
         </div>
         <div style="font-size:11.5px;color:#6b7280;text-align:right">
             <div style="font-weight:600;color:#111827">{{ date('l, d M Y') }}</div>
-            <div id="clk-display">Workorio Pro</div>
+            <div id="clk-display">Workorio</div>
         </div>
     </div>
 
@@ -98,7 +98,7 @@
             <div class="card" style="border: 1px solid #e5e7eb; border-radius: 16px; padding: 20px;">
                 <div class="chead" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
                     <span class="ctitle" style="font-size: 15px; font-weight: 700; color: #1e293b;">Team Attendance Today</span>
-                    <span class="va" onclick="location.href='{{ route('attendance.history') }}'" style="color: #2563eb; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none;">view all</span>
+                    <span class="va" onclick="location.href='{{ ($currentUser && $currentUser->role_id == 1) ? route('attendance.report') : route('attendance.history') }}'" style="color: #2563eb; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none;">View all</span>
                 </div>
                 <div class="att-grid" style="display: grid; grid-template-columns: 2.3fr 1fr; gap: 16px;">
                     <!-- Present Block -->
@@ -168,7 +168,7 @@
         <div class="hcards">
             @if($isTasks)
             <div class="card">
-                <div class="chead"><span class="ctitle">Task</span><span class="va">view all</span></div>
+                <div class="chead"><span class="ctitle">Task</span><span class="va">View all</span></div>
                 <div class="subtabs">
                     <button class="subtab act" onclick="swTaskTab('byMe',this)">Assigned by You</button>
                     <button class="subtab" onclick="swTaskTab('toMe',this)">Assigned to You</button>
@@ -195,7 +195,7 @@
         <div class="hcards">
             @if($isSubs)
             <div class="card">
-                <div class="chead"><span class="ctitle">Due Subscriptions</span><span class="va" onclick="location.href='{{ route('subscriptions.index') }}'">view all</span></div>
+                <div class="chead"><span class="ctitle">Due Subscriptions</span><span class="va" onclick="location.href='{{ route('subscriptions.index') }}'">View all</span></div>
                 <div id="due-subscriptions-list">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">No active subscriptions</div>
                 </div>
@@ -228,7 +228,7 @@
                 <div>
                     <div class="chead">
                         <span class="ctitle">Upcoming Leaves</span>
-                        <span class="va" onclick="location.href='{{ route('leave.index') }}'">view all</span>
+                        <!-- <span class="va" onclick="location.href='{{ route('leave.index') }}'">View all</span> -->
                     </div>
                     <div id="upcoming-leaves-list" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
                         <div style="text-align:center;padding:10px;color:#9ca3af;font-size:12px">No upcoming leaves</div>
@@ -241,7 +241,6 @@
         <div class="hcards">
             @if($isCalendar)
             <div class="card">
-                <div class="chead"><span class="ctitle">SMM Calendar</span><span class="va">view all</span></div>
                 <div class="cal-hdr">
                     <button class="cal-nav" onclick="prevM()">‹</button>
                     <span class="cal-month-lbl" id="cal-ml">April 2025</span>
@@ -256,7 +255,7 @@
 
             @if($isApproval && $hasSubordinates)
             <div class="card">
-                <div class="chead"><span class="ctitle">Pending Approvals</span><span class="va">view all</span></div>
+                <div class="chead"><span class="ctitle">Pending Approvals</span><span class="va" onclick="viewAllApprovals()" style="cursor:pointer">View all</span></div>
                 <div class="subtabs" style="overflow-x:auto;white-space:nowrap;display:block">
                     @if($isWorklog)
                     <button class="subtab act" onclick="swApprovalTab('ts',this)" style="display:inline-block">Timesheet<span class="notif-badge" id="ap-ts-badge">0</span></button>
@@ -310,7 +309,7 @@
         <div class="hcards">
             @if($isAttendance)
             <div class="card">
-                <div class="chead"><span class="ctitle">Upcoming Holidays</span><span class="va" onclick="location.href='{{ route('holidays.index') }}'">view all</span></div>
+                <!-- <div class="chead"><span class="ctitle">Upcoming Holidays</span><span class="va" onclick="location.href='{{ route('holidays.index') }}'">View all</span></div> -->
                 <div id="holidays-list" style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading holidays...</div>
                 </div>
@@ -602,6 +601,23 @@ function swApprovalTab(tab,btn){
   document.getElementById('ap-'+tab).classList.add('act');
 }
 
+function viewAllApprovals() {
+    const activeCnt = document.querySelector('.ap-cnt.act');
+    if (!activeCnt) return;
+    const id = activeCnt.id;
+    
+    let targetRoute = '#';
+    if (id === 'ap-ts') targetRoute = '{{ route("worklog-approvals") }}';
+    else if (id === 'ap-at') targetRoute = '{{ route("attendance.approval") }}';
+    else if (id === 'ap-tk') targetRoute = '{{ route("all-tasks.index") }}';
+    else if (id === 'ap-lv') targetRoute = '{{ route("leave.approvals") }}';
+    else if (id === 'ap-pc') targetRoute = '{{ route("approvals.petty") }}';
+    
+    if (targetRoute && targetRoute !== '#') {
+        location.href = targetRoute;
+    }
+}
+
 function updatePC(){
     var period = document.getElementById('pc-period').value;
     $.ajax({
@@ -645,6 +661,12 @@ function loadLeadSourceDonut(canvasId, totalId) {
             const el = document.getElementById(totalId);
             if(!response || !response.length) {
                 if (el) el.textContent = '0';
+                const legEl = document.getElementById(canvasId === 'dc1' ? 'lead-source-leg' : 'lead-source-leg-sales');
+                if(legEl) legEl.innerHTML = '<li style="text-align:center;color:#9ca3af;font-size:12px;padding:10px;">No data available</li>';
+                if (charts[canvasId]) {
+                    charts[canvasId].destroy();
+                    delete charts[canvasId];
+                }
                 return;
             }
             const labels = response.map(r => r.label);
@@ -667,7 +689,7 @@ function loadLeadSourceDonut(canvasId, totalId) {
     });
 }
 
-function tick(){var n=new Date(),t=n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}),ce=document.getElementById('clk-display');if(ce)ce.textContent='Workorio Pro • '+t;}
+function tick(){var n=new Date(),t=n.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}),ce=document.getElementById('clk-display');if(ce)ce.textContent='Workorio • '+t;}
 
 function fetchMetric(url, elementId, key) {
     var qp = window.isTeamView ? (url.indexOf('?') !== -1 ? '&team=1' : '?team=1') : '';
@@ -826,7 +848,6 @@ function loadDashboardMetrics() {
         fetchMetric('/todaycompleted', 's_conversions', 'todaycompleted');
 
         loadLeadSourceDonut('dc1', 'total-leads-donut');
-        loadLeadSourceDonut('dc2', 'total-leads-donut-sales');
     }
 
     if (f.isCalling) {

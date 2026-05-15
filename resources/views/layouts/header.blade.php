@@ -25,6 +25,15 @@
             $headerEmployee = \App\Models\Employee::where('email', $headerUser->email)->first();
         }
     }
+
+    $displayDesignation = 'No Defined';
+    if ($headerEmployee) {
+        if ($headerEmployee->designationRelation) {
+            $displayDesignation = $headerEmployee->designationRelation->title;
+        } elseif ($headerEmployee->designation) {
+            $displayDesignation = $headerEmployee->designation;
+        }
+    }
 @endphp
 <div class="app-header d-none d-md-flex align-items-center justify-content-between">
     <div class="app-header-text">
@@ -69,7 +78,7 @@
                 </div>
                 <div class="profile-meta">
                     <span class="profile-name">{{ $headerName }}</span>
-                    <small class="profile-role">{{ $headerRole }}</small>
+                    <small class="profile-role">{{ $displayDesignation }}</small>
                 </div>
                 <!-- <i class="bi bi-chevron-down"></i> -->
             </button>
