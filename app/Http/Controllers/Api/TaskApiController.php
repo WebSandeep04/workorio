@@ -129,6 +129,8 @@ class TaskApiController extends Controller
     {
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
+            'customer_project_id' => 'nullable|exists:customer_projects,id',
+            'estimated_efforts' => 'nullable|string|max:255',
             'user_ids' => 'required|array|min:1',
             'user_ids.*' => 'exists:users,id',
             'task_name' => 'required|string|max:255',
@@ -161,6 +163,8 @@ class TaskApiController extends Controller
         try {
             $task = Task::create([
                 'customer_id' => $request->customer_id,
+                'customer_project_id' => $request->customer_project_id,
+                'estimated_efforts' => $request->estimated_efforts,
                 'user_id' => $primaryAssigneeId,
                 'task_name' => $request->task_name,
                 'task' => $request->task,
@@ -212,13 +216,15 @@ class TaskApiController extends Controller
     public function update(Request $request, $id): JsonResponse
     {
          $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'user_ids' => 'required|array|min:1',
-            'task_name' => 'required|string|max:255',
-            'task' => 'required|string',
-            'task_status_id' => 'nullable|exists:task_statuses,id',
-            'task_priority_id' => 'nullable|exists:task_priorities,id',
-            'due_date' => 'nullable|date',
+             'customer_id' => 'required|exists:customers,id',
+             'customer_project_id' => 'nullable|exists:customer_projects,id',
+             'estimated_efforts' => 'nullable|string|max:255',
+             'user_ids' => 'required|array|min:1',
+             'task_name' => 'required|string|max:255',
+             'task' => 'required|string',
+             'task_status_id' => 'nullable|exists:task_statuses,id',
+             'task_priority_id' => 'nullable|exists:task_priorities,id',
+             'due_date' => 'nullable|date',
         ]);
 
         $task = Task::findOrFail($id);
@@ -234,6 +240,8 @@ class TaskApiController extends Controller
 
         $task->update([
             'customer_id' => $request->customer_id,
+            'customer_project_id' => $request->customer_project_id ?? $task->customer_project_id,
+            'estimated_efforts' => $request->estimated_efforts ?? $task->estimated_efforts,
             'user_id' => $primaryAssigneeId,
             'task_name' => $request->task_name,
             'task' => $request->task,

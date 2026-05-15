@@ -233,6 +233,17 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/petty-cash/{id}/toggle-approval', [\App\Http\Controllers\Api\PettyCashApiController::class, 'toggleApproval']);
     Route::post('/petty-cash/approve-bulk', [\App\Http\Controllers\Api\PettyCashApiController::class, 'approveBulk']);
     Route::delete('/petty-cash/{id}', [\App\Http\Controllers\Api\PettyCashApiController::class, 'destroy']);
+
+    // Mobile Project Tracking APIs
+    Route::get('/projects/fetch', [\App\Http\Controllers\Api\ProjectApiController::class, 'fetch']);
+    Route::get('/projects/options', [\App\Http\Controllers\Api\ProjectApiController::class, 'getOptions']);
+    Route::get('/project-tracking/{id}', [\App\Http\Controllers\Api\ProjectApiController::class, 'show']);
+    Route::post('/projects/{id}/toggle-favourite', [\App\Http\Controllers\Api\ProjectApiController::class, 'toggleFavourite']);
+    Route::put('/projects/{id}/update-status', [\App\Http\Controllers\Api\ProjectApiController::class, 'updateStatus']);
+    Route::patch('/projects/{id}/progress', [\App\Http\Controllers\Api\ProjectApiController::class, 'updateProgress']);
+    Route::get('/projects/{id}/worklogs', [\App\Http\Controllers\Api\ProjectApiController::class, 'fetchWorklogs']);
+    Route::post('/projects/remarks', [\App\Http\Controllers\Api\ProjectApiController::class, 'storeRemark']);
+    Route::get('/task/project/{projectId}', [\App\Http\Controllers\Api\ProjectApiController::class, 'fetchTasks']);
 });
 
 
