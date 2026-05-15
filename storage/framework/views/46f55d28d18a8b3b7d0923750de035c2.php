@@ -222,8 +222,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Reason</label>
-                        <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="Optional reason..."></textarea>
+                        <label class="form-label small fw-bold">Reason <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="Provide reason for leave..." required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0">

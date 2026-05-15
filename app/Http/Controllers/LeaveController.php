@@ -43,7 +43,7 @@ class LeaveController extends Controller
             'sl_period' => 'nullable|in:morning,evening',
             'is_half_day' => 'nullable|boolean',
             'half_day_period' => 'nullable|in:pre_lunch,post_lunch',
-            'reason' => 'nullable|string|max:1000'
+            'reason' => 'required|string|max:1000'
         ]);
 
         if ($validator->fails()) {
@@ -262,7 +262,7 @@ class LeaveController extends Controller
         $validator = Validator::make($request->all(), [
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'nullable|string|max:1000'
+            'reason' => 'required|string|max:1000'
         ]);
 
         if ($validator->fails()) {
