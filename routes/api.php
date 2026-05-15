@@ -42,6 +42,12 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/attendance/report/monthly', [AttendanceReportApiController::class, 'getMonthlySummaryReport']);
     Route::get('/attendance/report/date-wise', [AttendanceReportApiController::class, 'getDateWiseReport']);
 
+    // Face Kiosk & AI Edge-Computing Routes
+    Route::get('/kiosk/employees/embeddings', [\App\Http\Controllers\Api\KioskAttendanceController::class, 'getEmbeddings']);
+    Route::post('/kiosk/attendance/punch-in', [\App\Http\Controllers\Api\KioskAttendanceController::class, 'punchInByKiosk']);
+    Route::post('/kiosk/employee/{id}/enroll-face', [\App\Http\Controllers\Api\KioskAttendanceController::class, 'enrollFace']);
+
+
     // Master Employees CRUD
     Route::get('/employees/birthdays', [\App\Http\Controllers\Api\EmployeeController::class, 'getActiveEmployeesBirthdayList']);
     Route::get('/employees/form-options', [\App\Http\Controllers\Api\EmployeeController::class, 'getFormOptions']);

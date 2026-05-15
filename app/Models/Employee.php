@@ -73,6 +73,8 @@ class Employee extends Model
         'is_place_allowed',
         'is_tracking',
         'working_type',
+        'face_embeddings',
+        'is_face_enrolled',
     ];
 
     protected $casts = [
