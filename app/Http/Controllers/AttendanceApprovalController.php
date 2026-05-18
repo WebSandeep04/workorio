@@ -28,7 +28,10 @@ class AttendanceApprovalController extends Controller
 
     public function index()
     {
-        $users = User::orderBy('name')->get();
+        $users = User::where('role_id', '!=', 1)
+            ->where('is_attendance', 1)
+            ->orderBy('name')
+            ->get();
         return view('attendance.approval', compact('users'));
     }
 
@@ -36,11 +39,12 @@ class AttendanceApprovalController extends Controller
     {
         $date = $request->filled('date') ? $request->date : Carbon::today('Asia/Kolkata')->toDateString();
         
-        // 1. Fetch Active Employees who have a login account (Excluding Admins with Role ID 1)
+        // 1. Fetch Active Employees who have a login account (Excluding Admins with Role ID 1 and whose is_attendance is enabled)
         $empQuery = \App\Models\Employee::with(['user', 'shiftRelation'])
             ->where('status', 'active')
             ->whereHas('user', function($q) {
-                $q->where('role_id', '!=', 1);
+                $q->where('role_id', '!=', 1)
+                  ->where('is_attendance', 1);
             });
 
         if ($request->search) {

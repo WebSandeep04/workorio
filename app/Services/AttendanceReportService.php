@@ -372,7 +372,7 @@ class AttendanceReportService
                         $punchTime = Carbon::parse($firstPunch->time)->setTimezone('Asia/Kolkata');
                         $shiftDate = Carbon::parse($attendance->date)->format('Y-m-d');
                         $shiftTime = Carbon::parse($shift->start_time)->format('H:i:s');
-                        $shiftStart = Carbon::parse($shiftDate . ' ' . $shiftTime, 'UTC')->setTimezone('Asia/Kolkata');
+                        $shiftStart = Carbon::parse($shiftDate . ' ' . $shiftTime, 'Asia/Kolkata');
                         $lateThreshold = $shiftStart->copy()->addMinutes($shift->late_min ?? 0);
                         
                         $isLate = false;
