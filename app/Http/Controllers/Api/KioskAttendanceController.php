@@ -22,13 +22,13 @@ class KioskAttendanceController extends Controller
             $employees = Employee::with('user')
                 ->where('is_face_enrolled', 1)
                 ->whereNotNull('face_embeddings')
-                ->get(['id', 'user_id', 'first_name', 'last_name', 'face_embeddings']);
+                ->get(['id', 'user_id', 'name', 'face_embeddings']);
 
             $formattedData = $employees->map(function ($emp) {
                 return [
                     'employee_id' => $emp->id,
                     'user_id' => $emp->user_id,
-                    'name' => trim($emp->first_name . ' ' . $emp->last_name),
+                    'name' => trim($emp->name),
                     'embeddings' => json_decode($emp->face_embeddings) // Decodes vector array
                 ];
             });
@@ -144,7 +144,7 @@ class KioskAttendanceController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Face profile enrolled successfully for ' . trim($employee->first_name . ' ' . $employee->last_name)
+                'message' => 'Face profile enrolled successfully for ' . trim($employee->name)
             ]);
         } catch (\Exception $e) {
             Log::error('Error enrolling employee face vector', [
