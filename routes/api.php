@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\KioskAuthController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\TaskApiController;
 use App\Http\Controllers\Api\SubscriptionApiController;
@@ -15,6 +16,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/kiosk/login', [KioskAuthController::class, 'kioskLogin']);
 
 // Attendance Routes - Requires Tenant Database Connection & Authentication
 Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
