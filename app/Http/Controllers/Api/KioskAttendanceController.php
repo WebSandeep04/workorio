@@ -22,12 +22,12 @@ class KioskAttendanceController extends Controller
             $employees = Employee::with('user')
                 ->where('is_face_enrolled', 1)
                 ->whereNotNull('face_embeddings')
-                ->get(['id', 'user_id', 'name', 'face_embeddings']);
+                ->get(['id', 'name', 'face_embeddings']);
 
             $formattedData = $employees->map(function ($emp) {
                 return [
                     'employee_id' => $emp->id,
-                    'user_id' => $emp->user_id,
+                    'user_id' => $emp->user ? $emp->user->id : null,
                     'name' => trim($emp->name),
                     'embeddings' => json_decode($emp->face_embeddings) // Decodes vector array
                 ];

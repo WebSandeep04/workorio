@@ -5985,3 +5985,13 @@
 #63 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\DontDelete\\\\l...')
 #64 {main}
 "} 
+[2026-05-19 13:30:30] local.ERROR: Error fetching embeddings (Kiosk) {"error":"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'field list' (Connection: tenant_4, SQL: select `id`, `user_id`, `name`, `face_embeddings` from `employees` where `is_face_enrolled` = 1 and `face_embeddings` is not null)"} 
+[2026-05-19 13:35:23] local.ERROR: Error fetching embeddings (Kiosk) {"error":"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'field list' (Connection: tenant_4, SQL: select `id`, `user_id`, `name`, `face_embeddings` from `employees` where `is_face_enrolled` = 1 and `face_embeddings` is not null)"} 
+[2026-05-20 09:08:46] local.ERROR: Error fetching embeddings (Kiosk) {"error":"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'field list' (Connection: tenant_4, SQL: select `id`, `user_id`, `name`, `face_embeddings` from `employees` where `is_face_enrolled` = 1 and `face_embeddings` is not null)"} 
+[2026-05-20 09:17:08] local.ERROR: Error fetching embeddings (Kiosk) {"error":"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'field list' (Connection: tenant_4, SQL: select `id`, `user_id`, `name`, `face_embeddings` from `employees` where `is_face_enrolled` = 1 and `face_embeddings` is not null)"} 
+[2026-05-20 09:27:06] local.ERROR: Error fetching embeddings (Kiosk) {"error":"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'field list' (Connection: tenant_4, SQL: select `id`, `user_id`, `name`, `face_embeddings` from `employees` where `is_face_enrolled` = 1 and `face_embeddings` is not null)"} 
+[2026-05-20 09:42:30] local.ERROR: Error fetching embeddings (Kiosk) {"error":"SQLSTATE[42S22]: Column not found: 1054 Unknown column 'user_id' in 'field list' (Connection: tenant_4, SQL: select `id`, `user_id`, `name`, `face_embeddings` from `employees` where `is_face_enrolled` = 1 and `face_embeddings` is not null)"} 
+[2026-05-20 09:48:37] local.INFO: Kiosk attendance recorded successfully {"user_id":4,"action":"in","time":"2026-05-20 15:18:37"} 
+[2026-05-20 12:38:28] local.INFO: Kiosk attendance recorded successfully {"user_id":4,"action":"in","time":"2026-05-20 18:08:27"} 
+[2026-05-20 12:40:16] local.INFO: Kiosk attendance recorded successfully {"user_id":9,"action":"in","time":"2026-05-20 18:10:16"} 
+[2026-05-20 12:44:57] local.INFO: Kiosk attendance recorded successfully {"user_id":6,"action":"in","time":"2026-05-20 18:14:57"} 
