@@ -46,6 +46,7 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
 
     // Face Kiosk & AI Edge-Computing Routes
     Route::get('/kiosk/employees/embeddings', [\App\Http\Controllers\Api\KioskAttendanceController::class, 'getEmbeddings']);
+    Route::get('/kiosk/attendance/today-logs', [\App\Http\Controllers\Api\KioskAttendanceController::class, 'getTodayLogs']);
     Route::post('/kiosk/attendance/punch-in', [\App\Http\Controllers\Api\KioskAttendanceController::class, 'punchInByKiosk']);
     Route::post('/kiosk/employee/{id}/enroll-face', [\App\Http\Controllers\Api\KioskAttendanceController::class, 'enrollFace']);
 

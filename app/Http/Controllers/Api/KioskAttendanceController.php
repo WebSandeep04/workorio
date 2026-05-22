@@ -131,6 +131,37 @@ class KioskAttendanceController extends Controller
     /**
      * Process a kiosk punch-in for an identified user ID
      */
+    public function getTodayLogs(): JsonResponse
+    {
+        $today = Carbon::today('Asia/Kolkata');
+        
+        // Fetch all movements for today, joined with attendance and user to get names
+        $movements = Movement::with('attendance.user')
+            ->whereDate('time', $today)
+            ->whereNotNull('device_name') // Assuming we only want Kiosk punches (or remove this to show all)
+            ->orderBy('time', 'desc')
+            ->limit(50) // Limit to 50 for the live feed
+            ->get();
+            
+        $formattedLogs = $movements->map(function ($movement) {
+            $user = $movement->attendance->user ?? null;
+            return [
+                'id' => $movement->id,
+                'name' => $user ? $user->name : 'Unknown Employee',
+                'action' => $movement->movement_action,
+                'time' => Carbon::parse($movement->time)->format('h:i A'),
+                'success' => true,
+                'offline' => false,
+                'message' => 'Synced from Server'
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $formattedLogs
+        ]);
+    }
+
     public function punchInByKiosk(Request $request): JsonResponse
     {
         $request->validate([
