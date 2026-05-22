@@ -1,0 +1,34 @@
+[2026-05-22 10:01:28] local.INFO: Kiosk attendance recorded successfully {"user_id":4,"action":"in","time":"2026-05-22 15:31:27"} 
+[2026-05-22 11:55:53] local.INFO: Kiosk attendance recorded successfully {"user_id":4,"action":"in","time":"2026-05-22 17:25:52"} 
+[2026-05-22 13:21:00] local.ERROR: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'workorio.movements' doesn't exist (Connection: mysql, SQL: select * from `movements` order by `id` desc limit 1) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'workorio.movements' doesn't exist (Connection: mysql, SQL: select * from `movements` order by `id` desc limit 1) at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:824)
+[stacktrace]
+#0 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(778): Illuminate\\Database\\Connection->runQueryCallback('select * from `...', Array, Object(Closure))
+#1 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(397): Illuminate\\Database\\Connection->run('select * from `...', Array, Object(Closure))
+#2 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3188): Illuminate\\Database\\Connection->select('select * from `...', Array, true)
+#3 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3173): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3763): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3172): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(887): Illuminate\\Database\\Query\\Builder->get(Array)
+#7 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(869): Illuminate\\Database\\Eloquent\\Builder->getModels(Array)
+#8 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Concerns\\BuildsQueries.php(366): Illuminate\\Database\\Eloquent\\Builder->get(Array)
+#9 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\test_db.php(10): Illuminate\\Database\\Eloquent\\Builder->first()
+#10 {main}
+
+[previous exception] [object] (PDOException(code: 42S02): SQLSTATE[42S02]: Base table or view not found: 1146 Table 'workorio.movements' doesn't exist at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:406)
+[stacktrace]
+#0 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(406): PDO->prepare('select * from `...')
+#1 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(811): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select * from `...', Array)
+#2 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(778): Illuminate\\Database\\Connection->runQueryCallback('select * from `...', Array, Object(Closure))
+#3 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(397): Illuminate\\Database\\Connection->run('select * from `...', Array, Object(Closure))
+#4 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3188): Illuminate\\Database\\Connection->select('select * from `...', Array, true)
+#5 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3173): Illuminate\\Database\\Query\\Builder->runSelect()
+#6 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3763): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#7 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3172): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#8 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(887): Illuminate\\Database\\Query\\Builder->get(Array)
+#9 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(869): Illuminate\\Database\\Eloquent\\Builder->getModels(Array)
+#10 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Concerns\\BuildsQueries.php(366): Illuminate\\Database\\Eloquent\\Builder->get(Array)
+#11 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\test_db.php(10): Illuminate\\Database\\Eloquent\\Builder->first()
+#12 {main}
+"} 
+[2026-05-22 13:24:28] local.INFO: Kiosk Punch Cooldown Check {"last_punch_created_at":"2026-05-22T11:55:52+00:00","now":"2026-05-22T13:24:28+00:00","minutes_passed":88.61514936666667} 
+[2026-05-22 13:24:28] local.INFO: Kiosk attendance recorded successfully {"user_id":4,"action":"out","time":"2026-05-22 18:54:28"} 

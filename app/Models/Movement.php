@@ -18,6 +18,7 @@ class Movement extends Model
         'latitude',
         'mode',
         'place',
+        'device_name',
     ];
 
     protected $casts = [
