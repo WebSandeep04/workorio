@@ -953,7 +953,7 @@ public function calendarSummary(Request $request)
             $todayMD = $today->format('m-d');
             $endMD = $rangeEnd->format('m-d');
 
-            $bQuery = DB::table('employees');
+            $bQuery = DB::table('employees')->where('status', 'active');
             if ($endMD < $todayMD) {
                 $bQuery->where(function($q) use ($todayMD, $endMD) {
                     $q->whereRaw("DATE_FORMAT(date_of_birth, '%m-%d') >= ?", [$todayMD])
@@ -965,7 +965,7 @@ public function calendarSummary(Request $request)
             }
             $birthdays = $bQuery->select('name', 'date_of_birth as date', DB::raw("'birthday' as type"), 'profile_picture')->get();
 
-            $aQuery = DB::table('employees');
+            $aQuery = DB::table('employees')->where('status', 'active');
             if ($endMD < $todayMD) {
                 $aQuery->where(function($q) use ($todayMD, $endMD) {
                     $q->whereRaw("DATE_FORMAT(date_of_joining, '%m-%d') >= ?", [$todayMD])
