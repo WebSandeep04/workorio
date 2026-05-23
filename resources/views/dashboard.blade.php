@@ -1108,17 +1108,65 @@ function renderApprovals(type, list) {
             const due = item.due_date ? new Date(item.due_date).toLocaleDateString() : 'No due date';
             sub = `Assigned to: ${item.user_name || 'N/A'} • Due: ${due}`;
         }
-        let btnHtml = `<span class="va" style="color:#16a34a">Approve</span>`;
+        let btnHtml = '';
         if (type === 'tk') {
-            btnHtml = `<span class="va" style="color:#16a34a;cursor:pointer" onclick="approveTask('${item.id}')">Approve</span>`;
+            btnHtml = `<span class="va" style="color:#16a34a;cursor:pointer" onclick="approveTask('${item.id}', this)">Approve</span>`;
+        } else if (type !== 'ts') {
+            btnHtml = `<span class="va" style="color:#16a34a;cursor:pointer" onclick="approveItem('${type}', '${item.id}', this)">Approve</span>`;
         }
         html += `<div class="ti"><div style="flex:1"><div class="tnm">${title}</div><div class="tdue">${sub}</div></div>${btnHtml}</div>`;
     });
     cont.innerHTML = html;
 }
 
-function approveTask(id) {
+function approveItem(type, id, btn) {
+    if (!confirm('Are you sure you want to approve this item?')) return;
+    
+    let originalText = btn.innerHTML;
+    btn.innerHTML = 'Approving...';
+    btn.style.pointerEvents = 'none';
+    btn.style.opacity = '0.7';
+
+    let url = '';
+    let payload = {
+        _token: '{{ csrf_token() }}'
+    };
+    
+    if (type === 'lv') {
+        url = '/leave/approvals/' + id + '/approve';
+    } else if (type === 'at') {
+        url = '/attendance/approve/' + id;
+    } else if (type === 'pc') {
+        url = '/petty-cash/approve-bulk';
+        payload.ids = [id];
+    } else {
+        return;
+    }
+
+    $.ajax({
+        url: url,
+        method: 'POST',
+        data: payload,
+        success: function(res) {
+            loadDashboardMetrics();
+        },
+        error: function(err) {
+            alert(err.responseJSON?.message || 'Failed to approve item');
+            btn.innerHTML = originalText;
+            btn.style.pointerEvents = 'auto';
+            btn.style.opacity = '1';
+        }
+    });
+}
+
+function approveTask(id, btn) {
     if (!confirm('Are you sure you want to mark this task as done?')) return;
+    
+    let originalText = btn.innerHTML;
+    btn.innerHTML = 'Approving...';
+    btn.style.pointerEvents = 'none';
+    btn.style.opacity = '0.7';
+
     $.ajax({
         url: '/task/' + id + '/toggle-done',
         method: 'POST',
@@ -1130,6 +1178,9 @@ function approveTask(id) {
         },
         error: function(err) {
             alert('Failed to mark task as done');
+            btn.innerHTML = originalText;
+            btn.style.pointerEvents = 'auto';
+            btn.style.opacity = '1';
         }
     });
 }
