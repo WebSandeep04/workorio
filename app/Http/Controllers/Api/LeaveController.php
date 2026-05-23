@@ -369,6 +369,24 @@ class LeaveController extends Controller
 
             DB::commit();
 
+            // Send email to admin and managers
+            try {
+                $admins = \App\Models\User::where('role_id', 1)->whereNotNull('email')->get();
+                $managers = $user->managers()->whereNotNull('email')->get();
+                
+                $recipients = $admins->merge($managers)->unique('id');
+
+                foreach ($recipients as $recipient) {
+                    \Illuminate\Support\Facades\Mail::to($recipient->email)->send(new \App\Mail\LeaveApplicationMail([
+                        'leave_request_id' => $leaveReq->id,
+                        'applicant_id' => $user->id,
+                        'recipient_name' => $recipient->name
+                    ]));
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to send API leave application email: " . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => "Leave application for {$totalDays} days submitted. Balance deducted and pending approval.",
