@@ -133,23 +133,29 @@ class KioskAttendanceController extends Controller
      */
     public function getTodayLogs(): JsonResponse
     {
-        $today = Carbon::today('Asia/Kolkata');
+        $todayStr = Carbon::today('Asia/Kolkata')->toDateString();
         
         // Fetch all movements for today, joined with attendance and user to get names
+        // Using attendance.date to avoid timezone parsing issues with the time column
         $movements = Movement::with('attendance.user')
-            ->whereDate('time', $today)
-            ->whereNotNull('device_name') // Assuming we only want Kiosk punches (or remove this to show all)
+            ->whereHas('attendance', function($q) use ($todayStr) {
+                $q->whereDate('date', $todayStr);
+            })
             ->orderBy('time', 'desc')
             ->limit(50) // Limit to 50 for the live feed
             ->get();
             
         $formattedLogs = $movements->map(function ($movement) {
             $user = $movement->attendance->user ?? null;
+            
+            // Format time in IST since it is stored in UTC in the database
+            $timeFormatted = Carbon::parse($movement->time)->timezone('Asia/Kolkata')->format('h:i A');
+            
             return [
                 'id' => $movement->id,
                 'name' => $user ? $user->name : 'Unknown Employee',
                 'action' => $movement->movement_action,
-                'time' => Carbon::parse($movement->time)->format('h:i A'),
+                'time' => $timeFormatted,
                 'success' => true,
                 'offline' => false,
                 'message' => 'Synced from Server'
@@ -309,7 +315,7 @@ class KioskAttendanceController extends Controller
                 'attendance_id' => $attendance->id,
                 'movement_type' => 'office',
                 'movement_action' => $action,
-                'time' => Carbon::now('Asia/Kolkata'),
+                'time' => Carbon::now(), // Use UTC to maintain consistency with the rest of the application
                 'description' => "Logged via AI Kiosk (Confidence: {$request->confidence_match}%)",
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
@@ -328,7 +334,7 @@ class KioskAttendanceController extends Controller
                 'message' => "Successfully punched {$action} via Kiosk!",
                 'employee_name' => $user ? $user->name : 'Employee',
                 'action' => $action,
-                'time' => Carbon::parse($movement->time)->format('h:i A')
+                'time' => Carbon::parse($movement->time)->timezone('Asia/Kolkata')->format('h:i A')
             ]);
         } catch (\Exception $e) {
             Log::error('Error saving Kiosk Attendance', [
