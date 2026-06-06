@@ -176,7 +176,9 @@ class SendNightAttendanceMail extends Command
 
             // Who gets the email? "Send to all users including admin - filter valid emails"
             // where e.status = 'active'
-            $recipientEmails = User::where('is_attendance', 1)
+            $recipientEmails = User::where(function($q) {
+                    $q->where('is_attendance', 1)->orWhere('role_id', 1);
+                })
                 ->whereHas('employee', function ($q) {
                     $q->where('status', 'active');
                 })->whereNotNull('email')->pluck('email')->filter(function ($email) {
