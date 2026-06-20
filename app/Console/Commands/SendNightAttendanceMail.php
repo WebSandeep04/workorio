@@ -7,7 +7,9 @@ use App\Models\User;
 use App\Models\Tenant;
 use App\Models\Attendance;
 use App\Models\LeaveRequest;
+use App\Models\Holiday;
 use App\Services\TenantDatabaseService;
+use App\Services\AttendanceReportService;
 use App\Mail\NightAttendanceReport;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
@@ -104,17 +106,28 @@ class SendNightAttendanceMail extends Command
                 })->get();
                 
             $leavesList = [];
+            $leavesForService = [];
             foreach ($leaveRequests as $req) {
                 $period = new \DatePeriod(new \DateTime($req->start_date), new \DateInterval('P1D'), (new \DateTime($req->end_date))->modify('+1 day'));
                 foreach ($period as $dt) {
                     $d = $dt->format('Y-m-d');
                     if (!isset($leavesList[$req->user_id])) {
                         $leavesList[$req->user_id] = collect();
+                        $leavesForService[$req->user_id] = [];
                     }
                     $leavesList[$req->user_id]->push((object)['date' => \Carbon\Carbon::parse($d)]);
+
+                    $type = 'L';
+                    if ($req->is_half_day) $type = 'HD';
+                    if ($req->is_sl) $type = 'SL';
+                    if ($req->type === 'restricted_holiday') $type = 'RH';
+                    $leavesForService[$req->user_id][$d] = $type;
                 }
             }
             $leaves = collect($leavesList);
+            
+            $holidays = Holiday::whereBetween('holiday_date', [$startOfMonthStr, $todayStr])->pluck('holiday_date')->toArray();
+            $reportService = new AttendanceReportService();
 
             foreach ($users as $user) {
                 $userAtts = $attendances->get($user->id, collect())->keyBy(function($item) {
@@ -124,15 +137,47 @@ class SendNightAttendanceMail extends Command
                     return Carbon::parse($item->date)->format('Y-m-d');
                 });
 
+                $shift = $user->employee->shiftRelation ?? null;
+
+                $getRealStatus = function($date, $hours = 0) use ($shift, $holidays, $leavesForService, $user, $reportService) {
+                    $dayName = Carbon::parse($date)->format('l');
+                    $isWeeklyOff = false;
+                    $isHalfDayWorking = false;
+                    if ($shift) {
+                        if ($shift->week_offs && is_array($shift->week_offs)) {
+                            $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
+                        }
+                        if ($shift->half_days && is_array($shift->half_days)) {
+                            $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
+                        }
+                    }
+                    $isHoliday = in_array($date, $holidays);
+                    $leaveType = $leavesForService[$user->id][$date] ?? null;
+                    $hasHalfDayLeave = ($leaveType === 'HD');
+                    $shortLeaveHr = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
+                    
+                    [$fullDayHr, $halfDayHr] = $reportService->getThresholds($shift);
+                    if ($isHalfDayWorking) {
+                        $fullDayHr = $halfDayHr;
+                        $halfDayHr = $halfDayHr / 2;
+                    }
+                    
+                    $statusInfo = $reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType, $hasHalfDayLeave, $shortLeaveHr);
+                    return $statusInfo['label'] ?? 'absent';
+                };
+
                 // 1. Today's Summary
                 $todayAtt = $userAtts->get($todayStr);
                 if ($todayAtt) {
-                    $reportData['today'][] = $this->formatAttendanceDay($user, $todayAtt, $todayStr);
+                    $dayData = $this->formatAttendanceDay($user, $todayAtt, $todayStr);
+                    $hours = $reportService->calculateTotalHours($todayAtt->movements, $shift, $todayStr);
+                    $dayData['status'] = $getRealStatus($todayStr, $hours);
+                    $reportData['today'][] = $dayData;
                 } else {
                     $isOnLeave = $userLeaves->has($todayStr);
                     $reportData['today'][] = [
                         'user_name' => $user->name,
-                        'status' => $isOnLeave ? 'leave' : 'absent',
+                        'status' => $isOnLeave ? $getRealStatus($todayStr, 0) : 'absent',
                         'punch_in' => '-',
                         'punch_out' => '-',
                         'mode' => '-',
@@ -157,11 +202,19 @@ class SendNightAttendanceMail extends Command
                     if ($isLeave) {
                         $monthlyRecords[] = [
                             'date' => Carbon::parse($date)->format('M j, Y'),
-                            'status' => 'leave',
+                            'status' => $getRealStatus($date, 0),
+                            'punch_in' => '-',
+                            'punch_out' => '-',
+                            'mode' => '-',
+                            'place' => '-',
+                            'total_hours' => '-',
+                            'late_reason' => '-'
                         ];
                     } else if ($userAtts->has($date)) {
                         $att = $userAtts->get($date);
                         $dayData = $this->formatAttendanceDay($user, $att, $date);
+                        $hours = $reportService->calculateTotalHours($att->movements, $shift, $date);
+                        $dayData['status'] = $getRealStatus($date, $hours);
                         $monthlyRecords[] = $dayData;
                         $monthlyOfficeTotalMinutes += $dayData['raw_office_minutes'];
                     }
