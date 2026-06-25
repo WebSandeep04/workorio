@@ -232,6 +232,12 @@ class AttendanceReportService
                 'label' => ($hasHalfDayLeave || $shortLeaveHr > 0) ? 'present (partial leave)' : 'halfday',
                 'class' => ($hasHalfDayLeave || $shortLeaveHr > 0) ? 'text-success' : 'text-warning'
             ];
+        } elseif ($leaveType === 'L' || $leaveType === 'RH') {
+            return [
+                'code' => $leaveType,
+                'label' => $leaveType === 'L' ? 'leave' : 'restricted holiday',
+                'class' => 'text-warning'
+            ];
         } else {
             return [
                 'code' => 'A',
