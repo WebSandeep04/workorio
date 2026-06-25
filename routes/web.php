@@ -644,6 +644,7 @@ Route::middleware(['auth.or.session'])->group(function () {
 
     // Subscriptions
     Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::get('/subscriptions/email-view-data', [SubscriptionController::class, 'getEmailViewData'])->name('subscriptions.email-view-data');
     Route::get('/subscriptions/customer/{customerId}', [SubscriptionController::class, 'customerSubscriptions'])->name('subscriptions.customer');
     Route::get('/subscriptions/fetch', [SubscriptionController::class, 'getSubscriptions'])->name('subscriptions.fetch');
     Route::get('/subscriptions/fetch-all', [SubscriptionController::class, 'fetchAllSubscriptions'])->name('subscriptions.fetch-all');

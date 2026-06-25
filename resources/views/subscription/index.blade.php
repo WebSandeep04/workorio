@@ -425,9 +425,15 @@
   </div>
 
   <div class="d-flex justify-content-between align-items-center mb-2">
-      <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="view_group_checkbox">
-          <label class="form-check-label fw-bold small" for="view_group_checkbox" style="font-family: Montserrat;">Group View</label>
+      <div class="d-flex gap-3">
+          <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="view_group_checkbox">
+              <label class="form-check-label fw-bold small" for="view_group_checkbox" style="font-family: Montserrat;">Group View</label>
+          </div>
+          <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="view_email_checkbox">
+              <label class="form-check-label fw-bold small" for="view_email_checkbox" style="font-family: Montserrat; color:#f97316;">Email View <i class="bi bi-envelope"></i></label>
+          </div>
       </div>
   </div>
 
@@ -851,16 +857,31 @@ $(document).ready(function() {
     
     // View Mode Toggle (Checkbox)
     $('#view_group_checkbox').on('change', function() {
-        currentView = $(this).is(':checked') ? 'group' : 'individual';
+        if ($(this).is(':checked')) {
+            $('#view_email_checkbox').prop('checked', false);
+            currentView = 'group';
+        } else {
+            currentView = 'individual';
+        }
         currentPage = 1; // Reset to page 1
         loadData(currentPage);
         
         // Update placeholder
-        if(currentView === 'individual') {
-            $('#search').attr('placeholder', 'Search subscriptions...');
+        $('#search').attr('placeholder', currentView === 'group' ? 'Search customers...' : 'Search subscriptions...');
+    });
+
+    $('#view_email_checkbox').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#view_group_checkbox').prop('checked', false);
+            currentView = 'email';
         } else {
-            $('#search').attr('placeholder', 'Search customers...');
+            currentView = 'individual';
         }
+        currentPage = 1; // Reset to page 1
+        loadData(currentPage);
+        
+        // Update placeholder
+        $('#search').attr('placeholder', 'Search subscriptions...');
     });
 
     // Load Data based on current View
@@ -897,6 +918,8 @@ $(document).ready(function() {
         
         if (currentView === 'group') {
              loadCustomers(page, params);
+        } else if (currentView === 'email') {
+             loadEmailView();
         } else {
              loadSubscriptions(page, params);
         }
@@ -926,6 +949,33 @@ $(document).ready(function() {
             error: function(xhr) {
                 console.error("Error loading customers:", xhr);
                 $('#table_body').html('<tr><td colspan="5" class="text-center text-danger">Error loading data</td></tr>');
+            }
+        });
+    }
+
+    // Load email view data
+    function loadEmailView() {
+         // Setup Table Headers for Email View
+         $('#table_head').html(`
+            <tr>
+              <th style="text-align:left;">Customer</th>
+              <th style="text-align:left;">Product</th>
+              <th style="text-align:right;">Amount</th>
+              <th class="text-center">Due Date</th>
+              <th class="text-center">Status</th>
+            </tr>
+         `);
+         $('#table_body').html('<tr><td colspan="5" class="text-center py-4"><i class="bi bi-arrow-repeat spin"></i> Loading Email View...</td></tr>');
+
+        $.ajax({
+            url: '{{ route("subscriptions.email-view-data") }}',
+            type: 'GET',
+            success: function(response) {
+                renderEmailTable(response);
+            },
+            error: function(xhr) {
+                console.error("Error loading email view:", xhr);
+                $('#table_body').html('<tr><td colspan="5" class="text-center text-danger">Error loading email view data</td></tr>');
             }
         });
     }
@@ -1020,8 +1070,86 @@ $(document).ready(function() {
             });
         }
         $('#table_body').html(html);
+        $('#paginationLinks').show();
         buildPagination($('#paginationLinks'), data.links);
         updateRangeInfo(data.from, data.to, data.total);
+    }
+    
+    // Render Email Table
+    function renderEmailTable(data) {
+        let html = '';
+        
+        function getStatusStyle(s) {
+            s = s.toLowerCase();
+            if (s.includes('paid') || s.includes('received')) return "background:#d1fae5;color:#065f46;";
+            if (s.includes('pending')) return "background:#fef3c7;color:#92400e;";
+            if (s.includes('invoice') || s.includes('sent')) return "background:#dbeafe;color:#1e40af;";
+            if (s.includes('overdue')) return "background:#fee2e2;color:#991b1b;";
+            return "background:#f3f4f6;color:#374151;";
+        }
+        
+        function renderItems(items, title, titleColor) {
+            if (!items || items.length === 0) return '';
+            let block = `<tr style="background:#f8f9fa;"><td colspan="5" style="text-align:left; font-weight:700; color:${titleColor}; padding:10px 15px;">${title} <span class="text-muted fw-normal ms-2">(${items.length})</span></td></tr>`;
+            
+            items.forEach(item => {
+                let amount = parseFloat(item.amount || 0).toLocaleString('en-IN');
+                let dateDisplay = item.due_date ? new Date(item.due_date).toLocaleDateString('en-GB') : '-';
+                
+                let dateStyle = "";
+                if (title.includes('Overdue')) {
+                    dateStyle = "color:#dc2626;font-weight:700;";
+                } else if (item.notes && item.notes.includes('Due in')) {
+                    dateStyle = "color:#d97706;font-weight:700;";
+                    dateDisplay += `<div style="font-size:9px;">${item.notes}</div>`;
+                }
+                
+                let stStyle = getStatusStyle(item.status);
+                
+                let statusOptions = '';
+                if (subscriptionStatuses && subscriptionStatuses.length > 0) {
+                    subscriptionStatuses.forEach(s => {
+                        if(s.status_name) {
+                            let selected = s.status_name.toLowerCase() === item.status.toLowerCase() ? 'selected' : '';
+                            statusOptions += `<option value="${s.status_name}" ${selected} style="color:#000;background:#fff;">${s.status_name}</option>`;
+                        }
+                    });
+                } else {
+                    statusOptions = `<option value="${item.status}" selected>${item.status}</option>`;
+                }
+                
+                let selectHtml = `<select class="email-status-update form-select" data-id="${item.id}" data-history-id="${item.history_id}" style="font-size:10px;padding:3px 20px 3px 8px;border-radius:12px;font-weight:600;border:none;cursor:pointer;background-color:transparent;appearance:auto;-webkit-appearance:auto;-moz-appearance:auto;${stStyle}">${statusOptions}</select>`;
+                
+                block += `<tr>
+                    <td style="text-align:left; font-weight:600;">${item.customer}</td>
+                    <td style="text-align:left; color:#4b5563;">${item.product}</td>
+                    <td style="text-align:right; font-weight:bold;">₹${amount}</td>
+                    <td class="text-center" style="${dateStyle}">${dateDisplay}</td>
+                    <td class="text-center"><div style="display:inline-block; border-radius:12px; ${stStyle}">${selectHtml}</div></td>
+                </tr>`;
+            });
+            return block;
+        }
+
+        if (data.overdueItems && data.overdueItems.length > 0) {
+            html += renderItems(data.overdueItems, "⚠️ Overdue Subscriptions", "#dc2626");
+        }
+
+        if (data.statusGroups) {
+            for (const [statusName, items] of Object.entries(data.statusGroups)) {
+                if (items && items.length > 0) {
+                    html += renderItems(items, "➤ Status: " + statusName, "#111827");
+                }
+            }
+        }
+
+        if (!html) {
+            html = `<tr><td colspan="5" class="text-center py-4 text-muted">No active subscriptions found.</td></tr>`;
+        }
+
+        $('#table_body').html(html);
+        $('#paginationLinks').hide(); // Hide pagination for email view
+        $('#rangeInfo').text('Showing all data for Email View');
     }
     
     // Render Individual Table (Matching Customer Subscriptions Blade, plus Customer column)
@@ -1099,6 +1227,7 @@ $(document).ready(function() {
             });
         }
         $('#table_body').html(html);
+        $('#paginationLinks').show();
         buildPagination($('#paginationLinks'), data.links);
         updateRangeInfo(data.from, data.to, data.total);
     }
@@ -1437,6 +1566,38 @@ $(document).ready(function() {
         $('#view_recurrence').text($el.data('recurrence'));
         
         $('#viewSubscriptionModal').modal('show');
+    });
+
+    // Email View Status Update
+    $(document).on('change', '.email-status-update', function() {
+        const subId = $(this).data('id');
+        const historyId = $(this).data('history-id');
+        const newStatus = $(this).val();
+        
+        const $select = $(this);
+        $select.prop('disabled', true);
+        
+        $.ajax({
+            url: `{{ route("subscriptions.update-status", ":id") }}`.replace(':id', subId),
+            type: 'PATCH',
+            data: {
+                _token: '{{ csrf_token() }}',
+                status: newStatus,
+                history_id: historyId
+            },
+            success: function(response) {
+                $select.prop('disabled', false);
+                if (response.success || response.message) {
+                    showToast('Status updated successfully!', 'success');
+                    // Reload Email View to re-group based on the new status
+                    loadEmailView(); 
+                }
+            },
+            error: function(xhr) {
+                $select.prop('disabled', false);
+                showToast('Error updating status.', 'error');
+            }
+        });
     });
 
 });
