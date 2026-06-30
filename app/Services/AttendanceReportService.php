@@ -347,23 +347,25 @@ class AttendanceReportService
 
                 $leaveType = $leaveMap[$dateStr] ?? null;
                 $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
-                $effectiveDayHours = $dayHours + $slHours;
+                $hasHalfDayLeave = ($leaveType === 'HD');
+                
+                $statusInfo = $this->determineStatus($dateStr, $dayHours, $fullDayHr, $halfDayHr, false, false, $leaveType, $hasHalfDayLeave, $slHours);
 
-                if ($effectiveDayHours >= $halfDayHr) {
+                if (in_array($statusInfo['label'], ['present', 'present with SL', 'present with HD'])) {
+                    $presentDays++;
+                    $attendanceDates[] = $dateStr;
+                    $totalDaysWorked++;
+                } elseif (in_array($statusInfo['label'], ['halfday', 'present (partial leave)'])) {
+                    $halfDays++;
                     $attendanceDates[] = $dateStr;
                     $totalDaysWorked++;
                 }
 
-                if ($effectiveDayHours >= $fullDayHr) {
-                    $presentDays++;
-                } elseif ($effectiveDayHours >= $halfDayHr) {
-                    $halfDays++;
-                }
-
                 [$origFullDayHr, $origHalfDayHr] = $this->getThresholds($shift);
-                if ($effectiveDayHours >= $origFullDayHr) {
+                $effectiveInMinutes = (int) round(($dayHours + $slHours + ($hasHalfDayLeave ? $origHalfDayHr : 0)) * 60);
+                if ($effectiveInMinutes >= (int) round($origFullDayHr * 60)) {
                     $totalMore8_30++;
-                } elseif ($effectiveDayHours >= $halfDayHr) {
+                } elseif ($effectiveInMinutes >= (int) round($origHalfDayHr * 60)) {
                     $totalLess8_30++;
                 }
                 
