@@ -135,4 +135,6 @@ Schedule::command('sales:send-admin-follow-up-report', ['--alert=13'])
     ->description('Send consolidated daily follow-up reports to tenant admins/managers');
 
 
-
+Schedule::call(function () {
+    \Illuminate\Support\Facades\Log::info('Test cron job executed at: ' . now());
+})->everyMinute()->description('Test cron job that runs every minute');

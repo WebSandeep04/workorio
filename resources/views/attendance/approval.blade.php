@@ -605,7 +605,7 @@ $(document).ready(function() {
                             'present with sl': 'bg-success',
                             'present with hd': 'bg-success',
                             'present (partial leave)': 'bg-success',
-                            'halfday': 'bg-warning text-dark',
+                            'halfday': 'bg-primary text-white',
                             'absent by less hr': 'bg-danger-soft text-danger border-danger',
                             'absent': 'bg-danger-soft text-danger border-danger',
                             'weekly off': 'bg-info text-white',

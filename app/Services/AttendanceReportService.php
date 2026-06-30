@@ -168,35 +168,40 @@ class AttendanceReportService
      */
     public function determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false, $shortLeaveHr = 0)
     {
+        $hoursInMinutes = (int) round($hours * 60);
+        $fullDayInMinutes = (int) round($fullDayHr * 60);
+        $halfDayInMinutes = (int) round($halfDayHr * 60);
+        $shortLeaveInMinutes = (int) round($shortLeaveHr * 60);
+        
         // For SL, we add the sl duration to worked hours
         // For Half Day Leave, we assume it covers half the required hours
-        $effectiveHours = $hours + $shortLeaveHr + ($hasHalfDayLeave ? $halfDayHr : 0);
+        $effectiveInMinutes = $hoursInMinutes + $shortLeaveInMinutes + ($hasHalfDayLeave ? $halfDayInMinutes : 0);
 
         if ($isWeeklyOff) {
             $dayName = Carbon::parse($date)->format('l');
             return [
-                'code' => $hours > 0 ? 'W/O-W' : 'W/O',
-                'label' => $hours > 0 ? "$dayName Working" : strtolower($dayName),
-                'class' => $hours > 0 ? 'text-success' : 'text-secondary'
+                'code' => $hoursInMinutes > 0 ? 'W/O-W' : 'W/O',
+                'label' => $hoursInMinutes > 0 ? "$dayName Working" : strtolower($dayName),
+                'class' => $hoursInMinutes > 0 ? 'text-success' : 'text-secondary'
             ];
         }
 
         if ($isHoliday) {
             return [
-                'code' => $hours > 0 ? 'H/W' : 'H',
-                'label' => $hours > 0 ? 'holiday working' : 'holiday',
-                'class' => $hours > 0 ? 'text-success' : 'text-info'
+                'code' => $hoursInMinutes > 0 ? 'H/W' : 'H',
+                'label' => $hoursInMinutes > 0 ? 'holiday working' : 'holiday',
+                'class' => $hoursInMinutes > 0 ? 'text-success' : 'text-info'
             ];
         }
 
         if ($leaveType === 'SL') {
-            if ($effectiveHours >= $fullDayHr) {
+            if ($effectiveInMinutes >= $fullDayInMinutes) {
                 return [
                     'code' => 'P (SL)',
                     'label' => 'present with SL',
                     'class' => 'text-success'
                 ];
-            } elseif ($effectiveHours >= $halfDayHr) {
+            } elseif ($effectiveInMinutes >= $halfDayInMinutes) {
                 return [
                     'code' => 'P (HD/SL)',
                     'label' => 'present (partial leave)',
@@ -211,10 +216,10 @@ class AttendanceReportService
             }
         }
 
-        if ($effectiveHours >= $fullDayHr) {
+        if ($effectiveInMinutes >= $fullDayInMinutes) {
             $code = 'P';
             $label = 'present';
-            if ($shortLeaveHr > 0) {
+            if ($shortLeaveInMinutes > 0) {
                 $code = 'P (SL)';
                 $label = 'present with SL';
             } elseif ($hasHalfDayLeave) {
@@ -226,11 +231,11 @@ class AttendanceReportService
                 'label' => $label,
                 'class' => 'text-success'
             ];
-        } elseif ($hours >= $halfDayHr || ($hasHalfDayLeave && $hours > 0) || ($effectiveHours >= $halfDayHr && $shortLeaveHr > 0)) {
+        } elseif ($hoursInMinutes >= $halfDayInMinutes || ($hasHalfDayLeave && $hoursInMinutes > 0) || ($effectiveInMinutes >= $halfDayInMinutes && $shortLeaveInMinutes > 0)) {
             return [
-                'code' => ($hasHalfDayLeave || $shortLeaveHr > 0) ? 'P (HD/SL)' : 'P2',
-                'label' => ($hasHalfDayLeave || $shortLeaveHr > 0) ? 'present (partial leave)' : 'halfday',
-                'class' => ($hasHalfDayLeave || $shortLeaveHr > 0) ? 'text-success' : 'text-warning'
+                'code' => ($hasHalfDayLeave || $shortLeaveInMinutes > 0) ? 'P (HD/SL)' : 'P2',
+                'label' => ($hasHalfDayLeave || $shortLeaveInMinutes > 0) ? 'present (partial leave)' : 'halfday',
+                'class' => ($hasHalfDayLeave || $shortLeaveInMinutes > 0) ? 'text-success' : 'text-primary'
             ];
         } elseif ($leaveType === 'L' || $leaveType === 'RH') {
             return [
@@ -410,15 +415,21 @@ class AttendanceReportService
                 $totalLateMinutes += (int) abs($attendance->late_minutes ?? 0);
             }
         }
-        
+        $totalShortLeaves = 0;
         $uniqueLeaves = array_unique(array_keys($leaveMap));
         foreach ($uniqueLeaves as $dateStr) {
+            $leaveType = $leaveMap[$dateStr] ?? 'L';
             if (!in_array($dateStr, $holidays) && !in_array($dateStr, $holidaysWithAttendance)) {
                 $totalLeaves++;
+                if ($leaveType === 'SL') {
+                    $totalShortLeaves++;
+                }
             }
         }
         
+        $leaveDates = [];
         foreach ($uniqueLeaves as $dateStr) {
+            $leaveType = $leaveMap[$dateStr] ?? 'L';
             $leaveCarbon = Carbon::parse($dateStr);
             $dayName = $leaveCarbon->format('l');
             $isWeeklyOff = false;
@@ -430,8 +441,13 @@ class AttendanceReportService
                 && !in_array($dateStr, $holidays) 
                 && !in_array($dateStr, $attendanceDates)
                 && !in_array($dateStr, $holidaysWithAttendance)) {
-                $leaveDates[] = $dateStr;
-                $daysOnLeave++;
+                
+                // Do we count SL in daysOnLeave (absents)?
+                // Let's assume SL is not a full leave. But for now keep it same logic unless requested.
+                if ($leaveType !== 'SL') {
+                    $leaveDates[] = $dateStr;
+                    $daysOnLeave++;
+                }
             }
         }
         
@@ -458,7 +474,8 @@ class AttendanceReportService
             'total_working_days' => $totalWorkingDays,
             'days_worked' => $totalDaysWorked,
             'days_absent' => $daysAbsent,
-            'days_on_leave' => $totalLeaves, 
+            'days_on_leave' => $daysOnLeave, 
+            'total_short_leaves' => $totalShortLeaves,
             'attendance_percentage' => min(100, $attendancePercentage),
             'total_present_combined' => $presentDays + $halfDays + $totalHolidaysWorked + $totalSundaysWorked,
             'total_present' => $presentDays,

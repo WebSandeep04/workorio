@@ -290,7 +290,7 @@ function displayAttendanceData(attendances, summary) {
                 statusBadge = `<span class="badge bg-success-subtle text-success border border-success-subtle px-2">${displayLabel}</span>`;
                 break;
             case 'halfday':
-                statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2">Half-Day</span>';
+                statusBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2">Half-Day</span>';
                 break;
             case 'weekly off':
             case 'sunday':

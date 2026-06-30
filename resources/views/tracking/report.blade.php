@@ -754,7 +754,7 @@ function statusBadge(status){
         holiday:'info', 
         sunday:'secondary', 
         absent:'danger',
-        halfday:'warning',
+        halfday:'primary',
         'absent by less hr':'danger',
         'weekly off':'secondary',
         'restricted holiday':'info',

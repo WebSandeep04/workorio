@@ -334,6 +334,15 @@
                     </div>
                 </div>
                 <div class="summary-card">
+                    <div class="summary-card-icon icon-blue">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total SL</div>
+                        <div class="summary-card-value" id="sumShortLeave">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
                     <div class="summary-card-icon icon-teal">
                         <i class="bi bi-calendar-check-fill"></i>
                     </div>
@@ -645,6 +654,7 @@ function loadReport(){
             document.getElementById('sumAbsent').textContent = s.days_absent;
             document.getElementById('sumHalfday').textContent = s.total_halfday;
             document.getElementById('sumLeave').textContent = s.days_on_leave;
+            document.getElementById('sumShortLeave').textContent = s.total_short_leaves || 0;
             document.getElementById('sumHolidayWorking').textContent = s.total_holidays_worked;
             document.getElementById('sumSundayWorking').textContent = s.total_sundays_worked;
             summaryDiv.style.display = 'grid';
@@ -835,7 +845,7 @@ function statusBadge(status, holidayName = null){
         holiday:'info', 
         sunday:'secondary', 
         absent:'danger',
-        halfday:'warning',
+        halfday:'primary',
         'absent by less hr':'danger',
         'sunday working':'info',
         'holiday working':'info',
