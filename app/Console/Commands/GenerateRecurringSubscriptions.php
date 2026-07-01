@@ -67,7 +67,7 @@ class GenerateRecurringSubscriptions extends Command
             // Verify connection works (optional but good for logging)
             // If setDefaultConnection throws, we catch it below.
             
-            $today = Carbon::now();
+            $today = Carbon::now('Asia/Kolkata');
             
             // We use the Subscription model which now uses the default connection (switched above)
             Subscription::where('is_active', true)
