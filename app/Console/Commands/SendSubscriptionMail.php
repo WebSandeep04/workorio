@@ -157,11 +157,11 @@ class SendSubscriptionMail extends Command
                             $totalInvoiceSentAmount += $item['amount'];
                         }
                     }
-                    $isOverdue = (!$isPaid && $dueDate && $dueDate < $today);
+                    $isOverdue = (!$isPaid && $dueDate && $dueDate <= $today);
 
                     if ($isOverdue) {
                         $daysOver = Carbon::parse($dueDate)->diffInDays(Carbon::parse($today));
-                        $item['notes'] = floor($daysOver) . " days overdue";
+                        $item['notes'] = floor($daysOver) == 0 ? "Due today" : floor($daysOver) . " days overdue";
                         $overdueItems[] = $item;
                         $totalReceivable += $item['amount'];
                     } else {
