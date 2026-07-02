@@ -578,7 +578,12 @@ $(document).ready(function() {
                 let rows = '';
                 let data = response.data;
                 $('#stat_pending_count').text(response.pending_count || 0);
-                
+                if (response.is_locked_for_date) {
+                    $('#attendanceTable tbody').html(`<tr><td colspan="7" class="text-center py-4 text-danger fw-bold"><i class="bi bi-lock-fill"></i> Data is locked for today</td></tr>`);
+                    $('#paginationLinks').empty();
+                    return;
+                }
+
                 if (data.length > 0) {
                     data.forEach(function(item) {
                         let emergencyBadge = item.is_emergency ? '<span class="badge-emergency">Provisional</span>' : '';
@@ -605,7 +610,7 @@ $(document).ready(function() {
                             'present with sl': 'bg-success',
                             'present with hd': 'bg-success',
                             'present (partial leave)': 'bg-success',
-                            'halfday': 'bg-warning text-dark',
+                            'halfday': 'bg-primary text-white',
                             'absent by less hr': 'bg-danger-soft text-danger border-danger',
                             'absent': 'bg-danger-soft text-danger border-danger',
                             'weekly off': 'bg-info text-white',

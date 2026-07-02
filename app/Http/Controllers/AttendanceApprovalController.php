@@ -248,11 +248,13 @@ class AttendanceApprovalController extends Controller
         })->filter(); // Remove any null users if relationships are broken
 
         $pendingCount = Attendance::whereDate('date', $date)->where('is_approved', 0)->count();
+        $isLockedForDate = Attendance::whereDate('date', $date)->where('is_locked', 1)->exists();
 
         return response()->json([
             'data' => $employees->items(),
             'total' => $employees->total(),
             'pending_count' => $pendingCount,
+            'is_locked_for_date' => $isLockedForDate,
             'current_page' => $employees->currentPage(),
             'last_page' => $employees->lastPage(),
             'links' => $employees->linkCollection()
