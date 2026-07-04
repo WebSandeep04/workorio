@@ -34,8 +34,16 @@ class LeaveController extends Controller
             return response()->json(['success' => false, 'message' => 'System migration pending.'], 500);
         }
 
+        $leaveTypeId = $request->input('leave_type_id');
+        $leaveType = \App\Models\LeaveType::find($leaveTypeId);
+
+        $startDateRule = 'required|date|after:today';
+        if ($leaveType && $leaveType->is_short_leave) {
+            $startDateRule = 'required|date|after_or_equal:today';
+        }
+
         $validator = Validator::make($request->all(), [
-            'start_date' => 'required|date|after:today',
+            'start_date' => $startDateRule,
             'end_date' => 'required|date|after_or_equal:start_date',
             'leave_type_id' => 'required', // Can be 'rh', 'sl' or an ID
             'start_time' => 'nullable|date_format:H:i',
@@ -531,6 +539,15 @@ class LeaveController extends Controller
                         ->whereYear('holiday_date', date('Y'))
                         ->orderBy('holiday_date', 'asc')
                         ->get(['id', 'name', 'holiday_date']);
+                }
+
+                if ($type->is_short_leave) {
+                    $shift = $user->employee->shiftRelation ?? null;
+                    if ($shift) {
+                        $type->shift_start = $shift->start_time;
+                        $type->shift_end = $shift->end_time;
+                        $type->end_limit_hours = $shift->sl_end_limit;
+                    }
                 }
 
                 return $type;
