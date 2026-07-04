@@ -316,6 +316,15 @@ $(document).ready(function() {
         let typeId = $(this).val();
         let targetType = allLeaveTypes.find(t => t.id == typeId);
         
+        const todayObj = new Date();
+        todayObj.setMinutes(todayObj.getMinutes() - todayObj.getTimezoneOffset());
+        const todayStr = todayObj.toISOString().split('T')[0];
+
+        const tomorrowObj = new Date();
+        tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+        tomorrowObj.setMinutes(tomorrowObj.getMinutes() - tomorrowObj.getTimezoneOffset());
+        const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
+
         // Reset blocks
         $('#rh_holiday_div').slideUp();
         $('#rh_holiday_select').removeAttr('required').val('');
@@ -325,6 +334,14 @@ $(document).ready(function() {
         $('#is_half_day').prop('checked', false);
         $('#end_date').closest('.col-6').show();
         $('#start_date, #end_date').prop('readonly', false);
+
+        // Reset min date to tomorrow by default
+        $('#start_date').attr('min', tomorrowStr);
+        $('#end_date').attr('min', tomorrowStr);
+        if ($('#start_date').val() < tomorrowStr) {
+            $('#start_date').val(tomorrowStr);
+            $('#end_date').val(tomorrowStr);
+        }
 
         if (!targetType) {
             $('#balanceAlert').hide();
@@ -355,6 +372,14 @@ $(document).ready(function() {
             $('#start_date, #end_date').prop('readonly', true);
         } else if (targetType.is_short_leave) {
             $('#sl_type_div').slideDown();
+            
+            // Allow today for short leave
+            $('#start_date').attr('min', todayStr);
+            $('#end_date').attr('min', todayStr);
+            if ($('#start_date').val() === tomorrowStr) {
+                $('#start_date').val(todayStr);
+            }
+
             // Lock dates to single day
             $('#end_date').closest('.col-6').hide();
             $('#end_date').val($('#start_date').val());
@@ -681,6 +706,7 @@ function openCreateModal() {
     
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
     
     $('#start_date').attr('min', tomorrowStr).val(tomorrowStr);
