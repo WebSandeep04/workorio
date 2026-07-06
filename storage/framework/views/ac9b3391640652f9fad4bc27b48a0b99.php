@@ -27,6 +27,7 @@
                 <th style='padding:6px; border:1px solid #ddd;'>Late Reason</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Grace Balance</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Final Status</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Status Reason</th>
             </tr>
         </thead>
         <tbody>
@@ -51,9 +52,10 @@
                     <td style='padding:5px; border:1px solid #ddd; <?php echo e($lrStyle); ?>'><?php echo e($row['late_reason']); ?></td>
                     <td style='padding:5px; border:1px solid #ddd;'><?php echo e($row['grace_balance'] ?? '-'); ?></td>
                     <td style='padding:5px; border:1px solid #ddd; color:<?php echo e($statusColor); ?>; font-weight:bold; text-transform:capitalize;'><?php echo e($row['status']); ?></td>
+                    <td style='padding:5px; border:1px solid #ddd;'><?php echo e($row['status_reason'] ?? '-'); ?></td>
                 </tr>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                <tr><td colspan="10" class="text-center" style='padding:5px; border:1px solid #ddd; text-align:center;'>No data</td></tr>
+                <tr><td colspan="11" class="text-center" style='padding:5px; border:1px solid #ddd; text-align:center;'>No data</td></tr>
             <?php endif; ?>
         </tbody>
     </table>
@@ -78,6 +80,7 @@
                     <th style='padding:0; border:1px solid #ddd;'>Late Reason</th>
                     <th style='padding:0; border:1px solid #ddd;'>Grace Balance</th>
                     <th style='padding:0; border:1px solid #ddd;'>Final Status</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Status Reason</th>
                 </tr>
             </thead>
             <tbody>
@@ -102,6 +105,7 @@
                         <td style='padding:0; border:1px solid #ddd; <?php echo e($lrStyle); ?>'><?php echo e($record['late_reason']); ?></td>
                         <td style='padding:0; border:1px solid #ddd;'><?php echo e($record['grace_balance'] ?? '-'); ?></td>
                         <td style='padding:0; border:1px solid #ddd; color:<?php echo e($statusColor); ?>; font-weight:bold; text-transform:capitalize;'><?php echo e($record['status']); ?></td>
+                        <td style='padding:0; border:1px solid #ddd;'><?php echo e($record['status_reason'] ?? '-'); ?></td>
                     </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 <tr style='background-color:#f8f9fa; font-weight:bold;'>

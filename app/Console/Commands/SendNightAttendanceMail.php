@@ -185,7 +185,8 @@ class SendNightAttendanceMail extends Command
                         'total_hours' => '-',
                         'late_reason' => '-',
                         'late_by' => '-',
-                        'grace_balance' => '-'
+                        'grace_balance' => '-',
+                        'status_reason' => $isOnLeave ? 'On Leave' : 'No attendance recorded'
                     ];
                 }
 
@@ -216,7 +217,8 @@ class SendNightAttendanceMail extends Command
                             'total_hours' => '-',
                             'late_reason' => '-',
                             'late_by' => '-',
-                            'grace_balance' => '-'
+                            'grace_balance' => '-',
+                            'status_reason' => 'On Leave'
                         ];
                     } else if ($userAtts->has($date)) {
                         $att = $userAtts->get($date);
@@ -235,13 +237,27 @@ class SendNightAttendanceMail extends Command
                         $dayData['grace_balance'] = $graceBalance;
 
                         $hours = $reportService->calculateTotalHours($att->movements, $shift, $date);
-                        $dayData['status'] = $getRealStatus($date, $hours);
+                        $origStatus = $getRealStatus($date, $hours);
+                        
+                        // Calculate Status Reason and potential Penalty
+                        [$fullDayHr, $halfDayHr] = $reportService->getThresholds($shift);
+                        $previousGrace = $shift ? ($shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy)) : 0;
+                        $hasHalfDayLeave = ($userLeaves->get($date)->type ?? null) === 'HD';
+                        $isOnLeave = $userLeaves->has($date);
+                        
+                        $statusData = $this->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isOnLeave, $hasHalfDayLeave);
+                        
+                        $dayData['status'] = $statusData['status'];
+                        $dayData['status_reason'] = $statusData['reason'];
+
                         $monthlyRecords[] = $dayData;
                         $monthlyOfficeTotalMinutes += $dayData['raw_office_minutes'];
 
                         if ($date === $todayStr) {
                             $todayData['late_by'] = $dayData['late_by'];
                             $todayData['grace_balance'] = $dayData['grace_balance'];
+                            $todayData['status'] = $dayData['status'];
+                            $todayData['status_reason'] = $dayData['status_reason'];
                         }
                     }
                 }
@@ -267,7 +283,7 @@ class SendNightAttendanceMail extends Command
             // Who gets the email? "Send to all users including admin - filter valid emails"
             // where e.status = 'active'
             $recipientEmails = User::where(function($q) {
-                    $q->where('role_id', 1);
+                    $q->where('is_attendance', 1)->orWhere('role_id', 1);
                 })
                 ->whereHas('employee', function ($q) {
                     $q->where('status', 'active');
@@ -375,5 +391,50 @@ class SendNightAttendanceMail extends Command
         $minutes = $totalMinutes % 60;
 
         return $hours . ':' . str_pad($minutes, 2, '0', STR_PAD_LEFT) . ' hrs';
+    }
+
+    private function determineStatusAndReason($originalStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isLeave, $isHalfDayLeave)
+    {
+        $finalStatus = $originalStatusLabel;
+        $reason = '-';
+
+        $statusLower = strtolower($originalStatusLabel);
+
+        if (str_contains($statusLower, 'present') || str_contains($statusLower, 'working')) {
+            if ($lateBy > 0 && $previousGrace < $lateBy) {
+                $finalStatus = 'halfday';
+                $reason = 'Monthly grace exhausted';
+            } else if ($lateBy > 0) {
+                $reason = 'Covered under grace';
+            } else if (str_contains($statusLower, 'sl')) {
+                $reason = 'Present with SL';
+            } else {
+                $reason = '-';
+            }
+        } else if (str_contains($statusLower, 'absent')) {
+            if ($hours <= 0 && !$isLeave) {
+                $reason = 'No attendance recorded';
+            } else {
+                $reason = "Worked less than " . intval($halfDayHr) . " hrs";
+            }
+        } else if (str_contains($statusLower, 'halfday')) {
+            if ($isHalfDayLeave) {
+                $reason = 'Approved Half Day';
+            } else if ($lateBy > 0 && $previousGrace < $lateBy) {
+                $reason = 'Monthly grace exhausted';
+            } else {
+                $reason = "Worked less than " . intval($fullDayHr) . " hrs";
+            }
+        } else if (str_contains($statusLower, 'leave') || str_contains($statusLower, 'holiday') || str_contains($statusLower, 'off')) {
+            if (str_contains($statusLower, 'leave') && !str_contains($statusLower, 'sl')) {
+                $finalStatus = 'On Leave';
+                $reason = 'On Leave';
+            } else {
+                $finalStatus = ucwords($originalStatusLabel);
+                $reason = '-';
+            }
+        }
+
+        return ['status' => $finalStatus, 'reason' => $reason];
     }
 }

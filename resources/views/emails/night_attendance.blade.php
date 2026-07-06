@@ -27,6 +27,7 @@
                 <th style='padding:6px; border:1px solid #ddd;'>Late Reason</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Grace Balance</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Final Status</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Status Reason</th>
             </tr>
         </thead>
         <tbody>
@@ -51,9 +52,10 @@
                     <td style='padding:5px; border:1px solid #ddd; {{ $lrStyle }}'>{{ $row['late_reason'] }}</td>
                     <td style='padding:5px; border:1px solid #ddd;'>{{ $row['grace_balance'] ?? '-' }}</td>
                     <td style='padding:5px; border:1px solid #ddd; color:{{ $statusColor }}; font-weight:bold; text-transform:capitalize;'>{{ $row['status'] }}</td>
+                    <td style='padding:5px; border:1px solid #ddd;'>{{ $row['status_reason'] ?? '-' }}</td>
                 </tr>
             @empty
-                <tr><td colspan="10" class="text-center" style='padding:5px; border:1px solid #ddd; text-align:center;'>No data</td></tr>
+                <tr><td colspan="11" class="text-center" style='padding:5px; border:1px solid #ddd; text-align:center;'>No data</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -78,6 +80,7 @@
                     <th style='padding:0; border:1px solid #ddd;'>Late Reason</th>
                     <th style='padding:0; border:1px solid #ddd;'>Grace Balance</th>
                     <th style='padding:0; border:1px solid #ddd;'>Final Status</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Status Reason</th>
                 </tr>
             </thead>
             <tbody>
@@ -102,6 +105,7 @@
                         <td style='padding:0; border:1px solid #ddd; {{ $lrStyle }}'>{{ $record['late_reason'] }}</td>
                         <td style='padding:0; border:1px solid #ddd;'>{{ $record['grace_balance'] ?? '-' }}</td>
                         <td style='padding:0; border:1px solid #ddd; color:{{ $statusColor }}; font-weight:bold; text-transform:capitalize;'>{{ $record['status'] }}</td>
+                        <td style='padding:0; border:1px solid #ddd;'>{{ $record['status_reason'] ?? '-' }}</td>
                     </tr>
                 @endforeach
                 <tr style='background-color:#f8f9fa; font-weight:bold;'>
