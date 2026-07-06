@@ -18,13 +18,15 @@
         <thead>
             <tr style='background-color:#34495e; color:#fff;'>
                 <th style='padding:6px; border:1px solid #ddd;'>Employee</th>
-                <th style='padding:6px; border:1px solid #ddd;'>Punch-In</th>
-                <th style='padding:6px; border:1px solid #ddd;'>Punch-Out</th>
+                <th style='padding:6px; border:1px solid #ddd;'>In Time</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Out Time</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Mode</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Place</th>
-                <th style='padding:6px; border:1px solid #ddd;'>Total Hours</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Hours</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Late By</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Late Reason</th>
-                <th style='padding:6px; border:1px solid #ddd;'>Status</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Grace Balance</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Final Status</th>
             </tr>
         </thead>
         <tbody>
@@ -45,11 +47,13 @@
                     <td style='padding:5px; border:1px solid #ddd;'><?php echo e($row['mode']); ?></td>
                     <td style='padding:5px; border:1px solid #ddd;'><?php echo e($row['place']); ?></td>
                     <td style='padding:5px; border:1px solid #ddd; color:#8e44ad; font-weight:bold;'><?php echo e($row['total_hours']); ?></td>
+                    <td style='padding:5px; border:1px solid #ddd;'><?php echo e($row['late_by'] ?? '-'); ?></td>
                     <td style='padding:5px; border:1px solid #ddd; <?php echo e($lrStyle); ?>'><?php echo e($row['late_reason']); ?></td>
+                    <td style='padding:5px; border:1px solid #ddd;'><?php echo e($row['grace_balance'] ?? '-'); ?></td>
                     <td style='padding:5px; border:1px solid #ddd; color:<?php echo e($statusColor); ?>; font-weight:bold; text-transform:capitalize;'><?php echo e($row['status']); ?></td>
                 </tr>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                <tr><td colspan="8" class="text-center" style='padding:5px; border:1px solid #ddd; text-align:center;'>No data</td></tr>
+                <tr><td colspan="10" class="text-center" style='padding:5px; border:1px solid #ddd; text-align:center;'>No data</td></tr>
             <?php endif; ?>
         </tbody>
     </table>
@@ -65,13 +69,15 @@
             <thead>
                 <tr style='background-color:#ecf0f1;'>
                     <th style='padding:0; border:1px solid #ddd;'>Date</th>
-                    <th style='padding:0; border:1px solid #ddd;'>Punch-In</th>
-                    <th style='padding:0; border:1px solid #ddd;'>Punch-Out</th>
+                    <th style='padding:0; border:1px solid #ddd;'>In Time</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Out Time</th>
                     <th style='padding:0; border:1px solid #ddd;'>Mode</th>
                     <th style='padding:0; border:1px solid #ddd;'>Place</th>
-                    <th style='padding:0; border:1px solid #ddd;'>Total Hours</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Hours</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Late By</th>
                     <th style='padding:0; border:1px solid #ddd;'>Late Reason</th>
-                    <th style='padding:0; border:1px solid #ddd;'>Status</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Grace Balance</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Final Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -92,7 +98,9 @@
                         <td style='padding:0; border:1px solid #ddd;'><?php echo e($record['mode']); ?></td>
                         <td style='padding:0; border:1px solid #ddd;'><?php echo e($record['place']); ?></td>
                         <td style='padding:0; border:1px solid #ddd; color:#8e44ad; font-weight:bold;'><?php echo e($record['total_hours']); ?></td>
+                        <td style='padding:0; border:1px solid #ddd;'><?php echo e($record['late_by'] ?? '-'); ?></td>
                         <td style='padding:0; border:1px solid #ddd; <?php echo e($lrStyle); ?>'><?php echo e($record['late_reason']); ?></td>
+                        <td style='padding:0; border:1px solid #ddd;'><?php echo e($record['grace_balance'] ?? '-'); ?></td>
                         <td style='padding:0; border:1px solid #ddd; color:<?php echo e($statusColor); ?>; font-weight:bold; text-transform:capitalize;'><?php echo e($record['status']); ?></td>
                     </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -103,7 +111,9 @@
                     <td style='padding:0; border:1px solid #ddd;'>-</td>
                     <td style='padding:0; border:1px solid #ddd;'>-</td>
                     <td style='padding:0; border:1px solid #ddd; color:#8e44ad;'><?php echo e($userMonthly['monthly_total']); ?></td>
+                    <td style='padding:0; border:1px solid #ddd;'>-</td>
                     <td style='padding:0; border:1px solid #ddd; color:#95a5a6;'>-</td>
+                    <td style='padding:0; border:1px solid #ddd;'>-</td>
                     <td style='padding:0; border:1px solid #ddd;'>-</td>
                 </tr>
             </tbody>

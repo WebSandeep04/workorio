@@ -168,14 +168,14 @@ class SendNightAttendanceMail extends Command
 
                 // 1. Today's Summary
                 $todayAtt = $userAtts->get($todayStr);
+                $todayData = null;
                 if ($todayAtt) {
-                    $dayData = $this->formatAttendanceDay($user, $todayAtt, $todayStr);
+                    $todayData = $this->formatAttendanceDay($user, $todayAtt, $todayStr);
                     $hours = $reportService->calculateTotalHours($todayAtt->movements, $shift, $todayStr);
-                    $dayData['status'] = $getRealStatus($todayStr, $hours);
-                    $reportData['today'][] = $dayData;
+                    $todayData['status'] = $getRealStatus($todayStr, $hours);
                 } else {
                     $isOnLeave = $userLeaves->has($todayStr);
-                    $reportData['today'][] = [
+                    $todayData = [
                         'user_name' => $user->name,
                         'status' => $isOnLeave ? $getRealStatus($todayStr, 0) : 'absent',
                         'punch_in' => '-',
@@ -183,12 +183,17 @@ class SendNightAttendanceMail extends Command
                         'mode' => '-',
                         'place' => '-',
                         'total_hours' => '-',
-                        'late_reason' => '-'
+                        'late_reason' => '-',
+                        'late_by' => '-',
+                        'grace_balance' => '-'
                     ];
                 }
 
                 // 2. Monthly Breakdown
                 if ($userAtts->isEmpty() && $userLeaves->isEmpty()) {
+                    if ($todayData) {
+                        $reportData['today'][] = $todayData;
+                    }
                     continue;
                 }
 
@@ -196,6 +201,7 @@ class SendNightAttendanceMail extends Command
                 
                 $monthlyRecords = [];
                 $monthlyOfficeTotalMinutes = 0;
+                $cumulativeLateMinutes = 0;
 
                 foreach ($allDates as $date) {
                     $isLeave = $userLeaves->has($date) && !$userAtts->has($date);
@@ -208,17 +214,48 @@ class SendNightAttendanceMail extends Command
                             'mode' => '-',
                             'place' => '-',
                             'total_hours' => '-',
-                            'late_reason' => '-'
+                            'late_reason' => '-',
+                            'late_by' => '-',
+                            'grace_balance' => '-'
                         ];
                     } else if ($userAtts->has($date)) {
                         $att = $userAtts->get($date);
                         $dayData = $this->formatAttendanceDay($user, $att, $date);
+                        
+                        $lateBy = (int) abs($att->late_minutes ?? 0);
+                        $cumulativeLateMinutes += $lateBy;
+                        
+                        $graceBalance = '-';
+                        if ($shift && isset($shift->min_per_month_late_allow)) {
+                            $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
+                            $graceBalance = max(0, $graceBalanceVal) . ' min';
+                        }
+                        
+                        $dayData['late_by'] = $lateBy > 0 ? $lateBy . ' min' : '-';
+                        $dayData['grace_balance'] = $graceBalance;
+
                         $hours = $reportService->calculateTotalHours($att->movements, $shift, $date);
                         $dayData['status'] = $getRealStatus($date, $hours);
                         $monthlyRecords[] = $dayData;
                         $monthlyOfficeTotalMinutes += $dayData['raw_office_minutes'];
+
+                        if ($date === $todayStr) {
+                            $todayData['late_by'] = $dayData['late_by'];
+                            $todayData['grace_balance'] = $dayData['grace_balance'];
+                        }
                     }
                 }
+
+                // If user is absent today, they won't have today's attendance in the loop, 
+                // so let's set their grace balance to the current cumulative
+                if (!isset($todayData['grace_balance']) || $todayData['grace_balance'] === '-') {
+                    if ($shift && isset($shift->min_per_month_late_allow)) {
+                        $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
+                        $todayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
+                    }
+                }
+                
+                $reportData['today'][] = $todayData;
 
                 $reportData['monthly'][] = [
                     'user_name' => $user->name,
@@ -230,7 +267,7 @@ class SendNightAttendanceMail extends Command
             // Who gets the email? "Send to all users including admin - filter valid emails"
             // where e.status = 'active'
             $recipientEmails = User::where(function($q) {
-                    $q->where('is_attendance', 1)->orWhere('role_id', 1);
+                    $q->where('role_id', 1);
                 })
                 ->whereHas('employee', function ($q) {
                     $q->where('status', 'active');

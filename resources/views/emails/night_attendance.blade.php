@@ -18,13 +18,15 @@
         <thead>
             <tr style='background-color:#34495e; color:#fff;'>
                 <th style='padding:6px; border:1px solid #ddd;'>Employee</th>
-                <th style='padding:6px; border:1px solid #ddd;'>Punch-In</th>
-                <th style='padding:6px; border:1px solid #ddd;'>Punch-Out</th>
+                <th style='padding:6px; border:1px solid #ddd;'>In Time</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Out Time</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Mode</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Place</th>
-                <th style='padding:6px; border:1px solid #ddd;'>Total Hours</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Hours</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Late By</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Late Reason</th>
-                <th style='padding:6px; border:1px solid #ddd;'>Status</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Grace Balance</th>
+                <th style='padding:6px; border:1px solid #ddd;'>Final Status</th>
             </tr>
         </thead>
         <tbody>
@@ -45,11 +47,13 @@
                     <td style='padding:5px; border:1px solid #ddd;'>{{ $row['mode'] }}</td>
                     <td style='padding:5px; border:1px solid #ddd;'>{{ $row['place'] }}</td>
                     <td style='padding:5px; border:1px solid #ddd; color:#8e44ad; font-weight:bold;'>{{ $row['total_hours'] }}</td>
+                    <td style='padding:5px; border:1px solid #ddd;'>{{ $row['late_by'] ?? '-' }}</td>
                     <td style='padding:5px; border:1px solid #ddd; {{ $lrStyle }}'>{{ $row['late_reason'] }}</td>
+                    <td style='padding:5px; border:1px solid #ddd;'>{{ $row['grace_balance'] ?? '-' }}</td>
                     <td style='padding:5px; border:1px solid #ddd; color:{{ $statusColor }}; font-weight:bold; text-transform:capitalize;'>{{ $row['status'] }}</td>
                 </tr>
             @empty
-                <tr><td colspan="8" class="text-center" style='padding:5px; border:1px solid #ddd; text-align:center;'>No data</td></tr>
+                <tr><td colspan="10" class="text-center" style='padding:5px; border:1px solid #ddd; text-align:center;'>No data</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -65,13 +69,15 @@
             <thead>
                 <tr style='background-color:#ecf0f1;'>
                     <th style='padding:0; border:1px solid #ddd;'>Date</th>
-                    <th style='padding:0; border:1px solid #ddd;'>Punch-In</th>
-                    <th style='padding:0; border:1px solid #ddd;'>Punch-Out</th>
+                    <th style='padding:0; border:1px solid #ddd;'>In Time</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Out Time</th>
                     <th style='padding:0; border:1px solid #ddd;'>Mode</th>
                     <th style='padding:0; border:1px solid #ddd;'>Place</th>
-                    <th style='padding:0; border:1px solid #ddd;'>Total Hours</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Hours</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Late By</th>
                     <th style='padding:0; border:1px solid #ddd;'>Late Reason</th>
-                    <th style='padding:0; border:1px solid #ddd;'>Status</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Grace Balance</th>
+                    <th style='padding:0; border:1px solid #ddd;'>Final Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -92,7 +98,9 @@
                         <td style='padding:0; border:1px solid #ddd;'>{{ $record['mode'] }}</td>
                         <td style='padding:0; border:1px solid #ddd;'>{{ $record['place'] }}</td>
                         <td style='padding:0; border:1px solid #ddd; color:#8e44ad; font-weight:bold;'>{{ $record['total_hours'] }}</td>
+                        <td style='padding:0; border:1px solid #ddd;'>{{ $record['late_by'] ?? '-' }}</td>
                         <td style='padding:0; border:1px solid #ddd; {{ $lrStyle }}'>{{ $record['late_reason'] }}</td>
+                        <td style='padding:0; border:1px solid #ddd;'>{{ $record['grace_balance'] ?? '-' }}</td>
                         <td style='padding:0; border:1px solid #ddd; color:{{ $statusColor }}; font-weight:bold; text-transform:capitalize;'>{{ $record['status'] }}</td>
                     </tr>
                 @endforeach
@@ -103,7 +111,9 @@
                     <td style='padding:0; border:1px solid #ddd;'>-</td>
                     <td style='padding:0; border:1px solid #ddd;'>-</td>
                     <td style='padding:0; border:1px solid #ddd; color:#8e44ad;'>{{ $userMonthly['monthly_total'] }}</td>
+                    <td style='padding:0; border:1px solid #ddd;'>-</td>
                     <td style='padding:0; border:1px solid #ddd; color:#95a5a6;'>-</td>
+                    <td style='padding:0; border:1px solid #ddd;'>-</td>
                     <td style='padding:0; border:1px solid #ddd;'>-</td>
                 </tr>
             </tbody>
