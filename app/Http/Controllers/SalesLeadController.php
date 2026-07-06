@@ -73,6 +73,7 @@ class SalesLeadController extends Controller
             $q->where('status', 'active');
         })
         ->where('is_sales', 1)
+        ->where('is_new_lead_add_mail', 1)
         ->whereNotNull('email')
         ->pluck('email')
         ->toArray();
