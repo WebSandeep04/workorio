@@ -755,44 +755,66 @@ function performPunchIn(type) {
 }
 
 function performPunchOut(type) {
-    $.ajax({
-        url: '/attendance/punch-out',
-        method: 'POST',
-        data: {
-            movement_type: type,
-            _token: '<?php echo e(csrf_token()); ?>'
-        },
-        success: function(response) {
-            if (response.success) {
-                showAlert('success', response.message);
-                loadTodayStatus();
-            
+    const executePunchOut = (lat = null, long = null) => {
+        $.ajax({
+            url: '/attendance/punch-out',
+            method: 'POST',
+            data: {
+                movement_type: type,
+                _token: '<?php echo e(csrf_token()); ?>',
+                latitude: lat,
+                longitude: long
+            },
+            success: function(response) {
+                if (response.success) {
+                    showAlert('success', response.message);
+                    loadTodayStatus();
                 
-                // Show task reminder modal if user has pending tasks
-                if (response.show_task_reminder) {
-                    showTaskReminderModal(response.punch_type || 'out');
-                }
-            } else {
-                showAlert('error', response.message);
-            }
-        },
-        error: function(xhr) {
-            console.error('Punch out error:', xhr.responseText);
-            if (xhr.status === 500) {
-                showAlert('error', 'Server error occurred. Please check the console for details.');
-            } else if (xhr.status === 422) {
-                // Check if it's the specific Pending Tasks error
-                const msg = xhr.responseJSON ? xhr.responseJSON.message : '';
-                if (msg && msg.includes('pending task(s) that were not updated today')) {
-                    showMessageModal('Action Required', msg, 'warning', true);
+                    
+                    // Show task reminder modal if user has pending tasks
+                    if (response.show_task_reminder) {
+                        showTaskReminderModal(response.punch_type || 'out');
+                    }
                 } else {
-                    showAlert('error', msg || 'Validation error');
+                    showAlert('error', response.message);
                 }
-            } else {
-                showAlert('error', 'An error occurred. Please try again.');
+            },
+            error: function(xhr) {
+                console.error('Punch out error:', xhr.responseText);
+                if (xhr.status === 500) {
+                    showAlert('error', 'Server error occurred. Please check the console for details.');
+                } else if (xhr.status === 422) {
+                    // Check if it's the specific Pending Tasks error
+                    const msg = xhr.responseJSON ? xhr.responseJSON.message : '';
+                    if (msg && msg.includes('pending task(s) that were not updated today')) {
+                        showMessageModal('Action Required', msg, 'warning', true);
+                    } else {
+                        showAlert('error', msg || 'Validation error');
+                    }
+                } else {
+                    showAlert('error', 'An error occurred. Please try again.');
+                }
             }
-        }
-    });
+        });
+    };
+
+    // Attempt to get location first
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                executePunchOut(position.coords.latitude, position.coords.longitude);
+            },
+            (error) => {
+                console.warn("Location access denied or failed:", error.message);
+                // Proceed without location; server will enforce if restriction is enabled
+                executePunchOut(null, null);
+            },
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
+    } else {
+        // Browser doesn't support geolocation
+        executePunchOut(null, null);
+    }
 }
 
 function showMessageModal(title, message, type = 'info', showTaskButton = false, showLeaveButton = false) {

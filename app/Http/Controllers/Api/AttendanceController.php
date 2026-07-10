@@ -551,6 +551,71 @@ class AttendanceController extends Controller
         }
 
 
+        // --- Location Validation Start (API) ---
+        $detectedPlaceName = null;
+        if (in_array($request->movement_type, ['office', 'field'])) {
+            $employee = null;
+            if ($user instanceof \App\Models\User) {
+                $employee = $user->employee;
+            } elseif (isset($user->id)) {
+                 $realUser = \App\Models\User::find($user->id);
+                 if ($realUser) $employee = $realUser->employee;
+            }
+
+            if ($employee && $employee->is_place_allowed) {
+                $isEmergency = $request->boolean('emergency_attendance');
+
+                if (empty($request->latitude) || empty($request->longitude)) {
+                    if (!$isEmergency) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Location access is required for attendance. Please enable location services.',
+                        ], 422);
+                    }
+                } else {
+                    $allowedPlaces = $employee->places;
+                    
+                    if ($allowedPlaces->count() > 0) {
+                        $isWithinRange = false;
+                        $userLat = (float) $request->latitude;
+                        $userLong = (float) $request->longitude;
+                        
+                        $minDistance = null;
+                        $closestPlaceRadius = 0;
+                        $closestPlaceName = '';
+
+                        foreach ($allowedPlaces as $place) {
+                            $distance = $this->haversineGreatCircleDistance(
+                                $userLat, $userLong, 
+                                $place->latitude, $place->longitude
+                            );
+                            
+                            if (is_null($minDistance) || $distance < $minDistance) {
+                                $minDistance = $distance;
+                                $closestPlaceRadius = $place->radius;
+                                $closestPlaceName = $place->placename;
+                            }
+
+                            if ($distance <= $place->radius) {
+                                $isWithinRange = true;
+                                $detectedPlaceName = $place->placename;
+                                break;
+                            }
+                        }
+
+                        if (!$isWithinRange && !$isEmergency) {
+                            $distStr = number_format($minDistance, 1);
+                            return response()->json([
+                                'success' => false,
+                                'message' => "You are not within the allowed radius. Closest: {$closestPlaceName} ({$distStr}m away, allowed {$closestPlaceRadius}m).",
+                            ], 403);
+                        }
+                    }
+                }
+            }
+        }
+        // --- Location Validation End (API) ---
+
         // Create punch out movement
         $movement = Movement::create([
             'attendance_id' => $attendance->id,
@@ -562,7 +627,7 @@ class AttendanceController extends Controller
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'mode' => 'mobile',
-            'place' => null,
+            'place' => $detectedPlaceName,
         ]);
 
         // Get current cycle number

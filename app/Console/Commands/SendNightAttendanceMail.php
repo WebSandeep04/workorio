@@ -250,6 +250,11 @@ class SendNightAttendanceMail extends Command
                         $dayData['status'] = $statusData['status'];
                         $dayData['status_reason'] = $statusData['reason'];
 
+                        if ($dayData['punch_out'] === 'Not Marked') {
+                            $dayData['status'] = 'absent';
+                            $dayData['status_reason'] = 'punchout is missing';
+                        }
+
                         $monthlyRecords[] = $dayData;
                         $monthlyOfficeTotalMinutes += $dayData['raw_office_minutes'];
 
@@ -283,7 +288,7 @@ class SendNightAttendanceMail extends Command
             // Who gets the email? "Send to all users including admin - filter valid emails"
             // where e.status = 'active'
             $recipientEmails = User::where(function($q) {
-                    $q->where('is_attendance', 1)->orWhere('role_id', 1);
+                     $q->where('is_attendance', 1)->orWhere('role_id', 1);
                 })
                 ->whereHas('employee', function ($q) {
                     $q->where('status', 'active');
