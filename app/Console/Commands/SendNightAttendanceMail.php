@@ -245,7 +245,7 @@ class SendNightAttendanceMail extends Command
                         $hasHalfDayLeave = ($userLeaves->get($date)->type ?? null) === 'HD';
                         $isOnLeave = $userLeaves->has($date);
                         
-                        $statusData = $this->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isOnLeave, $hasHalfDayLeave);
+                        $statusData = $reportService->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isOnLeave, $hasHalfDayLeave);
                         
                         $dayData['status'] = $statusData['status'];
                         $dayData['status_reason'] = $statusData['reason'];
@@ -398,48 +398,5 @@ class SendNightAttendanceMail extends Command
         return $hours . ':' . str_pad($minutes, 2, '0', STR_PAD_LEFT) . ' hrs';
     }
 
-    private function determineStatusAndReason($originalStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isLeave, $isHalfDayLeave)
-    {
-        $finalStatus = $originalStatusLabel;
-        $reason = '-';
 
-        $statusLower = strtolower($originalStatusLabel);
-
-        if (str_contains($statusLower, 'present') || str_contains($statusLower, 'working')) {
-            if ($lateBy > 0 && $previousGrace < $lateBy) {
-                $finalStatus = 'halfday';
-                $reason = 'Monthly grace exhausted';
-            } else if ($lateBy > 0) {
-                $reason = 'Covered under grace';
-            } else if (str_contains($statusLower, 'sl')) {
-                $reason = 'Present with SL';
-            } else {
-                $reason = '-';
-            }
-        } else if (str_contains($statusLower, 'absent')) {
-            if ($hours <= 0 && !$isLeave) {
-                $reason = 'No attendance recorded';
-            } else {
-                $reason = "Worked less than " . intval($halfDayHr) . " hrs";
-            }
-        } else if (str_contains($statusLower, 'halfday')) {
-            if ($isHalfDayLeave) {
-                $reason = 'Approved Half Day';
-            } else if ($lateBy > 0 && $previousGrace < $lateBy) {
-                $reason = 'Monthly grace exhausted';
-            } else {
-                $reason = "Worked less than " . intval($fullDayHr) . " hrs";
-            }
-        } else if (str_contains($statusLower, 'leave') || str_contains($statusLower, 'holiday') || str_contains($statusLower, 'off')) {
-            if (str_contains($statusLower, 'leave') && !str_contains($statusLower, 'sl')) {
-                $finalStatus = 'On Leave';
-                $reason = 'On Leave';
-            } else {
-                $finalStatus = ucwords($originalStatusLabel);
-                $reason = '-';
-            }
-        }
-
-        return ['status' => $finalStatus, 'reason' => $reason];
-    }
 }

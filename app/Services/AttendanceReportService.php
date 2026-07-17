@@ -255,6 +255,51 @@ class AttendanceReportService
         ];
     }
 
+    public function determineStatusAndReason($originalStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isLeave, $isHalfDayLeave)
+    {
+        $finalStatus = $originalStatusLabel;
+        $reason = '-';
+
+        $statusLower = strtolower($originalStatusLabel);
+
+        if (str_contains($statusLower, 'present') || str_contains($statusLower, 'working')) {
+            if ($lateBy > 0 && $previousGrace < $lateBy) {
+                $finalStatus = 'halfday';
+                $reason = 'Monthly grace exhausted';
+            } else if ($lateBy > 0) {
+                $reason = 'Covered under grace';
+            } else if (str_contains($statusLower, 'sl')) {
+                $reason = 'Present with SL';
+            } else {
+                $reason = '-';
+            }
+        } else if (str_contains($statusLower, 'absent')) {
+            if ($hours <= 0 && !$isLeave) {
+                $reason = 'No attendance recorded';
+            } else {
+                $reason = "Worked less than " . intval($halfDayHr) . " hrs";
+            }
+        } else if (str_contains($statusLower, 'halfday')) {
+            if ($isHalfDayLeave) {
+                $reason = 'Approved Half Day';
+            } else if ($lateBy > 0 && $previousGrace < $lateBy) {
+                $reason = 'Monthly grace exhausted';
+            } else {
+                $reason = "Worked less than " . intval($fullDayHr) . " hrs";
+            }
+        } else if (str_contains($statusLower, 'leave') || str_contains($statusLower, 'holiday') || str_contains($statusLower, 'off')) {
+            if (str_contains($statusLower, 'leave') && !str_contains($statusLower, 'sl')) {
+                $finalStatus = 'On Leave';
+                $reason = 'On Leave';
+            } else {
+                $finalStatus = ucwords($originalStatusLabel);
+                $reason = '-';
+            }
+        }
+
+        return ['status' => $finalStatus, 'reason' => $reason];
+    }
+
     /**
      * Calculate monthly summary statistics
      */
@@ -512,6 +557,8 @@ class AttendanceReportService
             return Carbon::parse($attendance->date)->format('Y-m-d');
         });
         
+        $cumulativeLateMinutes = 0;
+        
         $currentDate = $startDate->copy();
         while ($currentDate->lte($endDate)) {
             $dateStr = $currentDate->format('Y-m-d');
@@ -539,6 +586,7 @@ class AttendanceReportService
                 'leave_type' => $leaves[$dateStr] ?? null,
                 'holiday_name' => null,
                 'status' => 'absent',
+                'status_reason' => '-',
                 'hours' => 0,
                 'office_hours' => 0,
                 'field_hours' => 0,
@@ -546,6 +594,9 @@ class AttendanceReportService
                 'cycles' => ['office' => 0, 'field' => 0, 'break' => 0],
                 'first_in' => '-',
                 'last_out' => '-',
+                'late_by' => '-',
+                'grace_balance' => '-',
+                'late_reason' => '-',
                 'movements' => []
             ];
             
@@ -596,7 +647,40 @@ class AttendanceReportService
                 $slHours = ($dayData['leave_type'] === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                 $hasHalfDayLeave = ($dayData['leave_type'] === 'HD');
                 $statusInfo = $this->determineStatus($dateStr, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, $dayData['is_holiday'], $dayData['leave_type'], $hasHalfDayLeave, $slHours);
-                $dayData['status'] = $statusInfo['label'];
+                $origStatus = $statusInfo['label'];
+                
+                $lateBy = $dayData['late_minutes'];
+                $cumulativeLateMinutes += $lateBy;
+
+                $previousGrace = 0;
+                if ($shift && isset($shift->min_per_month_late_allow)) {
+                    $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
+                    $dayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
+                    $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
+                }
+
+                if ($lateBy > 0) {
+                    $dayData['late_by'] = $lateBy . ' min';
+                    if ($firstInMov && $firstInMov->description) {
+                        $desc = trim($firstInMov->description);
+                        $prefix = "Late punch-in: ";
+                        if (stripos($desc, $prefix) === 0) {
+                            $dayData['late_reason'] = trim(substr($desc, strlen($prefix)));
+                        } else {
+                            $dayData['late_reason'] = trim($desc);
+                        }
+                    }
+                }
+                
+                $statusData = $this->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave);
+                
+                $dayData['status'] = $statusData['status'];
+                $dayData['status_reason'] = $statusData['reason'];
+                
+                if ($dayData['last_out'] === '-' && $dayData['hours'] > 0) {
+                    $dayData['status'] = 'absent';
+                    $dayData['status_reason'] = 'punchout is missing';
+                }
                 
                 if ($dayData['is_holiday'] && $holidaysData && isset($holidaysData[$dateStr])) {
                     $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
@@ -619,6 +703,15 @@ class AttendanceReportService
                     }
                 } else {
                     $dayData['status'] = 'absent';
+                    $dayData['status_reason'] = 'No attendance recorded';
+                }
+                
+                // If user is absent today, update grace balance to current cumulative if we have shift data
+                if ($dayData['grace_balance'] === '-') {
+                    if ($shift && isset($shift->min_per_month_late_allow)) {
+                        $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
+                        $dayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
+                    }
                 }
             }
             

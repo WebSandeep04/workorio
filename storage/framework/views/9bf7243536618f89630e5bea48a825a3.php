@@ -371,12 +371,15 @@
                                 <tr>
                                     <th style="min-width:140px;">Date</th>
                                     <th>Status</th>
+                                    <th>Status Reason</th>
                                     <th>First In</th>
                                     <th>Last Out</th>
                                     <th>Total (H:MM)</th>
                                     <th>Office</th>
                                     <th>Field</th>
                                     <th>Break</th>
+                                    <th>Late By</th>
+                                    <th>Grace Bal.</th>
                                     <th>Late Reason</th>
                                     <th class="text-center">Details</th>
                                 </tr>
@@ -386,11 +389,13 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="4" class="text-end">TOTAL</td>
+                                    <td colspan="5" class="text-end">TOTAL</td>
                                     <td id="ftTotal"></td>
                                     <td id="ftOffice"></td>
                                     <td id="ftField"></td>
                                     <td id="ftBreak"></td>
+                                    <td></td>
+                                    <td></td>
                                     <td></td>
                                     <td></td>
                                 </tr>
@@ -539,12 +544,15 @@
                                 <tr>
                                     <th>User</th>
                                     <th>Status</th>
+                                    <th>Status Reason</th>
                                     <th>First In</th>
                                     <th>Last Out</th>
                                     <th>Total Hours</th>
                                     <th>Office</th>
                                     <th>Field</th>
                                     <th>Break</th>
+                                    <th>Late By</th>
+                                    <th>Grace Bal.</th>
                                     <th>Late Reason</th>
                                     <th class="text-center">Details</th>
                                 </tr>
@@ -641,7 +649,7 @@ function loadReport(){
     // Loading State
     summaryDiv.style.display = 'none';
     tableCard.style.display = 'block';
-    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading report...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading report...</td></tr>';
     
     $.ajax({
         url: '/attendance/report-data',
@@ -679,13 +687,16 @@ function loadReport(){
                             ${d.is_wfh ? '<span class="badge bg-secondary text-white ms-1" style="font-size: 0.6rem; vertical-align: middle;">WFH</span>' : ''}
                         </td>
                         <td>${statusBadge(d.status, d.holiday_name)}</td>
+                        <td style="font-size: 0.8rem; color: #555;">${d.status_reason || '-'}</td>
                         <td class="font-monospace">${firstIn||'-'}</td>
                         <td class="font-monospace">${lastOut||'-'}</td>
                         <td class="fw-bold">${hoursClock(d.hours)}</td>
                         <td>${hoursClock(d.office_hours)}</td>
                         <td>${hoursClock(d.field_hours)}</td>
                         <td>${hoursClock(d.break_time)}</td>
-                        <td class="text-break" style="color: #000; font-size: 0.85rem;">${d.description||'-'}</td>
+                        <td class="text-danger fw-bold" style="font-size: 0.8rem;">${d.late_by || '-'}</td>
+                        <td class="text-success fw-bold" style="font-size: 0.8rem;">${d.grace_balance || '-'}</td>
+                        <td class="text-break" style="color: #000; font-size: 0.85rem;">${d.late_reason || '-'}</td>
                         <td class="text-center">
                             <button class="btn-view-details shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#mov-${idx}" aria-expanded="false">
                                 <i class="bi bi-chevron-down"></i>
@@ -694,7 +705,7 @@ function loadReport(){
                     tbody.appendChild(tr);
                     
                     const trDet = document.createElement('tr');
-                    trDet.innerHTML = `<td colspan="10" class="p-0 border-0">
+                    trDet.innerHTML = `<td colspan="13" class="p-0 border-0">
                         <div id="mov-${idx}" class="collapse bg-light border-bottom">
                             ${renderMovements(d.movements)}
                         </div>
@@ -704,7 +715,7 @@ function loadReport(){
                     tot += Number(d.hours||0); to += Number(d.office_hours||0); tf += Number(d.field_hours||0); tb += Number(d.break_time||0);
                 });
             } else {
-                 tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">No data found for this period.</td></tr>';
+                 tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-muted">No data found for this period.</td></tr>';
             }
             
             document.getElementById('ftTotal').textContent = hoursClock(tot);
@@ -717,7 +728,7 @@ function loadReport(){
             if(xhr.responseJSON && xhr.responseJSON.message) {
                 msg = xhr.responseJSON.message;
             }
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-danger">${msg}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="13" class="text-center py-4 text-danger">${msg}</td></tr>`;
             console.error(xhr.responseText);
         }
     });
@@ -969,7 +980,7 @@ function loadDateReport() {
 
     summaryDiv.style.display = 'none';
     tableCard.style.display = 'block';
-    tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading day summary matrix...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading day summary matrix...</td></tr>';
     
     $.ajax({
         url: '/attendance/date-report-data',
@@ -1006,13 +1017,16 @@ function loadDateReport() {
                             ${d.is_wfh ? '<span class="badge bg-secondary text-white ms-1" style="font-size: 0.6rem; vertical-align: middle;">WFH</span>' : ''}
                         </td>
                         <td>${statusBadge(d.status, d.holiday_name)}</td>
+                        <td style="font-size: 0.8rem; color: #555;">${d.status_reason || '-'}</td>
                         <td class="font-monospace">${d.first_in}</td>
                         <td class="font-monospace">${d.last_out}</td>
                         <td class="fw-bold">${hoursClock(d.hours)}</td>
                         <td>${hoursClock(d.office_hours)}</td>
                         <td>${hoursClock(d.field_hours)}</td>
                         <td>${hoursClock(d.break_time)}</td>
-                        <td class="text-break" style="font-size: 0.85rem;">${d.description||'-'}</td>
+                        <td class="text-danger fw-bold" style="font-size: 0.8rem;">${d.late_by || '-'}</td>
+                        <td class="text-success fw-bold" style="font-size: 0.8rem;">${d.grace_balance || '-'}</td>
+                        <td class="text-break" style="font-size: 0.85rem;">${d.late_reason || '-'}</td>
                         <td class="text-center">
                             <button class="btn-view-details shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#date-mov-${idx}" aria-expanded="false">
                                 <i class="bi bi-chevron-down"></i>
@@ -1021,7 +1035,7 @@ function loadDateReport() {
                     tbody.appendChild(tr);
                     
                     const trDet = document.createElement('tr');
-                    trDet.innerHTML = `<td colspan="10" class="p-0 border-0">
+                    trDet.innerHTML = `<td colspan="13" class="p-0 border-0">
                         <div id="date-mov-${idx}" class="collapse bg-light border-bottom">
                             ${renderMovements(d.movements)}
                         </div>
@@ -1029,7 +1043,7 @@ function loadDateReport() {
                     tbody.appendChild(trDet);
                 });
             } else {
-                 tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">No data found for this date.</td></tr>';
+                 tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-muted">No data found for this date.</td></tr>';
             }
         },
         error: function(xhr){
@@ -1037,7 +1051,7 @@ function loadDateReport() {
             if(xhr.responseJSON && xhr.responseJSON.message) {
                 msg = xhr.responseJSON.message;
             }
-            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-danger">${msg}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="13" class="text-center py-4 text-danger">${msg}</td></tr>`;
             console.error(xhr.responseText);
         }
     });

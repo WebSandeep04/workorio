@@ -343,6 +343,7 @@ class AttendanceReportApiController extends Controller
             }
             
             $dailyStatuses = [];
+            $cumulativeLateMinutes = 0;
             
             foreach ($dates as $d) {
                 $dateStr = $d['date'];
@@ -377,35 +378,76 @@ class AttendanceReportApiController extends Controller
                     $hasHalfDayLeave = ($leaveType === 'HD');
                     $statusInfo = $this->reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours);
                     
-                    $statusCode = $statusInfo['code'];
-                    $statusClass = $statusInfo['class'];
+                    $origStatusCode = $statusInfo['code'];
+                    $origStatusClass = $statusInfo['class'];
+                    $origStatusLabel = $statusInfo['label'];
+                    
+                    $lateBy = (int) abs($att->late_minutes ?? 0);
+                    $cumulativeLateMinutes += $lateBy;
+                    
+                    $previousGrace = 0;
+                    $graceBalance = '-';
+                    if ($shift && isset($shift->min_per_month_late_allow)) {
+                        $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
+                        $graceBalance = max(0, $graceBalanceVal) . ' min';
+                        $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
+                    }
+                    
+                    $statusData = $this->reportService->determineStatusAndReason($origStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($userLeavesDetails[$dateStr]), $hasHalfDayLeave);
+                    
+                    $finalLabel = strtolower($statusData['status']);
+                    if ($finalLabel === 'absent') {
+                        $statusCode = 'A';
+                        $statusClass = 'text-danger';
+                    } elseif ($finalLabel === 'halfday') {
+                        $statusCode = 'P2';
+                        $statusClass = 'text-primary';
+                    } else {
+                        $statusCode = $origStatusCode;
+                        $statusClass = $origStatusClass;
+                    }
+                    $statusReason = $statusData['reason'];
+                    
+                    $lastOutMov = $att->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->last();
+                    if (!$lastOutMov && $hours > 0) {
+                        $statusCode = 'A';
+                        $statusClass = 'text-danger';
+                        $statusReason = 'punchout is missing';
+                    }
                 } elseif (in_array($dateStr, $holidays)) {
                     $statusCode = 'H';
                     $statusClass = 'text-secondary';
+                    $statusReason = '-';
                 } elseif ($isWeeklyOff) {
                     $statusCode = 'S';
                     $statusClass = 'text-danger small';
+                    $statusReason = '-';
                 } elseif (isset($userLeavesDetails[$dateStr])) {
                     $lType = $userLeavesDetails[$dateStr];
                     if ($lType === 'RH') {
                         $statusCode = 'RH';
                         $statusClass = 'text-primary';
+                        $statusReason = '-';
                     } elseif ($lType === 'SL') {
                         $statusCode = 'SL';
                         $statusClass = 'text-info';
+                        $statusReason = '-';
                     } else {
                         $statusCode = 'L';
                         $statusClass = 'text-warning';
+                        $statusReason = 'On Leave';
                     }
                 } else {
                     $statusCode = 'A';
                     $statusClass = 'text-danger';
+                    $statusReason = 'No attendance recorded';
                 }
                 
                 $dailyStatuses[] = [
                     'date' => $dateStr,
                     'code' => $statusCode,
-                    'class' => $statusClass
+                    'class' => $statusClass,
+                    'reason' => $statusReason
                 ];
             }
 
@@ -435,6 +477,7 @@ class AttendanceReportApiController extends Controller
     private function _fetchDateReportData($date)
     {
         $carbonDate = Carbon::parse($date);
+        $startOfMonth = $carbonDate->copy()->startOfMonth()->format('Y-m-d');
         
         $users = User::with(['employee.shiftRelation'])
             ->where('role_id', '!=', 1)
@@ -448,27 +491,40 @@ class AttendanceReportApiController extends Controller
         $attendances = Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
             }])
-            ->where('date', $date)
+            ->whereBetween('date', [$startOfMonth, $date])
             ->get()
-            ->keyBy('user_id');
+            ->groupBy('user_id');
 
         $holiday = Holiday::where('holiday_date', $date)->first();
         $isSunday = $carbonDate->dayOfWeek === Carbon::SUNDAY;
 
         $leavesRaw = LeaveRequest::where('status', 'approved')
-            ->where('start_date', '<=', $date)
-            ->where('end_date', '>=', $date)
+            ->where(function($query) use ($startOfMonth, $date) {
+                $query->whereBetween('start_date', [$startOfMonth, $date])
+                      ->orWhereBetween('end_date', [$startOfMonth, $date])
+                      ->orWhere(function($q) use ($startOfMonth, $date) {
+                          $q->where('start_date', '<=', $startOfMonth)
+                            ->where('end_date', '>=', $date);
+                      });
+            })
             ->get();
         
         $leaves = collect();
         foreach ($leavesRaw as $req) {
-            if (!$leaves->has($req->user_id)) {
-                $leaves->put($req->user_id, collect([(object)[
-                    'date' => Carbon::parse($date), 
-                    'is_rh' => $req->is_rh, 
-                    'is_sl' => $req->is_sl,
-                    'is_half_day' => $req->is_half_day
-                ]]));
+            $period = new \DatePeriod(new \DateTime($req->start_date), new \DateInterval('P1D'), (new \DateTime($req->end_date))->modify('+1 day'));
+            foreach ($period as $dt) {
+                $d = $dt->format('Y-m-d');
+                if ($dt >= new \DateTime($startOfMonth) && $dt <= new \DateTime($date)) {
+                    if (!$leaves->has($req->user_id)) {
+                        $leaves->put($req->user_id, collect());
+                    }
+                    $leaves->get($req->user_id)->push((object)[
+                        'date' => Carbon::parse($d), 
+                        'is_rh' => $req->is_rh, 
+                        'is_sl' => $req->is_sl,
+                        'is_half_day' => $req->is_half_day
+                    ]);
+                }
             }
         }
 
@@ -476,21 +532,32 @@ class AttendanceReportApiController extends Controller
         $reportData = [];
 
         foreach ($users as $user) {
-            $attendance = $attendances->get($user->id);
-            $userLeaves = $leaves->get($user->id);
-            $leaveObj = $userLeaves ? $userLeaves->first() : null;
+            $userAttendances = $attendances->get($user->id, collect());
+            $attendance = $userAttendances->firstWhere('date', $date);
+            
+            $userLeaves = $leaves->get($user->id, collect());
+            $leaveObj = $userLeaves->firstWhere('date', Carbon::parse($date));
             $leaveType = $leaveObj ? ($leaveObj->is_rh ? 'RH' : ($leaveObj->is_sl ? 'SL' : ($leaveObj->is_half_day ? 'HD' : 'L'))) : null;
             
+            // Calculate cumulative late minutes up to this date
+            $cumulativeLateMinutes = 0;
+            foreach ($userAttendances as $att) {
+                if ($att->date <= $date) {
+                    $cumulativeLateMinutes += (int) abs($att->late_minutes ?? 0);
+                }
+            }
+
             $dayData = [
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name
                 ],
                 'status' => 'absent',
+                'status_reason' => '-',
                 'holiday_name' => $holiday ? $holiday->name : null,
                 'is_weekly_off' => $isSunday,
                 'is_holiday' => !!$holiday,
-                'is_leave' => !!$userLeaves,
+                'is_leave' => !!$leaveObj,
                 'leave_type' => $leaveType,
                 'hours' => 0,
                 'office_hours' => 0,
@@ -498,6 +565,9 @@ class AttendanceReportApiController extends Controller
                 'break_time' => 0,
                 'first_in' => '-',
                 'last_out' => '-',
+                'late_by' => '-',
+                'grace_balance' => '-',
+                'late_reason' => '-',
                 'description' => null,
                 'is_wfh' => false,
                 'movements' => []
@@ -543,7 +613,37 @@ class AttendanceReportApiController extends Controller
                 $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                 $hasHalfDayLeave = ($leaveType === 'HD');
                 $statusInfo = $this->reportService->determineStatus($date, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours);
-                $dayData['status'] = $statusInfo['label'];
+                $origStatus = $statusInfo['label'];
+                
+                $lateBy = (int) abs($attendance->late_minutes ?? 0);
+                $previousGrace = 0;
+                if ($shift && isset($shift->min_per_month_late_allow)) {
+                    $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
+                    $dayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
+                    $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
+                }
+
+                if ($lateBy > 0) {
+                    $dayData['late_by'] = $lateBy . ' min';
+                    if ($firstInMov && $firstInMov->description) {
+                        $desc = trim($firstInMov->description);
+                        $prefix = "Late punch-in: ";
+                        if (stripos($desc, $prefix) === 0) {
+                            $dayData['late_reason'] = trim(substr($desc, strlen($prefix)));
+                        } else {
+                            $dayData['late_reason'] = trim($desc);
+                        }
+                    }
+                }
+                
+                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave);
+                $dayData['status'] = $statusData['status'];
+                $dayData['status_reason'] = $statusData['reason'];
+                
+                if ($dayData['last_out'] === '-' && $dayData['hours'] > 0) {
+                    $dayData['status'] = 'absent';
+                    $dayData['status_reason'] = 'punchout is missing';
+                }
 
                 $descriptions = $attendance->movements
                     ->map(fn($m) => $m->description ? trim($m->description) : null)
@@ -565,13 +665,24 @@ class AttendanceReportApiController extends Controller
                 $dayData['status'] = 'weekly off';
             } elseif ($holiday) {
                 $dayData['status'] = 'holiday';
-            } elseif ($userLeaves) {
+            } elseif ($leaveObj) {
                 if ($leaveType === 'RH') {
                     $dayData['status'] = 'restricted holiday';
                 } elseif ($leaveType === 'SL') {
                     $dayData['status'] = 'short leave';
                 } else {
                     $dayData['status'] = 'leave';
+                    $dayData['status_reason'] = 'On Leave';
+                }
+            } else {
+                $dayData['status'] = 'absent';
+                $dayData['status_reason'] = 'No attendance recorded';
+            }
+            
+            if ($dayData['grace_balance'] === '-') {
+                if ($shift && isset($shift->min_per_month_late_allow)) {
+                    $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
+                    $dayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
                 }
             }
 
