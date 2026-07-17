@@ -163,9 +163,6 @@ class AttendanceReportService
         return $cycles;
     }
 
-    /**
-     * Determine status label and class
-     */
     public function determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false, $shortLeaveHr = 0)
     {
         $hoursInMinutes = (int) round($hours * 60);
@@ -173,8 +170,14 @@ class AttendanceReportService
         $halfDayInMinutes = (int) round($halfDayHr * 60);
         $shortLeaveInMinutes = (int) round($shortLeaveHr * 60);
         
-        // For SL, we add the sl duration to worked hours
-        // For Half Day Leave, we assume it covers half the required hours
+        // Prevent SL stacking with Half Day Leave
+        if ($hasHalfDayLeave) {
+            $shortLeaveInMinutes = 0;
+            if ($leaveType === 'SL') {
+                $leaveType = 'HD';
+            }
+        }
+
         $effectiveInMinutes = $hoursInMinutes + $shortLeaveInMinutes + ($hasHalfDayLeave ? $halfDayInMinutes : 0);
 
         if ($isWeeklyOff) {
@@ -194,62 +197,62 @@ class AttendanceReportService
             ];
         }
 
-        if ($leaveType === 'SL') {
-            if ($effectiveInMinutes >= $fullDayInMinutes) {
-                return [
-                    'code' => 'P (SL)',
-                    'label' => 'present with SL',
-                    'class' => 'text-success'
-                ];
-            } elseif ($effectiveInMinutes >= $halfDayInMinutes) {
-                return [
-                    'code' => 'P (HD/SL)',
-                    'label' => 'present (partial leave)',
-                    'class' => 'text-success'
-                ];
-            } else {
-                return [
-                    'code' => 'SL',
-                    'label' => 'short leave',
-                    'class' => 'text-info'
-                ];
-            }
-        }
-
-        if ($effectiveInMinutes >= $fullDayInMinutes) {
-            $code = 'P';
-            $label = 'present';
-            if ($shortLeaveInMinutes > 0) {
-                $code = 'P (SL)';
-                $label = 'present with SL';
-            } elseif ($hasHalfDayLeave) {
-                $code = 'P (HD)';
-                $label = 'present with HD';
-            }
-            return [
-                'code' => $code,
-                'label' => $label,
-                'class' => 'text-success'
-            ];
-        } elseif ($hoursInMinutes >= $halfDayInMinutes || ($hasHalfDayLeave && $hoursInMinutes > 0) || ($effectiveInMinutes >= $halfDayInMinutes && $shortLeaveInMinutes > 0)) {
-            return [
-                'code' => ($hasHalfDayLeave || $shortLeaveInMinutes > 0) ? 'P (HD/SL)' : 'P2',
-                'label' => ($hasHalfDayLeave || $shortLeaveInMinutes > 0) ? 'present (partial leave)' : 'halfday',
-                'class' => ($hasHalfDayLeave || $shortLeaveInMinutes > 0) ? 'text-success' : 'text-primary'
-            ];
-        } elseif ($leaveType === 'L' || $leaveType === 'RH') {
-            return [
-                'code' => $leaveType,
-                'label' => $leaveType === 'L' ? 'leave' : 'restricted holiday',
-                'class' => 'text-warning'
-            ];
-        } else {
+        // If SL is taken but worked hours < half day hr, it's simply absent
+        if ($leaveType === 'SL' && $hoursInMinutes < $halfDayInMinutes) {
             return [
                 'code' => 'A',
                 'label' => 'absent by less hr',
                 'class' => 'text-danger'
             ];
         }
+
+        // If has half day leave but worked hours >= full day hr, simply present
+        if ($hoursInMinutes >= $fullDayInMinutes) {
+            return [
+                'code' => 'P',
+                'label' => 'present',
+                'class' => 'text-success'
+            ];
+        }
+
+        if ($effectiveInMinutes >= $fullDayInMinutes) {
+            $code = 'P';
+            $label = 'present';
+            
+            if ($shortLeaveInMinutes > 0) {
+                $code = 'P (SL)';
+                $label = 'present with SL';
+            }
+            
+            return [
+                'code' => $code,
+                'label' => $label,
+                'class' => 'text-success'
+            ];
+        } 
+        
+        // Pure halfday logic without partial leave labels
+        if ($hoursInMinutes >= $halfDayInMinutes) {
+            return [
+                'code' => 'P2',
+                'label' => 'halfday',
+                'class' => 'text-primary'
+            ];
+        } 
+        
+        if ($leaveType === 'L' || $leaveType === 'RH') {
+            return [
+                'code' => $leaveType,
+                'label' => $leaveType === 'L' ? 'leave' : 'restricted holiday',
+                'class' => 'text-warning'
+            ];
+        } 
+        
+        return [
+            'code' => 'A',
+            'label' => 'absent by less hr',
+            'class' => 'text-danger'
+        ];
     }
 
     /**
