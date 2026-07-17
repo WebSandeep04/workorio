@@ -187,16 +187,21 @@
                         <tr>
                             <th>Date</th>
                             <th>Status</th>
+                            <th>Status Reason</th>
                             <th>First In</th>
                             <th>Last Out</th>
-                            <th>Office Hours</th>
-                            <th>Field Hours</th>
                             <th>Total Hours</th>
-                            <th class="text-center">Action</th>
+                            <th>Office</th>
+                            <th>Field</th>
+                            <th>Break</th>
+                            <th>Late By</th>
+                            <th>Grace Bal.</th>
+                            <th>Late Reason</th>
+                            <th class="text-center">Details</th>
                         </tr>
                     </thead>
                     <tbody id="attendanceTableBody">
-                        <tr><td colspan="8" class="text-center py-4 text-muted">Loading...</td></tr>
+                        <tr><td colspan="13" class="text-center py-4 text-muted">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -240,7 +245,7 @@ function loadAttendanceHistory() {
     const tbody = document.getElementById('attendanceTableBody');
     const month = document.getElementById('monthFilter').value;
     
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</td></tr>';
     
     $.ajax({
         url: '/attendance/history/data',
@@ -250,11 +255,11 @@ function loadAttendanceHistory() {
             if (response && response.attendances) {
                 displayAttendanceData(response.attendances, response.summary);
             } else {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Data format error</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="13" class="text-center text-danger">Data format error</td></tr>';
             }
         },
         error: function(xhr) {
-             tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Failed to load attendance history</td></tr>';
+             tbody.innerHTML = '<tr><td colspan="13" class="text-center text-danger">Failed to load attendance history</td></tr>';
         }
     });
 }
@@ -264,7 +269,7 @@ function displayAttendanceData(attendances, summary) {
     const tbody = document.getElementById('attendanceTableBody');
     
     if (!attendances || attendances.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No attendance records found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="13" class="text-center text-muted">No attendance records found</td></tr>';
         updateSummaryStats([], summary);
         return;
     }
@@ -275,6 +280,7 @@ function displayAttendanceData(attendances, summary) {
         const status = (attendance.status || 'absent').toLowerCase();
         const officeHours = attendance.office_hours || 0;
         const fieldHours = attendance.field_hours || 0;
+        const breakHours = attendance.break_time || 0;
         const totalHours = attendance.hours || 0;
         
         let statusBadge = '';
@@ -290,7 +296,7 @@ function displayAttendanceData(attendances, summary) {
                 statusBadge = `<span class="badge bg-success-subtle text-success border border-success-subtle px-2">${displayLabel}</span>`;
                 break;
             case 'halfday':
-                statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2">Half-Day</span>';
+                statusBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2">Half-Day</span>';
                 break;
             case 'weekly off':
             case 'sunday':
@@ -311,7 +317,6 @@ function displayAttendanceData(attendances, summary) {
                 statusBadge = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2">${displayLabel}</span>`;
                 break;
             default:
-                // Check for 'working' suffix which handles dynamic 'Monday Working', etc.
                 if (status.includes('working')) {
                     statusBadge = `<span class="badge bg-info-subtle text-info border border-info-subtle px-2">${displayLabel}</span>`;
                 } else {
@@ -322,15 +327,20 @@ function displayAttendanceData(attendances, summary) {
         html += `<tr class="${rowClass}">
             <td class="fw-bold">${dateStr}</td>
             <td>${statusBadge}</td>
+            <td class="text-muted small">${attendance.status_reason || '-'}</td>
             <td>${attendance.first_in || '-'}</td>
             <td>${attendance.last_out || '-'}</td>
+            <td class="fw-bold text-dark">${totalHours > 0 ? formatHoursMinutes(totalHours) : '-'}</td>
             <td>${officeHours > 0 ? formatHoursMinutes(officeHours) : '-'}</td>
             <td>${fieldHours > 0 ? formatHoursMinutes(fieldHours) : '-'}</td>
-            <td class="fw-bold text-dark">${totalHours > 0 ? formatHoursMinutes(totalHours) : '-'}</td>
+            <td>${breakHours > 0 ? formatHoursMinutes(breakHours) : '-'}</td>
+            <td class="${attendance.late_by && attendance.late_by !== '-' ? 'text-danger fw-medium' : ''}">${attendance.late_by || '-'}</td>
+            <td class="text-success fw-medium">${attendance.grace_balance || '-'}</td>
+            <td class="text-muted small" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${attendance.late_reason || ''}">${attendance.late_reason || '-'}</td>
             <td class="text-center">
                 ${attendance.movements && attendance.movements.length > 0 ? `
                 <button type="button" class="btn btn-sm text-white shadow-sm" style="background-color: #434afa; border:none; padding: 0.25rem 0.75rem; border-radius: 4px;" onclick="viewMovementsForDate('${attendance.date}')">
-                    <i class="fas fa-eye"></i> View
+                    <i class="fas fa-chevron-down"></i>
                 </button>
                 ` : '-'}
             </td>
