@@ -1336,6 +1336,7 @@ class AttendanceController extends Controller
     private function _fetchDateReportData($date)
     {
         $carbonDate = Carbon::parse($date);
+        $startOfMonth = $carbonDate->copy()->startOfMonth()->format('Y-m-d');
         
         $users = User::with(['employee.shiftRelation'])
             ->where('role_id', '!=', 1)
@@ -1349,27 +1350,40 @@ class AttendanceController extends Controller
         $attendances = Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
             }])
-            ->where('date', $date)
+            ->whereBetween('date', [$startOfMonth, $date])
             ->get()
-            ->keyBy('user_id');
+            ->groupBy('user_id');
 
         $holiday = Holiday::where('holiday_date', $date)->first();
         $isSunday = $carbonDate->dayOfWeek === Carbon::SUNDAY;
 
-        $leavesRaw = \App\Models\LeaveRequest::where('status', 'approved')
-            ->where('start_date', '<=', $date)
-            ->where('end_date', '>=', $date)
+        $leavesRaw = LeaveRequest::where('status', 'approved')
+            ->where(function($query) use ($startOfMonth, $date) {
+                $query->whereBetween('start_date', [$startOfMonth, $date])
+                      ->orWhereBetween('end_date', [$startOfMonth, $date])
+                      ->orWhere(function($q) use ($startOfMonth, $date) {
+                          $q->where('start_date', '<=', $startOfMonth)
+                            ->where('end_date', '>=', $date);
+                      });
+            })
             ->get();
         
         $leaves = collect();
         foreach ($leavesRaw as $req) {
-            if (!$leaves->has($req->user_id)) {
-                $leaves->put($req->user_id, collect([(object)[
-                    'date' => \Carbon\Carbon::parse($date), 
-                    'is_rh' => $req->is_rh, 
-                    'is_sl' => $req->is_sl,
-                    'is_half_day' => $req->is_half_day
-                ]]));
+            $period = new \DatePeriod(new \DateTime($req->start_date), new \DateInterval('P1D'), (new \DateTime($req->end_date))->modify('+1 day'));
+            foreach ($period as $dt) {
+                $d = $dt->format('Y-m-d');
+                if ($dt >= new \DateTime($startOfMonth) && $dt <= new \DateTime($date)) {
+                    if (!$leaves->has($req->user_id)) {
+                        $leaves->put($req->user_id, collect());
+                    }
+                    $leaves->get($req->user_id)->push((object)[
+                        'date' => Carbon::parse($d), 
+                        'is_rh' => $req->is_rh, 
+                        'is_sl' => $req->is_sl,
+                        'is_half_day' => $req->is_half_day
+                    ]);
+                }
             }
         }
 
@@ -1377,21 +1391,36 @@ class AttendanceController extends Controller
         $reportData = [];
 
         foreach ($users as $user) {
-            $attendance = $attendances->get($user->id);
-            $userLeaves = $leaves->get($user->id);
-            $leaveObj = $userLeaves ? $userLeaves->first() : null;
+            $userAttendances = $attendances->get($user->id, collect());
+            $attendance = $userAttendances->first(function($att) use ($date) {
+                return $att->date->format('Y-m-d') === $date;
+            });
+            
+            $userLeaves = $leaves->get($user->id, collect());
+            $leaveObj = $userLeaves->first(function($l) use ($date) {
+                return Carbon::parse($l->date)->format('Y-m-d') === $date;
+            });
             $leaveType = $leaveObj ? ($leaveObj->is_rh ? 'RH' : ($leaveObj->is_sl ? 'SL' : ($leaveObj->is_half_day ? 'HD' : 'L'))) : null;
             
+            // Calculate cumulative late minutes up to this date
+            $cumulativeLateMinutes = 0;
+            foreach ($userAttendances as $att) {
+                if ($att->date->format('Y-m-d') <= $date) {
+                    $cumulativeLateMinutes += (int) abs($att->late_minutes ?? 0);
+                }
+            }
+
             $dayData = [
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name
                 ],
                 'status' => 'absent',
+                'status_reason' => '-',
                 'holiday_name' => $holiday ? $holiday->name : null,
-                'is_sunday' => $isSunday,
+                'is_weekly_off' => $isSunday,
                 'is_holiday' => !!$holiday,
-                'is_leave' => !!$userLeaves,
+                'is_leave' => !!$leaveObj,
                 'leave_type' => $leaveType,
                 'hours' => 0,
                 'office_hours' => 0,
@@ -1399,6 +1428,9 @@ class AttendanceController extends Controller
                 'break_time' => 0,
                 'first_in' => '-',
                 'last_out' => '-',
+                'late_by' => '-',
+                'grace_balance' => '-',
+                'late_reason' => '-',
                 'description' => null,
                 'is_wfh' => false,
                 'movements' => []
@@ -1416,14 +1448,14 @@ class AttendanceController extends Controller
                 }
             }
 
-            $dayData['is_sunday'] = $isWeeklyOff; // Using is_sunday key for compatibility with existing UI if needed
+            $dayData['is_weekly_off'] = $isWeeklyOff;
 
             if ($attendance) {
                 $dayData['hours'] = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
                 $dayData['office_hours'] = $this->reportService->calculateTypeHours($attendance->movements, 'office');
                 $dayData['field_hours'] = $this->reportService->calculateTypeHours($attendance->movements, 'field');
                 $dayData['break_time'] = $this->reportService->calculateTypeHours($attendance->movements, 'break');
-                $dayData['is_wfh'] = $attendance->is_wfh;
+                $dayData['is_wfh'] = (bool)$attendance->is_wfh;
                 
                 $firstInMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'in')->first();
                 if ($firstInMov) {
@@ -1444,7 +1476,37 @@ class AttendanceController extends Controller
                 $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                 $hasHalfDayLeave = ($leaveType === 'HD');
                 $statusInfo = $this->reportService->determineStatus($date, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours);
-                $dayData['status'] = $statusInfo['label'];
+                $origStatus = $statusInfo['label'];
+                
+                $lateBy = (int) abs($attendance->late_minutes ?? 0);
+                $previousGrace = 0;
+                if ($shift && isset($shift->min_per_month_late_allow)) {
+                    $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
+                    $dayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
+                    $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
+                }
+
+                if ($lateBy > 0) {
+                    $dayData['late_by'] = $lateBy . ' min';
+                    if ($firstInMov && $firstInMov->description) {
+                        $desc = trim($firstInMov->description);
+                        $prefix = "Late punch-in: ";
+                        if (stripos($desc, $prefix) === 0) {
+                            $dayData['late_reason'] = trim(substr($desc, strlen($prefix)));
+                        } else {
+                            $dayData['late_reason'] = trim($desc);
+                        }
+                    }
+                }
+                
+                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave);
+                $dayData['status'] = $statusData['status'];
+                $dayData['status_reason'] = $statusData['reason'];
+                
+                if ($dayData['last_out'] === '-' && $dayData['hours'] > 0) {
+                    $dayData['status'] = 'absent';
+                    $dayData['status_reason'] = 'punchout is missing';
+                }
 
                 $descriptions = $attendance->movements
                     ->map(fn($m) => $m->description ? trim($m->description) : null)
@@ -1466,13 +1528,24 @@ class AttendanceController extends Controller
                 $dayData['status'] = 'weekly off';
             } elseif ($holiday) {
                 $dayData['status'] = 'holiday';
-            } elseif ($userLeaves) {
+            } elseif ($leaveObj) {
                 if ($leaveType === 'RH') {
                     $dayData['status'] = 'restricted holiday';
                 } elseif ($leaveType === 'SL') {
                     $dayData['status'] = 'short leave';
                 } else {
                     $dayData['status'] = 'leave';
+                    $dayData['status_reason'] = 'On Leave';
+                }
+            } else {
+                $dayData['status'] = 'absent';
+                $dayData['status_reason'] = 'No attendance recorded';
+            }
+            
+            if ($dayData['grace_balance'] === '-') {
+                if ($shift && isset($shift->min_per_month_late_allow)) {
+                    $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
+                    $dayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
                 }
             }
 
@@ -1485,7 +1558,7 @@ class AttendanceController extends Controller
             'halfday' => 0,
             'absent' => 0,
             'leave' => 0,
-            'sunday_working' => 0,
+            'weekly_off_working' => 0,
             'holiday_working' => 0
         ];
 
@@ -1495,8 +1568,8 @@ class AttendanceController extends Controller
             [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
 
             if ($row['hours'] > 0) {
-                if ($row['is_sunday']) { // row['is_sunday'] contains isWeeklyOff
-                    $summary['sunday_working']++;
+                if ($row['is_weekly_off']) {
+                    $summary['weekly_off_working']++;
                 } elseif ($row['is_holiday']) {
                     $summary['holiday_working']++;
                 } else {
@@ -1511,7 +1584,7 @@ class AttendanceController extends Controller
             } else {
                 if ($row['is_leave']) {
                     $summary['leave']++;
-                } elseif (!$row['is_sunday'] && !$row['is_holiday']) {
+                } elseif (!$row['is_weekly_off'] && !$row['is_holiday']) {
                     $summary['absent']++;
                 }
             }

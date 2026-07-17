@@ -533,16 +533,20 @@ class AttendanceReportApiController extends Controller
 
         foreach ($users as $user) {
             $userAttendances = $attendances->get($user->id, collect());
-            $attendance = $userAttendances->firstWhere('date', $date);
+            $attendance = $userAttendances->first(function($att) use ($date) {
+                return $att->date->format('Y-m-d') === $date;
+            });
             
             $userLeaves = $leaves->get($user->id, collect());
-            $leaveObj = $userLeaves->firstWhere('date', Carbon::parse($date));
+            $leaveObj = $userLeaves->first(function($l) use ($date) {
+                return Carbon::parse($l->date)->format('Y-m-d') === $date;
+            });
             $leaveType = $leaveObj ? ($leaveObj->is_rh ? 'RH' : ($leaveObj->is_sl ? 'SL' : ($leaveObj->is_half_day ? 'HD' : 'L'))) : null;
             
             // Calculate cumulative late minutes up to this date
             $cumulativeLateMinutes = 0;
             foreach ($userAttendances as $att) {
-                if ($att->date <= $date) {
+                if ($att->date->format('Y-m-d') <= $date) {
                     $cumulativeLateMinutes += (int) abs($att->late_minutes ?? 0);
                 }
             }

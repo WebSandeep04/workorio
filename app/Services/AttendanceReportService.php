@@ -279,6 +279,7 @@ class AttendanceReportService
             } else {
                 $reason = "Worked less than " . intval($halfDayHr) . " hrs";
             }
+            $finalStatus = 'absent';
         } else if (str_contains($statusLower, 'halfday')) {
             if ($isHalfDayLeave) {
                 $reason = 'Approved Half Day';
@@ -287,12 +288,13 @@ class AttendanceReportService
             } else {
                 $reason = "Worked less than " . intval($fullDayHr) . " hrs";
             }
+            $finalStatus = 'halfday';
         } else if (str_contains($statusLower, 'leave') || str_contains($statusLower, 'holiday') || str_contains($statusLower, 'off')) {
             if (str_contains($statusLower, 'leave') && !str_contains($statusLower, 'sl')) {
-                $finalStatus = 'On Leave';
+                $finalStatus = 'leave';
                 $reason = 'On Leave';
             } else {
-                $finalStatus = ucwords($originalStatusLabel);
+                $finalStatus = strtolower($originalStatusLabel);
                 $reason = '-';
             }
         }
