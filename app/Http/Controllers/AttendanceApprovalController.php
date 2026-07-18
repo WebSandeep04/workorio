@@ -732,7 +732,13 @@ class AttendanceApprovalController extends Controller
             $isValidWorking = in_array($statusInfo['code'], ['W/O-W', 'H/W']);
             \Log::info("Is Valid Working based on time restriction rules: " . ($isValidWorking ? 'YES' : 'NO'));
             
-            if ($isValidWorking) {
+            $grantCompOff = true;
+            if ($shift && isset($shift->grant_comp_off_for_overtime)) {
+                $grantCompOff = $shift->grant_comp_off_for_overtime;
+            }
+            \Log::info("Grant Comp Off on Overtime configured as: " . ($grantCompOff ? 'YES' : 'NO'));
+
+            if ($isValidWorking && $grantCompOff) {
                 // 3. Find the leave type for "Holiday Working" or "Compensatory Off"
                 $leaveType = LeaveType::where('name', 'like', '%Holiday Working%')
                     ->orWhere('name', 'like', '%Compensatory%')

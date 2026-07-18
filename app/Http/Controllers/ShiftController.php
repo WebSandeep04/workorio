@@ -70,6 +70,7 @@ class ShiftController extends Controller
             'grace_bounce_day' => 'nullable|integer|min:0',
             'exempt_grace_on_overtime' => 'nullable|boolean',
             'enforce_time_restriction_on_overtime' => 'nullable|boolean',
+            'grant_comp_off_for_overtime' => 'nullable|boolean',
             'is_active' => 'nullable|boolean',
             'sl_end_limit' => 'nullable|integer|min:0',
             'week_offs' => 'nullable|array',

@@ -175,13 +175,20 @@
                 </select>
               </div>
               <div class="col-md-3">
-                <label class="form-label-modern">Enforce Time on Overtime?</label>
+                <label class="form-label-modern">Time Restriction on W/O & Holiday?</label>
                 <select id="enforce_time_restriction_on_overtime" name="enforce_time_restriction_on_overtime" class="form-control form-control-modern">
-                    <option value="0">No (1 Min = Working)</option>
-                    <option value="1">Yes (Requires Half Day)</option>
+                  <option value="1">Yes</option>
+                  <option value="0">No</option>
                 </select>
               </div>
-          </div>
+              <div class="col-md-3">
+                <label class="form-label-modern">Grant Comp Off on W/O & Holiday?</label>
+                <select id="grant_comp_off_for_overtime" name="grant_comp_off_for_overtime" class="form-control form-control-modern">
+                  <option value="1" selected>Yes</option>
+                  <option value="0">No</option>
+                </select>
+              </div>
+            </div>
           <div class="row g-3 mb-4">
               <div class="col-md-3">
                 <label class="form-label-modern">Status</label>
@@ -351,8 +358,15 @@ $(function() {
         $('#min_per_month_late_allow').val(row.min_per_month_late_allow || 0);
         $('#is_grace_punish').val(row.is_grace_punish ? '1' : '0');
         $('#grace_bounce_day').val(row.grace_bounce_day || 0);
-        $('#exempt_grace_on_overtime').val(row.exempt_grace_on_overtime !== null ? (row.exempt_grace_on_overtime ? '1' : '0') : '1');
+        $('#exempt_grace_on_overtime').val(row.exempt_grace_on_overtime ? '1' : '0');
         $('#enforce_time_restriction_on_overtime').val(row.enforce_time_restriction_on_overtime ? '1' : '0');
+        
+        if (row.grant_comp_off_for_overtime !== undefined && row.grant_comp_off_for_overtime !== null) {
+            $('#grant_comp_off_for_overtime').val(row.grant_comp_off_for_overtime ? '1' : '0');
+        } else {
+            $('#grant_comp_off_for_overtime').val('1'); 
+        }
+
         $('#is_active').val(row.is_active ? '1' : '0');
 
         if(row.week_offs && Array.isArray(row.week_offs)) {
