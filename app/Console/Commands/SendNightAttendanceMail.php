@@ -245,7 +245,8 @@ class SendNightAttendanceMail extends Command
                         $hasHalfDayLeave = ($userLeaves->get($date)->type ?? null) === 'HD';
                         $isOnLeave = $userLeaves->has($date);
                         
-                        $statusData = $reportService->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isOnLeave, $hasHalfDayLeave);
+                        $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
+                        $statusData = $reportService->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isOnLeave, $hasHalfDayLeave, $isGracePunish);
                         
                         $dayData['status'] = $statusData['status'];
                         $dayData['status_reason'] = $statusData['reason'];

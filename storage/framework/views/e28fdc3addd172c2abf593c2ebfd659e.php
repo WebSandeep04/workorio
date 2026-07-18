@@ -153,6 +153,13 @@
                 <label class="form-label-modern">SL End Limit (H)</label>
                 <input type="number" class="form-control form-control-modern" id="sl_end_limit" name="sl_end_limit" min="0" value="0">
               </div>
+              <div class="col-md-3">
+                <label class="form-label-modern">Grace Punishment?</label>
+                <select id="is_grace_punish" name="is_grace_punish" class="form-control form-control-modern">
+                    <option value="0">No Penalty</option>
+                    <option value="1">Halfday on Late</option>
+                </select>
+              </div>
           </div>
 
           <div class="row g-3 mb-4">
@@ -322,6 +329,7 @@ $(function() {
         $('#half_day_hr').val(row.half_day_hr);
         $('#extended_hr').val(row.extended_hr);
         $('#min_per_month_late_allow').val(row.min_per_month_late_allow || 0);
+        $('#is_grace_punish').val(row.is_grace_punish ? '1' : '0');
         $('#is_active').val(row.is_active ? '1' : '0');
 
         if(row.week_offs && Array.isArray(row.week_offs)) {

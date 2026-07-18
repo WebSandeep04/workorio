@@ -1499,7 +1499,8 @@ class AttendanceController extends Controller
                     }
                 }
                 
-                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave);
+                $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
+                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish);
                 $dayData['status'] = $statusData['status'];
                 $dayData['status_reason'] = $statusData['reason'];
                 
@@ -1563,30 +1564,20 @@ class AttendanceController extends Controller
         ];
 
         foreach ($reportData as $row) {
-            $u = $users->firstWhere('id', $row['user']['id']);
-            $shift = $u->employee->shiftRelation ?? null;
-            [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
-
-            if ($row['hours'] > 0) {
-                if ($row['is_weekly_off']) {
-                    $summary['weekly_off_working']++;
-                } elseif ($row['is_holiday']) {
-                    $summary['holiday_working']++;
-                } else {
-                    if ($row['hours'] >= $fullDayHr) {
-                        $summary['present']++;
-                    } elseif ($row['hours'] >= $halfDayHr) {
-                        $summary['halfday']++;
-                    } else {
-                        $summary['absent']++;
-                    }
-                }
-            } else {
-                if ($row['is_leave']) {
-                    $summary['leave']++;
-                } elseif (!$row['is_weekly_off'] && !$row['is_holiday']) {
-                    $summary['absent']++;
-                }
+            $statusStr = strtolower($row['status']);
+            
+            if (str_contains($statusStr, 'present')) {
+                $summary['present']++;
+            } elseif (str_contains($statusStr, 'halfday')) {
+                $summary['halfday']++;
+            } elseif (str_contains($statusStr, 'absent')) {
+                $summary['absent']++;
+            } elseif (str_contains($statusStr, 'leave') || str_contains($statusStr, 'restricted')) {
+                $summary['leave']++;
+            } elseif (str_contains($statusStr, 'weekly off') && $row['hours'] > 0) {
+                $summary['weekly_off_working']++;
+            } elseif (str_contains($statusStr, 'holiday') && $row['hours'] > 0) {
+                $summary['holiday_working']++;
             }
         }
 
@@ -1851,6 +1842,7 @@ class AttendanceController extends Controller
             }
             
             $dailyStatuses = [];
+            $cumulativeLateMinutes = 0;
             
             foreach ($dates as $d) {
                 $dateStr = $d['date'];
@@ -1885,8 +1877,38 @@ class AttendanceController extends Controller
                     $hasHalfDayLeave = ($leaveType === 'HD');
                     $statusInfo = $this->reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours);
                     
-                    $statusCode = $statusInfo['code'];
-                    $statusClass = $statusInfo['class'];
+                    $origStatusCode = $statusInfo['code'];
+                    $origStatusClass = $statusInfo['class'];
+                    $origStatusLabel = $statusInfo['label'];
+                    
+                    $lateBy = (int) abs($att->late_minutes ?? 0);
+                    $cumulativeLateMinutes += $lateBy;
+                    
+                    $previousGrace = 0;
+                    if ($shift && isset($shift->min_per_month_late_allow)) {
+                        $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
+                    }
+                    
+                    $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
+                    $statusData = $this->reportService->determineStatusAndReason($origStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($userLeavesDetails[$dateStr]), $hasHalfDayLeave, $isGracePunish);
+                    
+                    $finalLabel = strtolower($statusData['status']);
+                    if ($finalLabel === 'absent') {
+                        $statusCode = 'A';
+                        $statusClass = 'text-danger';
+                    } elseif ($finalLabel === 'halfday') {
+                        $statusCode = 'P2';
+                        $statusClass = 'text-primary';
+                    } else {
+                        $statusCode = $origStatusCode;
+                        $statusClass = $origStatusClass;
+                    }
+                    
+                    $lastOutMov = $att->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->last();
+                    if (!$lastOutMov && $hours > 0) {
+                        $statusCode = 'A';
+                        $statusClass = 'text-danger';
+                    }
                 } elseif (in_array($dateStr, $holidays)) {
                     $statusCode = 'H'; // Holiday
                     $statusClass = 'text-secondary';

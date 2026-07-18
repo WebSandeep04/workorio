@@ -393,7 +393,8 @@ class AttendanceReportApiController extends Controller
                         $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
                     }
                     
-                    $statusData = $this->reportService->determineStatusAndReason($origStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($userLeavesDetails[$dateStr]), $hasHalfDayLeave);
+                    $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
+                    $statusData = $this->reportService->determineStatusAndReason($origStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($userLeavesDetails[$dateStr]), $hasHalfDayLeave, $isGracePunish);
                     
                     $finalLabel = strtolower($statusData['status']);
                     if ($finalLabel === 'absent') {
@@ -640,7 +641,8 @@ class AttendanceReportApiController extends Controller
                     }
                 }
                 
-                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave);
+                $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
+                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish);
                 $dayData['status'] = $statusData['status'];
                 $dayData['status_reason'] = $statusData['reason'];
                 
