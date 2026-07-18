@@ -267,7 +267,7 @@ class AttendanceReportService
                 if ($isGracePunish) {
                     if ($lateDaysExceeded > $graceBounceDays) {
                         $finalStatus = 'halfday';
-                        $reason = 'Monthly grace exhausted';
+                        $reason = 'Monthly grace exhausted & bounce limits passed';
                     } else {
                         $reason = 'Grace exhausted but covered under bounce day';
                     }

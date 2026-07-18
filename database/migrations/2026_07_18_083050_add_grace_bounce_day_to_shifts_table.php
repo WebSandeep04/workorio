@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database (multi-tenant check)
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
+
         Schema::table('shifts', function (Blueprint $table) {
             $table->integer('grace_bounce_day')->default(0)->nullable()->after('is_grace_punish');
         });
@@ -21,6 +26,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
+
         Schema::table('shifts', function (Blueprint $table) {
             $table->dropColumn('grace_bounce_day');
         });
