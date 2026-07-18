@@ -203,6 +203,7 @@ class SendNightAttendanceMail extends Command
                 $monthlyRecords = [];
                 $monthlyOfficeTotalMinutes = 0;
                 $cumulativeLateMinutes = 0;
+                $lateDaysExceeded = 0;
 
                 foreach ($allDates as $date) {
                     $isLeave = $userLeaves->has($date) && !$userAtts->has($date);
@@ -227,6 +228,13 @@ class SendNightAttendanceMail extends Command
                         $lateBy = (int) abs($att->late_minutes ?? 0);
                         $cumulativeLateMinutes += $lateBy;
                         
+                        if ($shift && $lateBy > 0) {
+                            $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $cumulativeLateMinutes) < 0;
+                            if ($isGraceExhaustedNow) {
+                                $lateDaysExceeded++;
+                            }
+                        }
+                        
                         $graceBalance = '-';
                         if ($shift && isset($shift->min_per_month_late_allow)) {
                             $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
@@ -246,7 +254,8 @@ class SendNightAttendanceMail extends Command
                         $isOnLeave = $userLeaves->has($date);
                         
                         $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
-                        $statusData = $reportService->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isOnLeave, $hasHalfDayLeave, $isGracePunish);
+                        $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
+                        $statusData = $reportService->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isOnLeave, $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded);
                         
                         $dayData['status'] = $statusData['status'];
                         $dayData['status_reason'] = $statusData['reason'];

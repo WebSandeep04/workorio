@@ -164,6 +164,10 @@
 
           <div class="row g-3 mb-4">
               <div class="col-md-3">
+                <label class="form-label-modern">Grace Bounce Days</label>
+                <input type="number" class="form-control form-control-modern" id="grace_bounce_day" name="grace_bounce_day" min="0" value="0" placeholder="e.g. 1">
+              </div>
+              <div class="col-md-3">
                 <label class="form-label-modern">Status</label>
                 <select id="is_active" name="is_active" class="form-control form-control-modern">
                     <option value="1">Active</option>
@@ -330,6 +334,7 @@ $(function() {
         $('#extended_hr').val(row.extended_hr);
         $('#min_per_month_late_allow').val(row.min_per_month_late_allow || 0);
         $('#is_grace_punish').val(row.is_grace_punish ? '1' : '0');
+        $('#grace_bounce_day').val(row.grace_bounce_day || 0);
         $('#is_active').val(row.is_active ? '1' : '0');
 
         if(row.week_offs && Array.isArray(row.week_offs)) {

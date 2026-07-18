@@ -1402,11 +1402,21 @@ class AttendanceController extends Controller
             });
             $leaveType = $leaveObj ? ($leaveObj->is_rh ? 'RH' : ($leaveObj->is_sl ? 'SL' : ($leaveObj->is_half_day ? 'HD' : 'L'))) : null;
             
+            $shift = $user->employee->shiftRelation ?? null;
             // Calculate cumulative late minutes up to this date
             $cumulativeLateMinutes = 0;
+            $lateDaysExceeded = 0;
             foreach ($userAttendances as $att) {
                 if ($att->date->format('Y-m-d') <= $date) {
-                    $cumulativeLateMinutes += (int) abs($att->late_minutes ?? 0);
+                    $lateBy = (int) abs($att->late_minutes ?? 0);
+                    $cumulativeLateMinutes += $lateBy;
+                    
+                    if ($shift && $lateBy > 0) {
+                        $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $cumulativeLateMinutes) < 0;
+                        if ($isGraceExhaustedNow) {
+                            $lateDaysExceeded++;
+                        }
+                    }
                 }
             }
 
@@ -1436,7 +1446,6 @@ class AttendanceController extends Controller
                 'movements' => []
             ];
 
-            $shift = $user->employee->shiftRelation ?? null;
             $isWeeklyOff = false;
             $isHalfDayWorking = false;
             if ($shift) {
@@ -1500,7 +1509,8 @@ class AttendanceController extends Controller
                 }
                 
                 $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
-                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish);
+                $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
+                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded);
                 $dayData['status'] = $statusData['status'];
                 $dayData['status_reason'] = $statusData['reason'];
                 
@@ -1843,6 +1853,7 @@ class AttendanceController extends Controller
             
             $dailyStatuses = [];
             $cumulativeLateMinutes = 0;
+            $lateDaysExceeded = 0;
             
             foreach ($dates as $d) {
                 $dateStr = $d['date'];
@@ -1884,13 +1895,21 @@ class AttendanceController extends Controller
                     $lateBy = (int) abs($att->late_minutes ?? 0);
                     $cumulativeLateMinutes += $lateBy;
                     
+                    if ($shift && $lateBy > 0) {
+                        $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $cumulativeLateMinutes) < 0;
+                        if ($isGraceExhaustedNow) {
+                            $lateDaysExceeded++;
+                        }
+                    }
+                    
                     $previousGrace = 0;
                     if ($shift && isset($shift->min_per_month_late_allow)) {
                         $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
                     }
                     
                     $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
-                    $statusData = $this->reportService->determineStatusAndReason($origStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($userLeavesDetails[$dateStr]), $hasHalfDayLeave, $isGracePunish);
+                    $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
+                    $statusData = $this->reportService->determineStatusAndReason($origStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($userLeavesDetails[$dateStr]), $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded);
                     
                     $finalLabel = strtolower($statusData['status']);
                     if ($finalLabel === 'absent') {

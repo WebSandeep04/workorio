@@ -255,7 +255,7 @@ class AttendanceReportService
         ];
     }
 
-    public function determineStatusAndReason($originalStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isLeave, $isHalfDayLeave, $isGracePunish = 0)
+    public function determineStatusAndReason($originalStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isLeave, $isHalfDayLeave, $isGracePunish = 0, $graceBounceDays = 0, $lateDaysExceeded = 0)
     {
         $finalStatus = $originalStatusLabel;
         $reason = '-';
@@ -265,9 +265,15 @@ class AttendanceReportService
         if (str_contains($statusLower, 'present') || str_contains($statusLower, 'working')) {
             if ($lateBy > 0 && $previousGrace < $lateBy) {
                 if ($isGracePunish) {
-                    $finalStatus = 'halfday';
+                    if ($lateDaysExceeded > $graceBounceDays) {
+                        $finalStatus = 'halfday';
+                        $reason = 'Monthly grace exhausted';
+                    } else {
+                        $reason = 'Grace exhausted but covered under bounce day';
+                    }
+                } else {
+                    $reason = 'Monthly grace exhausted';
                 }
-                $reason = 'Monthly grace exhausted';
             } else if ($lateBy > 0) {
                 $reason = 'Covered under grace';
             } else if (str_contains($statusLower, 'sl')) {
@@ -363,6 +369,7 @@ class AttendanceReportService
         $attendanceDates = [];
         $leaveDates = [];
         $holidaysWithAttendance = []; 
+        $lateDaysExceeded = 0;
         
         foreach ($attendances as $attendance) {
             $attendanceDate = Carbon::parse($attendance->date);
@@ -383,6 +390,13 @@ class AttendanceReportService
             $lateBy = (int) abs($attendance->late_minutes ?? 0);
             $previousGrace = $shift ? ($shift->min_per_month_late_allow - $totalLateMinutes) : 0;
             $totalLateMinutes += $lateBy;
+
+            if ($shift && $lateBy > 0) {
+                $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $totalLateMinutes) < 0;
+                if ($isGraceExhaustedNow) {
+                    $lateDaysExceeded++;
+                }
+            }
 
             if ($isWeeklyOff) {
                 $totalSundaysWorked++;
@@ -407,8 +421,9 @@ class AttendanceReportService
                 
                 $statusInfo = $this->determineStatus($dateStr, $dayHours, $fullDayHr, $halfDayHr, false, false, $leaveType, $hasHalfDayLeave, $slHours);
                 $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
+                $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
                 
-                $finalStatusData = $this->determineStatusAndReason($statusInfo['label'], $dayHours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($leaveMap[$dateStr]), $hasHalfDayLeave, $isGracePunish);
+                $finalStatusData = $this->determineStatusAndReason($statusInfo['label'], $dayHours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($leaveMap[$dateStr]), $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded);
                 $finalStatusLabel = strtolower($finalStatusData['status']);
 
                 $lastOutMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->last();
@@ -573,6 +588,7 @@ class AttendanceReportService
         });
         
         $cumulativeLateMinutes = 0;
+        $lateDaysExceeded = 0;
         
         $currentDate = $startDate->copy();
         while ($currentDate->lte($endDate)) {
@@ -667,6 +683,13 @@ class AttendanceReportService
                 $lateBy = $dayData['late_minutes'];
                 $cumulativeLateMinutes += $lateBy;
 
+                if ($shift && $lateBy > 0) {
+                    $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $cumulativeLateMinutes) < 0;
+                    if ($isGraceExhaustedNow) {
+                        $lateDaysExceeded++;
+                    }
+                }
+
                 $previousGrace = 0;
                 if ($shift && isset($shift->min_per_month_late_allow)) {
                     $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
@@ -688,7 +711,8 @@ class AttendanceReportService
                 }
                 
                 $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
-                $statusData = $this->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish);
+                $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
+                $statusData = $this->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded);
                 
                 $dayData['status'] = $statusData['status'];
                 $dayData['status_reason'] = $statusData['reason'];
