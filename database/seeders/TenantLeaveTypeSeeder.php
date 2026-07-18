@@ -50,6 +50,17 @@ class TenantLeaveTypeSeeder extends Seeder
                 'half_day_weight' => 0.5,
                 'color_code' => '#858796',
                 'description' => 'Unpaid leave.'
+            ],
+            [
+                'name' => 'Holiday Working',
+                'is_paid' => true,
+                'is_deductible' => true,
+                'full_day_weight' => 1.0,
+                'half_day_weight' => 1.0,
+                'allow_half_day' => false,
+                'quota_type' => 'yearly',
+                'color_code' => '#1cc88a',
+                'description' => 'Compensatory Off for working on a holiday or weekly off.'
             ]
         ];
 
