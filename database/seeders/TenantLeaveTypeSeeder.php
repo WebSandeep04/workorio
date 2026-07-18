@@ -20,24 +20,6 @@ class TenantLeaveTypeSeeder extends Seeder
 
         $types = [
             [
-                'name' => 'Casual Leave (CL)',
-                'is_paid' => true,
-                'is_deductible' => true,
-                'full_day_weight' => 1.0,
-                'half_day_weight' => 0.5,
-                'color_code' => '#4e73df',
-                'description' => 'General purpose leave.'
-            ],
-            [
-                'name' => 'Sick Leave (SL)',
-                'is_paid' => true,
-                'is_deductible' => true,
-                'full_day_weight' => 1.0,
-                'half_day_weight' => 0.5,
-                'color_code' => '#e74a3b',
-                'description' => 'Leave for medical reasons.'
-            ],
-            [
                 'name' => 'Short Leave (Permission)',
                 'is_paid' => true,
                 'is_deductible' => true,
@@ -59,16 +41,6 @@ class TenantLeaveTypeSeeder extends Seeder
                 'allow_half_day' => false,
                 'color_code' => '#36b9cc',
                 'description' => 'Selection from optional holiday list.'
-            ],
-            [
-                'name' => 'Maternity Leave',
-                'is_paid' => true,
-                'is_deductible' => true,
-                'full_day_weight' => 1.0,
-                'half_day_weight' => 1.0,
-                'allow_half_day' => false,
-                'color_code' => '#f6823e',
-                'description' => 'Maternity leave for female employees.'
             ],
             [
                 'name' => 'LWP (Leave Without Pay)',

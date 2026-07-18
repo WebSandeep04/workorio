@@ -753,7 +753,7 @@ class AttendanceApprovalController extends Controller
                     $leaveType = LeaveType::create([
                         'name' => 'Holiday Working',
                         'is_paid' => true,
-                        'is_deductible' => false,
+                        'is_deductible' => true,
                         'full_day_weight' => 1.0,
                         'half_day_weight' => 1.0,
                         'allow_half_day' => false,
