@@ -78,27 +78,74 @@
                 @csrf
                 <input type="hidden" id="edit_id" name="id">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="name" id="name" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" id="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Color Code</label>
+                            <input type="color" class="form-control form-control-color w-100" name="color_code" id="color_code" value="#434AFA" title="Choose your color">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" name="is_paid" id="is_paid">
+                                <option value="1">Paid</option>
+                                <option value="0">Unpaid</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Quota Type</label>
+                            <select class="form-select" name="quota_type" id="quota_type">
+                                <option value="yearly">Yearly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status" id="status">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3 form-check px-4">
+                            <input type="hidden" name="is_deductible" value="0">
+                            <input type="checkbox" class="form-check-input" name="is_deductible" id="is_deductible" value="1">
+                            <label class="form-check-label">Deductible</label>
+                        </div>
+                        <div class="col-md-3 form-check px-4">
+                            <input type="hidden" name="is_short_leave" value="0">
+                            <input type="checkbox" class="form-check-input" name="is_short_leave" id="is_short_leave" value="1">
+                            <label class="form-check-label">Short Leave</label>
+                        </div>
+                        <div class="col-md-3 form-check px-4">
+                            <input type="hidden" name="is_restricted" value="0">
+                            <input type="checkbox" class="form-check-input" name="is_restricted" id="is_restricted" value="1">
+                            <label class="form-check-label">Restricted Holiday</label>
+                        </div>
+                        <div class="col-md-3 form-check px-4">
+                            <input type="hidden" name="allow_half_day" value="0">
+                            <input type="checkbox" class="form-check-input" name="allow_half_day" id="allow_half_day" value="1">
+                            <label class="form-check-label">Allow Half Day</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Full Day Weight <span class="text-danger">*</span></label>
+                            <input type="number" step="0.1" class="form-control" name="full_day_weight" id="full_day_weight" value="1.0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Half Day Weight <span class="text-danger">*</span></label>
+                            <input type="number" step="0.1" class="form-control" name="half_day_weight" id="half_day_weight" value="0.5" required>
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Color Code</label>
-                        <input type="color" class="form-control form-control-color w-100" name="color_code" id="color_code" value="#434AFA" title="Choose your color">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Type (Paid/Unpaid)</label>
-                        <select class="form-select" name="is_paid" id="is_paid">
-                            <option value="1">Paid</option>
-                            <option value="0">Unpaid</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" name="status" id="status">
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                        </select>
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" id="description" rows="2"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -210,6 +257,15 @@ $(document).ready(function() {
         $('#is_paid').val(item.is_paid);
         $('#color_code').val(item.color_code);
         $('#status').val(item.status);
+        $('#quota_type').val(item.quota_type);
+        $('#full_day_weight').val(item.full_day_weight);
+        $('#half_day_weight').val(item.half_day_weight);
+        $('#description').val(item.description);
+        
+        $('#is_deductible').prop('checked', item.is_deductible == 1);
+        $('#is_short_leave').prop('checked', item.is_short_leave == 1);
+        $('#is_restricted').prop('checked', item.is_restricted == 1);
+        $('#allow_half_day').prop('checked', item.allow_half_day == 1);
         $('#modalTitle').text('Edit Leave Type');
         $('#createModal').modal('show');
     });

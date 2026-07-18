@@ -39,11 +39,19 @@ class LeaveTypeController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:leave_types,name',
             'is_paid' => 'boolean',
+            'is_deductible' => 'boolean',
+            'is_short_leave' => 'boolean',
+            'is_restricted' => 'boolean',
+            'full_day_weight' => 'required|numeric|min:0',
+            'half_day_weight' => 'required|numeric|min:0',
+            'allow_half_day' => 'boolean',
+            'quota_type' => 'required|in:monthly,yearly',
             'color_code' => 'nullable|string|max:50',
-            'status' => 'boolean'
+            'status' => 'boolean',
+            'description' => 'nullable|string|max:1000'
         ]);
 
-        LeaveType::create($request->only('name', 'is_paid', 'color_code', 'status'));
+        LeaveType::create($request->only('name', 'is_paid', 'is_deductible', 'is_short_leave', 'is_restricted', 'full_day_weight', 'half_day_weight', 'allow_half_day', 'quota_type', 'color_code', 'status', 'description'));
         return response()->json(['success' => true]);
     }
 
@@ -52,11 +60,19 @@ class LeaveTypeController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:leave_types,name,' . $id,
             'is_paid' => 'boolean',
+            'is_deductible' => 'boolean',
+            'is_short_leave' => 'boolean',
+            'is_restricted' => 'boolean',
+            'full_day_weight' => 'required|numeric|min:0',
+            'half_day_weight' => 'required|numeric|min:0',
+            'allow_half_day' => 'boolean',
+            'quota_type' => 'required|in:monthly,yearly',
             'color_code' => 'nullable|string|max:50',
-            'status' => 'boolean'
+            'status' => 'boolean',
+            'description' => 'nullable|string|max:1000'
         ]);
 
-        LeaveType::findOrFail($id)->update($request->only('name', 'is_paid', 'color_code', 'status'));
+        LeaveType::findOrFail($id)->update($request->only('name', 'is_paid', 'is_deductible', 'is_short_leave', 'is_restricted', 'full_day_weight', 'half_day_weight', 'allow_half_day', 'quota_type', 'color_code', 'status', 'description'));
         return response()->json(['success' => true, 'message' => 'Leave type updated']);
     }
 
