@@ -163,7 +163,7 @@ class AttendanceReportService
         return $cycles;
     }
 
-    public function determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false, $shortLeaveHr = 0)
+    public function determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false, $shortLeaveHr = 0, $enforceTimeRestriction = 0)
     {
         $hoursInMinutes = (int) round($hours * 60);
         $fullDayInMinutes = (int) round($fullDayHr * 60);
@@ -182,18 +182,26 @@ class AttendanceReportService
 
         if ($isWeeklyOff) {
             $dayName = Carbon::parse($date)->format('l');
+            $isWorking = $hoursInMinutes > 0;
+            if ($enforceTimeRestriction && $isWorking) {
+                $isWorking = $effectiveInMinutes >= $halfDayInMinutes;
+            }
             return [
-                'code' => $hoursInMinutes > 0 ? 'W/O-W' : 'W/O',
-                'label' => $hoursInMinutes > 0 ? "$dayName Working" : strtolower($dayName),
-                'class' => $hoursInMinutes > 0 ? 'text-success' : 'text-secondary'
+                'code' => $isWorking ? 'W/O-W' : 'W/O',
+                'label' => $isWorking ? "$dayName Working" : strtolower($dayName),
+                'class' => $isWorking ? 'text-success' : 'text-secondary'
             ];
         }
 
         if ($isHoliday) {
+            $isWorking = $hoursInMinutes > 0;
+            if ($enforceTimeRestriction && $isWorking) {
+                $isWorking = $effectiveInMinutes >= $halfDayInMinutes;
+            }
             return [
-                'code' => $hoursInMinutes > 0 ? 'H/W' : 'H',
-                'label' => $hoursInMinutes > 0 ? 'holiday working' : 'holiday',
-                'class' => $hoursInMinutes > 0 ? 'text-success' : 'text-info'
+                'code' => $isWorking ? 'H/W' : 'H',
+                'label' => $isWorking ? 'holiday working' : 'holiday',
+                'class' => $isWorking ? 'text-success' : 'text-info'
             ];
         }
 
@@ -255,15 +263,17 @@ class AttendanceReportService
         ];
     }
 
-    public function determineStatusAndReason($originalStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isLeave, $isHalfDayLeave, $isGracePunish = 0, $graceBounceDays = 0, $lateDaysExceeded = 0)
+    public function determineStatusAndReason($originalStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isLeave, $isHalfDayLeave, $isGracePunish = 0, $graceBounceDays = 0, $lateDaysExceeded = 0, $exemptGraceOnOvertime = 1)
     {
         $finalStatus = $originalStatusLabel;
         $reason = '-';
 
         $statusLower = strtolower($originalStatusLabel);
+        
+        $isOvertime = str_contains($statusLower, 'working') && (str_contains($statusLower, 'holiday') || str_contains($statusLower, 'w/o') || str_contains($statusLower, 'sunday'));
 
         if (str_contains($statusLower, 'present') || str_contains($statusLower, 'working')) {
-            if ($lateBy > 0 && $previousGrace < $lateBy) {
+            if ($lateBy > 0 && $previousGrace < $lateBy && !($isOvertime && $exemptGraceOnOvertime)) {
                 if ($isGracePunish) {
                     if ($lateDaysExceeded > $graceBounceDays) {
                         $finalStatus = 'halfday';
@@ -398,32 +408,36 @@ class AttendanceReportService
                 }
             }
 
-            if ($isWeeklyOff) {
-                $totalSundaysWorked++;
-            } elseif (in_array($dateStr, $holidays)) {
-                $totalHolidaysWorked++;
+            $dayHours = $this->calculateTotalHours($attendance->movements, $shift, $attendance->date);
+            [$fullDayHr, $halfDayHr] = $this->getThresholds($shift);
+            if ($isHalfDayWorking) {
+                $fullDayHr = $halfDayHr;
+                $halfDayHr = $halfDayHr / 2;
+            }
+            $leaveType = $leaveMap[$dateStr] ?? null;
+            $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
+            $hasHalfDayLeave = ($leaveType === 'HD');
+            $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+
+            if ($isWeeklyOff || in_array($dateStr, $holidays)) {
+                $statusInfo = $this->determineStatus($dateStr, $dayHours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
+                if ($statusInfo['code'] === 'W/O-W') {
+                    $totalSundaysWorked++;
+                } elseif ($statusInfo['code'] === 'H/W') {
+                    $totalHolidaysWorked++;
+                }
             }
             
             if (!$isWeeklyOff && !in_array($dateStr, $holidays)) {
-                $dayHours = $this->calculateTotalHours($attendance->movements, $shift, $attendance->date);
                 $totalHours += $dayHours;
                 
-                [$fullDayHr, $halfDayHr] = $this->getThresholds($shift);
-
-                if ($isHalfDayWorking) {
-                    $fullDayHr = $halfDayHr;
-                    $halfDayHr = $halfDayHr / 2;
-                }
-
-                $leaveType = $leaveMap[$dateStr] ?? null;
-                $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
-                $hasHalfDayLeave = ($leaveType === 'HD');
-                
-                $statusInfo = $this->determineStatus($dateStr, $dayHours, $fullDayHr, $halfDayHr, false, false, $leaveType, $hasHalfDayLeave, $slHours);
+                $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+                $statusInfo = $this->determineStatus($dateStr, $dayHours, $fullDayHr, $halfDayHr, false, false, $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
                 $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
                 $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
                 
-                $finalStatusData = $this->determineStatusAndReason($statusInfo['label'], $dayHours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($leaveMap[$dateStr]), $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded);
+                $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
+                $finalStatusData = $this->determineStatusAndReason($statusInfo['label'], $dayHours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($leaveMap[$dateStr]), $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
                 $finalStatusLabel = strtolower($finalStatusData['status']);
 
                 $lastOutMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->last();
@@ -677,7 +691,8 @@ class AttendanceReportService
                 
                 $slHours = ($dayData['leave_type'] === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                 $hasHalfDayLeave = ($dayData['leave_type'] === 'HD');
-                $statusInfo = $this->determineStatus($dateStr, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, $dayData['is_holiday'], $dayData['leave_type'], $hasHalfDayLeave, $slHours);
+                $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+                $statusInfo = $this->determineStatus($dateStr, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, $dayData['is_holiday'], $dayData['leave_type'], $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
                 $origStatus = $statusInfo['label'];
                 
                 $lateBy = $dayData['late_minutes'];
@@ -712,7 +727,8 @@ class AttendanceReportService
                 
                 $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
                 $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
-                $statusData = $this->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded);
+                $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
+                $statusData = $this->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
                 
                 $dayData['status'] = $statusData['status'];
                 $dayData['status_reason'] = $statusData['reason'];

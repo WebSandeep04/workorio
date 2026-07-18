@@ -162,7 +162,8 @@ class SendNightAttendanceMail extends Command
                         $halfDayHr = $halfDayHr / 2;
                     }
                     
-                    $statusInfo = $reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType, $hasHalfDayLeave, $shortLeaveHr);
+                    $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+                    $statusInfo = $reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType, $hasHalfDayLeave, $shortLeaveHr, $enforceTimeRestriction);
                     return $statusInfo['label'] ?? 'absent';
                 };
 
@@ -177,7 +178,7 @@ class SendNightAttendanceMail extends Command
                     $isOnLeave = $userLeaves->has($todayStr);
                     $todayData = [
                         'user_name' => $user->name,
-                        'status' => $isOnLeave ? $getRealStatus($todayStr, 0) : 'absent',
+                        'status' => $getRealStatus($todayStr, 0),
                         'punch_in' => '-',
                         'punch_out' => '-',
                         'mode' => '-',
@@ -255,7 +256,8 @@ class SendNightAttendanceMail extends Command
                         
                         $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
                         $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
-                        $statusData = $reportService->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isOnLeave, $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded);
+                        $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
+                        $statusData = $reportService->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isOnLeave, $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
                         
                         $dayData['status'] = $statusData['status'];
                         $dayData['status_reason'] = $statusData['reason'];

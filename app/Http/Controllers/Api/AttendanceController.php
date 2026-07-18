@@ -1246,6 +1246,7 @@ class AttendanceController extends Controller
             if ($att) {
                 // Actual Record Exists: Delegate to Full Analytics Engine
                 $workedHours = $reportService->calculateTotalHours($att->movements, $shift, $targetDate);
+                $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
                 $statusInfo = $reportService->determineStatus(
                     $targetDate, 
                     $workedHours, 
@@ -1255,7 +1256,8 @@ class AttendanceController extends Controller
                     $isHoliday, 
                     $leaveType, 
                     $hasHalfDayLeave, 
-                    $slHours
+                    $slHours,
+                    $enforceTimeRestriction
                 );
                 $statusLabel = ucwords($statusInfo['label'] ?? 'Absent');
             } else {

@@ -68,6 +68,8 @@ class ShiftController extends Controller
             'min_per_month_late_allow' => 'nullable|integer|min:0',
             'is_grace_punish' => 'nullable|boolean',
             'grace_bounce_day' => 'nullable|integer|min:0',
+            'exempt_grace_on_overtime' => 'nullable|boolean',
+            'enforce_time_restriction_on_overtime' => 'nullable|boolean',
             'is_active' => 'nullable|boolean',
             'sl_end_limit' => 'nullable|integer|min:0',
             'week_offs' => 'nullable|array',

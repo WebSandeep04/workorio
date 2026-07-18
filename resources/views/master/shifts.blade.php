@@ -170,6 +170,22 @@
                 <input type="number" class="form-control form-control-modern" id="grace_bounce_day" name="grace_bounce_day" min="0" value="0" placeholder="e.g. 1">
               </div>
               <div class="col-md-3">
+                <label class="form-label-modern">Exempt Grace on Overtime?</label>
+                <select id="exempt_grace_on_overtime" name="exempt_grace_on_overtime" class="form-control form-control-modern">
+                    <option value="1">Yes (Exempt)</option>
+                    <option value="0">No Penalty Allowed</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label-modern">Enforce Time on Overtime?</label>
+                <select id="enforce_time_restriction_on_overtime" name="enforce_time_restriction_on_overtime" class="form-control form-control-modern">
+                    <option value="0">No (1 Min = Working)</option>
+                    <option value="1">Yes (Requires Half Day)</option>
+                </select>
+              </div>
+          </div>
+          <div class="row g-3 mb-4">
+              <div class="col-md-3">
                 <label class="form-label-modern">Status</label>
                 <select id="is_active" name="is_active" class="form-control form-control-modern">
                     <option value="1">Active</option>
@@ -335,6 +351,8 @@ $(function() {
         $('#min_per_month_late_allow').val(row.min_per_month_late_allow || 0);
         $('#is_grace_punish').val(row.is_grace_punish ? '1' : '0');
         $('#grace_bounce_day').val(row.grace_bounce_day || 0);
+        $('#exempt_grace_on_overtime').val(row.exempt_grace_on_overtime !== null ? (row.exempt_grace_on_overtime ? '1' : '0') : '1');
+        $('#enforce_time_restriction_on_overtime').val(row.enforce_time_restriction_on_overtime ? '1' : '0');
         $('#is_active').val(row.is_active ? '1' : '0');
 
         if(row.week_offs && Array.isArray(row.week_offs)) {

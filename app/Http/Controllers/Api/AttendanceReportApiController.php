@@ -377,7 +377,8 @@ class AttendanceReportApiController extends Controller
                     $leaveType = $userLeavesDetails[$dateStr] ?? null;
                     $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                     $hasHalfDayLeave = ($leaveType === 'HD');
-                    $statusInfo = $this->reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours);
+                    $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+                    $statusInfo = $this->reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
                     
                     $origStatusCode = $statusInfo['code'];
                     $origStatusClass = $statusInfo['class'];
@@ -403,7 +404,8 @@ class AttendanceReportApiController extends Controller
                     
                     $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
                     $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
-                    $statusData = $this->reportService->determineStatusAndReason($origStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($userLeavesDetails[$dateStr]), $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded);
+                    $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
+                    $statusData = $this->reportService->determineStatusAndReason($origStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($userLeavesDetails[$dateStr]), $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
                     
                     $finalLabel = strtolower($statusData['status']);
                     if ($finalLabel === 'absent') {
@@ -635,7 +637,8 @@ class AttendanceReportApiController extends Controller
 
                 $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                 $hasHalfDayLeave = ($leaveType === 'HD');
-                $statusInfo = $this->reportService->determineStatus($date, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours);
+                $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+                $statusInfo = $this->reportService->determineStatus($date, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
                 $origStatus = $statusInfo['label'];
                 
                 $lateBy = (int) abs($attendance->late_minutes ?? 0);
@@ -661,7 +664,8 @@ class AttendanceReportApiController extends Controller
                 
                 $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
                 $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
-                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded);
+                $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
+                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
                 $dayData['status'] = $statusData['status'];
                 $dayData['status_reason'] = $statusData['reason'];
                 

@@ -136,7 +136,8 @@ class AttendanceApprovalController extends Controller
                 }
 
                 $lType = ($leave && $leave->is_sl) ? 'SL' : null;
-                $statusInfo = $this->reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $lType, $hasHalfDayLeave, $slHours);
+                $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+                $statusInfo = $this->reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $lType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
                 $status = $statusInfo['label'];
             }
 

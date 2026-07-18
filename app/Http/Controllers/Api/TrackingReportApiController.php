@@ -231,7 +231,8 @@ class TrackingReportApiController extends Controller
 
                     $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                     $hasHalfDayLeave = ($leaveType === 'HD');
-                    $statusInfo = $reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours);
+                    $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+                    $statusInfo = $reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
                     $statusLabel = $statusInfo['label'];
                 } elseif ($isWeeklyOff) {
                     $statusLabel = 'weekly off';
@@ -462,7 +463,8 @@ class TrackingReportApiController extends Controller
                         $leaveType = $userLeavesDetails[$dateStr] ?? null;
                         $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                         $hasHalfDayLeave = ($leaveType === 'HD');
-                        $statusInfo = $reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours);
+                        $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+                        $statusInfo = $reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
                         
                         $statusCode = $statusInfo['code'];
                         $statusClass = $statusInfo['class'];
@@ -636,7 +638,8 @@ class TrackingReportApiController extends Controller
 
                     $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
                     $hasHalfDayLeave = ($leaveType === 'HD');
-                    $statusInfo = $reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours);
+                    $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+                    $statusInfo = $reportService->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
                     $statusLabel = $statusInfo['label'];
                 } elseif ($isWeeklyOff) {
                     $statusLabel = 'weekly off';
