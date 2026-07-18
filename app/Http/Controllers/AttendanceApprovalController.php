@@ -721,11 +721,18 @@ class AttendanceApprovalController extends Controller
         \Log::info("Holiday Check: " . ($isHoliday ? 'YES' : 'NO') . " | Weekly Off Check: " . ($isWeeklyOff ? 'YES' : 'NO'));
 
         if ($isHoliday || $isWeeklyOff) {
-            // 2. Check if they are present (worked any hours)
+            // 2. Check if they are present and meet time restriction
             $hours = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
             \Log::info("Hours worked on this day: " . $hours);
             
-            if ($hours > 0) {
+            [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
+            $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+            $statusInfo = $this->reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, null, false, 0, $enforceTimeRestriction);
+            
+            $isValidWorking = in_array($statusInfo['code'], ['W/O-W', 'H/W']);
+            \Log::info("Is Valid Working based on time restriction rules: " . ($isValidWorking ? 'YES' : 'NO'));
+            
+            if ($isValidWorking) {
                 // 3. Find the leave type for "Holiday Working" or "Compensatory Off"
                 $leaveType = LeaveType::where('name', 'like', '%Holiday Working%')
                     ->orWhere('name', 'like', '%Compensatory%')
