@@ -15,6 +15,10 @@ class LeaveAccrualCounter extends Model
         'valid_days_count',
     ];
 
+    protected $casts = [
+        'valid_days_count' => 'decimal:2',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

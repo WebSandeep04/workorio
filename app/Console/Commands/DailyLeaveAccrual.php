@@ -6,8 +6,11 @@ use Illuminate\Console\Command;
 use App\Models\User;
 use App\Models\EmploymentTypeLeaveRule;
 use App\Models\LeaveAccrualCounter;
-use App\Models\Worklog;
+use App\Models\Attendance;
+use App\Models\Holiday;
+use App\Models\LeaveRequest;
 use App\Services\LeaveBalanceService;
+use App\Services\AttendanceReportService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -28,11 +31,13 @@ class DailyLeaveAccrual extends Command
     protected $description = 'Process daily valid attendance to accrue leave balances incrementally based on employment rules.';
 
     protected $leaveService;
+    protected $reportService;
 
-    public function __construct(LeaveBalanceService $leaveService)
+    public function __construct(LeaveBalanceService $leaveService, AttendanceReportService $reportService)
     {
         parent::__construct();
         $this->leaveService = $leaveService;
+        $this->reportService = $reportService;
     }
 
     /**
@@ -45,7 +50,9 @@ class DailyLeaveAccrual extends Command
         // We evaluate attendance for "Yesterday"
         $targetDate = Carbon::yesterday()->format('Y-m-d');
         
-        $users = User::where('status', 'active')->get();
+        $users = User::with(['employee.shiftRelation'])->where('status', 'active')->get();
+
+        $holidays = Holiday::whereDate('date', $targetDate)->pluck('date')->toArray();
 
         foreach ($users as $user) {
             // Check if user has an Employment Type mapped
@@ -53,15 +60,41 @@ class DailyLeaveAccrual extends Command
                 continue;
             }
 
-            // Does user have a valid worklog/attendance yesterday indicating they were technically "Present/Paid"?
-            // E.g., checking if they have ANY worklog for yesterday. Or, you can expand this to checking if they exist in approved LeaveRequests.
-            $hasValidDay = Worklog::where('user_id', $user->id)->where('work_date', $targetDate)->exists();
+            $attendances = Attendance::where('user_id', $user->id)
+                ->whereDate('date', $targetDate)
+                ->with('movements')
+                ->get();
             
-            // Or if they were on approved Leave yesterday, it also counts as a Valid Day:
-            // $isOnApprovedLeave = LeaveRequest::where('user_id', $user->id)->where('status', 'approved')->where('start_date', '<=', $targetDate)->where('end_date', '>=', $targetDate)->exists();
+            $leaves = LeaveRequest::with('leaveType')
+                ->where('user_id', $user->id)
+                ->where('status', 'approved')
+                ->whereDate('start_date', '<=', $targetDate)
+                ->whereDate('end_date', '>=', $targetDate)
+                ->get()
+                ->mapWithKeys(function ($leave) use ($targetDate) {
+                    $code = $leave->leaveType ? $leave->leaveType->code : 'L';
+                    if ($leave->is_rh) $code = 'RH';
+                    elseif ($leave->is_sl) $code = 'SL';
+                    elseif ($leave->is_half_day) $code = 'HD';
+                    return [$targetDate => $code];
+                })->toArray();
+                
+            $shift = $user->employee->shiftRelation ?? null;
+
+            $dailyBreakdown = $this->reportService->generateDailyBreakdown(
+                $attendances, 
+                Carbon::parse($targetDate), 
+                Carbon::parse($targetDate), 
+                $holidays, 
+                $leaves, 
+                null, 
+                $shift
+            );
+            
+            $status = strtolower($dailyBreakdown[0]['status'] ?? 'absent');
 
             // If absolutely no valid paid log exists, they were absent/LWP. Skip tracking.
-            if (!$hasValidDay) {
+            if (str_contains($status, 'absent')) {
                 continue; 
             }
 
@@ -71,6 +104,17 @@ class DailyLeaveAccrual extends Command
                 ->get();
 
             foreach ($accrualRules as $rule) {
+                // Step 4.5: Validate Eligibility (Wait Period) Check
+                $joiningDate = $user->employee ? $user->employee->date_of_joining : null;
+                $eligibilityDays = $rule->eligibility_days ?? 0;
+                
+                if ($joiningDate && $eligibilityDays > 0) {
+                    $daysSinceJoining = Carbon::parse($joiningDate)->diffInDays(Carbon::parse($targetDate), false);
+                    if ($daysSinceJoining < $eligibilityDays) {
+                        continue; // User is still in wait period or hasn't joined yet
+                    }
+                }
+
                 // Fetch or Create Counter for this exact Leave Type
                 $counter = LeaveAccrualCounter::firstOrCreate(
                     ['user_id' => $user->id, 'leave_type_id' => $rule->leave_type_id],
@@ -78,7 +122,8 @@ class DailyLeaveAccrual extends Command
                 );
 
                 // Increment their valid paid days
-                $counter->valid_days_count += 1;
+                $increment = str_contains($status, 'halfday') ? ($rule->halfday_count_value ?? 1.0) : 1.0;
+                $counter->valid_days_count += $increment;
 
                 // Threshold Check: Did they hit the limit (e.g. 30 days) to earn the reward?
                 if ($counter->valid_days_count >= $rule->value) {

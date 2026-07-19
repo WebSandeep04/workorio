@@ -56,6 +56,12 @@ Schedule::command('leave:process-lapse')
     ->timezone('Asia/Kolkata')
     ->description('Automatically process monthly or yearly leave lapses across all users');
 
+Schedule::command('leave:daily-accruals')
+    ->daily()
+    ->at('02:00')
+    ->timezone('Asia/Kolkata')
+    ->description('Process daily valid attendance to accrue leave balances incrementally based on employment rules');
+
 Schedule::command('sales:send-admin-follow-up-report', ['--alert=1'])
     ->daily()
     ->at('09:30')

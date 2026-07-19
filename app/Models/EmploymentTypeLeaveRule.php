@@ -17,11 +17,14 @@ class EmploymentTypeLeaveRule extends Model
         'max_use_per_month',
         'carry_forward_allowed',
         'max_carry_forward',
-        'lapse_type'
+        'lapse_type',
+        'eligibility_days',
+        'halfday_count_value'
     ];
 
     protected $casts = [
         'carry_forward_allowed' => 'boolean',
+        'halfday_count_value' => 'decimal:2',
     ];
 
     public function employmentType()
