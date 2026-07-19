@@ -79,9 +79,9 @@ class AttendanceReportService
             if ($date && Carbon::parse($date)->isToday()) {
                 $lastPunchOut = Carbon::now()->setTimezone('Asia/Kolkata');
             } else {
-                // If it's a past date and no punch out, we can't assume they are still working
-                // However, the original code used Carbon::now().
-                $lastPunchOut = Carbon::now()->setTimezone('Asia/Kolkata');
+                // If it's a past date and no punch out, we can't assume they are still working.
+                // We set it to firstPunchIn so the total hours calculated will be 0.
+                $lastPunchOut = $firstPunchIn->copy();
             }
         }
 
@@ -140,7 +140,7 @@ class AttendanceReportService
         }
         
         // If still "in", calculate until now only if it's today
-        if ($inTime) {
+        if ($inTime && $inTime->isToday()) {
             $totalMinutes += $inTime->diffInMinutes(Carbon::now());
         }
         
