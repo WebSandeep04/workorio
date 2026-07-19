@@ -117,7 +117,9 @@ class EmploymentTypeController extends Controller
                 ],
                 [
                     'generation_type' => $rule['generation_type'] ?? 'prefill',
-                    'value' => (int) ($rule['value'] ?? 0),
+                    'value' => (float) ($rule['value'] ?? 0),
+                    'eligibility_days' => (int) ($rule['eligibility_days'] ?? 0),
+                    'halfday_count_value' => (float) ($rule['halfday_count_value'] ?? 1.0),
                     'max_use_per_month' => isset($rule['generation_type']) && $rule['generation_type'] === 'prefill' ? (int) ($rule['max_use_per_month'] ?? 0) : null,
                     'carry_forward_allowed' => isset($rule['carry_forward_allowed']) && $rule['carry_forward_allowed'] == '1',
                     'lapse_type' => isset($rule['carry_forward_allowed']) && $rule['carry_forward_allowed'] == '0' 

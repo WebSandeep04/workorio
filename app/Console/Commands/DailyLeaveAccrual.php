@@ -9,10 +9,13 @@ use App\Models\LeaveAccrualCounter;
 use App\Models\Attendance;
 use App\Models\Holiday;
 use App\Models\LeaveRequest;
+use App\Models\Tenant;
+use App\Services\TenantDatabaseService;
 use App\Services\LeaveBalanceService;
 use App\Services\AttendanceReportService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class DailyLeaveAccrual extends Command
 {
@@ -46,17 +49,42 @@ class DailyLeaveAccrual extends Command
     public function handle()
     {
         $this->info('Starting Daily Leave Accrual Processing...');
-        
-        // We evaluate attendance for "Yesterday"
-        $targetDate = Carbon::yesterday()->format('Y-m-d');
-        
-        $users = User::with(['employee.shiftRelation'])->where('status', 'active')->get();
 
-        $holidays = Holiday::whereDate('date', $targetDate)->pluck('date')->toArray();
+        $tenants = Tenant::on('mysql')->get();
 
-        foreach ($users as $user) {
+        if ($tenants->isEmpty()) {
+            $this->info("No tenants found.");
+            return 0;
+        }
+
+        $this->info("Found {$tenants->count()} tenants. Processing...");
+
+        foreach ($tenants as $tenant) {
+            $this->processTenant($tenant);
+        }
+
+        $this->info('Daily Leave Accrual Processing Completed.');
+        return 0;
+    }
+
+    private function processTenant(Tenant $tenant)
+    {
+        $this->line("Processing Tenant: {$tenant->tenant_name} (ID: {$tenant->id})");
+
+        try {
+            TenantDatabaseService::setDefaultConnection($tenant->id);
+            
+            $targetDate = Carbon::yesterday()->format('Y-m-d');
+            
+            $users = User::whereHas('employee', function ($query) {
+                $query->where('status', 'active');
+            })->with(['employee.shiftRelation'])->get();
+
+            $holidays = Holiday::whereDate('holiday_date', $targetDate)->pluck('holiday_date')->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->toArray();
+
+            foreach ($users as $user) {
             // Check if user has an Employment Type mapped
-            if (!$user->employment_type_id) {
+            if (!$user->employee || !$user->employee->employment_type_id) {
                 continue;
             }
 
@@ -99,7 +127,7 @@ class DailyLeaveAccrual extends Command
             }
 
             // Fetch active Accrual Rules for their specific Employment Type
-            $accrualRules = EmploymentTypeLeaveRule::where('employment_type_id', $user->employment_type_id)
+            $accrualRules = EmploymentTypeLeaveRule::where('employment_type_id', $user->employee->employment_type_id)
                 ->where('generation_type', 'accrual')
                 ->get();
 
@@ -150,7 +178,10 @@ class DailyLeaveAccrual extends Command
                 $counter->save();
             }
         }
-
-        $this->info('Daily Leave Accrual Processing Completed.');
+        } catch (\Exception $e) {
+            $this->error("Failed to process tenant {$tenant->tenant_name}: " . $e->getMessage());
+        } finally {
+            DB::setDefaultConnection('mysql');
+        }
     }
 }

@@ -161,6 +161,14 @@
                             <label style="font-size:0.75rem;">Max use per month</label>
                             <input type="number" step="1" min="0" class="form-control form-control-sm" name="rules[{{ $leave->id }}][max_use_per_month]" value="0">
                         </div>
+                        <div class="col-md-2 matrix-elig-col" style="display:none;">
+                            <label style="font-size:0.75rem;">Eligibility (Days)</label>
+                            <input type="number" step="1" min="0" class="form-control form-control-sm" name="rules[{{ $leave->id }}][eligibility_days]" value="0">
+                        </div>
+                        <div class="col-md-2 matrix-hd-col" style="display:none;">
+                            <label style="font-size:0.75rem;">Half Day Val</label>
+                            <input type="number" step="0.1" min="0" max="1" class="form-control form-control-sm" name="rules[{{ $leave->id }}][halfday_count_value]" value="1.0">
+                        </div>
                         <div class="col-md-2 matrix-cf-col">
                             <label style="font-size:0.75rem;">Carry Forward</label>
                             <select class="form-control form-control-sm matrix-cf" name="rules[{{ $leave->id }}][carry_forward_allowed]">
@@ -222,9 +230,14 @@ $(function() {
 
         let val = $(this).val();
         let maxUseCol = parent.find('.matrix-max-use-col');
+        let eligCol = parent.find('.matrix-elig-col');
+        let hdCol = parent.find('.matrix-hd-col');
+
         if (val === 'unlimited') {
             valCol.hide().find('input').prop('disabled', true).val('0');
             maxUseCol.hide().find('input').prop('disabled', true).val('0');
+            eligCol.hide().find('input').prop('disabled', true).val('0');
+            hdCol.hide().find('input').prop('disabled', true).val('1.0');
             cfCol.hide().find('select').prop('disabled', true).val('0');
             maxCol.hide().find('input').prop('disabled', true).val('0');
             parent.find('.cf-lapse-col').hide().find('select').prop('disabled', true);
@@ -236,9 +249,13 @@ $(function() {
             if (val === 'accrual') {
                 label.text('Valid Days Reqd.');
                 maxUseCol.hide().find('input').prop('disabled', true).val('0');
+                eligCol.show().find('input').prop('disabled', false);
+                hdCol.show().find('input').prop('disabled', false);
             } else {
                 label.text('Base Days Given');
                 maxUseCol.show().find('input').prop('disabled', false);
+                eligCol.hide().find('input').prop('disabled', true).val('0');
+                hdCol.hide().find('input').prop('disabled', true).val('1.0');
             }
             
             if (cfCol.find('select').val() === '1') {
@@ -356,6 +373,8 @@ $(function() {
                 $(`select[name="rules[${lid}][generation_type]"]`).val(rule.generation_type).trigger('change');
                 $(`input[name="rules[${lid}][value]"]`).val(rule.value);
                 $(`input[name="rules[${lid}][max_use_per_month]"]`).val(rule.max_use_per_month || 0);
+                $(`input[name="rules[${lid}][eligibility_days]"]`).val(rule.eligibility_days || 0);
+                $(`input[name="rules[${lid}][halfday_count_value]"]`).val(rule.halfday_count_value || 1.0);
                 let cfVal = rule.carry_forward_allowed ? 1 : 0;
                 $(`select[name="rules[${lid}][carry_forward_allowed]"]`).val(cfVal).trigger('change');
                 if (cfVal == 0) {
