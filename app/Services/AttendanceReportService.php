@@ -527,6 +527,11 @@ class AttendanceReportService
         $leaveDates = [];
         foreach ($uniqueLeaves as $dateStr) {
             $leaveType = $leaveMap[$dateStr] ?? 'L';
+            
+            if ($leaveType === 'SL') {
+                $totalShortLeaves++;
+            }
+            
             $leaveCarbon = Carbon::parse($dateStr);
             $dayName = $leaveCarbon->format('l');
             $isWeeklyOff = false;
@@ -543,10 +548,6 @@ class AttendanceReportService
                     $totalUnpaidLeaves++;
                 } else {
                     $totalLeaves++;
-                }
-
-                if ($leaveType === 'SL') {
-                    $totalShortLeaves++;
                 }
 
                 // Do we count SL in daysOnLeave (absents)?

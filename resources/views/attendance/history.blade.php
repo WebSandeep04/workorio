@@ -173,6 +173,15 @@
                 <div class="summary-card-value" id="totalUnpaidLeave">0</div>
             </div>
         </div>
+        <div class="summary-card">
+            <div class="summary-card-icon icon-blue">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="summary-card-content">
+                <div class="summary-card-label">Total SL</div>
+                <div class="summary-card-value" id="totalShortLeave">0</div>
+            </div>
+        </div>
     </div>
 
     <!-- Controls -->
@@ -384,6 +393,7 @@ function updateSummaryStats(attendances, summary) {
         document.getElementById('totalLeave').textContent = summary.days_on_leave || 0;
         document.getElementById('totalAbsent').textContent = summary.days_absent || 0;
         document.getElementById('totalUnpaidLeave').textContent = summary.total_unpaid_leaves || 0;
+        document.getElementById('totalShortLeave').textContent = summary.total_short_leaves || 0;
     }
 }
 

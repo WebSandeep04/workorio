@@ -441,14 +441,15 @@
                                 <tr>
                                     <th>User</th>
                                     <th>Total Work Days</th>
-                                    <th>Present</th>
-                                    <th>Absent</th>
-                                    <th>Half Day</th>
-                                    <th>Leave</th>
+                                    <th>Total Present</th>
+                                    <th>Full Day</th>
+                                    <th>HD</th>
+                                    <th>SL</th>
                                     <th>Sunday Work</th>
                                     <th>Holiday Work</th>
-                                    <th>Total Hours</th>
-                                    <th>Avg Hrs/Day</th>
+                                    <th>Leave</th>
+                                    <th>Unpaid Leave</th>
+                                    <th>Absent</th>
                                     <th>Less Shift Hr</th>
                                     <th>More Shift Hr</th>
                                     <th>Late Count</th>
@@ -797,6 +798,7 @@ function loadMonthlySummary(){
             headerRow += '<th style="min-width:60px;">Total Present</th>'; 
             headerRow += '<th style="min-width:50px;">Full Day</th>';
             headerRow += '<th style="min-width:50px;">HD</th>';
+            headerRow += '<th style="min-width:50px;">SL</th>';
             headerRow += '<th style="min-width:55px;">Sunday Work</th>';
             headerRow += '<th style="min-width:55px;">Holiday Work</th>';
             headerRow += '<th style="min-width:50px;">Leave</th>';
@@ -835,6 +837,7 @@ function loadMonthlySummary(){
                     rowHtml += `<td class="text-center fw-bold text-success">${s.total_present_combined}</td>`; 
                     rowHtml += `<td class="text-center text-success fw-bold">${s.total_present}</td>`;
                     rowHtml += `<td class="text-center text-warning fw-bold">${s.total_halfday}</td>`;
+                    rowHtml += `<td class="text-center text-primary fw-bold">${s.total_short_leaves || 0}</td>`;
                     rowHtml += `<td class="text-center text-info fw-bold">${s.total_sundays_worked}</td>`;
                     rowHtml += `<td class="text-center text-info fw-bold">${s.total_holidays_worked}</td>`;
                     rowHtml += `<td class="text-center text-secondary fw-bold">${s.days_on_leave}</td>`;
