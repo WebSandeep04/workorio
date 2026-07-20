@@ -122,7 +122,7 @@ class DailyLeaveAccrual extends Command
             $status = strtolower($dailyBreakdown[0]['status'] ?? 'absent');
 
             // If absolutely no valid paid log exists, they were absent/LWP. Skip tracking.
-            if (str_contains($status, 'absent')) {
+            if ($status === 'absent') {
                 continue; 
             }
 

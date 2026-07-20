@@ -141,7 +141,7 @@ class BackfillAccruals extends Command
                     $current = Carbon::parse($leave->start_date);
                     $end = Carbon::parse($leave->end_date);
                     
-                    $code = $leave->leaveType ? $leave->leaveType->code : 'L';
+                    $code = ($leave->leaveType && $leave->leaveType->code) ? $leave->leaveType->code : 'L';
                     if ($leave->is_rh) $code = 'RH';
                     elseif ($leave->is_sl) $code = 'SL';
                     elseif ($leave->is_half_day) $code = 'HD';
@@ -167,10 +167,11 @@ class BackfillAccruals extends Command
 
                 $totalValidDays = 0.0;
                 
-                foreach ($dailyBreakdown as $dayData) {
+                foreach ($dailyBreakdown as $dateKey => $dayData) {
+                    $dateStr = $dayData['date'] ?? (is_string($dateKey) ? $dateKey : 'unknown_date');
                     $status = strtolower($dayData['status'] ?? 'absent');
                     
-                    if (str_contains($status, 'absent')) {
+                    if ($status === 'absent') {
                         continue;
                     }
                     
