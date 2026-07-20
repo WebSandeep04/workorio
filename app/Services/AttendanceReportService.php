@@ -255,6 +255,14 @@ class AttendanceReportService
                 'class' => 'text-warning'
             ];
         } 
+
+        if ($leaveType === 'LWP') {
+            return [
+                'code' => 'LWP',
+                'label' => 'unpaid leave',
+                'class' => 'text-danger'
+            ];
+        }
         
         return [
             'code' => 'A',
@@ -308,7 +316,10 @@ class AttendanceReportService
             }
             $finalStatus = 'halfday';
         } else if (str_contains($statusLower, 'leave') || str_contains($statusLower, 'holiday') || str_contains($statusLower, 'off')) {
-            if (str_contains($statusLower, 'leave') && !str_contains($statusLower, 'sl')) {
+            if (str_contains($statusLower, 'unpaid leave')) {
+                $finalStatus = 'unpaid leave';
+                $reason = 'Unpaid Leave';
+            } elseif (str_contains($statusLower, 'leave') && !str_contains($statusLower, 'sl')) {
                 $finalStatus = 'leave';
                 $reason = 'On Leave';
             } else {
@@ -334,6 +345,7 @@ class AttendanceReportService
         $totalCycles = ['office' => 0, 'field' => 0, 'break' => 0];
         $daysOnLeave = 0;
         $totalLeaves = 0; 
+        $totalUnpaidLeaves = 0;
         $presentDays = 0; 
         $halfDays = 0; 
         $totalSundays = 0;
@@ -511,15 +523,6 @@ class AttendanceReportService
         }
         $totalShortLeaves = 0;
         $uniqueLeaves = array_unique(array_keys($leaveMap));
-        foreach ($uniqueLeaves as $dateStr) {
-            $leaveType = $leaveMap[$dateStr] ?? 'L';
-            if (!in_array($dateStr, $holidays) && !in_array($dateStr, $holidaysWithAttendance)) {
-                $totalLeaves++;
-                if ($leaveType === 'SL') {
-                    $totalShortLeaves++;
-                }
-            }
-        }
         
         $leaveDates = [];
         foreach ($uniqueLeaves as $dateStr) {
@@ -536,11 +539,23 @@ class AttendanceReportService
                 && !in_array($dateStr, $attendanceDates)
                 && !in_array($dateStr, $holidaysWithAttendance)) {
                 
+                if ($leaveType === 'LWP') {
+                    $totalUnpaidLeaves++;
+                } else {
+                    $totalLeaves++;
+                }
+
+                if ($leaveType === 'SL') {
+                    $totalShortLeaves++;
+                }
+
                 // Do we count SL in daysOnLeave (absents)?
                 // Let's assume SL is not a full leave. But for now keep it same logic unless requested.
                 if ($leaveType !== 'SL') {
-                    $leaveDates[] = $dateStr;
-                    $daysOnLeave++;
+                    if ($leaveType !== 'LWP') {
+                        $leaveDates[] = $dateStr;
+                        $daysOnLeave++;
+                    }
                 }
             }
         }
@@ -558,7 +573,7 @@ class AttendanceReportService
             }
         }
         
-        $daysAbsent = max(0, $totalWorkingDays - $totalDaysWorked - $daysOnLeave);
+        $daysAbsent = max(0, $totalWorkingDays - $totalDaysWorked - $daysOnLeave - $totalUnpaidLeaves);
         
         $attendancePercentage = $totalWorkingDays > 0 
             ? round((($presentDays + $halfDays) / $totalWorkingDays) * 100, 1) 
@@ -569,6 +584,7 @@ class AttendanceReportService
             'days_worked' => $totalDaysWorked,
             'days_absent' => $daysAbsent,
             'days_on_leave' => $daysOnLeave, 
+            'total_unpaid_leaves' => $totalUnpaidLeaves,
             'total_short_leaves' => $totalShortLeaves,
             'attendance_percentage' => min(100, $attendancePercentage),
             'total_present_combined' => $presentDays + $halfDays + $totalHolidaysWorked + $totalSundaysWorked,
@@ -754,6 +770,8 @@ class AttendanceReportService
                         $dayData['status'] = 'restricted holiday';
                     } elseif ($leaves[$dateStr] === 'SL') {
                         $dayData['status'] = 'short leave';
+                    } elseif ($leaves[$dateStr] === 'LWP') {
+                        $dayData['status'] = 'unpaid leave';
                     } else {
                         $dayData['status'] = 'leave';
                     }

@@ -35,11 +35,17 @@
                 @php
                     $lrStyle = $row['late_reason'] !== '-' ? 'color:#e67e22; font-style:italic;' : 'color:#95a5a6;';
                     $statusColor = '#2c3e50';
-                    if (str_contains(strtolower($row['status']), 'absent')) $statusColor = '#e74c3c';
-                    elseif (str_contains(strtolower($row['status']), 'leave')) $statusColor = '#3498db';
-                    elseif (str_contains(strtolower($row['status']), 'halfday')) $statusColor = '#f39c12';
-                    elseif (str_contains(strtolower($row['status']), 'present')) $statusColor = '#27ae60';
-                    elseif (str_contains(strtolower($row['status']), 'holiday') || str_contains(strtolower($row['status']), 'off')) $statusColor = '#9b59b6';
+                    $statusLower = strtolower($row['status']);
+                    $displayStatus = $row['status'];
+                    
+                    if (str_contains($statusLower, 'absent') || str_contains($statusLower, 'unpaid leave') || $statusLower === 'lwp') {
+                        $statusColor = '#e74c3c';
+                        if (str_contains($statusLower, 'unpaid leave') || $statusLower === 'lwp') $displayStatus = 'LWP';
+                    }
+                    elseif (str_contains($statusLower, 'leave')) $statusColor = '#3498db';
+                    elseif (str_contains($statusLower, 'halfday')) $statusColor = '#f39c12';
+                    elseif (str_contains($statusLower, 'present')) $statusColor = '#27ae60';
+                    elseif (str_contains($statusLower, 'holiday') || str_contains($statusLower, 'off')) $statusColor = '#9b59b6';
                 @endphp
                 <tr style='background-color:#f9f9f9;'>
                     <td style='padding:5px; border:1px solid #ddd;'>{{ $row['user_name'] }}</td>
@@ -51,7 +57,7 @@
                     <td style='padding:5px; border:1px solid #ddd;'>{{ $row['late_by'] ?? '-' }}</td>
                     <td style='padding:5px; border:1px solid #ddd; {{ $lrStyle }}'>{{ $row['late_reason'] }}</td>
                     <td style='padding:5px; border:1px solid #ddd;'>{{ $row['grace_balance'] ?? '-' }}</td>
-                    <td style='padding:5px; border:1px solid #ddd; color:{{ $statusColor }}; font-weight:bold; text-transform:capitalize;'>{{ $row['status'] }}</td>
+                    <td style='padding:5px; border:1px solid #ddd; color:{{ $statusColor }}; font-weight:bold; text-transform:capitalize;'>{{ $displayStatus }}</td>
                     <td style='padding:5px; border:1px solid #ddd;'>{{ $row['status_reason'] ?? '-' }}</td>
                 </tr>
             @empty
@@ -88,11 +94,17 @@
                     @php
                         $lrStyle = $record['late_reason'] !== '-' ? 'color:#e67e22; font-style:italic;' : 'color:#95a5a6;';
                         $statusColor = '#2c3e50';
-                        if (str_contains(strtolower($record['status']), 'absent')) $statusColor = '#e74c3c';
-                        elseif (str_contains(strtolower($record['status']), 'leave')) $statusColor = '#3498db';
-                        elseif (str_contains(strtolower($record['status']), 'halfday')) $statusColor = '#f39c12';
-                        elseif (str_contains(strtolower($record['status']), 'present')) $statusColor = '#27ae60';
-                        elseif (str_contains(strtolower($record['status']), 'holiday') || str_contains(strtolower($record['status']), 'off')) $statusColor = '#9b59b6';
+                        $statusLower = strtolower($record['status']);
+                        $displayStatus = $record['status'];
+                        
+                        if (str_contains($statusLower, 'absent') || str_contains($statusLower, 'unpaid leave') || $statusLower === 'lwp') {
+                            $statusColor = '#e74c3c';
+                            if (str_contains($statusLower, 'unpaid leave') || $statusLower === 'lwp') $displayStatus = 'LWP';
+                        }
+                        elseif (str_contains($statusLower, 'leave')) $statusColor = '#3498db';
+                        elseif (str_contains($statusLower, 'halfday')) $statusColor = '#f39c12';
+                        elseif (str_contains($statusLower, 'present')) $statusColor = '#27ae60';
+                        elseif (str_contains($statusLower, 'holiday') || str_contains($statusLower, 'off')) $statusColor = '#9b59b6';
                     @endphp
                     <tr>
                         <td style='padding:0; border:1px solid #ddd;'>{{ $record['date'] }}</td>
@@ -104,7 +116,7 @@
                         <td style='padding:0; border:1px solid #ddd;'>{{ $record['late_by'] ?? '-' }}</td>
                         <td style='padding:0; border:1px solid #ddd; {{ $lrStyle }}'>{{ $record['late_reason'] }}</td>
                         <td style='padding:0; border:1px solid #ddd;'>{{ $record['grace_balance'] ?? '-' }}</td>
-                        <td style='padding:0; border:1px solid #ddd; color:{{ $statusColor }}; font-weight:bold; text-transform:capitalize;'>{{ $record['status'] }}</td>
+                        <td style='padding:0; border:1px solid #ddd; color:{{ $statusColor }}; font-weight:bold; text-transform:capitalize;'>{{ $displayStatus }}</td>
                         <td style='padding:0; border:1px solid #ddd;'>{{ $record['status_reason'] ?? '-' }}</td>
                     </tr>
                 @endforeach

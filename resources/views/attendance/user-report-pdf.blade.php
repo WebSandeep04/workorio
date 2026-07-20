@@ -42,10 +42,15 @@
         </tr>
         <tr>
             <td>Leave: {{ $s['days_on_leave'] }}</td>
+            <td>Unpaid Leave: <span class="text-danger">{{ $s['total_unpaid_leaves'] ?? 0 }}</span></td>
             <td>Holiday Working: <span class="text-info">{{ $s['total_holidays_worked'] }}</span></td>
             <td>Sunday Working: <span class="text-info">{{ $s['total_sundays_worked'] }}</span></td>
+        </tr>
+        <tr>
             <td>Less Shift Hr: {{ $s['total_less_8_30'] }}</td>
             <td>More Shift Hr: {{ $s['total_more_8_30'] }}</td>
+            <td></td>
+            <td></td>
         </tr>
     </table>
 </div>
@@ -89,7 +94,7 @@
                 @endphp
                 <tr style="{{ $d['status'] == 'sunday' ? 'background-color: #fff0f0;' : '' }}">
                     <td class="text-left">{{ $d['display_date'] }}</td>
-                    <td>{{ ucfirst($d['status']) }} {{ $d['holiday_name'] ? "({$d['holiday_name']})" : '' }}</td>
+                    <td>{{ $d['status'] === 'unpaid leave' || $d['status'] === 'lwp' ? 'LWP' : ucwords($d['status']) }} {{ $d['holiday_name'] ? "({$d['holiday_name']})" : '' }}</td>
                     <td>{{ $firstIn }}</td>
                     <td>{{ $lastOut }}</td>
                     <td>{{ formatH($d['hours']) }}</td>

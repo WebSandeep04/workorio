@@ -39,6 +39,7 @@
         <tr>
             <td>Absent: <span class="text-danger">{{ $s['absent'] }}</span></td>
             <td>Leave: <span class="text-warning">{{ $s['leave'] }}</span></td>
+            <td>Unpaid Leave: <span class="text-danger">{{ $s['unpaid_leave'] ?? 0 }}</span></td>
             <td>Holiday Working: <span class="text-info">{{ $s['holiday_working'] }}</span></td>
             <td>Sunday Working: <span class="text-info">{{ $s['sunday_working'] }}</span></td>
         </tr>
@@ -74,7 +75,7 @@
             @foreach($data['data'] as $d)
                 <tr style="{{ ($d['status'] == 'holiday' || $d['status'] == 'sunday') ? ($d['hours'] > 0 ? 'background-color: #f0fff4;' : 'background-color: #f8f9fa;') : ($d['status'] == 'absent' ? 'background-color: #fff5f5;' : '') }}">
                     <td class="text-left"><strong>{{ $d['user']['name'] }}</strong></td>
-                    <td>{{ ucfirst($d['status']) }} {{ $d['holiday_name'] ? "({$d['holiday_name']})" : '' }}</td>
+                    <td>{{ $d['status'] === 'unpaid leave' || $d['status'] === 'lwp' ? 'LWP' : ucwords($d['status']) }} {{ $d['holiday_name'] ? "({$d['holiday_name']})" : '' }}</td>
                     <td>{{ $d['first_in'] }}</td>
                     <td>{{ $d['last_out'] }}</td>
                     <td>{{ formatH($d['hours']) }}</td>

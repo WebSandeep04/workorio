@@ -1081,7 +1081,7 @@ class AttendanceController extends Controller
         
         $holidays = $holidaysData->keys()->toArray();
 
-        $leaveRequests = LeaveRequest::where('user_id', $user->id)
+        $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', $user->id)
             ->where('status', 'approved')
             ->where(function($query) use ($startDate, $endDate) {
                 $query->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -1099,7 +1099,9 @@ class AttendanceController extends Controller
                 if ($dt >= new \DateTime($startDate->format('Y-m-d')) && $dt <= new \DateTime($endDate->format('Y-m-d'))) {
                     $d = $dt->format('Y-m-d');
                     if (!isset($leavesDetails[$d])) {
-                        if ($req->is_rh) {
+                        if ($req->leaveType && !$req->leaveType->is_paid) {
+                            $leavesDetails[$d] = 'LWP';
+                        } elseif ($req->is_rh) {
                             $leavesDetails[$d] = 'RH';
                         } elseif ($req->is_sl) {
                             $leavesDetails[$d] = 'SL';
@@ -1236,7 +1238,8 @@ class AttendanceController extends Controller
         
         $holidays = $holidaysData->keys()->toArray();
 
-        $leaveRequests = \App\Models\LeaveRequest::where('user_id', $userId)
+        // 3. User's Leaves
+        $leaveRequests = \App\Models\LeaveRequest::with('leaveType')->where('user_id', $userId)
             ->where('status', 'approved')
             ->where(function($query) use ($startDate, $endDate) {
                 $query->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -1256,7 +1259,9 @@ class AttendanceController extends Controller
                     $d = $dt->format('Y-m-d');
                     $leavesList[] = $d;
                     if (!isset($leavesDetails[$d])) {
-                        if ($req->is_rh) {
+                        if ($req->leaveType && !$req->leaveType->is_paid) {
+                            $leavesDetails[$d] = 'LWP';
+                        } elseif ($req->is_rh) {
                             $leavesDetails[$d] = 'RH';
                         } elseif ($req->is_sl) {
                             $leavesDetails[$d] = 'SL';
@@ -1357,7 +1362,7 @@ class AttendanceController extends Controller
         $holiday = Holiday::where('holiday_date', $date)->first();
         $isSunday = $carbonDate->dayOfWeek === Carbon::SUNDAY;
 
-        $leavesRaw = LeaveRequest::where('status', 'approved')
+        $leavesRaw = LeaveRequest::with('leaveType')->where('status', 'approved')
             ->where(function($query) use ($startOfMonth, $date) {
                 $query->whereBetween('start_date', [$startOfMonth, $date])
                       ->orWhereBetween('end_date', [$startOfMonth, $date])
@@ -1379,6 +1384,7 @@ class AttendanceController extends Controller
                     }
                     $leaves->get($req->user_id)->push((object)[
                         'date' => Carbon::parse($d), 
+                        'is_unpaid' => ($req->leaveType && !$req->leaveType->is_paid),
                         'is_rh' => $req->is_rh, 
                         'is_sl' => $req->is_sl,
                         'is_half_day' => $req->is_half_day
@@ -1400,7 +1406,7 @@ class AttendanceController extends Controller
             $leaveObj = $userLeaves->first(function($l) use ($date) {
                 return Carbon::parse($l->date)->format('Y-m-d') === $date;
             });
-            $leaveType = $leaveObj ? ($leaveObj->is_rh ? 'RH' : ($leaveObj->is_sl ? 'SL' : ($leaveObj->is_half_day ? 'HD' : 'L'))) : null;
+            $leaveType = $leaveObj ? ($leaveObj->is_unpaid ? 'LWP' : ($leaveObj->is_rh ? 'RH' : ($leaveObj->is_sl ? 'SL' : ($leaveObj->is_half_day ? 'HD' : 'L')))) : null;
             
             $shift = $user->employee->shiftRelation ?? null;
             // Calculate cumulative late minutes up to this date
@@ -1546,6 +1552,9 @@ class AttendanceController extends Controller
                     $dayData['status'] = 'restricted holiday';
                 } elseif ($leaveType === 'SL') {
                     $dayData['status'] = 'short leave';
+                } elseif ($leaveType === 'LWP') {
+                    $dayData['status'] = 'unpaid leave';
+                    $dayData['status_reason'] = 'Unpaid Leave';
                 } else {
                     $dayData['status'] = 'leave';
                     $dayData['status_reason'] = 'On Leave';
@@ -1571,8 +1580,10 @@ class AttendanceController extends Controller
             'halfday' => 0,
             'absent' => 0,
             'leave' => 0,
+            'unpaid_leave' => 0,
             'weekly_off_working' => 0,
-            'holiday_working' => 0
+            'holiday_working' => 0,
+            'sunday_working' => 0 // Adding alias for view compatibility
         ];
 
         foreach ($reportData as $row) {
@@ -1582,12 +1593,15 @@ class AttendanceController extends Controller
                 $summary['present']++;
             } elseif (str_contains($statusStr, 'halfday')) {
                 $summary['halfday']++;
+            } elseif ($statusStr === 'lwp' || str_contains($statusStr, 'unpaid leave')) {
+                $summary['unpaid_leave']++;
             } elseif (str_contains($statusStr, 'absent')) {
                 $summary['absent']++;
             } elseif (str_contains($statusStr, 'leave') || str_contains($statusStr, 'restricted')) {
                 $summary['leave']++;
             } elseif (str_contains($statusStr, 'weekly off') && $row['hours'] > 0) {
                 $summary['weekly_off_working']++;
+                $summary['sunday_working']++; 
             } elseif (str_contains($statusStr, 'holiday') && $row['hours'] > 0) {
                 $summary['holiday_working']++;
             }
@@ -1789,7 +1803,7 @@ class AttendanceController extends Controller
         $holidays = $holidaysData->keys()->toArray();
 
         // Get all leaves
-        $allLeavesRaw = \App\Models\LeaveRequest::where('status', 'approved')
+        $allLeavesRaw = \App\Models\LeaveRequest::with('leaveType')->where('status', 'approved')
             ->where(function($query) use ($startDate, $endDate) {
                 $query->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
                       ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -1810,6 +1824,7 @@ class AttendanceController extends Controller
                     }
                     $leavesData[$req->user_id]->push((object)[
                         'date' => \Carbon\Carbon::parse($d),
+                        'is_unpaid' => ($req->leaveType && !$req->leaveType->is_paid),
                         'is_rh' => $req->is_rh,
                         'is_sl' => $req->is_sl,
                         'is_half_day' => $req->is_half_day
@@ -1841,7 +1856,9 @@ class AttendanceController extends Controller
             foreach ($rawLeaves as $l) {
                 $d = $l->date->format('Y-m-d');
                 if (!isset($userLeavesDetails[$d])) {
-                    if ($l->is_rh) {
+                    if ($l->is_unpaid) {
+                        $userLeavesDetails[$d] = 'LWP';
+                    } elseif ($l->is_rh) {
                         $userLeavesDetails[$d] = 'RH';
                     } elseif ($l->is_sl) {
                         $userLeavesDetails[$d] = 'SL';
@@ -1946,6 +1963,9 @@ class AttendanceController extends Controller
                     } elseif ($lType === 'SL') {
                         $statusCode = 'SL';
                         $statusClass = 'text-info';
+                    } elseif ($lType === 'LWP') {
+                        $statusCode = 'LWP';
+                        $statusClass = 'text-danger';
                     } else {
                         $statusCode = 'L'; // Leave
                         $statusClass = 'text-warning';

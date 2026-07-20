@@ -82,6 +82,7 @@
             <th class="summary-col">SW</th>
             <th class="summary-col">HW</th>
             <th class="summary-col">L</th>
+            <th class="summary-col">UL</th>
             <th class="summary-col">A</th>
             <th class="summary-col">&lt;Shift</th>
             <th class="summary-col">&gt;Shift</th>
@@ -124,6 +125,7 @@
                     <td class="text-info">{{ $s['total_sundays_worked'] }}</td>
                     <td class="text-info">{{ $s['total_holidays_worked'] }}</td>
                     <td class="text-secondary">{{ $s['days_on_leave'] }}</td>
+                    <td class="text-danger">{{ $s['total_unpaid_leaves'] ?? 0 }}</td>
                     <td class="text-danger">{{ $s['days_absent'] }}</td>
                     <td>{{ $s['total_less_8_30'] }}</td>
                     <td>{{ $s['total_more_8_30'] }}</td>

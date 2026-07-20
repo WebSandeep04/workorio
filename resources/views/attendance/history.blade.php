@@ -48,6 +48,7 @@
   .icon-green { background: linear-gradient(135deg, #10b981, #34d399); }
   .icon-orange { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
   .icon-purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+  .icon-red { background: linear-gradient(135deg, #ef4444, #f87171); }
 
   .summary-card-content { flex-grow: 1; }
   .summary-card-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #64748b; font-family: Montserrat; }
@@ -161,6 +162,15 @@
             <div class="summary-card-content">
                 <div class="summary-card-label">Absent</div>
                 <div class="summary-card-value" id="totalAbsent">0</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-icon icon-red">
+                <i class="bi bi-calendar-x"></i>
+            </div>
+            <div class="summary-card-content">
+                <div class="summary-card-label">Unpaid Leave</div>
+                <div class="summary-card-value" id="totalUnpaidLeave">0</div>
             </div>
         </div>
     </div>
@@ -286,7 +296,10 @@ function displayAttendanceData(attendances, summary) {
         let statusBadge = '';
         let rowClass = '';
         
-        const displayLabel = status.replace(/\b\w/g, l => l.toUpperCase());
+        let displayLabel = status.replace(/\b\w/g, l => l.toUpperCase());
+        if (status === 'unpaid leave' || status === 'lwp') {
+            displayLabel = 'LWP';
+        }
         
         switch(status) {
             case 'present':
@@ -314,6 +327,8 @@ function displayAttendanceData(attendances, summary) {
                 break;
             case 'absent':
             case 'absent by less hr':
+            case 'unpaid leave':
+            case 'lwp':
                 statusBadge = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2">${displayLabel}</span>`;
                 break;
             default:
@@ -368,6 +383,7 @@ function updateSummaryStats(attendances, summary) {
         document.getElementById('totalHalfDay').textContent = summary.total_halfday || 0;
         document.getElementById('totalLeave').textContent = summary.days_on_leave || 0;
         document.getElementById('totalAbsent').textContent = summary.days_absent || 0;
+        document.getElementById('totalUnpaidLeave').textContent = summary.total_unpaid_leaves || 0;
     }
 }
 

@@ -334,6 +334,15 @@
                     </div>
                 </div>
                 <div class="summary-card">
+                    <div class="summary-card-icon icon-red">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Unpaid Leave</div>
+                        <div class="summary-card-value" id="sumUnpaidLeave">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
                     <div class="summary-card-icon icon-blue">
                         <i class="bi bi-clock-history"></i>
                     </div>
@@ -517,6 +526,15 @@
                     </div>
                 </div>
                 <div class="summary-card">
+                    <div class="summary-card-icon icon-red">
+                        <i class="bi bi-calendar-x"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Unpaid Leave</div>
+                        <div class="summary-card-value" id="dateSumUnpaidLeave">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
                     <div class="summary-card-icon icon-teal">
                         <i class="bi bi-sun"></i>
                     </div>
@@ -662,6 +680,9 @@ function loadReport(){
             document.getElementById('sumAbsent').textContent = s.days_absent;
             document.getElementById('sumHalfday').textContent = s.total_halfday;
             document.getElementById('sumLeave').textContent = s.days_on_leave;
+            
+            const sumUnpaidEl = document.getElementById('sumUnpaidLeave');
+            if (sumUnpaidEl) sumUnpaidEl.textContent = s.total_unpaid_leaves || 0;
             document.getElementById('sumShortLeave').textContent = s.total_short_leaves || 0;
             document.getElementById('sumHolidayWorking').textContent = s.total_holidays_worked;
             document.getElementById('sumSundayWorking').textContent = s.total_sundays_worked;
@@ -779,6 +800,7 @@ function loadMonthlySummary(){
             headerRow += '<th style="min-width:55px;">Sunday Work</th>';
             headerRow += '<th style="min-width:55px;">Holiday Work</th>';
             headerRow += '<th style="min-width:50px;">Leave</th>';
+            headerRow += '<th style="min-width:55px;">Unpaid Leave</th>';
             headerRow += '<th style="min-width:50px;">Absent</th>';
             headerRow += '<th style="min-width:65px;">Less Shift Hr</th>';
             headerRow += '<th style="min-width:65px;">More Shift Hr</th>';
@@ -816,6 +838,7 @@ function loadMonthlySummary(){
                     rowHtml += `<td class="text-center text-info fw-bold">${s.total_sundays_worked}</td>`;
                     rowHtml += `<td class="text-center text-info fw-bold">${s.total_holidays_worked}</td>`;
                     rowHtml += `<td class="text-center text-secondary fw-bold">${s.days_on_leave}</td>`;
+                    rowHtml += `<td class="text-center text-danger fw-bold">${s.total_unpaid_leaves || 0}</td>`;
                     rowHtml += `<td class="text-center text-danger fw-bold">${s.days_absent}</td>`;
                     rowHtml += `<td class="text-center fw-bold" style="color: #64748b;">${s.total_less_8_30}</td>`;
                     rowHtml += `<td class="text-center fw-bold" style="color: #434afa;">${s.total_more_8_30}</td>`;
@@ -853,6 +876,7 @@ function statusBadge(status, holidayName = null){
         'present with HD':'success',
         'present (partial leave)':'success',
         leave:'warning', 
+        'unpaid leave':'danger',
         holiday:'info', 
         sunday:'secondary', 
         absent:'danger',
@@ -870,7 +894,8 @@ function statusBadge(status, holidayName = null){
     }
     
     // Handle status with spaces like "absent by less hr"
-    const displayStatus = status.replace(/\b\w/g, l => l.toUpperCase());
+    let displayStatus = status.replace(/\b\w/g, l => l.toUpperCase());
+    if (status === 'unpaid leave' || status === 'lwp') displayStatus = 'LWP';
     
     // Modern badge styling
     let badgeClass = '';
@@ -993,6 +1018,7 @@ function loadDateReport() {
             document.getElementById('dateSumAbsent').textContent = s.absent;
             document.getElementById('dateSumHalfday').textContent = s.halfday;
             document.getElementById('dateSumLeave').textContent = s.leave;
+            document.getElementById('dateSumUnpaidLeave').textContent = s.unpaid_leave || 0;
             document.getElementById('dateSumHolidayWorking').textContent = s.holiday_working;
             document.getElementById('dateSumSundayWorking').textContent = s.sunday_working;
             summaryDiv.style.display = 'grid';
