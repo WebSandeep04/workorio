@@ -1359,8 +1359,13 @@ class AttendanceController extends Controller
             ->get()
             ->groupBy('user_id');
 
-        $holiday = Holiday::where('holiday_date', $date)->first();
-        $isSunday = $carbonDate->dayOfWeek === Carbon::SUNDAY;
+        $holidaysData = Holiday::whereBetween('holiday_date', [$startOfMonth, $date])
+            ->get()
+            ->keyBy(function($holiday) {
+                return Carbon::parse($holiday->holiday_date)->format('Y-m-d');
+            });
+            
+        $holidays = $holidaysData->keys()->toArray();
 
         $leavesRaw = LeaveRequest::with('leaveType')->where('status', 'approved')
             ->where(function($query) use ($startOfMonth, $date) {
@@ -1380,197 +1385,39 @@ class AttendanceController extends Controller
                 $d = $dt->format('Y-m-d');
                 if ($dt >= new \DateTime($startOfMonth) && $dt <= new \DateTime($date)) {
                     if (!$leaves->has($req->user_id)) {
-                        $leaves->put($req->user_id, collect());
+                        $leaves->put($req->user_id, []);
                     }
-                    $leaves->get($req->user_id)->push((object)[
-                        'date' => Carbon::parse($d), 
-                        'is_unpaid' => ($req->leaveType && !$req->leaveType->is_paid),
-                        'is_rh' => $req->is_rh, 
-                        'is_sl' => $req->is_sl,
-                        'is_half_day' => $req->is_half_day
-                    ]);
+                    $userLeaves = $leaves->get($req->user_id);
+                    $userLeaves[$d] = ($req->leaveType && !$req->leaveType->is_paid) ? 'LWP' : ($req->is_rh ? 'RH' : ($req->is_sl ? 'SL' : ($req->is_half_day ? 'HD' : 'L')));
+                    $leaves->put($req->user_id, $userLeaves);
                 }
             }
         }
 
-        $dayName = $carbonDate->format('l');
         $reportData = [];
 
         foreach ($users as $user) {
             $userAttendances = $attendances->get($user->id, collect());
-            $attendance = $userAttendances->first(function($att) use ($date) {
-                return $att->date->format('Y-m-d') === $date;
-            });
-            
-            $userLeaves = $leaves->get($user->id, collect());
-            $leaveObj = $userLeaves->first(function($l) use ($date) {
-                return Carbon::parse($l->date)->format('Y-m-d') === $date;
-            });
-            $leaveType = $leaveObj ? ($leaveObj->is_unpaid ? 'LWP' : ($leaveObj->is_rh ? 'RH' : ($leaveObj->is_sl ? 'SL' : ($leaveObj->is_half_day ? 'HD' : 'L')))) : null;
+            $userLeavesArray = $leaves->get($user->id, []);
             
             $shift = $user->employee->shiftRelation ?? null;
-            // Calculate cumulative late minutes up to this date
-            $cumulativeLateMinutes = 0;
-            $lateDaysExceeded = 0;
-            foreach ($userAttendances as $att) {
-                if ($att->date->format('Y-m-d') <= $date) {
-                    $lateBy = (int) abs($att->late_minutes ?? 0);
-                    $cumulativeLateMinutes += $lateBy;
-                    
-                    if ($shift && $lateBy > 0) {
-                        $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $cumulativeLateMinutes) < 0;
-                        if ($isGraceExhaustedNow) {
-                            $lateDaysExceeded++;
-                        }
-                    }
-                }
-            }
-
-            $dayData = [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name
-                ],
-                'status' => 'absent',
-                'status_reason' => '-',
-                'holiday_name' => $holiday ? $holiday->name : null,
-                'is_weekly_off' => $isSunday,
-                'is_holiday' => !!$holiday,
-                'is_leave' => !!$leaveObj,
-                'leave_type' => $leaveType,
-                'hours' => 0,
-                'office_hours' => 0,
-                'field_hours' => 0,
-                'break_time' => 0,
-                'first_in' => '-',
-                'last_out' => '-',
-                'late_by' => '-',
-                'grace_balance' => '-',
-                'late_reason' => '-',
-                'description' => null,
-                'is_wfh' => false,
-                'movements' => []
-            ];
-
-            $isWeeklyOff = false;
-            $isHalfDayWorking = false;
-            if ($shift) {
-                if ($shift->week_offs && is_array($shift->week_offs)) {
-                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-                }
-                if ($shift->half_days && is_array($shift->half_days)) {
-                    $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
-                }
-            }
-
-            $dayData['is_weekly_off'] = $isWeeklyOff;
-
-            if ($attendance) {
-                $dayData['hours'] = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
-                $dayData['office_hours'] = $this->reportService->calculateTypeHours($attendance->movements, 'office');
-                $dayData['field_hours'] = $this->reportService->calculateTypeHours($attendance->movements, 'field');
-                $dayData['break_time'] = $this->reportService->calculateTypeHours($attendance->movements, 'break');
-                $dayData['is_wfh'] = (bool)$attendance->is_wfh;
-                
-                $firstInMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'in')->first();
-                if ($firstInMov) {
-                    $dayData['first_in'] = Carbon::parse($firstInMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
-                }
-                
-                $lastOutMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->last();
-                if ($lastOutMov) {
-                    $dayData['last_out'] = Carbon::parse($lastOutMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
-                }
-
-                [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
-                if ($isHalfDayWorking) {
-                    $fullDayHr = $halfDayHr;
-                    $halfDayHr = $halfDayHr / 2;
-                }
-
-                $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
-                $hasHalfDayLeave = ($leaveType === 'HD');
-                $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
-                $statusInfo = $this->reportService->determineStatus($date, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, !!$holiday, $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
-                $origStatus = $statusInfo['label'];
-                
-                $lateBy = (int) abs($attendance->late_minutes ?? 0);
-                $previousGrace = 0;
-                if ($shift && isset($shift->min_per_month_late_allow)) {
-                    $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
-                    $dayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
-                    $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
-                }
-
-                if ($lateBy > 0) {
-                    $dayData['late_by'] = $lateBy . ' min';
-                    if ($firstInMov && $firstInMov->description) {
-                        $desc = trim($firstInMov->description);
-                        $prefix = "Late punch-in: ";
-                        if (stripos($desc, $prefix) === 0) {
-                            $dayData['late_reason'] = trim(substr($desc, strlen($prefix)));
-                        } else {
-                            $dayData['late_reason'] = trim($desc);
-                        }
-                    }
-                }
-                
-                $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
-                $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
-                $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
-                $statusData = $this->reportService->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
-                $dayData['status'] = $statusData['status'];
-                $dayData['status_reason'] = $statusData['reason'];
-                
-                if ($dayData['last_out'] === '-' && $dayData['hours'] > 0) {
-                    $dayData['status'] = 'absent';
-                    $dayData['status_reason'] = 'punchout is missing';
-                }
-
-                $descriptions = $attendance->movements
-                    ->map(fn($m) => $m->description ? trim($m->description) : null)
-                    ->filter()
-                    ->unique()
-                    ->values()
-                    ->toArray();
-                $dayData['description'] = !empty($descriptions) ? implode(', ', $descriptions) : null;
-                
-                $dayData['movements'] = $attendance->movements->map(function($m) {
-                    return [
-                        'time' => Carbon::parse($m->time)->setTimezone('Asia/Kolkata')->format('H:i'),
-                        'type' => ucfirst($m->movement_type),
-                        'action' => ucfirst($m->movement_action),
-                        'description' => $m->description
-                    ];
-                })->toArray();
-            } elseif ($isWeeklyOff) {
-                $dayData['status'] = 'weekly off';
-            } elseif ($holiday) {
-                $dayData['status'] = 'holiday';
-            } elseif ($leaveObj) {
-                if ($leaveType === 'RH') {
-                    $dayData['status'] = 'restricted holiday';
-                } elseif ($leaveType === 'SL') {
-                    $dayData['status'] = 'short leave';
-                } elseif ($leaveType === 'LWP') {
-                    $dayData['status'] = 'unpaid leave';
-                    $dayData['status_reason'] = 'Unpaid Leave';
-                } else {
-                    $dayData['status'] = 'leave';
-                    $dayData['status_reason'] = 'On Leave';
-                }
-            } else {
-                $dayData['status'] = 'absent';
-                $dayData['status_reason'] = 'No attendance recorded';
-            }
+            $dailyBreakdown = $this->reportService->generateDailyBreakdown(
+                $userAttendances, 
+                Carbon::parse($startOfMonth), 
+                Carbon::parse($date), 
+                $holidays, 
+                $userLeavesArray, 
+                $holidaysData, 
+                $shift
+            );
             
-            if ($dayData['grace_balance'] === '-') {
-                if ($shift && isset($shift->min_per_month_late_allow)) {
-                    $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
-                    $dayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
-                }
-            }
-
+            $dayData = collect($dailyBreakdown)->last();
+            
+            $dayData['user'] = [
+                'id' => $user->id,
+                'name' => $user->name
+            ];
+            
             $reportData[] = $dayData;
         }
 

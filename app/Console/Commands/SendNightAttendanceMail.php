@@ -94,7 +94,7 @@ class SendNightAttendanceMail extends Command
                 ->groupBy('user_id');
 
             // Pre-fetch all approved leaves for the month
-            $leaveRequests = LeaveRequest::whereIn('user_id', $users->pluck('id'))
+            $leaveRequests = LeaveRequest::with('leaveType')->whereIn('user_id', $users->pluck('id'))
                 ->where('status', 'approved')
                 ->where(function($query) use ($startOfMonthStr, $todayStr) {
                     $query->whereBetween('start_date', [$startOfMonthStr, $todayStr])
@@ -105,186 +105,91 @@ class SendNightAttendanceMail extends Command
                           });
                 })->get();
                 
-            $leavesList = [];
             $leavesForService = [];
             foreach ($leaveRequests as $req) {
                 $period = new \DatePeriod(new \DateTime($req->start_date), new \DateInterval('P1D'), (new \DateTime($req->end_date))->modify('+1 day'));
                 foreach ($period as $dt) {
                     $d = $dt->format('Y-m-d');
-                    if (!isset($leavesList[$req->user_id])) {
-                        $leavesList[$req->user_id] = collect();
-                        $leavesForService[$req->user_id] = [];
+                    if ($dt >= new \DateTime($startOfMonthStr) && $dt <= new \DateTime($todayStr)) {
+                        if (!isset($leavesForService[$req->user_id])) {
+                            $leavesForService[$req->user_id] = [];
+                        }
+                        $leavesForService[$req->user_id][$d] = ($req->leaveType && !$req->leaveType->is_paid) ? 'LWP' : ($req->is_rh ? 'RH' : ($req->is_sl ? 'SL' : ($req->is_half_day ? 'HD' : 'L')));
                     }
-                    $leavesList[$req->user_id]->push((object)['date' => \Carbon\Carbon::parse($d)]);
-
-                    $type = 'L';
-                    if ($req->is_half_day) $type = 'HD';
-                    if ($req->is_sl) $type = 'SL';
-                    if ($req->type === 'restricted_holiday') $type = 'RH';
-                    $leavesForService[$req->user_id][$d] = $type;
                 }
             }
-            $leaves = collect($leavesList);
             
-            $holidays = Holiday::whereBetween('holiday_date', [$startOfMonthStr, $todayStr])->pluck('holiday_date')->toArray();
+            $holidaysData = Holiday::whereBetween('holiday_date', [$startOfMonthStr, $todayStr])
+                ->get()
+                ->keyBy(function($holiday) {
+                    return Carbon::parse($holiday->holiday_date)->format('Y-m-d');
+                });
+            $holidays = $holidaysData->keys()->toArray();
+            
             $reportService = new AttendanceReportService();
 
             foreach ($users as $user) {
-                $userAtts = $attendances->get($user->id, collect())->keyBy(function($item) {
-                    return Carbon::parse($item->date)->format('Y-m-d');
-                });
-                $userLeaves = $leaves->get($user->id, collect())->keyBy(function($item) {
-                    return Carbon::parse($item->date)->format('Y-m-d');
-                });
-
+                $userAtts = $attendances->get($user->id, collect());
+                $userLeavesArray = $leavesForService[$user->id] ?? [];
+                
                 $shift = $user->employee->shiftRelation ?? null;
 
-                $getRealStatus = function($date, $hours = 0) use ($shift, $holidays, $leavesForService, $user, $reportService) {
-                    $dayName = Carbon::parse($date)->format('l');
-                    $isWeeklyOff = false;
-                    $isHalfDayWorking = false;
-                    if ($shift) {
-                        if ($shift->week_offs && is_array($shift->week_offs)) {
-                            $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-                        }
-                        if ($shift->half_days && is_array($shift->half_days)) {
-                            $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
-                        }
-                    }
-                    $isHoliday = in_array($date, $holidays);
-                    $leaveType = $leavesForService[$user->id][$date] ?? null;
-                    $hasHalfDayLeave = ($leaveType === 'HD');
-                    $shortLeaveHr = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
-                    
-                    [$fullDayHr, $halfDayHr] = $reportService->getThresholds($shift);
-                    if ($isHalfDayWorking) {
-                        $fullDayHr = $halfDayHr;
-                        $halfDayHr = $halfDayHr / 2;
-                    }
-                    
-                    $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
-                    $statusInfo = $reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType, $hasHalfDayLeave, $shortLeaveHr, $enforceTimeRestriction);
-                    return $statusInfo['label'] ?? 'absent';
-                };
+                $dailyBreakdown = $reportService->generateDailyBreakdown(
+                    $userAtts,
+                    Carbon::parse($startOfMonthStr),
+                    Carbon::parse($todayStr),
+                    $holidays,
+                    $userLeavesArray,
+                    $holidaysData,
+                    $shift
+                );
 
-                // 1. Today's Summary
-                $todayAtt = $userAtts->get($todayStr);
-                $todayData = null;
-                if ($todayAtt) {
-                    $todayData = $this->formatAttendanceDay($user, $todayAtt, $todayStr);
-                    $hours = $reportService->calculateTotalHours($todayAtt->movements, $shift, $todayStr);
-                    $todayData['status'] = $getRealStatus($todayStr, $hours);
-                } else {
-                    $isOnLeave = $userLeaves->has($todayStr);
-                    $todayData = [
-                        'user_name' => $user->name,
-                        'status' => $getRealStatus($todayStr, 0),
-                        'punch_in' => '-',
-                        'punch_out' => '-',
-                        'mode' => '-',
-                        'place' => '-',
-                        'total_hours' => '-',
-                        'late_reason' => '-',
-                        'late_by' => '-',
-                        'grace_balance' => '-',
-                        'status_reason' => $isOnLeave ? 'On Leave' : 'No attendance recorded'
-                    ];
-                }
-
-                // 2. Monthly Breakdown
-                if ($userAtts->isEmpty() && $userLeaves->isEmpty()) {
-                    if ($todayData) {
-                        $reportData['today'][] = $todayData;
-                    }
+                if (empty($dailyBreakdown)) {
                     continue;
                 }
-
-                $allDates = $userAtts->keys()->merge($userLeaves->keys())->unique()->sort()->values();
+                
+                $todayRow = collect($dailyBreakdown)->last();
+                
+                $todayData = [
+                    'user_name' => $user->name,
+                    'status' => $todayRow['status'],
+                    'punch_in' => $todayRow['punch_in'],
+                    'punch_out' => $todayRow['punch_out'] !== '-' ? $todayRow['punch_out'] : $todayRow['last_out'],
+                    'mode' => $todayRow['mode'],
+                    'place' => $todayRow['place'],
+                    'total_hours' => $todayRow['total_hours'],
+                    'late_reason' => $todayRow['late_reason'],
+                    'late_by' => $todayRow['late_by'],
+                    'grace_balance' => $todayRow['grace_balance'],
+                    'status_reason' => $todayRow['status_reason']
+                ];
                 
                 $monthlyRecords = [];
                 $monthlyOfficeTotalMinutes = 0;
-                $cumulativeLateMinutes = 0;
-                $lateDaysExceeded = 0;
-
-                foreach ($allDates as $date) {
-                    $isLeave = $userLeaves->has($date) && !$userAtts->has($date);
-                    if ($isLeave) {
+                
+                foreach ($dailyBreakdown as $day) {
+                    // Include if they had attendance, were absent on a working day (or holiday working/absent), leave, or holiday
+                    if ($day['hours'] > 0 || $day['is_leave'] || $day['is_holiday'] || str_contains(strtolower($day['status']), 'absent')) {
                         $monthlyRecords[] = [
-                            'date' => Carbon::parse($date)->format('M j, Y'),
-                            'status' => $getRealStatus($date, 0),
-                            'punch_in' => '-',
-                            'punch_out' => '-',
-                            'mode' => '-',
-                            'place' => '-',
-                            'total_hours' => '-',
-                            'late_reason' => '-',
-                            'late_by' => '-',
-                            'grace_balance' => '-',
-                            'status_reason' => 'On Leave'
+                            'date' => $day['display_date'],
+                            'status' => $day['status'],
+                            'punch_in' => $day['punch_in'],
+                            'punch_out' => $day['punch_out'] !== '-' ? $day['punch_out'] : $day['last_out'],
+                            'mode' => $day['mode'],
+                            'place' => $day['place'],
+                            'total_hours' => $day['total_hours'],
+                            'late_reason' => $day['late_reason'],
+                            'late_by' => $day['late_by'],
+                            'grace_balance' => $day['grace_balance'],
+                            'status_reason' => $day['status_reason']
                         ];
-                    } else if ($userAtts->has($date)) {
-                        $att = $userAtts->get($date);
-                        $dayData = $this->formatAttendanceDay($user, $att, $date);
-                        
-                        $lateBy = (int) abs($att->late_minutes ?? 0);
-                        $cumulativeLateMinutes += $lateBy;
-                        
-                        if ($shift && $lateBy > 0) {
-                            $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $cumulativeLateMinutes) < 0;
-                            if ($isGraceExhaustedNow) {
-                                $lateDaysExceeded++;
-                            }
-                        }
-                        
-                        $graceBalance = '-';
-                        if ($shift && isset($shift->min_per_month_late_allow)) {
-                            $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
-                            $graceBalance = max(0, $graceBalanceVal) . ' min';
-                        }
-                        
-                        $dayData['late_by'] = $lateBy > 0 ? $lateBy . ' min' : '-';
-                        $dayData['grace_balance'] = $graceBalance;
-
-                        $hours = $reportService->calculateTotalHours($att->movements, $shift, $date);
-                        $origStatus = $getRealStatus($date, $hours);
-                        
-                        // Calculate Status Reason and potential Penalty
-                        [$fullDayHr, $halfDayHr] = $reportService->getThresholds($shift);
-                        $previousGrace = $shift ? ($shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy)) : 0;
-                        $hasHalfDayLeave = ($userLeaves->get($date)->type ?? null) === 'HD';
-                        $isOnLeave = $userLeaves->has($date);
-                        
-                        $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
-                        $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
-                        $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
-                        $statusData = $reportService->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isOnLeave, $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
-                        
-                        $dayData['status'] = $statusData['status'];
-                        $dayData['status_reason'] = $statusData['reason'];
-
-                        if ($dayData['punch_out'] === 'Not Marked') {
-                            $dayData['status'] = 'absent';
-                            $dayData['status_reason'] = 'punchout is missing';
-                        }
-
-                        $monthlyRecords[] = $dayData;
-                        $monthlyOfficeTotalMinutes += $dayData['raw_office_minutes'];
-
-                        if ($date === $todayStr) {
-                            $todayData['late_by'] = $dayData['late_by'];
-                            $todayData['grace_balance'] = $dayData['grace_balance'];
-                            $todayData['status'] = $dayData['status'];
-                            $todayData['status_reason'] = $dayData['status_reason'];
-                        }
                     }
-                }
-
-                // If user is absent today, they won't have today's attendance in the loop, 
-                // so let's set their grace balance to the current cumulative
-                if (!isset($todayData['grace_balance']) || $todayData['grace_balance'] === '-') {
-                    if ($shift && isset($shift->min_per_month_late_allow)) {
-                        $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
-                        $todayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
+                    
+                    if ($day['hours'] > 0) {
+                        $parts = explode(':', $day['total_hours']);
+                        if (count($parts) === 2) {
+                            $monthlyOfficeTotalMinutes += ((int)$parts[0] * 60) + (int)$parts[1];
+                        }
                     }
                 }
                 

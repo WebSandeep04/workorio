@@ -526,7 +526,7 @@
                     </div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-card-icon icon-red" style="background-color: #ffeff1; color: #f5365c;">
+                    <div class="summary-card-icon icon-red">
                         <i class="bi bi-calendar-x"></i>
                     </div>
                     <div class="summary-card-content">
