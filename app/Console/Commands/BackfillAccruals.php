@@ -122,12 +122,16 @@ class BackfillAccruals extends Command
                 $attendances = Attendance::where('user_id', $user->id)
                     ->whereBetween('date', [$effectiveStartDate->format('Y-m-d'), $today->format('Y-m-d')])
                     ->with('movements')
-                    ->get();
+                    ->get()
+                    ->groupBy('user_id')
+                    ->get($user->id, collect()); // Match structure of other reports
                 
-                $holidays = Holiday::whereBetween('holiday_date', [$effectiveStartDate->format('Y-m-d'), $today->format('Y-m-d')])
-                    ->pluck('holiday_date')
-                    ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
-                    ->toArray();
+                $holidaysData = Holiday::whereBetween('holiday_date', [$effectiveStartDate->format('Y-m-d'), $today->format('Y-m-d')])
+                    ->get()
+                    ->keyBy(function($holiday) {
+                        return Carbon::parse($holiday->holiday_date)->format('Y-m-d');
+                    });
+                $holidays = $holidaysData->keys()->toArray();
                     
                 $leavesArray = [];
                 $leavesReq = LeaveRequest::with('leaveType')
@@ -141,10 +145,7 @@ class BackfillAccruals extends Command
                     $current = Carbon::parse($leave->start_date);
                     $end = Carbon::parse($leave->end_date);
                     
-                    $code = ($leave->leaveType && $leave->leaveType->code) ? $leave->leaveType->code : 'L';
-                    if ($leave->is_rh) $code = 'RH';
-                    elseif ($leave->is_sl) $code = 'SL';
-                    elseif ($leave->is_half_day) $code = 'HD';
+                    $code = ($leave->leaveType && !$leave->leaveType->is_paid) ? 'LWP' : ($leave->is_rh ? 'RH' : ($leave->is_sl ? 'SL' : ($leave->is_half_day ? 'HD' : 'L')));
                     
                     while ($current->lte($end)) {
                         $leavesArray[$current->format('Y-m-d')] = $code;
@@ -154,38 +155,124 @@ class BackfillAccruals extends Command
                     
                 $shift = $user->employee->shiftRelation ?? null;
 
-                // Generate Daily Breakdown for the Entire Period at once
-                $dailyBreakdown = $this->reportService->generateDailyBreakdown(
-                    $attendances, 
-                    $effectiveStartDate, 
-                    $today, 
-                    $holidays, 
-                    $leavesArray, 
-                    null, 
-                    $shift
-                );
+                // Generate Daily Breakdown Month by Month to reset late grace periods correctly
+                $dailyBreakdown = [];
+                $currentMonthStart = $effectiveStartDate->copy()->startOfMonth();
+                
+                while ($currentMonthStart->lte($today)) {
+                    $currentMonthEnd = $currentMonthStart->copy()->endOfMonth();
+                    if ($currentMonthEnd->gt($today)) {
+                        $currentMonthEnd = $today->copy();
+                    }
+                    
+                    $actualStart = $currentMonthStart->copy()->max($effectiveStartDate);
+                    
+                    $monthlyBreakdown = $this->reportService->generateDailyBreakdown(
+                        $attendances, 
+                        $actualStart, 
+                        $currentMonthEnd, 
+                        $holidays, 
+                        $leavesArray, 
+                        $holidaysData, 
+                        $shift
+                    );
+                    
+                    foreach ($monthlyBreakdown as $data) {
+                        $dailyBreakdown[] = $data;
+                    }
+                    
+                    $currentMonthStart->addMonth()->startOfMonth();
+                }
 
                 $totalValidDays = 0.0;
+                
+                // --- Testing ONLY: Monthly Summary ---
+                $monthlySummaries = [];
                 
                 foreach ($dailyBreakdown as $dateKey => $dayData) {
                     $dateStr = $dayData['date'] ?? (is_string($dateKey) ? $dateKey : 'unknown_date');
                     $status = strtolower($dayData['status'] ?? 'absent');
                     
-                    if ($status === 'absent') {
+                    $monthKey = Carbon::parse($dateStr)->format('F Y');
+                    if (!isset($monthlySummaries[$monthKey])) {
+                        $monthlySummaries[$monthKey] = [
+                            'present' => 0,
+                            'halfday' => 0,
+                            'absent' => 0,
+                            'leave' => 0,
+                            'unpaid_leave' => 0,
+                            'holiday_working' => 0,
+                            'weekly_off_working' => 0,
+                            'holiday' => 0,
+                            'weekly_off' => 0
+                        ];
+                    }
+
+                    if ($status === 'unpaid leave' || $status === 'lwp') {
+                        $monthlySummaries[$monthKey]['unpaid_leave']++;
+                    } elseif (in_array($status, ['leave', 'restricted holiday', 'leave (rh)'])) {
+                        $monthlySummaries[$monthKey]['leave']++;
+                    } elseif (str_contains($status, 'absent')) {
+                        $monthlySummaries[$monthKey]['absent']++;
+                    } elseif (in_array($status, ['halfday', 'present (partial leave)'])) {
+                        $monthlySummaries[$monthKey]['halfday']++;
+                    } elseif (in_array($status, ['present', 'present with sl', 'present with hd'])) {
+                        $monthlySummaries[$monthKey]['present']++;
+                    } elseif ($status === 'holiday working') {
+                        $monthlySummaries[$monthKey]['holiday_working']++;
+                    } elseif ($status === 'holiday') {
+                        $monthlySummaries[$monthKey]['holiday']++;
+                    } elseif ($status === 'h/w') {
+                        $monthlySummaries[$monthKey]['holiday_working']++;
+                    } elseif (!empty($dayData['is_sunday'])) {
+                        if (str_contains($status, 'working') || $status === 'w/o-w') {
+                            $monthlySummaries[$monthKey]['weekly_off_working']++;
+                        } else {
+                            $monthlySummaries[$monthKey]['weekly_off']++;
+                        }
+                    }
+
+                    if (str_contains($status, 'absent') || $status === 'unpaid leave' || $status === 'lwp') {
                         continue;
                     }
                     
-                    $increment = str_contains($status, 'halfday') ? ($rule->halfday_count_value ?? 1.0) : 1.0;
+                    $increment = in_array($status, ['halfday', 'present (partial leave)']) ? ($rule->halfday_count_value ?? 1.0) : 1.0;
                     $totalValidDays += $increment;
                 }
                 
-                $this->info("    -> Total Valid Days: {$totalValidDays}");
+                $overallCounts = [
+                    'present' => 0,
+                    'halfday' => 0,
+                    'absent' => 0,
+                    'leave' => 0,
+                    'unpaid_leave' => 0,
+                    'holiday_working' => 0,
+                    'weekly_off_working' => 0,
+                    'holiday' => 0,
+                    'weekly_off' => 0
+                ];
+                
+                foreach ($monthlySummaries as $month => $sum) {
+                    foreach ($sum as $k => $v) {
+                        $overallCounts[$k] += $v;
+                    }
+                    $logStr = "Testing UID {$user->id} | {$month} | Rule {$rule->leave_type_id} => " . json_encode($sum);
+                    Log::info($logStr);
+                    $this->info($logStr);
+                }
+                
+                $hdVal = $rule->halfday_count_value ?? 1.0;
+                $formula = "({$overallCounts['present']} P + {$overallCounts['holiday_working']} HW + {$overallCounts['weekly_off_working']} WOW + {$overallCounts['leave']} L + {$overallCounts['holiday']} H + {$overallCounts['weekly_off']} WO) + ({$overallCounts['halfday']} HD * {$hdVal})";
+                
+                $this->info("    -> Total Valid Days: {$totalValidDays} | Formula: {$formula}");
+                Log::info("Testing UID {$user->id} | Rule {$rule->leave_type_id} | Total Valid Days: {$totalValidDays} | Formula: {$formula}");
 
                 // Calculate Earned Leaves and Remainder
                 $earnedLeaves = floor($totalValidDays / $rule->value);
                 $remainderDays = $totalValidDays - ($earnedLeaves * $rule->value);
                 
                 $this->info("    -> Earned Credits: {$earnedLeaves}, Remainder: {$remainderDays}");
+                Log::info("Testing UID {$user->id} | Rule {$rule->leave_type_id} | Earned Credits: {$earnedLeaves}, Remainder: {$remainderDays}");
 
                 if ($earnedLeaves > 0) {
                     try {
