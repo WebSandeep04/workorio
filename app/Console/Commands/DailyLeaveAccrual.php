@@ -84,12 +84,20 @@ class DailyLeaveAccrual extends Command
 
             foreach ($users as $user) {
             // Check if user has an Employment Type mapped
-            if (!$user->employee || !$user->employee->employment_type_id) {
+            $joiningDateString = $user->employee ? $user->employee->date_of_joining : null;
+            if (!$joiningDateString || !$user->employee->employment_type_id) {
+                continue;
+            }
+            
+            if (Carbon::parse($joiningDateString)->gt(Carbon::parse($targetDate))) {
                 continue;
             }
 
+            $startOfMonth = Carbon::parse($targetDate)->startOfMonth()->format('Y-m-d');
+
+            // Fetch attendances from start of month to calculate grace periods correctly
             $attendances = Attendance::where('user_id', $user->id)
-                ->whereDate('date', $targetDate)
+                ->whereBetween('date', [$startOfMonth, $targetDate])
                 ->with('movements')
                 ->get();
             
@@ -111,7 +119,7 @@ class DailyLeaveAccrual extends Command
 
             $dailyBreakdown = $this->reportService->generateDailyBreakdown(
                 $attendances, 
-                Carbon::parse($targetDate), 
+                Carbon::parse($startOfMonth), 
                 Carbon::parse($targetDate), 
                 $holidays, 
                 $leaves, 
@@ -119,10 +127,12 @@ class DailyLeaveAccrual extends Command
                 $shift
             );
             
-            $status = strtolower($dailyBreakdown[0]['status'] ?? 'absent');
+            // Get ONLY the breakdown for the target date (which is the last one in the array)
+            $targetDayData = collect($dailyBreakdown)->last();
+            $status = strtolower($targetDayData['status'] ?? 'absent');
 
             // If absolutely no valid paid log exists, they were absent/LWP. Skip tracking.
-            if ($status === 'absent') {
+            if (str_contains($status, 'absent') || $status === 'unpaid leave' || $status === 'lwp') {
                 continue; 
             }
 
@@ -133,13 +143,12 @@ class DailyLeaveAccrual extends Command
 
             foreach ($accrualRules as $rule) {
                 // Step 4.5: Validate Eligibility (Wait Period) Check
-                $joiningDate = $user->employee ? $user->employee->date_of_joining : null;
                 $eligibilityDays = $rule->eligibility_days ?? 0;
                 
-                if ($joiningDate && $eligibilityDays > 0) {
-                    $daysSinceJoining = Carbon::parse($joiningDate)->diffInDays(Carbon::parse($targetDate), false);
+                if ($eligibilityDays > 0) {
+                    $daysSinceJoining = Carbon::parse($joiningDateString)->diffInDays(Carbon::parse($targetDate), false);
                     if ($daysSinceJoining < $eligibilityDays) {
-                        continue; // User is still in wait period or hasn't joined yet
+                        continue; // User is still in wait period
                     }
                 }
 
@@ -150,7 +159,7 @@ class DailyLeaveAccrual extends Command
                 );
 
                 // Increment their valid paid days
-                $increment = str_contains($status, 'halfday') ? ($rule->halfday_count_value ?? 1.0) : 1.0;
+                $increment = in_array($status, ['halfday', 'present (partial leave)']) ? ($rule->halfday_count_value ?? 1.0) : 1.0;
                 $counter->valid_days_count += $increment;
 
                 // Threshold Check: Did they hit the limit (e.g. 30 days) to earn the reward?
@@ -165,8 +174,8 @@ class DailyLeaveAccrual extends Command
                             "Earned Accrual for reaching " . $rule->value . " valid days limit."
                         );
 
-                        // Reset Counter cleanly
-                        $counter->valid_days_count = 0;
+                        // Keep the remainder for the next cycle
+                        $counter->valid_days_count = $counter->valid_days_count - $rule->value;
                         Log::info("User ID {$user->id} earned 1 Leave Type ID {$rule->leave_type_id}.");
                         $this->info("Credited 1 leave to UID {$user->id} for type {$rule->leave_type_id}");
                     } catch (\Exception $e) {
