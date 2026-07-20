@@ -100,7 +100,7 @@ class DailyLeaveAccrual extends Command
                 ->whereDate('end_date', '>=', $targetDate)
                 ->get()
                 ->mapWithKeys(function ($leave) use ($targetDate) {
-                    $code = $leave->leaveType ? $leave->leaveType->code : 'L';
+                    $code = ($leave->leaveType && $leave->leaveType->code) ? $leave->leaveType->code : 'L';
                     if ($leave->is_rh) $code = 'RH';
                     elseif ($leave->is_sl) $code = 'SL';
                     elseif ($leave->is_half_day) $code = 'HD';
