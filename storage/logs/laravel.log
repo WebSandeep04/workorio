@@ -1,55 +1,24 @@
-[2026-07-21 12:08:31] local.INFO: Testing UID 3 | May 2026 | Rule 10 => {"present":17,"halfday":1,"absent":6,"leave":0,"unpaid_leave":1,"holiday_working":0,"weekly_off_working":0,"holiday":1,"weekly_off":5}  
-[2026-07-21 12:08:31] local.INFO: Testing UID 3 | June 2026 | Rule 10 => {"present":13,"halfday":4,"absent":9,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":4}  
-[2026-07-21 12:08:31] local.INFO: Testing UID 3 | July 2026 | Rule 10 => {"present":9,"halfday":2,"absent":7,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":1,"holiday":0,"weekly_off":2}  
-[2026-07-21 12:08:31] local.INFO: Testing UID 3 | Rule 10 | Total Valid Days: 55.5 | Formula: (39 P + 0 HW + 1 WOW + 0 L + 1 H + 11 WO) + (7 HD * 0.50)  
-
-
-[2026-07-21 12:08:31] local.INFO: Testing UID 3 | Rule 10 | Earned Credits: 1, Remainder: 10.5  
-[2026-07-21 12:08:32] local.INFO: User ID 3 earned 1 Leave Type ID 10 during backfill. 
-
-
-
-
-[2026-07-21 12:08:32] local.INFO: Testing UID 4 | May 2026 | Rule 10 => {"present":17,"halfday":2,"absent":5,"leave":0,"unpaid_leave":1,"holiday_working":0,"weekly_off_working":0,"holiday":1,"weekly_off":5}  
-[2026-07-21 12:08:32] local.INFO: Testing UID 4 | June 2026 | Rule 10 => {"present":6,"halfday":0,"absent":20,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":1,"holiday":0,"weekly_off":3}  
-[2026-07-21 12:08:32] local.INFO: Testing UID 4 | July 2026 | Rule 10 => {"present":15,"halfday":0,"absent":3,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":3}  
-[2026-07-21 12:08:32] local.INFO: Testing UID 4 | Rule 10 | Total Valid Days: 52 | Formula: (38 P + 0 HW + 1 WOW + 0 L + 1 H + 11 WO) + (2 HD * 0.50)  
-[2026-07-21 12:08:32] local.INFO: Testing UID 4 | Rule 10 | Earned Credits: 1, Remainder: 7  
-[2026-07-21 12:08:32] local.INFO: User ID 4 earned 1 Leave Type ID 10 during backfill.  
-
-
-[2026-07-21 12:08:32] local.INFO: Testing UID 5 | May 2026 | Rule 10 => {"present":22,"halfday":0,"absent":1,"leave":0,"unpaid_leave":2,"holiday_working":0,"weekly_off_working":0,"holiday":1,"weekly_off":5}  
-[2026-07-21 12:08:32] local.INFO: Testing UID 5 | June 2026 | Rule 10 => {"present":17,"halfday":0,"absent":0,"leave":0,"unpaid_leave":9,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":4}  
-[2026-07-21 12:08:32] local.INFO: Testing UID 5 | July 2026 | Rule 10 => {"present":11,"halfday":0,"absent":4,"leave":0,"unpaid_leave":3,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":3}  
-[2026-07-21 12:08:32] local.INFO: Testing UID 5 | Rule 10 | Total Valid Days: 63 | Formula: (50 P + 0 HW + 0 WOW + 0 L + 1 H + 12 WO) + (0 HD * 0.50)  
-[2026-07-21 12:08:32] local.INFO: Testing UID 5 | Rule 10 | Earned Credits: 1, Remainder: 18  
-[2026-07-21 12:08:32] local.INFO: User ID 5 earned 1 Leave Type ID 10 during backfill. 
-
-[2026-07-21 12:08:32] local.INFO: Testing UID 7 | May 2026 | Rule 10 => {"present":11,"halfday":0,"absent":5,"leave":0,"unpaid_leave":5,"holiday_working":0,"weekly_off_working":0,"holiday":1,"weekly_off":4}  
-[2026-07-21 12:08:32] local.INFO: Testing UID 7 | June 2026 | Rule 10 => {"present":20,"halfday":2,"absent":1,"leave":0,"unpaid_leave":3,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":4}  
-[2026-07-21 12:08:32] local.INFO: Testing UID 7 | July 2026 | Rule 10 => {"present":15,"halfday":0,"absent":3,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":3}  
-[2026-07-21 12:08:32] local.INFO: Testing UID 7 | Rule 10 | Total Valid Days: 59 | Formula: (46 P + 0 HW + 0 WOW + 0 L + 1 H + 11 WO) + (2 HD * 0.50)  
-[2026-07-21 12:08:32] local.INFO: Testing UID 7 | Rule 10 | Earned Credits: 1, Remainder: 14  
-[2026-07-21 12:08:33] local.INFO: User ID 7 earned 1 Leave Type ID 10 during backfill.  
-
-
-[2026-07-21 12:08:33] local.INFO: Testing UID 8 | May 2026 | Rule 10 => {"present":17,"halfday":1,"absent":7,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":0,"holiday":1,"weekly_off":5}  
-[2026-07-21 12:08:33] local.INFO: Testing UID 8 | June 2026 | Rule 10 => {"present":15,"halfday":2,"absent":9,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":4}  
-[2026-07-21 12:08:33] local.INFO: Testing UID 8 | July 2026 | Rule 10 => {"present":10,"halfday":1,"absent":7,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":3}  
-[2026-07-21 12:08:33] local.INFO: Testing UID 8 | Rule 10 | Total Valid Days: 57 | Formula: (42 P + 0 HW + 0 WOW + 0 L + 1 H + 12 WO) + (4 HD * 0.50)  
-[2026-07-21 12:08:33] local.INFO: Testing UID 8 | Rule 10 | Earned Credits: 1, Remainder: 12  
-[2026-07-21 12:08:33] local.INFO: User ID 8 earned 1 Leave Type ID 10 during backfill.  
-
-
-[2026-07-21 12:08:33] local.INFO: Testing UID 9 | May 2026 | Rule 10 => {"present":3,"halfday":15,"absent":4,"leave":0,"unpaid_leave":3,"holiday_working":0,"weekly_off_working":0,"holiday":1,"weekly_off":5}  
-[2026-07-21 12:08:33] local.INFO: Testing UID 9 | June 2026 | Rule 10 => {"present":3,"halfday":9,"absent":8,"leave":0,"unpaid_leave":6,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":4}  
-[2026-07-21 12:08:33] local.INFO: Testing UID 9 | July 2026 | Rule 10 => {"present":3,"halfday":6,"absent":7,"leave":0,"unpaid_leave":2,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":3}  
-[2026-07-21 12:08:33] local.INFO: Testing UID 9 | Rule 10 | Total Valid Days: 37 | Formula: (9 P + 0 HW + 0 WOW + 0 L + 1 H + 12 WO) + (30 HD * 0.50)  
-[2026-07-21 12:08:33] local.INFO: Testing UID 9 | Rule 10 | Earned Credits: 0, Remainder: 37  
-
-[2026-07-21 12:08:33] local.INFO: Testing UID 15 | May 2026 | Rule 10 => {"present":19,"halfday":3,"absent":3,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":0,"holiday":1,"weekly_off":5}  
-[2026-07-21 12:08:33] local.INFO: Testing UID 15 | June 2026 | Rule 10 => {"present":23,"halfday":2,"absent":1,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":4}  
-[2026-07-21 12:08:33] local.INFO: Testing UID 15 | July 2026 | Rule 10 => {"present":14,"halfday":2,"absent":2,"leave":0,"unpaid_leave":0,"holiday_working":0,"weekly_off_working":0,"holiday":0,"weekly_off":3}  
-[2026-07-21 12:08:33] local.INFO: Testing UID 15 | Rule 10 | Total Valid Days: 72.5 | Formula: (56 P + 0 HW + 0 WOW + 0 L + 1 H + 12 WO) + (7 HD * 0.50)  
-[2026-07-21 12:08:33] local.INFO: Testing UID 15 | Rule 10 | Earned Credits: 1, Remainder: 27.5  
-[2026-07-21 12:08:33] local.INFO: User ID 15 earned 1 Leave Type ID 10 during backfill.  
+[2026-07-21 13:43:22] local.ERROR: PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 {"exception":"[object] (Psy\\Exception\\ParseErrorException(code: 0): PHP Parse error: Syntax error, unexpected T_NS_SEPARATOR on line 1 at D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\psy\\psysh\\src\\Exception\\ParseErrorException.php:44)
+[stacktrace]
+#0 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\psy\\psysh\\src\\CodeCleaner.php(306): Psy\\Exception\\ParseErrorException::fromParseError(Object(PhpParser\\Error))
+#1 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\psy\\psysh\\src\\CodeCleaner.php(240): Psy\\CodeCleaner->parse('<?php \\\\ = app(\\\\...', false)
+#2 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\psy\\psysh\\src\\Shell.php(852): Psy\\CodeCleaner->clean(Array, false)
+#3 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\psy\\psysh\\src\\Shell.php(881): Psy\\Shell->addCode('\\\\ = app(\\\\App\\\\Se...', true)
+#4 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\psy\\psysh\\src\\Shell.php(1390): Psy\\Shell->setCode('\\\\ = app(\\\\App\\\\Se...', true)
+#5 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\tinker\\src\\Console\\TinkerCommand.php(76): Psy\\Shell->execute('\\\\ = app(\\\\App\\\\Se...')
+#6 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(36): Laravel\\Tinker\\Console\\TinkerCommand->handle()
+#7 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Util.php(43): Illuminate\\Container\\BoundMethod::Illuminate\\Container\\{closure}()
+#8 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(96): Illuminate\\Container\\Util::unwrapIfClosure(Object(Closure))
+#9 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\BoundMethod.php(35): Illuminate\\Container\\BoundMethod::callBoundMethod(Object(Illuminate\\Foundation\\Application), Array, Object(Closure))
+#10 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(835): Illuminate\\Container\\BoundMethod::call(Object(Illuminate\\Foundation\\Application), Array, Array, NULL)
+#11 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(211): Illuminate\\Container\\Container->call(Array)
+#12 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Command\\Command.php(318): Illuminate\\Console\\Command->execute(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#13 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Console\\Command.php(180): Symfony\\Component\\Console\\Command\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Illuminate\\Console\\OutputStyle))
+#14 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Application.php(1092): Illuminate\\Console\\Command->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#15 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Application.php(341): Symfony\\Component\\Console\\Application->doRunCommand(Object(Laravel\\Tinker\\Console\\TinkerCommand), Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#16 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\symfony\\console\\Application.php(192): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#17 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(197): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#18 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1234): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#19 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#20 {main}
+"} 

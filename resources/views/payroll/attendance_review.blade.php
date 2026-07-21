@@ -64,6 +64,10 @@
         <option value="{{ $yr }}" {{ date('Y') == $yr ? 'selected' : '' }}>{{ $yr }}</option>
       @endforeach
     </select>
+      
+    <button id="btnSync" class="btn btn-primary" style="margin-left: 10px; border-radius: 8px;">
+      <i class="bi bi-arrow-repeat me-1"></i> Sync Data
+    </button>
   </div>
 
   <div class="modern-card data-table-card">
@@ -72,11 +76,19 @@
         <table class="table custom-table" id="attendanceTable">
           <thead>
             <tr>
-              <th>Employee</th>
-              <th>Working Days</th>
-              <th>Days Worked</th>
+              <th style="min-width: 200px;">Employee</th>
+              <th>Work Days</th>
+              <th>Total Present</th>
+              <th>Full Day</th>
+              <th>Half Day</th>
+              <th>Sunday Work</th>
+              <th>Holiday Work</th>
+              <th>Leave</th>
+              <th>Unpaid Leave</th>
               <th>Absent</th>
-              <th>Leave / Holiday</th>
+              <th>Less Shift Hr</th>
+              <th>More Shift Hr</th>
+              <th>Late Count</th>
               <th>Payable Days</th>
               <th>Status</th>
               <th>Actions</th>
@@ -84,7 +96,7 @@
           </thead>
           <tbody id="attendanceTableBody">
             <tr>
-              <td colspan="8" class="loading-state">
+              <td colspan="16" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
                 <p class="mt-2 mb-0">Loading attendance summaries...</p>
               </td>
@@ -158,6 +170,7 @@ function escapeHtml(text = '') {
 $(function () {
   const csrf = $('meta[name="csrf-token"]').attr('content');
   const baseUrl = "{{ route('payroll.attendance.review') }}";
+  const syncUrl = "{{ route('payroll.attendance.sync') }}";
   let searchTimeout;
   
   loadAttendance();
@@ -169,7 +182,7 @@ $(function () {
     
     $('#attendanceTableBody').html(`
       <tr>
-        <td colspan="8" class="loading-state">
+        <td colspan="16" class="loading-state">
           <i class="bi bi-arrow-repeat spin"></i>
           <p class="mt-2 mb-0">Loading attendance summaries...</p>
         </td>
@@ -184,7 +197,7 @@ $(function () {
         if (!data.data || data.data.length === 0) {
           $('#attendanceTableBody').html(`
             <tr>
-              <td colspan="8" class="empty-state">
+              <td colspan="16" class="empty-state">
                 <i class="bi bi-calendar-x"></i>
                 <h5>No Attendance Records Found</h5>
                 <p>No monthly summaries available for the selected period.</p>
@@ -209,7 +222,7 @@ $(function () {
           if (row.is_locked) {
             actionBtn = `<button class="btn-action btn-action-unlock toggle-lock" data-id="${row.id}" data-action="unlock"><i class="bi bi-unlock-fill me-1"></i> Unlock</button>`;
           } else {
-            actionBtn = `<button class="btn-action btn-action-lock toggle-lock" data-id="${row.id}" data-action="lock"><i class="bi bi-lock-fill me-1"></i> Lock for Payroll</button>`;
+            actionBtn = `<button class="btn-action btn-action-lock toggle-lock" data-id="${row.id}" data-action="lock"><i class="bi bi-lock-fill me-1"></i> Lock</button>`;
           }
 
           rows += `
@@ -221,9 +234,17 @@ $(function () {
                 </div>
               </td>
               <td>${row.total_working_days || 0}</td>
-              <td>${row.days_worked || 0}</td>
+              <td>${row.total_present_combined || 0}</td>
+              <td>${row.total_present || 0}</td>
+              <td>${row.total_halfday || 0}</td>
+              <td>${row.total_weekly_offs_worked || 0}</td>
+              <td>${row.total_holidays_worked || 0}</td>
+              <td>${row.days_on_leave || 0}</td>
+              <td>${row.total_unpaid_leaves || 0}</td>
               <td><span class="text-danger fw-bold">${row.days_absent || 0}</span></td>
-              <td>${row.days_on_leave || 0} L / ${row.total_holidays || 0} H</td>
+              <td>${row.total_less_8_30 || 0}</td>
+              <td>${row.total_more_8_30 || 0}</td>
+              <td>${row.late_count || 0}</td>
               <td><strong>${payableDays}</strong></td>
               <td>${statusBadge}</td>
               <td>${actionBtn}</td>
@@ -237,7 +258,7 @@ $(function () {
       error: function() {
         $('#attendanceTableBody').html(`
           <tr>
-            <td colspan="8" class="text-danger text-center py-4">
+            <td colspan="16" class="text-danger text-center py-4">
               <i class="bi bi-exclamation-triangle"></i> Failed to load attendance.
             </td>
           </tr>
@@ -255,6 +276,35 @@ $(function () {
   $('#search, #filterMonth, #filterYear').on('change keyup', function() {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => loadAttendance(1), 300);
+  });
+
+  $('#btnSync').on('click', function() {
+    const btn = $(this);
+    const originalHtml = btn.html();
+    const month = $('#filterMonth').val();
+    const year = $('#filterYear').val();
+
+    btn.html('<i class="bi bi-arrow-repeat spin me-1"></i> Syncing...').prop('disabled', true);
+    
+    $.ajax({
+      url: syncUrl,
+      type: 'POST',
+      data: { month: month, year: year },
+      headers: { 'X-CSRF-TOKEN': csrf },
+      success: function(res) {
+        btn.html(originalHtml).prop('disabled', false);
+        if (res.success) {
+          showAlert('success', res.message);
+          loadAttendance(1);
+        } else {
+          showAlert('error', res.message || 'Sync failed.');
+        }
+      },
+      error: function(xhr) {
+        btn.html(originalHtml).prop('disabled', false);
+        showAlert('error', xhr.responseJSON?.message || 'Failed to sync data.');
+      }
+    });
   });
 
   $(document).on('click', '.toggle-lock', function () {
