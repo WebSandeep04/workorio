@@ -1248,6 +1248,7 @@ Route::middleware(['auth.or.session'])->group(function () {
         Route::resource('structures', App\Http\Controllers\Payroll\SalaryStructureController::class);
         Route::resource('statutory', App\Http\Controllers\Payroll\StatutoryRuleController::class);
         
+        Route::get('final-attendance', [App\Http\Controllers\Payroll\MonthlyAttendanceReviewController::class, 'finalAttendanceView'])->name('final_attendance.view');
         Route::get('attendance-review', [App\Http\Controllers\Payroll\MonthlyAttendanceReviewController::class, 'index'])->name('attendance.review');
         Route::post('attendance-review/sync', [App\Http\Controllers\Payroll\MonthlyAttendanceReviewController::class, 'sync'])->name('attendance.sync');
         Route::post('attendance-review/lock', [App\Http\Controllers\Payroll\MonthlyAttendanceReviewController::class, 'lock'])->name('attendance.lock');

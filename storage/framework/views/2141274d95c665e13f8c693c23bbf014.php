@@ -25,6 +25,7 @@
   .data-table-card .custom-table tbody tr { transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
   .data-table-card .custom-table tbody tr:hover { background: #f8f9ff; box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08); transform: translateY(-1px); }
   .data-table-card .custom-table tbody tr:last-child td { border-bottom: none; }
+  .sticky-col { position: sticky !important; }
   .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; }
   .btn-action { background: transparent !important; border: none !important; padding: 0.25rem 0.5rem; color: #6c757d; transition: all 0.2s ease; cursor: pointer; }
   .btn-action-lock { color: white; background: #F59E0B !important; border-radius: 4px; font-size: 0.75rem; padding: 0.35rem 0.7rem; }
@@ -62,10 +63,6 @@
         <option value="<?php echo e($yr); ?>" <?php echo e(date('Y') == $yr ? 'selected' : ''); ?>><?php echo e($yr); ?></option>
       <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </select>
-      
-    <button id="btnSync" class="btn btn-primary" style="margin-left: 10px; border-radius: 8px;">
-      <i class="bi bi-arrow-repeat me-1"></i> Sync Data
-    </button>
   </div>
 
   <div class="modern-card data-table-card">
@@ -74,7 +71,7 @@
         <table class="table custom-table" id="attendanceTable">
           <thead>
             <tr>
-              <th style="min-width: 200px;">Employee</th>
+              <th class="sticky-col" style="min-width: 200px; background: #fff; left: 0; z-index: 10; border-right: 2px solid #f1f3f5;">Employee</th>
               <th>Work Days</th>
               <th>Total Present</th>
               <th>Full Day</th>
@@ -88,13 +85,11 @@
               <th>More Shift Hr</th>
               <th>Late Count</th>
               <th>Payable Days</th>
-              <th>Status</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="attendanceTableBody">
             <tr>
-              <td colspan="16" class="loading-state">
+              <td colspan="14" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
                 <p class="mt-2 mb-0">Loading attendance summaries...</p>
               </td>
@@ -117,18 +112,6 @@
 
 <?php $__env->startPush('scripts'); ?>
 <script>
-function showAlert(type, message) {
-  const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-  const alertHtml = `
-    <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
-      ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-  `;
-  $('body').append(alertHtml);
-  setTimeout(() => $('.alert').fadeOut(), 3000);
-}
-
 function buildSimplePagination($container, current, last) {
     $container.empty();
     $container.append(`
@@ -166,9 +149,7 @@ function escapeHtml(text = '') {
 }
 
 $(function () {
-  const csrf = $('meta[name="csrf-token"]').attr('content');
   const baseUrl = "<?php echo e(route('payroll.attendance.review')); ?>";
-  const syncUrl = "<?php echo e(route('payroll.attendance.sync')); ?>";
   let searchTimeout;
   
   loadAttendance();
@@ -180,7 +161,7 @@ $(function () {
     
     $('#attendanceTableBody').html(`
       <tr>
-        <td colspan="16" class="loading-state">
+        <td colspan="14" class="loading-state">
           <i class="bi bi-arrow-repeat spin"></i>
           <p class="mt-2 mb-0">Loading attendance summaries...</p>
         </td>
@@ -195,7 +176,7 @@ $(function () {
         if (!data.data || data.data.length === 0) {
           $('#attendanceTableBody').html(`
             <tr>
-              <td colspan="16" class="empty-state">
+              <td colspan="14" class="empty-state">
                 <i class="bi bi-calendar-x"></i>
                 <h5>No Attendance Records Found</h5>
                 <p>No monthly summaries available for the selected period.</p>
@@ -210,22 +191,11 @@ $(function () {
         let rows = '';
         $.each(data.data, function (i, row) {
           const emp = row.employee || {};
-          const statusBadge = row.is_locked 
-            ? '<span class="badge badge-modern-success"><i class="bi bi-lock-fill"></i> Locked</span>' 
-            : '<span class="badge badge-modern-secondary"><i class="bi bi-unlock-fill"></i> Open</span>';
-            
           const payableDays = parseFloat(row.days_worked || 0) + parseFloat(row.days_on_leave || 0) + parseFloat(row.total_holidays || 0) + parseFloat(row.total_weekly_offs || 0);
 
-          let actionBtn = '';
-          if (row.is_locked) {
-            actionBtn = `<button class="btn-action btn-action-unlock toggle-lock" data-id="${row.id}" data-action="unlock"><i class="bi bi-unlock-fill me-1"></i> Unlock</button>`;
-          } else {
-            actionBtn = `<button class="btn-action btn-action-lock toggle-lock" data-id="${row.id}" data-action="lock"><i class="bi bi-lock-fill me-1"></i> Lock</button>`;
-          }
-
           rows += `
-            <tr style="animation-delay: ${i * 0.05}s;">
-              <td>
+            <tr style="animation-delay: ${i * 0.05}L;">
+              <td class="sticky-col" style="background: #fff; left: 0; z-index: 5; border-right: 2px solid #f1f3f5;">
                 <div class="d-flex align-items-center">
                   <div class="fw-bold text-dark">${escapeHtml(emp.name)}</div>
                   <div class="ms-2 text-muted" style="font-size: 0.75rem;">${escapeHtml(emp.employee_code)}</div>
@@ -244,8 +214,6 @@ $(function () {
               <td>${row.total_more_8_30 || 0}</td>
               <td>${row.late_count || 0}</td>
               <td><strong>${payableDays}</strong></td>
-              <td>${statusBadge}</td>
-              <td>${actionBtn}</td>
             </tr>
           `;
         });
@@ -256,7 +224,7 @@ $(function () {
       error: function() {
         $('#attendanceTableBody').html(`
           <tr>
-            <td colspan="16" class="text-danger text-center py-4">
+            <td colspan="14" class="text-danger text-center py-4">
               <i class="bi bi-exclamation-triangle"></i> Failed to load attendance.
             </td>
           </tr>
@@ -274,64 +242,6 @@ $(function () {
   $('#search, #filterMonth, #filterYear').on('change keyup', function() {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => loadAttendance(1), 300);
-  });
-
-  $('#btnSync').on('click', function() {
-    const btn = $(this);
-    const originalHtml = btn.html();
-    const month = $('#filterMonth').val();
-    const year = $('#filterYear').val();
-
-    btn.html('<i class="bi bi-arrow-repeat spin me-1"></i> Syncing...').prop('disabled', true);
-    
-    $.ajax({
-      url: syncUrl,
-      type: 'POST',
-      data: { month: month, year: year },
-      headers: { 'X-CSRF-TOKEN': csrf },
-      success: function(res) {
-        btn.html(originalHtml).prop('disabled', false);
-        if (res.success) {
-          showAlert('success', res.message);
-          loadAttendance(1);
-        } else {
-          showAlert('error', res.message || 'Sync failed.');
-        }
-      },
-      error: function(xhr) {
-        btn.html(originalHtml).prop('disabled', false);
-        showAlert('error', xhr.responseJSON?.message || 'Failed to sync data.');
-      }
-    });
-  });
-
-  $(document).on('click', '.toggle-lock', function () {
-    const id = $(this).data('id');
-    const action = $(this).data('action');
-    const url = action === 'lock' ? "<?php echo e(route('payroll.attendance.lock')); ?>" : "<?php echo e(route('payroll.attendance.unlock')); ?>";
-    const confirmMsg = action === 'lock' 
-        ? 'Locking this attendance will prevent further modifications and prepare it for payroll. Proceed?' 
-        : 'Unlocking will allow changes but may disrupt active payroll processing. Proceed?';
-
-    if (confirm(confirmMsg)) {
-      const $btn = $(this);
-      const originalHtml = $btn.html();
-      $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i>');
-
-      $.ajax({
-        url: url,
-        type: 'POST',
-        data: { _token: csrf, id: id },
-        success: function (res) {
-          loadAttendance();
-          showAlert('success', res.message);
-        },
-        error: function(xhr) {
-          showAlert('error', 'Failed to update lock status.');
-          $btn.prop('disabled', false).html(originalHtml);
-        }
-      });
-    }
   });
 });
 </script>

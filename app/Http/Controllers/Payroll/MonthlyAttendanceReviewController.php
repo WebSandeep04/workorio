@@ -46,6 +46,18 @@ class MonthlyAttendanceReviewController extends Controller
         return view('payroll.attendance_review', compact('months', 'years'));
     }
 
+    public function finalAttendanceView()
+    {
+        $months = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $months[$i] = date('F', mktime(0, 0, 0, $i, 1));
+        }
+        $currentYear = date('Y');
+        $years = range($currentYear - 2, $currentYear + 1);
+        
+        return view('payroll.final_attendance', compact('months', 'years'));
+    }
+
     public function lock(Request $request)
     {
         $validated = $request->validate([
