@@ -157,6 +157,18 @@ return [
                 ['route' => 'leave.index', 'title' => 'Leave', 'icon' => 'bi bi-calendar-minus', 'permission' => 'attendance.leave'],
             ],
         ],
+        // Payroll section
+        [
+            'key' => 'admin_payroll_operational',
+            'title' => 'Payroll',
+            'icon' => 'bi bi-cash-stack',
+            'feature_flag' => 'is_payroll_enabled',
+            'roles' => ['admin'],
+            'items' => [
+                ['route' => 'payroll.attendance.review', 'title' => 'Attendance Review', 'icon' => 'bi bi-calendar-check', 'permission' => 'payroll.attendance'],
+                ['route' => 'payroll.process.index', 'title' => 'Process Payroll', 'icon' => 'bi bi-calculator', 'permission' => 'payroll.process'],
+            ],
+        ],
         // Reports section
         [
             'key' => 'admin_reports',
@@ -283,6 +295,10 @@ return [
                         ['route' => 'customer-project', 'title' => 'Open Project', 'icon' => 'bi bi-collection', 'permission' => 'setup.open_projects', 'feature_flag' => 'is_projects_setup_enabled'],
                         ['route' => 'entry-type.index', 'title' => 'Entry Types', 'icon' => 'bi bi-list-check', 'permission' => 'setup.worklog_entry_types', 'feature_flag' => 'is_work_setup_enabled'],
                         ['route' => 'holiday', 'title' => 'Holidays', 'icon' => 'bi bi-calendar2-event', 'permission' => 'setup.holidays', 'feature_flag' => 'is_attendance_setup_enabled'],
+
+                        // Payroll Setup
+                        ['route' => 'payroll.components.index', 'title' => 'Salary Components', 'icon' => 'bi bi-cash-stack', 'permission' => 'setup.payroll_components', 'feature_flag' => 'is_payroll_setup_enabled'],
+                        ['route' => 'payroll.structures.index', 'title' => 'Salary Structures', 'icon' => 'bi bi-diagram-3', 'permission' => 'setup.payroll_structures', 'feature_flag' => 'is_payroll_setup_enabled'],
 
                         // Task & Subscription Setup 
                         ['route' => 'task-status.index', 'title' => 'Task Status', 'icon' => 'bi bi-tag', 'permission' => 'setup.task_status', 'feature_flag' => 'is_task_setup_enabled'],
