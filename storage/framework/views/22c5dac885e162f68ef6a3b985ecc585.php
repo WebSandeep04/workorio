@@ -250,6 +250,7 @@ $(function () {
               <td><small class="text-muted">${createdDate}</small></td>
               <td>
                 <div class="d-flex gap-2 justify-content-start">
+                  <a href="${baseUrl}/${row.id}" class="btn-action btn-action-view" title="View Details"><i class="bi bi-eye me-1"></i> View Details</a>
                   ${row.status !== 'Finalized' ? `<button class="btn-action btn-action-delete void-payroll" data-id="${row.id}" title="Void Payroll"><i class="bi bi-trash me-1"></i> Void</button>` : ''}
                 </div>
               </td>
