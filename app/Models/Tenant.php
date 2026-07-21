@@ -52,6 +52,8 @@ class Tenant extends Model
         'is_contact_management_setup_enabled',
         'is_asset_management_setup_enabled',
         'is_email_marketing_setup_enabled',
+        'is_payroll_enabled',
+        'is_payroll_setup_enabled',
     ];
 
     protected static function booted()

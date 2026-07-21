@@ -593,6 +593,7 @@ class AttendanceReportService
             'total_halfday' => $halfDays,
             'total_sundays' => $totalSundays,
             'total_sundays_worked' => $totalSundaysWorked,
+            'total_holidays' => $totalHolidays,
             'total_holidays_worked' => $totalHolidaysWorked,
             'total_hours' => round($totalHours, 2),
             'total_office_hours' => round($totalOfficeHours, 2),

@@ -1238,4 +1238,22 @@ Route::middleware(['auth.or.session'])->group(function () {
         $user->notifications()->delete();
         return response()->json(['success' => true]);
     })->name('notifications.clear-all');
-});
+
+    // Payroll Routes
+    Route::prefix('payroll')->name('payroll.')->group(function () {
+        Route::get('settings', [App\Http\Controllers\Payroll\PayrollSettingController::class, 'index'])->name('settings');
+        Route::post('settings', [App\Http\Controllers\Payroll\PayrollSettingController::class, 'store'])->name('settings.store');
+        
+        Route::resource('components', App\Http\Controllers\Payroll\SalaryComponentController::class);
+        Route::resource('structures', App\Http\Controllers\Payroll\SalaryStructureController::class);
+        Route::resource('statutory', App\Http\Controllers\Payroll\StatutoryRuleController::class);
+        
+        Route::get('attendance-review', [App\Http\Controllers\Payroll\MonthlyAttendanceReviewController::class, 'index'])->name('attendance.review');
+        Route::post('attendance-review/lock', [App\Http\Controllers\Payroll\MonthlyAttendanceReviewController::class, 'lock'])->name('attendance.lock');
+        Route::post('attendance-review/unlock', [App\Http\Controllers\Payroll\MonthlyAttendanceReviewController::class, 'unlock'])->name('attendance.unlock');
+        
+        Route::get('process', [App\Http\Controllers\Payroll\PayrollController::class, 'index'])->name('process.index');
+        Route::post('process/generate', [App\Http\Controllers\Payroll\PayrollController::class, 'generate'])->name('process.generate');
+        Route::delete('process/{id}/void', [App\Http\Controllers\Payroll\PayrollController::class, 'void'])->name('process.void');
+    });
+});
