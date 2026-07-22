@@ -86,12 +86,14 @@
               <th>Less Shift Hr</th>
               <th>More Shift Hr</th>
               <th>Late Count</th>
-              <th>Payable Days</th>
+              <th>Total Weekly Off</th>
+              <th>Total Holidays</th>
+              <th>Working Days</th>
             </tr>
           </thead>
           <tbody id="attendanceTableBody">
             <tr>
-              <td colspan="14" class="loading-state">
+              <td colspan="16" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
                 <p class="mt-2 mb-0">Loading attendance summaries...</p>
               </td>
@@ -163,7 +165,7 @@ $(function () {
     
     $('#attendanceTableBody').html(`
       <tr>
-        <td colspan="14" class="loading-state">
+        <td colspan="16" class="loading-state">
           <i class="bi bi-arrow-repeat spin"></i>
           <p class="mt-2 mb-0">Loading attendance summaries...</p>
         </td>
@@ -178,7 +180,7 @@ $(function () {
         if (!data.data || data.data.length === 0) {
           $('#attendanceTableBody').html(`
             <tr>
-              <td colspan="14" class="empty-state">
+              <td colspan="16" class="empty-state">
                 <i class="bi bi-calendar-x"></i>
                 <h5>No Attendance Records Found</h5>
                 <p>No monthly summaries available for the selected period.</p>
@@ -193,7 +195,7 @@ $(function () {
         let rows = '';
         $.each(data.data, function (i, row) {
           const emp = row.employee || {};
-          const payableDays = parseFloat(row.days_worked || 0) + parseFloat(row.days_on_leave || 0) + parseFloat(row.total_holidays || 0) + parseFloat(row.total_weekly_offs || 0);
+          const workingDays = parseFloat(row.working_days || 0);
 
           rows += `
             <tr style="animation-delay: ${i * 0.05}L;">
@@ -215,7 +217,9 @@ $(function () {
               <td>${row.total_less_8_30 || 0}</td>
               <td>${row.total_more_8_30 || 0}</td>
               <td>${row.late_count || 0}</td>
-              <td><strong>${payableDays}</strong></td>
+              <td>${row.total_weekly_offs || 0}</td>
+              <td>${row.total_holidays || 0}</td>
+              <td><strong>${workingDays}</strong></td>
             </tr>
           `;
         });
@@ -226,7 +230,7 @@ $(function () {
       error: function() {
         $('#attendanceTableBody').html(`
           <tr>
-            <td colspan="14" class="text-danger text-center py-4">
+            <td colspan="16" class="text-danger text-center py-4">
               <i class="bi bi-exclamation-triangle"></i> Failed to load attendance.
             </td>
           </tr>

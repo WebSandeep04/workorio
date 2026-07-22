@@ -11,10 +11,11 @@ use App\Models\Attendance;
 use App\Models\Holiday;
 use App\Models\LeaveRequest;
 use App\Services\AttendanceReportService;
+use App\Services\PayrollCalculationService;
 
 class MonthlyAttendanceReviewController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, PayrollCalculationService $payrollService)
     {
         if ($request->ajax()) {
             $month = $request->input('month', date('n'));
@@ -82,7 +83,7 @@ class MonthlyAttendanceReviewController extends Controller
         return response()->json(['success' => true, 'message' => 'Attendance unlocked successfully.']);
     }
 
-    public function sync(Request $request, AttendanceReportService $reportService)
+    public function sync(Request $request, AttendanceReportService $reportService, PayrollCalculationService $payrollService)
     {
         $request->validate([
             'month' => 'required|integer|between:1,12',
@@ -174,6 +175,7 @@ class MonthlyAttendanceReviewController extends Controller
                 ],
                 [
                     'total_working_days' => $summary['total_working_days'] ?? 0,
+                    'working_days' => $payrollService->calculateWorkingDays($summary),
                     'days_worked' => $summary['days_worked'] ?? $summary['total_present_combined'] ?? 0,
                     'days_absent' => $summary['days_absent'] ?? 0,
                     'attendance_percentage' => $summary['attendance_percentage'] ?? 0.00,

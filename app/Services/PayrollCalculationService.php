@@ -197,4 +197,35 @@ class PayrollCalculationService
 
         return $deductions;
     }
+
+    /**
+     * Calculate working days based on monthly attendance summary data.
+     *
+     * @param mixed $summary An array or object representing the monthly summary.
+     * @return float
+     */
+    public function calculateWorkingDays($summary): float
+    {
+        // Extract values handling both array and object formats
+        $totalPresent = (float) ($summary['total_present'] ?? (is_object($summary) ? $summary->total_present : 0) ?? 0);
+        $totalHalfday = (float) ($summary['total_halfday'] ?? (is_object($summary) ? $summary->total_halfday : 0) ?? 0);
+        $daysOnLeave  = (float) ($summary['days_on_leave'] ?? (is_object($summary) ? $summary->days_on_leave : 0) ?? 0);
+        $totalHolidays = (float) ($summary['total_holidays'] ?? (is_object($summary) ? $summary->total_holidays : 0) ?? 0);
+        $totalWeeklyOffs = (float) ($summary['total_weekly_offs'] ?? (is_object($summary) ? $summary->total_weekly_offs : 0) ?? 0);
+
+        // User requested: "change payable days to like working days and show total working days its not count absent and unpaid leave and count halfday as 0.5"
+        // Working Days = Total Working Days - Absent Days - Unpaid Leave Days - (0.5 * Half Days)
+        
+        $totalWorkingDays = (float) ($summary['total_working_days'] ?? (is_object($summary) ? $summary->total_working_days : 0) ?? 0);
+        $daysAbsent = (float) ($summary['days_absent'] ?? (is_object($summary) ? $summary->days_absent : 0) ?? 0);
+        $unpaidLeaves = (float) ($summary['total_unpaid_leaves'] ?? (is_object($summary) ? $summary->total_unpaid_leaves : 0) ?? 0);
+        
+        // Base it strictly on Working Days (ignores Weekly Offs and Holidays)
+        $workingDays = $totalWorkingDays - $daysAbsent - $unpaidLeaves;
+        
+        // Deduct 0.5 for each half day
+        $workingDays -= ($totalHalfday * 0.5);
+
+        return round($workingDays, 1);
+    }
 }
