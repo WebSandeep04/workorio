@@ -30,7 +30,8 @@ class EmployeeController extends Controller
         $shifts = Shift::orderBy('name')->get();
         $states = State::orderBy('state_name')->get();
         $countries = Country::orderBy('name')->get();
-        return view('employees.index', compact('branches', 'departments', 'designations', 'employmentTypes', 'shifts', 'states', 'countries'));
+        $salaryStructures = \App\Models\SalaryStructure::orderBy('name')->get();
+        return view('employees.index', compact('branches', 'departments', 'designations', 'employmentTypes', 'shifts', 'states', 'countries', 'salaryStructures'));
     }
 
     public function list(): JsonResponse
@@ -48,7 +49,8 @@ class EmployeeController extends Controller
                 'documents' => function($query) {
                     $query->whereIn('document_type', ['Aadhaar', 'PAN', 'Education'])
                           ->orderBy('created_at', 'desc');
-                }
+                },
+                'salaries.structure'
             ])
             ->withCount('documents')
             ->orderBy('name')
@@ -98,6 +100,15 @@ class EmployeeController extends Controller
                 'is_login' => 1,
             ]);
         }
+        
+        if ($request->filled('gross_salary') || $request->filled('salary_structure_id')) {
+            \App\Models\EmployeeSalary::create([
+                'employee_id' => $employee->id,
+                'gross_salary' => $request->input('gross_salary') ?: 0,
+                'salary_structure_id' => $request->input('salary_structure_id'),
+                'effective_from' => $employee->date_of_joining ?: \Carbon\Carbon::today(),
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -106,7 +117,7 @@ class EmployeeController extends Controller
                 ->load(['branch', 'departmentRelation', 'designationRelation', 'employmentTypeRelation', 'stateRelation', 'cityRelation', 'countryRelation', 'places', 'documents' => function($query) {
                     $query->whereIn('document_type', ['Aadhaar', 'PAN', 'Education'])
                           ->orderBy('created_at', 'desc');
-                }])
+                }, 'salaries.structure'])
                 ->loadCount('documents'),
         ]);
     }
@@ -150,6 +161,26 @@ class EmployeeController extends Controller
             \Log::error('Error initializing leaves upon employee update: ' . $e->getMessage());
         }
 
+        if ($request->filled('gross_salary') || $request->filled('salary_structure_id')) {
+            $latestSalary = \App\Models\EmployeeSalary::where('employee_id', $employee->id)
+                ->orderBy('effective_from', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->first();
+                
+            $newGross = $request->input('gross_salary') ?: 0;
+            $newStructure = $request->input('salary_structure_id');
+            
+            // Only create a new record if the salary or structure actually changed
+            if (!$latestSalary || $latestSalary->gross_salary != $newGross || $latestSalary->salary_structure_id != $newStructure) {
+                \App\Models\EmployeeSalary::create([
+                    'employee_id' => $employee->id,
+                    'gross_salary' => $newGross,
+                    'salary_structure_id' => $newStructure,
+                    'effective_from' => \Carbon\Carbon::today(),
+                ]);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Employee updated successfully.',
@@ -157,7 +188,7 @@ class EmployeeController extends Controller
                 ->load(['branch', 'departmentRelation', 'designationRelation', 'employmentTypeRelation', 'stateRelation', 'cityRelation', 'countryRelation', 'places', 'documents' => function($query) {
                     $query->whereIn('document_type', ['Aadhaar', 'PAN', 'Education'])
                           ->orderBy('created_at', 'desc');
-                }])
+                }, 'salaries.structure'])
                 ->loadCount('documents'),
         ]);
     }
@@ -176,7 +207,8 @@ class EmployeeController extends Controller
                 'documents' => function($query) {
                     $query->whereIn('document_type', ['Aadhaar', 'PAN', 'Education'])
                           ->orderBy('created_at', 'desc');
-                }
+                },
+                'salaries.structure'
             ])
             ->withCount('documents')
             ->findOrFail($employeeId);

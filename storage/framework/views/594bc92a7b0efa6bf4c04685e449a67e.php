@@ -991,7 +991,9 @@
             password: $('#employee_password').val(),
             role_id: $('#employee_role').val(),
             working_type: $('#employee_working_type').val(),
-            places: selectedPlaceIds
+            places: selectedPlaceIds,
+            gross_salary: $('#employee_gross_salary').val(),
+            salary_structure_id: $('#employee_salary_structure').val()
         };
     }
 
@@ -1150,6 +1152,14 @@
             $('#employee_work_location').val(data.work_location || '');
             $('#employee_working_type').val(data.working_type || '');
             $('#employee_address').val(data.address_line || '');
+            
+            if (data.salaries && data.salaries.length > 0) {
+                $('#employee_gross_salary').val(data.salaries[0].gross_salary || '');
+                $('#employee_salary_structure').val(data.salaries[0].salary_structure_id || '');
+            } else {
+                $('#employee_gross_salary').val('');
+                $('#employee_salary_structure').val('');
+            }
             $('#employee_blood_group').val(data.blood_group || '');
             $('#employee_marital_status').val(data.marital_status || '');
             $('#employee_spouse_name').val(data.spouse_name || '');
@@ -1233,6 +1243,9 @@
             $('#employee_is_login').prop('checked', false).trigger('change');
             $('#employee_password').val('');
             $('#employee_role').val('');
+            
+            $('#employee_gross_salary').val('');
+            $('#employee_salary_structure').val('');
         }
         new bootstrap.Modal('#employeeModal').show();
     }
@@ -2152,6 +2165,24 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <hr>
+                            <h6 class="fw-bold text-primary mb-2">Payroll & Salary Information</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Salary Structure</label>
+                            <select id="employee_salary_structure" class="form-select form-select-sm">
+                                <option value="">Select Salary Structure</option>
+                                <?php $__currentLoopData = $salaryStructures; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $structure): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($structure->id); ?>"><?php echo e($structure->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Gross Salary</label>
+                            <input type="number" step="0.01" min="0" id="employee_gross_salary" class="form-control form-control-sm" placeholder="e.g. 50000">
+                        </div>
+
                         <div class="col-12">
                             <hr>
                             <h6 class="fw-bold text-primary mb-2">Personal Information</h6>

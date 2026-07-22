@@ -141,5 +141,10 @@ class Employee extends Model
     {
         return $this->hasOne(User::class, 'employee_id');
     }
+
+    public function salaries()
+    {
+        return $this->hasMany(EmployeeSalary::class, 'employee_id')->orderBy('effective_from', 'desc');
+    }
 }
 
