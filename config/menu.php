@@ -297,6 +297,7 @@ return [
                         ['route' => 'holiday', 'title' => 'Holidays', 'icon' => 'bi bi-calendar2-event', 'permission' => 'setup.holidays', 'feature_flag' => 'is_attendance_setup_enabled'],
 
                         // Payroll Setup
+                        ['route' => 'payroll.settings', 'title' => 'Payroll Settings', 'icon' => 'bi bi-gear', 'permission' => 'setup.payroll_settings', 'feature_flag' => 'is_payroll_setup_enabled'],
                         ['route' => 'payroll.components.index', 'title' => 'Salary Components', 'icon' => 'bi bi-cash-stack', 'permission' => 'setup.payroll_components', 'feature_flag' => 'is_payroll_setup_enabled'],
                         ['route' => 'payroll.structures.index', 'title' => 'Salary Structures', 'icon' => 'bi bi-diagram-3', 'permission' => 'setup.payroll_structures', 'feature_flag' => 'is_payroll_setup_enabled'],
                         ['route' => 'payroll.statutory.index', 'title' => 'Statutory Rules', 'icon' => 'bi bi-shield-check', 'permission' => 'setup.payroll_statutory', 'feature_flag' => 'is_payroll_setup_enabled'],
