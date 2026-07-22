@@ -176,6 +176,7 @@ class MonthlyAttendanceReviewController extends Controller
                 [
                     'total_working_days' => $summary['total_working_days'] ?? 0,
                     'working_days' => $payrollService->calculateWorkingDays($summary),
+                    'total_deduction_days' => $payrollService->calculateTotalDeductionDays($summary),
                     'days_worked' => $summary['days_worked'] ?? $summary['total_present_combined'] ?? 0,
                     'days_absent' => $summary['days_absent'] ?? 0,
                     'attendance_percentage' => $summary['attendance_percentage'] ?? 0.00,

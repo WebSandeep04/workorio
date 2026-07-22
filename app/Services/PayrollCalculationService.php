@@ -228,4 +228,21 @@ class PayrollCalculationService
 
         return round($workingDays, 1);
     }
+
+    /**
+     * Calculate total deduction days based on monthly attendance summary data.
+     *
+     * @param mixed $summary An array or object representing the monthly summary.
+     * @return float
+     */
+    public function calculateTotalDeductionDays($summary): float
+    {
+        $totalHalfday = (float) ($summary['total_halfday'] ?? (is_object($summary) ? $summary->total_halfday : 0) ?? 0);
+        $daysAbsent = (float) ($summary['days_absent'] ?? (is_object($summary) ? $summary->days_absent : 0) ?? 0);
+        $unpaidLeaves = (float) ($summary['total_unpaid_leaves'] ?? (is_object($summary) ? $summary->total_unpaid_leaves : 0) ?? 0);
+        
+        $deductionDays = $daysAbsent + $unpaidLeaves + ($totalHalfday * 0.5);
+        
+        return round($deductionDays, 1);
+    }
 }

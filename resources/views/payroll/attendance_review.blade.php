@@ -88,12 +88,13 @@
               <th>Late Count</th>
               <th>Total Weekly Off</th>
               <th>Total Holidays</th>
+              <th>Total Deduction Days</th>
               <th>Working Days</th>
             </tr>
           </thead>
           <tbody id="attendanceTableBody">
             <tr>
-              <td colspan="16" class="loading-state">
+              <td colspan="17" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
                 <p class="mt-2 mb-0">Loading attendance summaries...</p>
               </td>
@@ -165,7 +166,7 @@ $(function () {
     
     $('#attendanceTableBody').html(`
       <tr>
-        <td colspan="16" class="loading-state">
+        <td colspan="17" class="loading-state">
           <i class="bi bi-arrow-repeat spin"></i>
           <p class="mt-2 mb-0">Loading attendance summaries...</p>
         </td>
@@ -180,7 +181,7 @@ $(function () {
         if (!data.data || data.data.length === 0) {
           $('#attendanceTableBody').html(`
             <tr>
-              <td colspan="16" class="empty-state">
+              <td colspan="17" class="empty-state">
                 <i class="bi bi-calendar-x"></i>
                 <h5>No Attendance Records Found</h5>
                 <p>No monthly summaries available for the selected period.</p>
@@ -219,6 +220,7 @@ $(function () {
               <td>${row.late_count || 0}</td>
               <td>${row.total_weekly_offs || 0}</td>
               <td>${row.total_holidays || 0}</td>
+              <td><span class="text-danger fw-bold">${parseFloat(row.total_deduction_days || 0)}</span></td>
               <td><strong>${workingDays}</strong></td>
             </tr>
           `;
@@ -230,7 +232,7 @@ $(function () {
       error: function() {
         $('#attendanceTableBody').html(`
           <tr>
-            <td colspan="16" class="text-danger text-center py-4">
+            <td colspan="17" class="text-danger text-center py-4">
               <i class="bi bi-exclamation-triangle"></i> Failed to load attendance.
             </td>
           </tr>
