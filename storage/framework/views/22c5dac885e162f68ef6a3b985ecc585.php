@@ -24,8 +24,9 @@
   .data-table-card .custom-table tbody tr:last-child td { border-bottom: none; }
   .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; }
   .btn-action { background: transparent !important; border: none !important; padding: 0.25rem 0.5rem; color: #6c757d; transition: all 0.2s ease; cursor: pointer; }
-  .btn-action-delete { color: white; background: #DC2626 !important; border-radius: 4px; font-size: 0.75rem; padding: 0.35rem 0.7rem; }
-  .btn-action-view { color: white; background: #343AFA !important; border-radius: 4px; font-size: 0.75rem; padding: 0.35rem 0.7rem; }
+  .btn-action-view { color: white !important; background: #343AFA !important; border-radius: 4px; }
+  .btn-action-delete { color: white !important; background: #DC2626 !important; border-radius: 4px; }
+  .btn-action i { font-size: 0.8rem; margin: 0; }
   .pagination .page-link { color: #434afa; border: 2px solid #e0e0e0; border-radius: 6px; padding: 0.25rem 0.5rem; margin: 0 2px; font-size: 10px; transition: all 0.3s ease; font-weight: 500; }
   .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); }
   .pagination .page-link:hover { background: rgba(67, 74, 250, 0.15); border-color: #434afa; transform: translateY(-1px); }
@@ -250,8 +251,13 @@ $(function () {
               <td><small class="text-muted">${createdDate}</small></td>
               <td>
                 <div class="d-flex gap-2 justify-content-start">
-                  <a href="${baseUrl}/${row.id}" class="btn-action btn-action-view" title="View Details"><i class="bi bi-eye me-1"></i> View Details</a>
-                  ${row.status !== 'Finalized' ? `<button class="btn-action btn-action-delete void-payroll" data-id="${row.id}" title="Void Payroll"><i class="bi bi-trash me-1"></i> Void</button>` : ''}
+                  <a href="${baseUrl}/${row.id}" class="btn-action btn-action-view" title="View Details">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  ${row.status !== 'Finalized' ? `
+                  <button class="btn-action btn-action-delete void-payroll" data-id="${row.id}" title="Void Payroll">
+                    <i class="bi bi-trash"></i>
+                  </button>` : ''}
                 </div>
               </td>
             </tr>

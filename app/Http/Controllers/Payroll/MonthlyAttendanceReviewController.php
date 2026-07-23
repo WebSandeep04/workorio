@@ -174,6 +174,7 @@ class MonthlyAttendanceReviewController extends Controller
                     'year' => $year
                 ],
                 [
+                    'is_locked' => 1,
                     'total_working_days' => $summary['total_working_days'] ?? 0,
                     'working_days' => $payrollService->calculateWorkingDays($summary),
                     'total_deduction_days' => $payrollService->calculateTotalDeductionDays($summary),

@@ -127,4 +127,105 @@ class PayrollController extends Controller
         $fileName = 'Payslip_' . str_replace(' ', '_', $employee->name) . '_' . date('F', mktime(0,0,0,$payroll->month,1)) . '_' . $payroll->year . '.pdf';
         return $pdf->download($fileName);
     }
+    
+    public function report(Request $request)
+    {
+        $currentYear = date('Y');
+        $years = range($currentYear - 2, $currentYear + 1);
+        $months = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $months[$i] = date('F', mktime(0, 0, 0, $i, 1));
+        }
+        
+        return view('payroll.report', compact('years', 'months'));
+    }
+
+    public function fetchReportData(Request $request)
+    {
+        $month = $request->input('month');
+        $year = $request->input('year');
+
+        if (!$month || !$year) {
+            return response()->json(['success' => false, 'message' => 'Month and year are required'], 400);
+        }
+
+        // Get attendance summaries
+        $summaries = \App\Models\MonthlyAttendanceSummary::with('employee')
+            ->where('month', $month)
+            ->where('year', $year)
+            ->get();
+
+        // Get payroll details for the month
+        $payroll = \App\Models\Payroll::with(['details.components.salaryComponent'])->where('month', $month)->where('year', $year)->first();
+        
+        $paidSalaries = [];
+        $employeeComponents = [];
+        $employeeDeductions = [];
+        $uniqueComponents = collect();
+
+        if ($payroll) {
+            foreach ($payroll->details as $detail) {
+                $paidSalaries[$detail->employee_id] = $detail->net_salary;
+                $employeeDeductions[$detail->employee_id] = $detail->total_deductions ?? 0;
+                $empComps = [];
+                foreach ($detail->components as $c) {
+                    if ($c->salaryComponent) {
+                        $compName = $c->salaryComponent->name;
+                        $empComps[$compName] = $c->amount;
+                        $uniqueComponents->push($compName);
+                    }
+                }
+                $employeeComponents[$detail->employee_id] = $empComps;
+            }
+        }
+        
+        $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
+
+        // Attach paid salary to each summary
+        $data = $summaries->map(function ($summary) use ($paidSalaries, $employeeComponents, $employeeDeductions, $uniqueComponents) {
+            $paid = $paidSalaries[$summary->employee_id] ?? null;
+            $comps = $employeeComponents[$summary->employee_id] ?? [];
+            $deductionAmount = $employeeDeductions[$summary->employee_id] ?? 0;
+            
+            // Map components to guarantee 0 for missing ones
+            $normalizedComps = [];
+            foreach ($uniqueComponents as $uc) {
+                $normalizedComps[$uc] = isset($comps[$uc]) ? round($comps[$uc]) : 0;
+            }
+            
+            // Calculate deduction days and payable days
+            $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
+            $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
+            
+            return [
+                'employee_code' => $summary->employee ? $summary->employee->employee_code : '-',
+                'employee_name' => $summary->employee ? $summary->employee->name : 'Unknown',
+                'components' => $normalizedComps,
+                
+                'total_working_days' => $summary->total_working_days ?? 0,
+                'total_present_combined' => $summary->total_present_combined ?? 0, // Total Present
+                'total_present' => $summary->total_present ?? 0, // Full Day
+                'total_halfday' => $summary->total_halfday ?? 0,
+                'sunday_work' => $summary->total_weekly_offs_worked ?? 0,
+                'holiday_work' => $summary->total_holidays_worked ?? 0,
+                'leave' => $summary->days_on_leave ?? 0,
+                'unpaid_leave' => $summary->total_unpaid_leaves ?? 0,
+                'absent' => $summary->days_absent ?? 0,
+                'total_weekly_off' => $summary->total_weekly_offs ?? 0,
+                'total_holidays' => $summary->total_holidays ?? 0,
+                'total_deduction_days' => $deductionDays,
+                'deduction_amount' => $deductionAmount,
+                'payable_days' => $payableDays, // 2nd Working Days
+                
+                'is_locked' => $summary->is_locked,
+                'paid_salary' => $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated'
+            ];
+        });
+
+        return response()->json([
+            'success' => true, 
+            'columns' => $uniqueComponents,
+            'data' => $data
+        ]);
+    }
 }

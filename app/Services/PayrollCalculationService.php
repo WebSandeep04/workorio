@@ -154,7 +154,13 @@ class PayrollCalculationService
         // Save Payroll Detail
         $payrollDetail = PayrollDetail::updateOrCreate(
             ['payroll_id' => $payroll->id, 'employee_id' => $employeeId],
-            ['gross_salary' => $totalEarnings, 'net_salary' => $netSalary]
+            [
+                'gross_salary' => $totalEarnings, 
+                'net_salary' => $netSalary,
+                'total_deductions' => $totalDeductions,
+                'lop_deduction_amount' => $deductionAmount,
+                'statutory_deduction_amount' => array_sum($statutoryDeductions)
+            ]
         );
 
         // Save Component Details

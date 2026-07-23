@@ -1,104 +1,98 @@
-[2026-07-23 09:48:28] local.INFO: Action: Fetched Payroll Settings for Calculation {"model":"App\\Models\\PayrollSetting","table":"payroll_settings","details":"Fetching the first record from the payroll settings table to use its configurations (like attendance_based, pf_enabled, etc.) for the current payroll calculation.","settings_data":{"id":2,"salary_cycle_start":1,"salary_cycle_end":31,"attendance_based":1,"pf_enabled":0,"esi_enabled":0,"pt_enabled":0,"tds_enabled":0,"created_at":"2026-07-23T07:29:56.000000Z","updated_at":"2026-07-23T07:29:56.000000Z"}} 
-[2026-07-23 09:48:28] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 1 ===  
-[2026-07-23 09:48:28] local.INFO: Base Gross Salary: 45000.00  
-[2026-07-23 09:48:28] local.INFO: Total Deduction Days: 6.5  
-[2026-07-23 09:48:28] local.INFO: LOP Deduction: Per Day (Gross/26) = 1730.7692307692 * 6.5 days = 11250  
-[2026-07-23 09:48:28] local.INFO:   - Fixed: Percentage = (45000.00 * 100.00%) = 45000  
-[2026-07-23 09:48:28] local.INFO: Calculated Earning Component [Fixed]: 45000  
-[2026-07-23 09:48:28] local.INFO: Applied LOP Deduction: 11250  
-[2026-07-23 09:48:28] local.INFO: === FINAL TOTALS EMP ID 1 ===  
-[2026-07-23 09:48:28] local.INFO: Total Earnings: 45000  
-[2026-07-23 09:48:28] local.INFO: Total Deductions: 11250  
-[2026-07-23 09:48:28] local.INFO: Net Salary: 33750  
-[2026-07-23 09:48:28] local.INFO: ===========================================  
-[2026-07-23 09:48:28] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 2 ===  
-[2026-07-23 09:48:28] local.INFO: Base Gross Salary: 28000.00  
-[2026-07-23 09:48:28] local.INFO: Total Deduction Days: 19.0  
-[2026-07-23 09:48:28] local.INFO: LOP Deduction: Per Day (Gross/26) = 1076.9230769231 * 19.0 days = 20462  
-[2026-07-23 09:48:28] local.INFO:   - Fixed: Percentage = (28000.00 * 100.00%) = 28000  
-[2026-07-23 09:48:28] local.INFO: Calculated Earning Component [Fixed]: 28000  
-[2026-07-23 09:48:28] local.INFO: Applied LOP Deduction: 20462  
-[2026-07-23 09:48:28] local.INFO: === FINAL TOTALS EMP ID 2 ===  
-[2026-07-23 09:48:28] local.INFO: Total Earnings: 28000  
-[2026-07-23 09:48:28] local.INFO: Total Deductions: 20462  
-[2026-07-23 09:48:28] local.INFO: Net Salary: 7538  
-[2026-07-23 09:48:28] local.INFO: ===========================================  
-
-[2026-07-23 09:48:28] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 3 ===  
-[2026-07-23 09:48:28] local.INFO: Base Gross Salary: 22000.00  
-[2026-07-23 09:48:28] local.INFO: Total Deduction Days: 8.5  
-[2026-07-23 09:48:28] local.INFO: LOP Deduction: Per Day (Gross/26) = 846.15384615385 * 8.5 days = 7192  
-[2026-07-23 09:48:28] local.INFO:   - Fixed: Percentage = (22000.00 * 100.00%) = 22000  
-[2026-07-23 09:48:28] local.INFO: Calculated Earning Component [Fixed]: 22000  
-[2026-07-23 09:48:28] local.INFO: Applied LOP Deduction: 7192  
-[2026-07-23 09:48:28] local.INFO: === FINAL TOTALS EMP ID 3 ===  
-[2026-07-23 09:48:28] local.INFO: Total Earnings: 22000  
-[2026-07-23 09:48:28] local.INFO: Total Deductions: 7192  
-[2026-07-23 09:48:28] local.INFO: Net Salary: 14808  
-[2026-07-23 09:48:28] local.INFO: ===========================================  
-
-[2026-07-23 09:48:29] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 7 ===  
-[2026-07-23 09:48:29] local.INFO: Base Gross Salary: 5000.00  
-[2026-07-23 09:48:29] local.INFO: Total Deduction Days: 4.0  
-[2026-07-23 09:48:29] local.INFO: LOP Deduction: Per Day (Gross/26) = 192.30769230769 * 4.0 days = 769  
-[2026-07-23 09:48:29] local.INFO:   - Fixed: Percentage = (5000.00 * 100.00%) = 5000  
-[2026-07-23 09:48:29] local.INFO: Calculated Earning Component [Fixed]: 5000  
-[2026-07-23 09:48:29] local.INFO: Applied LOP Deduction: 769  
-[2026-07-23 09:48:29] local.INFO: === FINAL TOTALS EMP ID 7 ===  
-[2026-07-23 09:48:29] local.INFO: Total Earnings: 5000  
-[2026-07-23 09:48:29] local.INFO: Total Deductions: 769  
-[2026-07-23 09:48:29] local.INFO: Net Salary: 4231  
-[2026-07-23 09:48:29] local.INFO: ===========================================  
-
-[2026-07-23 09:48:29] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 9 ===  
-[2026-07-23 09:48:29] local.INFO: Base Gross Salary: 12000.00  
-[2026-07-23 09:48:29] local.INFO: Total Deduction Days: 3.0  
-[2026-07-23 09:48:29] local.INFO: LOP Deduction: Per Day (Gross/26) = 461.53846153846 * 3.0 days = 1385  
-[2026-07-23 09:48:29] local.INFO:   - Fixed: Percentage = (12000.00 * 100.00%) = 12000  
-[2026-07-23 09:48:29] local.INFO: Calculated Earning Component [Fixed]: 12000  
-[2026-07-23 09:48:29] local.INFO: Applied LOP Deduction: 1385  
-[2026-07-23 09:48:29] local.INFO: === FINAL TOTALS EMP ID 9 ===  
-[2026-07-23 09:48:29] local.INFO: Total Earnings: 12000  
-[2026-07-23 09:48:29] local.INFO: Total Deductions: 1385  
-[2026-07-23 09:48:29] local.INFO: Net Salary: 10615  
-[2026-07-23 09:48:29] local.INFO: ===========================================  
-
-[2026-07-23 09:48:29] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 6 ===  
-[2026-07-23 09:48:29] local.INFO: Base Gross Salary: 8000.00  
-[2026-07-23 09:48:29] local.INFO: Total Deduction Days: 13.0  
-[2026-07-23 09:48:29] local.INFO: LOP Deduction: Per Day (Gross/26) = 307.69230769231 * 13.0 days = 4000  
-[2026-07-23 09:48:29] local.INFO:   - Fixed: Percentage = (8000.00 * 100.00%) = 8000  
-[2026-07-23 09:48:29] local.INFO: Calculated Earning Component [Fixed]: 8000  
-[2026-07-23 09:48:29] local.INFO: Applied LOP Deduction: 4000  
-[2026-07-23 09:48:29] local.INFO: === FINAL TOTALS EMP ID 6 ===  
-[2026-07-23 09:48:29] local.INFO: Total Earnings: 8000  
-[2026-07-23 09:48:29] local.INFO: Total Deductions: 4000  
-[2026-07-23 09:48:29] local.INFO: Net Salary: 4000  
-[2026-07-23 09:48:29] local.INFO: ===========================================  
-
-
-[2026-07-23 09:48:29] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 10 ===  
-[2026-07-23 09:48:29] local.INFO: Base Gross Salary: 20000.00  
-[2026-07-23 09:48:29] local.INFO: Total Deduction Days: 0.0  
-[2026-07-23 09:48:29] local.INFO:   - Fixed: Percentage = (20000.00 * 100.00%) = 20000  
-[2026-07-23 09:48:29] local.INFO: Calculated Earning Component [Fixed]: 20000  
-[2026-07-23 09:48:29] local.INFO: === FINAL TOTALS EMP ID 10 ===  
-[2026-07-23 09:48:29] local.INFO: Total Earnings: 20000  
-[2026-07-23 09:48:29] local.INFO: Total Deductions: 0  
-[2026-07-23 09:48:29] local.INFO: Net Salary: 20000  
-[2026-07-23 09:48:29] local.INFO: ===========================================  
-
-[2026-07-23 09:48:29] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 13 ===  
-[2026-07-23 09:48:29] local.INFO: Base Gross Salary: 8000.00  
-[2026-07-23 09:48:29] local.INFO: Total Deduction Days: 3.5  
-[2026-07-23 09:48:29] local.INFO: LOP Deduction: Per Day (Gross/26) = 307.69230769231 * 3.5 days = 1077  
-[2026-07-23 09:48:29] local.INFO:   - Fixed: Percentage = (8000.00 * 100.00%) = 8000  
-[2026-07-23 09:48:29] local.INFO: Calculated Earning Component [Fixed]: 8000  
-[2026-07-23 09:48:29] local.INFO: Applied LOP Deduction: 1077  
-[2026-07-23 09:48:29] local.INFO: === FINAL TOTALS EMP ID 13 ===  
-[2026-07-23 09:48:29] local.INFO: Total Earnings: 8000  
-[2026-07-23 09:48:29] local.INFO: Total Deductions: 1077  
-[2026-07-23 09:48:29] local.INFO: Net Salary: 6923  
-[2026-07-23 09:48:29] local.INFO: ===========================================  
-[2026-07-23 09:48:29] local.INFO: No salary structure found for employee: 20  
-[2026-07-23 09:48:29] local.INFO: No salary structure found for employee: 21  
+[2026-07-23 12:13:23] local.INFO: Action: Fetched Payroll Settings for Calculation {"model":"App\\Models\\PayrollSetting","table":"payroll_settings","details":"Fetching the first record from the payroll settings table to use its configurations (like attendance_based, pf_enabled, etc.) for the current payroll calculation.","settings_data":{"id":2,"salary_cycle_start":1,"salary_cycle_end":31,"attendance_based":1,"pf_enabled":0,"esi_enabled":0,"pt_enabled":0,"tds_enabled":0,"created_at":"2026-07-23T07:29:56.000000Z","updated_at":"2026-07-23T07:29:56.000000Z"}} 
+[2026-07-23 12:45:31] local.INFO: Action: Fetched Payroll Settings for Calculation {"model":"App\\Models\\PayrollSetting","table":"payroll_settings","details":"Fetching the first record from the payroll settings table to use its configurations (like attendance_based, pf_enabled, etc.) for the current payroll calculation.","settings_data":{"id":2,"salary_cycle_start":1,"salary_cycle_end":31,"attendance_based":1,"pf_enabled":0,"esi_enabled":0,"pt_enabled":0,"tds_enabled":0,"created_at":"2026-07-23T07:29:56.000000Z","updated_at":"2026-07-23T07:29:56.000000Z"}} 
+[2026-07-23 12:45:31] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 1 ===  
+[2026-07-23 12:45:31] local.INFO: Base Gross Salary: 45000.00  
+[2026-07-23 12:45:31] local.INFO: Total Deduction Days: 6.5  
+[2026-07-23 12:45:31] local.INFO: LOP Deduction: Per Day (Gross/26) = 1730.7692307692 * 6.5 days = 11250  
+[2026-07-23 12:45:31] local.INFO:   - Fixed: Percentage = (45000.00 * 100.00%) = 45000  
+[2026-07-23 12:45:31] local.INFO: Calculated Earning Component [Fixed]: 45000  
+[2026-07-23 12:45:31] local.INFO: Applied LOP Deduction: 11250  
+[2026-07-23 12:45:31] local.INFO: === FINAL TOTALS EMP ID 1 ===  
+[2026-07-23 12:45:31] local.INFO: Total Earnings: 45000  
+[2026-07-23 12:45:31] local.INFO: Total Deductions: 11250  
+[2026-07-23 12:45:31] local.INFO: Net Salary: 33750  
+[2026-07-23 12:45:31] local.INFO: ===========================================  
+[2026-07-23 12:45:31] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 2 ===  
+[2026-07-23 12:45:31] local.INFO: Base Gross Salary: 28000.00  
+[2026-07-23 12:45:31] local.INFO: Total Deduction Days: 19.0  
+[2026-07-23 12:45:31] local.INFO: LOP Deduction: Per Day (Gross/26) = 1076.9230769231 * 19.0 days = 20462  
+[2026-07-23 12:45:31] local.INFO:   - Fixed: Percentage = (28000.00 * 100.00%) = 28000  
+[2026-07-23 12:45:31] local.INFO: Calculated Earning Component [Fixed]: 28000  
+[2026-07-23 12:45:31] local.INFO: Applied LOP Deduction: 20462  
+[2026-07-23 12:45:31] local.INFO: === FINAL TOTALS EMP ID 2 ===  
+[2026-07-23 12:45:31] local.INFO: Total Earnings: 28000  
+[2026-07-23 12:45:31] local.INFO: Total Deductions: 20462  
+[2026-07-23 12:45:31] local.INFO: Net Salary: 7538  
+[2026-07-23 12:45:31] local.INFO: ===========================================  
+[2026-07-23 12:45:31] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 3 ===  
+[2026-07-23 12:45:31] local.INFO: Base Gross Salary: 22000.00  
+[2026-07-23 12:45:31] local.INFO: Total Deduction Days: 8.5  
+[2026-07-23 12:45:31] local.INFO: LOP Deduction: Per Day (Gross/26) = 846.15384615385 * 8.5 days = 7192  
+[2026-07-23 12:45:31] local.INFO:   - Fixed: Percentage = (22000.00 * 100.00%) = 22000  
+[2026-07-23 12:45:31] local.INFO: Calculated Earning Component [Fixed]: 22000  
+[2026-07-23 12:45:31] local.INFO: Applied LOP Deduction: 7192  
+[2026-07-23 12:45:31] local.INFO: === FINAL TOTALS EMP ID 3 ===  
+[2026-07-23 12:45:31] local.INFO: Total Earnings: 22000  
+[2026-07-23 12:45:31] local.INFO: Total Deductions: 7192  
+[2026-07-23 12:45:31] local.INFO: Net Salary: 14808  
+[2026-07-23 12:45:31] local.INFO: ===========================================  
+[2026-07-23 12:45:31] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 7 ===  
+[2026-07-23 12:45:31] local.INFO: Base Gross Salary: 5000.00  
+[2026-07-23 12:45:31] local.INFO: Total Deduction Days: 4.0  
+[2026-07-23 12:45:31] local.INFO: LOP Deduction: Per Day (Gross/26) = 192.30769230769 * 4.0 days = 769  
+[2026-07-23 12:45:31] local.INFO:   - Fixed: Percentage = (5000.00 * 100.00%) = 5000  
+[2026-07-23 12:45:31] local.INFO: Calculated Earning Component [Fixed]: 5000  
+[2026-07-23 12:45:31] local.INFO: Applied LOP Deduction: 769  
+[2026-07-23 12:45:31] local.INFO: === FINAL TOTALS EMP ID 7 ===  
+[2026-07-23 12:45:31] local.INFO: Total Earnings: 5000  
+[2026-07-23 12:45:31] local.INFO: Total Deductions: 769  
+[2026-07-23 12:45:31] local.INFO: Net Salary: 4231  
+[2026-07-23 12:45:31] local.INFO: ===========================================  
+[2026-07-23 12:45:31] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 9 ===  
+[2026-07-23 12:45:31] local.INFO: Base Gross Salary: 12000.00  
+[2026-07-23 12:45:31] local.INFO: Total Deduction Days: 3.0  
+[2026-07-23 12:45:31] local.INFO: LOP Deduction: Per Day (Gross/26) = 461.53846153846 * 3.0 days = 1385  
+[2026-07-23 12:45:31] local.INFO:   - Fixed: Percentage = (12000.00 * 100.00%) = 12000  
+[2026-07-23 12:45:31] local.INFO: Calculated Earning Component [Fixed]: 12000  
+[2026-07-23 12:45:31] local.INFO: Applied LOP Deduction: 1385  
+[2026-07-23 12:45:31] local.INFO: === FINAL TOTALS EMP ID 9 ===  
+[2026-07-23 12:45:31] local.INFO: Total Earnings: 12000  
+[2026-07-23 12:45:31] local.INFO: Total Deductions: 1385  
+[2026-07-23 12:45:31] local.INFO: Net Salary: 10615  
+[2026-07-23 12:45:31] local.INFO: ===========================================  
+[2026-07-23 12:45:31] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 6 ===  
+[2026-07-23 12:45:31] local.INFO: Base Gross Salary: 8000.00  
+[2026-07-23 12:45:31] local.INFO: Total Deduction Days: 13.0  
+[2026-07-23 12:45:31] local.INFO: LOP Deduction: Per Day (Gross/26) = 307.69230769231 * 13.0 days = 4000  
+[2026-07-23 12:45:31] local.INFO:   - Fixed: Percentage = (8000.00 * 100.00%) = 8000  
+[2026-07-23 12:45:31] local.INFO: Calculated Earning Component [Fixed]: 8000  
+[2026-07-23 12:45:31] local.INFO: Applied LOP Deduction: 4000  
+[2026-07-23 12:45:31] local.INFO: === FINAL TOTALS EMP ID 6 ===  
+[2026-07-23 12:45:31] local.INFO: Total Earnings: 8000  
+[2026-07-23 12:45:31] local.INFO: Total Deductions: 4000  
+[2026-07-23 12:45:31] local.INFO: Net Salary: 4000  
+[2026-07-23 12:45:31] local.INFO: ===========================================  
+[2026-07-23 12:45:31] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 10 ===  
+[2026-07-23 12:45:31] local.INFO: Base Gross Salary: 20000.00  
+[2026-07-23 12:45:31] local.INFO: Total Deduction Days: 0.0  
+[2026-07-23 12:45:31] local.INFO:   - Fixed: Percentage = (20000.00 * 100.00%) = 20000  
+[2026-07-23 12:45:31] local.INFO: Calculated Earning Component [Fixed]: 20000  
+[2026-07-23 12:45:31] local.INFO: === FINAL TOTALS EMP ID 10 ===  
+[2026-07-23 12:45:31] local.INFO: Total Earnings: 20000  
+[2026-07-23 12:45:31] local.INFO: Total Deductions: 0  
+[2026-07-23 12:45:31] local.INFO: Net Salary: 20000  
+[2026-07-23 12:45:31] local.INFO: ===========================================  
+[2026-07-23 12:45:31] local.INFO: === STARTING PAYROLL CALCULATION FOR EMP ID: 13 ===  
+[2026-07-23 12:45:31] local.INFO: Base Gross Salary: 8000.00  
+[2026-07-23 12:45:31] local.INFO: Total Deduction Days: 3.5  
+[2026-07-23 12:45:31] local.INFO: LOP Deduction: Per Day (Gross/26) = 307.69230769231 * 3.5 days = 1077  
+[2026-07-23 12:45:31] local.INFO:   - Fixed: Percentage = (8000.00 * 100.00%) = 8000  
+[2026-07-23 12:45:31] local.INFO: Calculated Earning Component [Fixed]: 8000  
+[2026-07-23 12:45:31] local.INFO: Applied LOP Deduction: 1077  
+[2026-07-23 12:45:31] local.INFO: === FINAL TOTALS EMP ID 13 ===  
+[2026-07-23 12:45:31] local.INFO: Total Earnings: 8000  
+[2026-07-23 12:45:31] local.INFO: Total Deductions: 1077  
+[2026-07-23 12:45:31] local.INFO: Net Salary: 6923  
+[2026-07-23 12:45:31] local.INFO: ===========================================  
+[2026-07-23 12:45:31] local.INFO: No salary structure found for employee: 20  
+[2026-07-23 12:45:31] local.INFO: No salary structure found for employee: 21  
