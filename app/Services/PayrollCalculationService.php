@@ -31,6 +31,13 @@ class PayrollCalculationService
     public function processPayroll($month, $year)
     {
         $this->settings = PayrollSetting::first() ?? new PayrollSetting();
+        \Log::info('Action: Fetched Payroll Settings for Calculation', [
+            'model' => PayrollSetting::class,
+            'table' => (new PayrollSetting())->getTable(),
+            'details' => 'Fetching the first record from the payroll settings table to use its configurations (like attendance_based, pf_enabled, etc.) for the current payroll calculation.',
+            'settings_data' => $this->settings->toArray(),
+        ]);
+        
         $this->statutoryRules = StatutoryRule::all()->keyBy('type');
         
         $payroll = Payroll::firstOrCreate(
@@ -62,6 +69,7 @@ class PayrollCalculationService
         $employeeSalary = EmployeeSalary::where('employee_id', $employeeId)
             ->where('effective_from', '<=', Carbon::create($summary->year, $summary->month)->endOfMonth())
             ->orderBy('effective_from', 'desc')
+            ->orderBy('id', 'desc')
             ->first();
 
         if (!$employeeSalary || !$employeeSalary->structure) {
@@ -72,22 +80,16 @@ class PayrollCalculationService
         $grossSalary = $employeeSalary->gross_salary;
         $components = $employeeSalary->structure->components;
         
-        if ($employeeId == 7) {
-            \Log::info("=== STARTING PAYROLL CALCULATION FOR EMP ID: 7 ===");
-            \Log::info("Base Gross Salary: " . $grossSalary);
-            \Log::info("Total Deduction Days: " . $summary->total_deduction_days);
-        }
+        \Log::info("=== STARTING PAYROLL CALCULATION FOR EMP ID: {$employeeId} ===");
+        \Log::info("Base Gross Salary: " . $grossSalary);
+        \Log::info("Total Deduction Days: " . $summary->total_deduction_days);
 
-        // Deduct Loss of Pay (LOP) based on total deduction days if setting is enabled
-        $proratedGross = $grossSalary;
+        // Calculate Loss of Pay (LOP) based on total deduction days if setting is enabled
+        $deductionAmount = 0;
         if ($this->settings->attendance_based && $summary->total_deduction_days > 0) {
             $perDaySalary = $grossSalary / 26;
-            $deductionAmount = $perDaySalary * $summary->total_deduction_days;
-            $proratedGross = max(0, $grossSalary - $deductionAmount);
-            if ($employeeId == 7) {
-                \Log::info("LOP Deduction: Per Day (Gross/26) = {$perDaySalary} * {$summary->total_deduction_days} days = {$deductionAmount}");
-                \Log::info("Prorated Gross (Gross - Deduction): " . $proratedGross);
-            }
+            $deductionAmount = round($perDaySalary * $summary->total_deduction_days);
+            \Log::info("LOP Deduction: Per Day (Gross/26) = {$perDaySalary} * {$summary->total_deduction_days} days = {$deductionAmount}");
         }
 
         $calculatedComponents = [];
@@ -97,7 +99,7 @@ class PayrollCalculationService
         // Context for expression language
         $context = [
             'employee_id' => $employeeId,
-            'gross' => $proratedGross,
+            'gross' => $grossSalary,
             'base_gross' => $grossSalary,
             'working_days' => $summary->total_working_days,
             'payable_days' => $summary->days_worked + $summary->days_on_leave + $summary->total_holidays + $summary->total_weekly_offs,
@@ -107,29 +109,25 @@ class PayrollCalculationService
         // First Pass: Calculate all fixed and percentage earnings to build full context
         foreach ($components as $component) {
             if ($component->type === 'earning') {
-                $amount = $this->calculateComponentValue($component, $context, $proratedGross);
+                $amount = $this->calculateComponentValue($component, $context, $grossSalary);
                 $calculatedComponents[$component->id] = $amount;
                 // Add to context by name for other formulas (e.g., basic)
                 $context[strtolower(str_replace(' ', '_', $component->name))] = $amount;
                 $totalEarnings += $amount;
-                if ($employeeId == 7) {
-                    \Log::info("Calculated Earning Component [{$component->name}]: " . $amount);
-                }
+                \Log::info("Calculated Earning Component [{$component->name}]: " . $amount);
             }
         }
 
         // Second Pass: Deductions and Employer Contributions (which might depend on earnings like 'basic')
         foreach ($components as $component) {
             if (in_array($component->type, ['deduction', 'employer_contribution'])) {
-                $amount = $this->calculateComponentValue($component, $context, $proratedGross);
+                $amount = $this->calculateComponentValue($component, $context, $grossSalary);
                 $calculatedComponents[$component->id] = $amount;
                 
                 if ($component->type === 'deduction') {
                     $totalDeductions += $amount;
                 }
-                if ($employeeId == 7) {
-                    \Log::info("Calculated {$component->type} Component [{$component->name}]: " . $amount);
-                }
+                \Log::info("Calculated {$component->type} Component [{$component->name}]: " . $amount);
             }
         }
 
@@ -137,19 +135,21 @@ class PayrollCalculationService
         $statutoryDeductions = $this->calculateStatutoryDeductions($context, $totalEarnings);
         foreach ($statutoryDeductions as $type => $amount) {
             $totalDeductions += $amount;
-            if ($employeeId == 7) {
-                \Log::info("Calculated Statutory Deduction [{$type}]: " . $amount);
-            }
+            \Log::info("Calculated Statutory Deduction [{$type}]: " . $amount);
+        }
+
+        // Apply LOP Deduction to total deductions
+        if ($deductionAmount > 0) {
+            $totalDeductions += $deductionAmount;
+            \Log::info("Applied LOP Deduction: " . $deductionAmount);
         }
 
         $netSalary = $totalEarnings - $totalDeductions;
-        if ($employeeId == 7) {
-            \Log::info("=== FINAL TOTALS EMP ID 7 ===");
-            \Log::info("Total Earnings: " . $totalEarnings);
-            \Log::info("Total Deductions: " . $totalDeductions);
-            \Log::info("Net Salary: " . $netSalary);
-            \Log::info("===========================================");
-        }
+        \Log::info("=== FINAL TOTALS EMP ID {$employeeId} ===");
+        \Log::info("Total Earnings: " . $totalEarnings);
+        \Log::info("Total Deductions: " . $totalDeductions);
+        \Log::info("Net Salary: " . $netSalary);
+        \Log::info("===========================================");
 
         // Save Payroll Detail
         $payrollDetail = PayrollDetail::updateOrCreate(
@@ -176,17 +176,18 @@ class PayrollCalculationService
         
         switch ($component->calculation_type) {
             case 'fixed':
-                if ($employeeId == 7) \Log::info("  - {$component->name}: Fixed = {$pivot->value}");
-                return (float) $pivot->value;
+                $val = round((float) $pivot->value);
+                \Log::info("  - {$component->name}: Fixed = {$val}");
+                return $val;
             case 'percentage':
-                $val = ($gross * (float) $pivot->value) / 100;
-                if ($employeeId == 7) \Log::info("  - {$component->name}: Percentage = ({$gross} * {$pivot->value}%) = {$val}");
+                $val = round(($gross * (float) $pivot->value) / 100);
+                \Log::info("  - {$component->name}: Percentage = ({$gross} * {$pivot->value}%) = {$val}");
                 return $val;
             case 'formula':
                 if (empty($pivot->formula)) return 0;
                 try {
-                    $val = $this->expressionLanguage->evaluate($pivot->formula, $context);
-                    if ($employeeId == 7) \Log::info("  - {$component->name}: Formula ({$pivot->formula}) = {$val}");
+                    $val = round($this->expressionLanguage->evaluate($pivot->formula, $context));
+                    \Log::info("  - {$component->name}: Formula ({$pivot->formula}) = {$val}");
                     return $val;
                 } catch (\Exception $e) {
                     \Log::error("Payroll Formula Error: " . $e->getMessage());
@@ -194,7 +195,7 @@ class PayrollCalculationService
                 }
             default:
                 return 0;
-        }
+            }
     }
 
     /**
@@ -208,31 +209,48 @@ class PayrollCalculationService
         // PF
         if ($this->settings->pf_enabled && isset($this->statutoryRules['PF'])) {
             $rule = $this->statutoryRules['PF'];
+            
+            \Log::info("Action: Fetched PF Statutory Rule", [
+                'table' => (new \App\Models\StatutoryRule())->getTable(),
+                'rule_data' => $rule->toArray(),
+                'details' => "Applying PF rules from statutory_rules table."
+            ]);
+
             $baseForPF = $rule->calculate_on === 'basic' ? ($context['basic'] ?? 0) : $totalEarnings;
             if ($rule->salary_limit > 0 && $baseForPF > $rule->salary_limit) {
-                if ($employeeId == 7) \Log::info("  - PF Logic: Base {$baseForPF} capped at limit {$rule->salary_limit}");
+                \Log::info("  - PF Logic: Base {$baseForPF} capped at limit {$rule->salary_limit}");
                 $baseForPF = $rule->salary_limit;
             }
-            $deductions['PF'] = ($baseForPF * $rule->employee_rate) / 100;
-            if ($employeeId == 7) \Log::info("  - PF Logic: Rate={$rule->employee_rate}%, Calculated on={$rule->calculate_on} (Base used={$baseForPF}) => {$deductions['PF']}");
+            $deductions['PF'] = round(($baseForPF * $rule->employee_rate) / 100);
+            \Log::info("  - PF Logic: Rate={$rule->employee_rate}%, Calculated on={$rule->calculate_on} (Base used={$baseForPF}) => {$deductions['PF']}");
         }
 
         // ESI
         if ($this->settings->esi_enabled && isset($this->statutoryRules['ESI'])) {
             $rule = $this->statutoryRules['ESI'];
-            if ($totalEarnings <= $rule->salary_limit) {
-                $deductions['ESI'] = ($totalEarnings * $rule->employee_rate) / 100;
-                if ($employeeId == 7) \Log::info("  - ESI Logic: Earnings {$totalEarnings} <= Limit {$rule->salary_limit}. Rate={$rule->employee_rate}% => {$deductions['ESI']}");
+            
+            \Log::info("Action: Fetched ESI Statutory Rule", [
+                'table' => (new \App\Models\StatutoryRule())->getTable(),
+                'rule_data' => $rule->toArray(),
+                'details' => "Checking if Total Earnings ({$totalEarnings}) is within the ESI salary limit (" . ($rule->salary_limit ?: 'Not Set') . ") configured in the statutory_rules table."
+            ]);
+
+            $hasLimit = $rule->salary_limit > 0;
+
+            if (!$hasLimit || $totalEarnings <= $rule->salary_limit) {
+                $deductions['ESI'] = round(($totalEarnings * $rule->employee_rate) / 100);
+                $limitText = $hasLimit ? "Limit {$rule->salary_limit}" : "No Limit Set";
+                \Log::info("  - ESI Logic: Earnings {$totalEarnings} <= {$limitText}. Rate={$rule->employee_rate}% => {$deductions['ESI']}");
             } else {
-                if ($employeeId == 7) \Log::info("  - ESI Logic: Earnings {$totalEarnings} > Limit {$rule->salary_limit}. Not applicable.");
+                \Log::info("  - ESI Logic: Earnings {$totalEarnings} > Limit {$rule->salary_limit} (from statutory_rules table). Not applicable.");
             }
         }
 
         // PT (simplified example)
         if ($this->settings->pt_enabled && isset($this->statutoryRules['PT'])) {
             $rule = $this->statutoryRules['PT'];
-            $deductions['PT'] = $rule->employee_rate; // Often flat rate or slab based
-            if ($employeeId == 7) \Log::info("  - PT Logic: Flat Rate/Slab => {$deductions['PT']}");
+            $deductions['PT'] = round($rule->employee_rate); // Often flat rate or slab based
+            \Log::info("  - PT Logic: Flat Rate/Slab => {$deductions['PT']}");
         }
 
         return $deductions;
