@@ -27,7 +27,7 @@ class GeminiController extends Controller
         }
 
         // Updated URL per user request for gemini-2.0-flash
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent";
 
 
         // Prompt to instruct Gemini to extract specific fields

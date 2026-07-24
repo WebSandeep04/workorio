@@ -35,11 +35,17 @@
                 <?php
                     $lrStyle = $row['late_reason'] !== '-' ? 'color:#e67e22; font-style:italic;' : 'color:#95a5a6;';
                     $statusColor = '#2c3e50';
-                    if (str_contains(strtolower($row['status']), 'absent')) $statusColor = '#e74c3c';
-                    elseif (str_contains(strtolower($row['status']), 'leave')) $statusColor = '#3498db';
-                    elseif (str_contains(strtolower($row['status']), 'halfday')) $statusColor = '#f39c12';
-                    elseif (str_contains(strtolower($row['status']), 'present')) $statusColor = '#27ae60';
-                    elseif (str_contains(strtolower($row['status']), 'holiday') || str_contains(strtolower($row['status']), 'off')) $statusColor = '#9b59b6';
+                    $statusLower = strtolower($row['status']);
+                    $displayStatus = $row['status'];
+                    
+                    if (str_contains($statusLower, 'absent') || str_contains($statusLower, 'unpaid leave') || $statusLower === 'lwp') {
+                        $statusColor = '#e74c3c';
+                        if (str_contains($statusLower, 'unpaid leave') || $statusLower === 'lwp') $displayStatus = 'LWP';
+                    }
+                    elseif (str_contains($statusLower, 'leave')) $statusColor = '#3498db';
+                    elseif (str_contains($statusLower, 'halfday')) $statusColor = '#f39c12';
+                    elseif (str_contains($statusLower, 'present')) $statusColor = '#27ae60';
+                    elseif (str_contains($statusLower, 'holiday') || str_contains($statusLower, 'off')) $statusColor = '#9b59b6';
                 ?>
                 <tr style='background-color:#f9f9f9;'>
                     <td style='padding:5px; border:1px solid #ddd;'><?php echo e($row['user_name']); ?></td>
@@ -51,7 +57,7 @@
                     <td style='padding:5px; border:1px solid #ddd;'><?php echo e($row['late_by'] ?? '-'); ?></td>
                     <td style='padding:5px; border:1px solid #ddd; <?php echo e($lrStyle); ?>'><?php echo e($row['late_reason']); ?></td>
                     <td style='padding:5px; border:1px solid #ddd;'><?php echo e($row['grace_balance'] ?? '-'); ?></td>
-                    <td style='padding:5px; border:1px solid #ddd; color:<?php echo e($statusColor); ?>; font-weight:bold; text-transform:capitalize;'><?php echo e($row['status']); ?></td>
+                    <td style='padding:5px; border:1px solid #ddd; color:<?php echo e($statusColor); ?>; font-weight:bold; text-transform:capitalize;'><?php echo e($displayStatus); ?></td>
                     <td style='padding:5px; border:1px solid #ddd;'><?php echo e($row['status_reason'] ?? '-'); ?></td>
                 </tr>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
@@ -88,11 +94,17 @@
                     <?php
                         $lrStyle = $record['late_reason'] !== '-' ? 'color:#e67e22; font-style:italic;' : 'color:#95a5a6;';
                         $statusColor = '#2c3e50';
-                        if (str_contains(strtolower($record['status']), 'absent')) $statusColor = '#e74c3c';
-                        elseif (str_contains(strtolower($record['status']), 'leave')) $statusColor = '#3498db';
-                        elseif (str_contains(strtolower($record['status']), 'halfday')) $statusColor = '#f39c12';
-                        elseif (str_contains(strtolower($record['status']), 'present')) $statusColor = '#27ae60';
-                        elseif (str_contains(strtolower($record['status']), 'holiday') || str_contains(strtolower($record['status']), 'off')) $statusColor = '#9b59b6';
+                        $statusLower = strtolower($record['status']);
+                        $displayStatus = $record['status'];
+                        
+                        if (str_contains($statusLower, 'absent') || str_contains($statusLower, 'unpaid leave') || $statusLower === 'lwp') {
+                            $statusColor = '#e74c3c';
+                            if (str_contains($statusLower, 'unpaid leave') || $statusLower === 'lwp') $displayStatus = 'LWP';
+                        }
+                        elseif (str_contains($statusLower, 'leave')) $statusColor = '#3498db';
+                        elseif (str_contains($statusLower, 'halfday')) $statusColor = '#f39c12';
+                        elseif (str_contains($statusLower, 'present')) $statusColor = '#27ae60';
+                        elseif (str_contains($statusLower, 'holiday') || str_contains($statusLower, 'off')) $statusColor = '#9b59b6';
                     ?>
                     <tr>
                         <td style='padding:0; border:1px solid #ddd;'><?php echo e($record['date']); ?></td>
@@ -104,7 +116,7 @@
                         <td style='padding:0; border:1px solid #ddd;'><?php echo e($record['late_by'] ?? '-'); ?></td>
                         <td style='padding:0; border:1px solid #ddd; <?php echo e($lrStyle); ?>'><?php echo e($record['late_reason']); ?></td>
                         <td style='padding:0; border:1px solid #ddd;'><?php echo e($record['grace_balance'] ?? '-'); ?></td>
-                        <td style='padding:0; border:1px solid #ddd; color:<?php echo e($statusColor); ?>; font-weight:bold; text-transform:capitalize;'><?php echo e($record['status']); ?></td>
+                        <td style='padding:0; border:1px solid #ddd; color:<?php echo e($statusColor); ?>; font-weight:bold; text-transform:capitalize;'><?php echo e($displayStatus); ?></td>
                         <td style='padding:0; border:1px solid #ddd;'><?php echo e($record['status_reason'] ?? '-'); ?></td>
                     </tr>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

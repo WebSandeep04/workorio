@@ -150,14 +150,19 @@ class SendNightAttendanceMail extends Command
                 
                 $todayRow = collect($dailyBreakdown)->last();
                 
+                $todayAtt = $userAtts->firstWhere('date', $todayRow['date']);
+                $firstMovement = $todayAtt ? $todayAtt->movements->first() : null;
+                $mode = $firstMovement ? ($firstMovement->mode ?? '-') : '-';
+                $place = $firstMovement ? ($firstMovement->place ?? '-') : '-';
+
                 $todayData = [
                     'user_name' => $user->name,
                     'status' => $todayRow['status'],
-                    'punch_in' => $todayRow['punch_in'],
-                    'punch_out' => $todayRow['punch_out'] !== '-' ? $todayRow['punch_out'] : $todayRow['last_out'],
-                    'mode' => $todayRow['mode'],
-                    'place' => $todayRow['place'],
-                    'total_hours' => $todayRow['total_hours'],
+                    'punch_in' => $todayRow['first_in'],
+                    'punch_out' => $todayRow['last_out'],
+                    'mode' => $mode,
+                    'place' => $place,
+                    'total_hours' => $this->formatHoursMinutes($todayRow['hours']),
                     'late_reason' => $todayRow['late_reason'],
                     'late_by' => $todayRow['late_by'],
                     'grace_balance' => $todayRow['grace_balance'],
@@ -170,14 +175,17 @@ class SendNightAttendanceMail extends Command
                 foreach ($dailyBreakdown as $day) {
                     // Include if they had attendance, were absent on a working day (or holiday working/absent), leave, or holiday
                     if ($day['hours'] > 0 || $day['is_leave'] || $day['is_holiday'] || str_contains(strtolower($day['status']), 'absent')) {
+                        $dayAtt = $userAtts->firstWhere('date', $day['date']);
+                        $dayFirstMov = $dayAtt ? $dayAtt->movements->first() : null;
+
                         $monthlyRecords[] = [
                             'date' => $day['display_date'],
                             'status' => $day['status'],
-                            'punch_in' => $day['punch_in'],
-                            'punch_out' => $day['punch_out'] !== '-' ? $day['punch_out'] : $day['last_out'],
-                            'mode' => $day['mode'],
-                            'place' => $day['place'],
-                            'total_hours' => $day['total_hours'],
+                            'punch_in' => $day['first_in'],
+                            'punch_out' => $day['last_out'],
+                            'mode' => $dayFirstMov ? ($dayFirstMov->mode ?? '-') : '-',
+                            'place' => $dayFirstMov ? ($dayFirstMov->place ?? '-') : '-',
+                            'total_hours' => $this->formatHoursMinutes($day['hours']),
                             'late_reason' => $day['late_reason'],
                             'late_by' => $day['late_by'],
                             'grace_balance' => $day['grace_balance'],
@@ -186,10 +194,7 @@ class SendNightAttendanceMail extends Command
                     }
                     
                     if ($day['hours'] > 0) {
-                        $parts = explode(':', $day['total_hours']);
-                        if (count($parts) === 2) {
-                            $monthlyOfficeTotalMinutes += ((int)$parts[0] * 60) + (int)$parts[1];
-                        }
+                        $monthlyOfficeTotalMinutes += (int) round($day['hours'] * 60);
                     }
                 }
                 
