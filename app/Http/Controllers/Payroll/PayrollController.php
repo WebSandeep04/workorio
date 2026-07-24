@@ -335,4 +335,50 @@ class PayrollController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    public function exportReportPdf(Request $request)
+    {
+        $month = $request->input('month');
+        $year = $request->input('year');
+
+        if (!$month || !$year) {
+            return back()->with('error', 'Month and year are required');
+        }
+
+        $summaries = \App\Models\MonthlyAttendanceSummary::with('employee')
+            ->where('month', $month)
+            ->where('year', $year)
+            ->get();
+
+        $payroll = \App\Models\Payroll::with(['details.components.salaryComponent'])->where('month', $month)->where('year', $year)->first();
+        
+        $paidSalaries = [];
+        $employeeComponents = [];
+        $employeeDeductions = [];
+        $uniqueComponents = collect();
+
+        if ($payroll) {
+            foreach ($payroll->details as $detail) {
+                $paidSalaries[$detail->employee_id] = $detail->net_salary;
+                $employeeDeductions[$detail->employee_id] = $detail->total_deductions ?? 0;
+                $empComps = [];
+                foreach ($detail->components as $c) {
+                    if ($c->salaryComponent) {
+                        $compName = $c->salaryComponent->name;
+                        $empComps[$compName] = $c->amount;
+                        $uniqueComponents->push($compName);
+                    }
+                }
+                $employeeComponents[$detail->employee_id] = $empComps;
+            }
+        }
+        
+        $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
+        $fileName = 'Payroll_Report_' . date('F', mktime(0, 0, 0, $month, 1)) . '_' . $year . '.pdf';
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'employeeComponents', 'employeeDeductions', 'month', 'year'))
+                ->setPaper('a4', 'landscape');
+                
+        return $pdf->download($fileName);
+    }
 }

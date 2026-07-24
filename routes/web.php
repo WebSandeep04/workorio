@@ -1262,5 +1262,6 @@ Route::middleware(['auth.or.session'])->group(function () {
         Route::get('report', [App\Http\Controllers\Payroll\PayrollController::class, 'report'])->name('report');
         Route::post('report/fetch', [App\Http\Controllers\Payroll\PayrollController::class, 'fetchReportData'])->name('report.fetch');
         Route::get('report/export', [App\Http\Controllers\Payroll\PayrollController::class, 'exportReport'])->name('report.export');
+        Route::get('report/export-pdf', [App\Http\Controllers\Payroll\PayrollController::class, 'exportReportPdf'])->name('report.export-pdf');
     });
 });

@@ -86,11 +86,16 @@
 
     <!-- Data Table Card -->
     <div class="modern-card" id="tableCard" style="display: none;">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">Salary & Attendance Summary</h5>
-            <a href="#" id="exportBtn" class="btn btn-sm btn-success">
-                <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
-            </a>
+            <div>
+                <a href="#" id="exportPdfBtn" class="btn btn-sm btn-danger me-2">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>Export PDF
+                </a>
+                <a href="#" id="exportBtn" class="btn btn-sm btn-success">
+                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                </a>
+            </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive" style="max-height: 500px; overflow-y: auto; overflow-x: auto;">
@@ -120,6 +125,13 @@ $(document).ready(function() {
         const month = $('#month').val();
         const year = $('#year').val();
         window.location.href = "<?php echo e(route('payroll.report.export')); ?>?month=" + month + "&year=" + year;
+    });
+
+    $('#exportPdfBtn').on('click', function(e) {
+        e.preventDefault();
+        const month = $('#month').val();
+        const year = $('#year').val();
+        window.location.href = "<?php echo e(route('payroll.report.export-pdf')); ?>?month=" + month + "&year=" + year;
     });
 
     $('#generateBtn').on('click', function() {
