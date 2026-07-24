@@ -83,7 +83,21 @@
             </tr>
             <?php $totalDeductions += $deduction->amount; ?>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            <?php if($deductions->isEmpty()): ?>
+            <?php if($detail->lop_deduction_amount > 0): ?>
+            <tr>
+                <td>Loss of Pay (LOP)</td>
+                <td class="amount"><?php echo e(number_format($detail->lop_deduction_amount, 2)); ?></td>
+            </tr>
+            <?php $totalDeductions += $detail->lop_deduction_amount; ?>
+            <?php endif; ?>
+            <?php if($detail->statutory_deduction_amount > 0): ?>
+            <tr>
+                <td>Statutory Deductions</td>
+                <td class="amount"><?php echo e(number_format($detail->statutory_deduction_amount, 2)); ?></td>
+            </tr>
+            <?php $totalDeductions += $detail->statutory_deduction_amount; ?>
+            <?php endif; ?>
+            <?php if($deductions->isEmpty() && $detail->lop_deduction_amount <= 0 && $detail->statutory_deduction_amount <= 0): ?>
             <tr>
                 <td>No Deductions</td>
                 <td class="amount">0.00</td>
@@ -91,7 +105,7 @@
             <?php endif; ?>
             <tr class="total-row">
                 <td>Total Deductions</td>
-                <td class="amount"><?php echo e(number_format($totalDeductions, 2)); ?></td>
+                <td class="amount"><?php echo e(number_format($detail->total_deductions, 2)); ?></td>
             </tr>
         </tbody>
     </table>

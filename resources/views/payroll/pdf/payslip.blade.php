@@ -83,7 +83,21 @@
             </tr>
             @php $totalDeductions += $deduction->amount; @endphp
             @endforeach
-            @if($deductions->isEmpty())
+            @if($detail->lop_deduction_amount > 0)
+            <tr>
+                <td>Loss of Pay (LOP)</td>
+                <td class="amount">{{ number_format($detail->lop_deduction_amount, 2) }}</td>
+            </tr>
+            @php $totalDeductions += $detail->lop_deduction_amount; @endphp
+            @endif
+            @if($detail->statutory_deduction_amount > 0)
+            <tr>
+                <td>Statutory Deductions</td>
+                <td class="amount">{{ number_format($detail->statutory_deduction_amount, 2) }}</td>
+            </tr>
+            @php $totalDeductions += $detail->statutory_deduction_amount; @endphp
+            @endif
+            @if($deductions->isEmpty() && $detail->lop_deduction_amount <= 0 && $detail->statutory_deduction_amount <= 0)
             <tr>
                 <td>No Deductions</td>
                 <td class="amount">0.00</td>
@@ -91,7 +105,7 @@
             @endif
             <tr class="total-row">
                 <td>Total Deductions</td>
-                <td class="amount">{{ number_format($totalDeductions, 2) }}</td>
+                <td class="amount">{{ number_format($detail->total_deductions, 2) }}</td>
             </tr>
         </tbody>
     </table>
