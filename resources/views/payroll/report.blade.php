@@ -88,7 +88,10 @@
     <!-- Data Table Card -->
     <div class="modern-card" id="tableCard" style="display: none;">
         <div class="card-header">
-            <h5 class="card-title">Salary & Attendance Summary</h5>
+            <h5 class="card-title mb-0">Salary & Attendance Summary</h5>
+            <a href="#" id="exportBtn" class="btn btn-sm btn-success">
+                <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+            </a>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive" style="max-height: 500px; overflow-y: auto; overflow-x: auto;">
@@ -113,6 +116,13 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    $('#exportBtn').on('click', function(e) {
+        e.preventDefault();
+        const month = $('#month').val();
+        const year = $('#year').val();
+        window.location.href = "{{ route('payroll.report.export') }}?month=" + month + "&year=" + year;
+    });
+
     $('#generateBtn').on('click', function() {
         const btn = $(this);
         const originalText = btn.html();

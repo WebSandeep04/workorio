@@ -228,4 +228,111 @@ class PayrollController extends Controller
             'data' => $data
         ]);
     }
+    public function exportReport(Request $request)
+    {
+        $month = $request->input('month');
+        $year = $request->input('year');
+
+        if (!$month || !$year) {
+            return back()->with('error', 'Month and year are required');
+        }
+
+        $summaries = \App\Models\MonthlyAttendanceSummary::with('employee')
+            ->where('month', $month)
+            ->where('year', $year)
+            ->get();
+
+        $payroll = \App\Models\Payroll::with(['details.components.salaryComponent'])->where('month', $month)->where('year', $year)->first();
+        
+        $paidSalaries = [];
+        $employeeComponents = [];
+        $employeeDeductions = [];
+        $uniqueComponents = collect();
+
+        if ($payroll) {
+            foreach ($payroll->details as $detail) {
+                $paidSalaries[$detail->employee_id] = $detail->net_salary;
+                $employeeDeductions[$detail->employee_id] = $detail->total_deductions ?? 0;
+                $empComps = [];
+                foreach ($detail->components as $c) {
+                    if ($c->salaryComponent) {
+                        $compName = $c->salaryComponent->name;
+                        $empComps[$compName] = $c->amount;
+                        $uniqueComponents->push($compName);
+                    }
+                }
+                $employeeComponents[$detail->employee_id] = $empComps;
+            }
+        }
+        
+        $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
+
+        $fileName = 'Payroll_Report_' . date('F', mktime(0, 0, 0, $month, 1)) . '_' . $year . '.csv';
+
+        $headers = array(
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        );
+
+        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $employeeComponents, $employeeDeductions) {
+            $file = fopen('php://output', 'w');
+            
+            // Header Row
+            $columns = array_merge(
+                ['Employee Code', 'Employee Name'],
+                $uniqueComponents,
+                [
+                    'Total Working Days', 'Full Day', 'Half Day', 'Leave', 'Unpaid Leave', 
+                    'Absent', 'Total Weekly Off', 'Total Holidays', 'Holiday Work', 'Sunday Work', 
+                    'Total Present', 'Deduction Days', 'Payable Days', 'Deduction Amount', 'Paid Salary'
+                ]
+            );
+            fputcsv($file, $columns);
+
+            foreach ($summaries as $summary) {
+                $paid = $paidSalaries[$summary->employee_id] ?? null;
+                $comps = $employeeComponents[$summary->employee_id] ?? [];
+                $deductionAmount = $employeeDeductions[$summary->employee_id] ?? 0;
+                
+                $row = [
+                    $summary->employee ? $summary->employee->employee_code : '-',
+                    $summary->employee ? $summary->employee->name : 'Unknown'
+                ];
+
+                foreach ($uniqueComponents as $uc) {
+                    $row[] = isset($comps[$uc]) ? round($comps[$uc]) : 0;
+                }
+
+                $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
+                $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
+
+                $row = array_merge($row, [
+                    $summary->total_working_days ?? 0,
+                    $summary->total_present ?? 0,
+                    $summary->total_halfday ?? 0,
+                    $summary->days_on_leave ?? 0,
+                    $summary->total_unpaid_leaves ?? 0,
+                    $summary->days_absent ?? 0,
+                    $summary->total_weekly_offs ?? 0,
+                    $summary->total_holidays ?? 0,
+                    $summary->total_holidays_worked ?? 0,
+                    $summary->total_weekly_offs_worked ?? 0,
+                    $summary->total_present_combined ?? 0,
+                    $deductionDays,
+                    $payableDays,
+                    $deductionAmount,
+                    $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated'
+                ]);
+
+                fputcsv($file, $row);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }
