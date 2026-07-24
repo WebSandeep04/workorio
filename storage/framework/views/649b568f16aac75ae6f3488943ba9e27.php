@@ -48,7 +48,7 @@
         <thead>
             <tr>
                 <th style="width: 50%;">Earnings</th>
-                <th class="amount" style="width: 50%;">Amount (₹)</th>
+                <th class="amount" style="width: 50%;">Amount (Rs.)</th>
             </tr>
         </thead>
         <tbody>
@@ -61,7 +61,7 @@
             <?php $totalEarnings += $earning->amount; ?>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             <tr class="total-row">
-                <td>Total Earnings (A)</td>
+                <td>Total Earnings</td>
                 <td class="amount"><?php echo e(number_format($totalEarnings, 2)); ?></td>
             </tr>
         </tbody>
@@ -71,7 +71,7 @@
         <thead>
             <tr>
                 <th style="width: 50%;">Deductions</th>
-                <th class="amount" style="width: 50%;">Amount (₹)</th>
+                <th class="amount" style="width: 50%;">Amount (Rs.)</th>
             </tr>
         </thead>
         <tbody>
@@ -90,14 +90,14 @@
             </tr>
             <?php endif; ?>
             <tr class="total-row">
-                <td>Total Deductions (B)</td>
+                <td>Total Deductions</td>
                 <td class="amount"><?php echo e(number_format($totalDeductions, 2)); ?></td>
             </tr>
         </tbody>
     </table>
 
     <div class="net-pay">
-        Net Salary (A - B): <span>₹ <?php echo e(number_format($detail->net_salary, 2)); ?></span>
+        Net Salary: <span>Rs. <?php echo e(number_format($detail->net_salary, 2)); ?></span>
     </div>
 
     <div class="footer">
