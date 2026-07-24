@@ -1201,12 +1201,17 @@ class AttendanceController extends Controller
 
     public function reportView()
     {
-        // Get all users for the dropdown - excluding admin and inactive employees
+        // Get all users who have any attendance records
+        $userIdsWithAttendance = \App\Models\Attendance::pluck('user_id')->unique()->toArray();
+
+        // Get all users for the dropdown - including active employees and inactive employees with attendance
         $users = User::select('id', 'name', 'email')
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
-            ->whereHas('employee', function($query) {
-                $query->where('status', 'active');
+            ->where(function($query) use ($userIdsWithAttendance) {
+                $query->whereHas('employee', function($q) {
+                    $q->where('status', 'active');
+                })->orWhereIn('id', $userIdsWithAttendance);
             })
             ->orderBy('name')
             ->get();
@@ -1343,11 +1348,19 @@ class AttendanceController extends Controller
         $carbonDate = Carbon::parse($date);
         $startOfMonth = $carbonDate->copy()->startOfMonth()->format('Y-m-d');
         
+        // Get all user IDs who have attendance records in the selected month
+        $userIdsWithAttendance = \App\Models\Attendance::whereBetween('date', [$startOfMonth, $date])
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
         $users = User::with(['employee.shiftRelation'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
-            ->whereHas('employee', function($query) {
-                $query->where('status', 'active');
+            ->where(function($query) use ($userIdsWithAttendance) {
+                $query->whereHas('employee', function($q) {
+                    $q->where('status', 'active');
+                })->orWhereIn('id', $userIdsWithAttendance);
             })
             ->orderBy('name')
             ->get();
@@ -1623,12 +1636,20 @@ class AttendanceController extends Controller
             $curr->addDay();
         }
 
-        // Get all users who are active employees AND not admin (role_id != 1)
+        // Get all user IDs who have attendance records in the selected month
+        $userIdsWithAttendance = \App\Models\Attendance::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
+        // Get all users who are active employees OR have attendance records in the selected month, AND not admin (role_id != 1)
         $users = User::with(['employee.shiftRelation'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
-            ->whereHas('employee', function($query) {
-                $query->where('status', 'active');
+            ->where(function($query) use ($userIdsWithAttendance) {
+                $query->whereHas('employee', function($q) {
+                    $q->where('status', 'active');
+                })->orWhereIn('id', $userIdsWithAttendance);
             })
             ->orderBy('name')
             ->get(); 

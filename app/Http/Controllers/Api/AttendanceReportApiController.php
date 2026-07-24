@@ -54,11 +54,16 @@ class AttendanceReportApiController extends Controller
         }
 
         try {
+            // Get all users who have any attendance records
+            $userIdsWithAttendance = \App\Models\Attendance::pluck('user_id')->unique()->toArray();
+
             $users = User::select('id', 'name', 'email')
                 ->where('role_id', '!=', 1)
                 ->where('is_attendance', 1)
-                ->whereHas('employee', function($query) {
-                    $query->where('status', 'active');
+                ->where(function($query) use ($userIdsWithAttendance) {
+                    $query->whereHas('employee', function($q) {
+                        $q->where('status', 'active');
+                    })->orWhereIn('id', $userIdsWithAttendance);
                 })
                 ->orderBy('name')
                 ->get();
@@ -263,14 +268,22 @@ class AttendanceReportApiController extends Controller
             $curr->addDay();
         }
 
+        // Get all user IDs who have attendance records in the selected month
+        $userIdsWithAttendance = \App\Models\Attendance::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
         $users = User::with(['employee.shiftRelation'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
-            ->whereHas('employee', function($query) {
-                $query->where('status', 'active');
+            ->where(function($query) use ($userIdsWithAttendance) {
+                $query->whereHas('employee', function($q) {
+                    $q->where('status', 'active');
+                })->orWhereIn('id', $userIdsWithAttendance);
             })
             ->orderBy('name')
-            ->get(); 
+            ->get();
 
         $allAttendances = Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');

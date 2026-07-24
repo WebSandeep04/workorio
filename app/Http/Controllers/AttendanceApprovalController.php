@@ -39,9 +39,23 @@ class AttendanceApprovalController extends Controller
     {
         $date = $request->filled('date') ? $request->date : Carbon::today('Asia/Kolkata')->toDateString();
         
-        // 1. Fetch Active Employees who have a login account (Excluding Admins with Role ID 1 and whose is_attendance is enabled)
+        $carbonDate = Carbon::parse($date);
+        $startOfMonth = $carbonDate->copy()->startOfMonth()->format('Y-m-d');
+        $endOfMonth = $carbonDate->copy()->endOfMonth()->format('Y-m-d');
+
+        // Fetch user IDs who have attendance in the month of the selected date
+        $userIdsWithAttendance = \App\Models\Attendance::whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+        // 1. Fetch Active Employees OR inactive employees who have attendance on this date (Excluding Admins with Role ID 1 and whose is_attendance is enabled)
         $empQuery = \App\Models\Employee::with(['user', 'shiftRelation'])
-            ->where('status', 'active')
+            ->where(function($query) use ($userIdsWithAttendance) {
+                $query->where('status', 'active')
+                      ->orWhereHas('user', function($q) use ($userIdsWithAttendance) {
+                          $q->whereIn('id', $userIdsWithAttendance);
+                      });
+            })
             ->whereHas('user', function($q) {
                 $q->where('role_id', '!=', 1)
                   ->where('is_attendance', 1);

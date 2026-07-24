@@ -100,11 +100,19 @@ class MonthlyAttendanceReviewController extends Controller
             $endDate = Carbon::today();
         }
 
+        // Get all user IDs who have attendance records in the selected month
+        $userIdsWithAttendance = \App\Models\Attendance::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
         $users = User::with(['employee.shiftRelation'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
-            ->whereHas('employee', function($query) {
-                $query->where('status', 'active');
+            ->where(function($query) use ($userIdsWithAttendance) {
+                $query->whereHas('employee', function($q) {
+                    $q->where('status', 'active');
+                })->orWhereIn('id', $userIdsWithAttendance);
             })
             ->get();
 
