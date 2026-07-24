@@ -23,8 +23,9 @@
   .data-table-card .custom-table tbody tr:hover { background: #f8f9ff; box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08); transform: translateY(-1px); }
   .data-table-card .custom-table tbody tr:last-child td { border-bottom: none; }
   .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; }
-  .btn-action { background: transparent !important; border: none !important; padding: 0.25rem 0.5rem; color: #6c757d; transition: all 0.2s ease; cursor: pointer; text-decoration: none; }
-  .btn-action-download { color: white; background: #10B981 !important; border-radius: 4px; font-size: 0.75rem; padding: 0.35rem 0.7rem; }
+  .btn-action { display: inline-flex; align-items: center; justify-content: center; background: transparent !important; border: none !important; padding: 0.35rem 0.6rem; color: #6c757d; transition: all 0.2s ease; cursor: pointer; text-decoration: none; }
+  .btn-action:hover { transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+  .btn-action-download { color: white !important; background: #10B981 !important; border-radius: 4px; }
   .pagination .page-link { color: #434afa; border: 2px solid #e0e0e0; border-radius: 6px; padding: 0.25rem 0.5rem; margin: 0 2px; font-size: 10px; transition: all 0.3s ease; font-weight: 500; }
   .pagination .page-item.active .page-link { background: #434afa; border-color: #434afa; color: white; box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3); }
   .pagination .page-link:hover { background: rgba(67, 74, 250, 0.15); border-color: #434afa; transform: translateY(-1px); }
@@ -175,9 +176,11 @@ $(function () {
               <td>₹${parseFloat(row.gross_salary).toFixed(2)}</td>
               <td><strong class="text-success">₹${parseFloat(row.net_salary).toFixed(2)}</strong></td>
               <td>
-                <a href="${downloadUrl}" class="btn-action btn-action-download" target="_blank" title="Download PDF">
-                    <i class="bi bi-file-earmark-pdf me-1"></i> Download
-                </a>
+                <div class="d-flex gap-2">
+                  <a href="${downloadUrl}" class="btn-action btn-action-download" target="_blank" title="Download PDF">
+                      <i class="bi bi-file-earmark-pdf"></i>
+                  </a>
+                </div>
               </td>
             </tr>
           `;

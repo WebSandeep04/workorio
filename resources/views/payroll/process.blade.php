@@ -25,7 +25,8 @@
   .data-table-card .custom-table tbody tr:hover { background: #f8f9ff; box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08); transform: translateY(-1px); }
   .data-table-card .custom-table tbody tr:last-child td { border-bottom: none; }
   .table-range-meta { font-size: 0.75rem; color: #6b7280; margin: 0.35rem 0 0.75rem; }
-  .btn-action { background: transparent !important; border: none !important; padding: 0.25rem 0.5rem; color: #6c757d; transition: all 0.2s ease; cursor: pointer; }
+  .btn-action { display: inline-flex; align-items: center; justify-content: center; background: transparent !important; border: none !important; padding: 0.35rem 0.6rem; color: #6c757d; transition: all 0.2s ease; cursor: pointer; text-decoration: none; }
+  .btn-action:hover { transform: translateY(-1px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
   .btn-action-view { color: white !important; background: #343AFA !important; border-radius: 4px; }
   .btn-action-delete { color: white !important; background: #DC2626 !important; border-radius: 4px; }
   .btn-action i { font-size: 0.8rem; margin: 0; }

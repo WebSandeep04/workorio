@@ -16,8 +16,7 @@ class SalaryStructureController extends Controller
             
             if ($request->has('search') && !empty($request->search)) {
                 $search = $request->search;
-                $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('salary_type', 'like', "%{$search}%");
+                $query->where('name', 'like', "%{$search}%");
             }
             
             $structures = $query->latest()->paginate(10);
@@ -32,7 +31,6 @@ class SalaryStructureController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'salary_type' => 'required|in:fixed,structured',
             'components' => 'nullable|array',
             'components.*.id' => 'required|exists:salary_components,id',
             'components.*.value' => 'nullable|numeric',
@@ -40,8 +38,7 @@ class SalaryStructureController extends Controller
         ]);
 
         $structure = SalaryStructure::create([
-            'name' => $validated['name'],
-            'salary_type' => $validated['salary_type']
+            'name' => $validated['name']
         ]);
 
         if (!empty($validated['components'])) {
@@ -64,7 +61,6 @@ class SalaryStructureController extends Controller
         
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'salary_type' => 'required|in:fixed,structured',
             'components' => 'nullable|array',
             'components.*.id' => 'required|exists:salary_components,id',
             'components.*.value' => 'nullable|numeric',
@@ -72,8 +68,7 @@ class SalaryStructureController extends Controller
         ]);
 
         $structure->update([
-            'name' => $validated['name'],
-            'salary_type' => $validated['salary_type']
+            'name' => $validated['name']
         ]);
 
         if (isset($validated['components'])) {

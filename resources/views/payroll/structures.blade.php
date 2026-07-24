@@ -79,14 +79,13 @@
           <thead>
             <tr>
               <th>Name</th>
-              <th>Type</th>
               <th>Components Included</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="structureTableBody">
             <tr>
-              <td colspan="4" class="loading-state">
+              <td colspan="3" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
                 <p class="mt-2 mb-0">Loading structures...</p>
               </td>
@@ -121,16 +120,9 @@
         <form id="structureForm">
           <input type="hidden" id="structure_id">
           <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-12">
               <label class="form-label-modern">Structure Name <span class="text-danger">*</span></label>
               <input type="text" id="structure_name" class="form-control form-control-modern" required placeholder="e.g. Standard Developer Package">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label-modern">Salary Type <span class="text-danger">*</span></label>
-              <select id="salary_type" class="form-control form-select-modern">
-                <option value="structured">Structured (Based on Base Pay)</option>
-                <option value="fixed">Fixed</option>
-              </select>
             </div>
             
             <div class="col-12 mt-4">
@@ -268,7 +260,7 @@ $(function () {
         if (!data.data || data.data.length === 0) {
           $('#structureTableBody').html(`
             <tr>
-              <td colspan="4" class="empty-state">
+              <td colspan="3" class="empty-state">
                 <i class="bi bi-diagram-3"></i>
                 <h5>No Structures Found</h5>
                 <p>Get started by creating your first salary structure.</p>
@@ -282,7 +274,6 @@ $(function () {
         
         let rows = '';
         $.each(data.data, function (i, row) {
-          const typeClass = row.salary_type === 'structured' ? 'badge-modern-success' : 'badge-modern-info';
           let componentsList = '';
           if (row.components && row.components.length > 0) {
               componentsList = row.components.map(c => `<span class="badge bg-light text-dark border me-1">${escapeHtml(c.name)}</span>`).join('');
@@ -293,7 +284,6 @@ $(function () {
           rows += `
             <tr style="animation-delay: ${i * 0.1}s;">
               <td><strong>${escapeHtml(row.name)}</strong></td>
-              <td><span class="badge ${typeClass}">${escapeHtml(row.salary_type.toUpperCase())}</span></td>
               <td style="white-space: normal; max-width: 300px;">${componentsList}</td>
               <td>
                 <div class="d-flex gap-2 justify-content-center">
@@ -351,7 +341,6 @@ $(function () {
     
     if (data) {
       $('#structure_name').val(data.name || '');
-      $('#salary_type').val(data.salary_type || 'structured');
       
       if (data.components && data.components.length > 0) {
           data.components.forEach(comp => {
@@ -404,7 +393,6 @@ $(function () {
     const payload = {
       _token: csrf,
       name: $('#structure_name').val().trim(),
-      salary_type: $('#salary_type').val(),
       components: components
     };
     
