@@ -1146,7 +1146,7 @@ class AttendanceController extends Controller
             ->first();
 
         if ($todayAttendance) {
-            $stats['today_hours'] = $this->reportService->calculateTotalHours($todayAttendance->movements);
+            $stats['today_hours'] = $this->reportService->calculateTotalHours($todayAttendance->movements, null, $todayAttendance->date);
         }
 
         // This month's attendance
@@ -1160,7 +1160,7 @@ class AttendanceController extends Controller
         $totalMonthHours = 0;
         $totalLateMinutes = 0;
         foreach ($monthAttendances as $attendance) {
-            $totalMonthHours += $this->reportService->calculateTotalHours($attendance->movements);
+            $totalMonthHours += $this->reportService->calculateTotalHours($attendance->movements, null, $attendance->date);
             $totalLateMinutes += (int) abs($attendance->late_minutes ?? 0);
         }
         
