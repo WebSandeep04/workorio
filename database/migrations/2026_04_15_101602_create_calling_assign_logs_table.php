@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::create('calling_assign_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('calling_id');
@@ -28,6 +30,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::dropIfExists('calling_assign_logs');
     }
 };

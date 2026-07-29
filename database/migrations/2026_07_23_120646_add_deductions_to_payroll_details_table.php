@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('payroll_details', function (Blueprint $table) {
             $table->decimal('total_deductions', 12, 2)->default(0)->after('net_salary');
             $table->decimal('lop_deduction_amount', 12, 2)->default(0)->after('total_deductions');
@@ -23,6 +25,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('payroll_details', function (Blueprint $table) {
             $table->dropColumn(['total_deductions', 'lop_deduction_amount', 'statutory_deduction_amount']);
         });

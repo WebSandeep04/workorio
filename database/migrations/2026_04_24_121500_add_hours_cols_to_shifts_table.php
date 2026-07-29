@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('shifts', function (Blueprint $table) {
             $table->decimal('full_day_hr', 8, 2)->nullable()->after('end_time');
             $table->decimal('half_day_hr', 8, 2)->nullable()->after('full_day_hr');
@@ -23,6 +25,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('shifts', function (Blueprint $table) {
             $table->dropColumn(['full_day_hr', 'half_day_hr', 'extended_hr']);
         });
