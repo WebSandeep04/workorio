@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::create('whatsapp_templates', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -24,6 +26,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::dropIfExists('whatsapp_templates');
     }
 };

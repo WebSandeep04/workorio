@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('shifts', function (Blueprint $table) {
             $table->boolean('grant_comp_off_for_overtime')->default(true)->after('enforce_time_restriction_on_overtime');
         });
@@ -21,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('shifts', function (Blueprint $table) {
             $table->dropColumn('grant_comp_off_for_overtime');
         });

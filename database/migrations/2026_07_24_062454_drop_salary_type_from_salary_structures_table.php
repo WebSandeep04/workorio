@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('salary_structures', function (Blueprint $table) {
             $table->dropColumn('salary_type');
         });
@@ -21,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('salary_structures', function (Blueprint $table) {
             $table->enum('salary_type', ['fixed', 'structured'])->default('structured');
         });

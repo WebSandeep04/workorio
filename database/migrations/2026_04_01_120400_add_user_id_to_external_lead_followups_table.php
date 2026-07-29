@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('external_lead_followups', function (Blueprint $table) {
             $table->unsignedBigInteger('user_id')->nullable()->after('lead_id');
         });
@@ -21,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('external_lead_followups', function (Blueprint $table) {
             $table->dropColumn('user_id');
         });

@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('calling_campaign_calling', function (Blueprint $table) {
             $table->boolean('is_assigned')->default(0)->after('calling_type_id');
         });
@@ -21,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('calling_campaign_calling', function (Blueprint $table) {
             $table->dropColumn('is_assigned');
         });

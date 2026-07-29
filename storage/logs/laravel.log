@@ -1,0 +1,4 @@
+[2026-07-29 03:43:12] local.ERROR: Failed to create tenant database for Triserv 360 Business Solutions: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'tenant_ten_ewfy5q.tenants' doesn't exist (Connection: tenant_4, SQL: alter table `tenants` add `is_payroll_enabled` tinyint(1) not null default '0')  
+[2026-07-29 03:50:17] local.INFO: Successfully created database for tenant: Triserv 360 Business Solutions (ID: 4)  
+[2026-07-29 03:50:28] local.INFO: Successfully dropped database for tenant: Triserv 360 Business Solutions  
+[2026-07-29 03:50:42] local.INFO: Successfully created database for tenant: Triserv 360 Business Solutions (ID: 4)  

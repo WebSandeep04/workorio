@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('shifts', function (Blueprint $table) {
             $table->json('half_days')->nullable()->after('week_offs');
         });
@@ -21,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('shifts', function (Blueprint $table) {
             $table->dropColumn('half_days');
         });

@@ -8,6 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() !== 'mysql') { return; }
+
         if (Schema::hasTable('tenant_databases')) {
             Schema::table('tenant_databases', function (Blueprint $table) {
                 if (!Schema::hasColumn('tenant_databases', 'db_host')) {
@@ -28,6 +30,8 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() !== 'mysql') { return; }
+
         if (Schema::hasTable('tenant_databases')) {
             if (Schema::hasColumn('tenant_databases', 'db_password') || Schema::hasColumn('tenant_databases', 'db_username') || Schema::hasColumn('tenant_databases', 'db_host') || Schema::hasColumn('tenant_databases', 'db_port')) {
                 Schema::table('tenant_databases', function (Blueprint $table) {

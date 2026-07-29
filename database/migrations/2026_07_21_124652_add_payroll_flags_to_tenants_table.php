@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() !== 'mysql') { return; }
+
         Schema::table('tenants', function (Blueprint $table) {
             $table->boolean('is_payroll_enabled')->default(0);
             $table->boolean('is_payroll_setup_enabled')->default(0);
@@ -22,6 +24,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() !== 'mysql') { return; }
+
         Schema::table('tenants', function (Blueprint $table) {
             $table->dropColumn(['is_payroll_enabled', 'is_payroll_setup_enabled']);
         });

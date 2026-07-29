@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         
         Schema::table('users', function (Blueprint $table) {
             if (!Schema::hasColumn('users', 'is_attendance')) {
@@ -24,6 +26,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (\Illuminate\Support\Facades\Schema::getConnection()->getName() === 'mysql') { return; }
+
         Schema::table('users', function (Blueprint $table) {
             if (Schema::hasColumn('users', 'is_attendance')) {
                 $table->dropColumn('is_attendance');
