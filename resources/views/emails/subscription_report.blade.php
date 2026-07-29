@@ -6,6 +6,7 @@
 <body style="margin: 0; padding: 0px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6;">
 
 @php
+if (!function_exists('renderTable')) {
 function renderTable($items, $title, $titleColor = '#111827', $isOverdue = false) {
     if (empty($items)) return "";
 
@@ -68,6 +69,7 @@ function renderTable($items, $title, $titleColor = '#111827', $isOverdue = false
         </table>
         </div>
     </div>";
+}
 }
 
 $tablesHtml = "";
