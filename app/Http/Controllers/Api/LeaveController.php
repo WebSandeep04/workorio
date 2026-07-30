@@ -150,8 +150,16 @@ class LeaveController extends Controller
             return response()->json(['success' => false, 'message' => 'System migration pending.'], 500);
         }
 
+        $leaveTypeId = $request->input('leave_type_id');
+        $leaveType = LeaveType::find($leaveTypeId);
+
+        $startDateRule = 'required|date|after:today';
+        if ($leaveType && $leaveType->is_short_leave) {
+            $startDateRule = 'required|date|after_or_equal:today';
+        }
+
         $validator = Validator::make($request->all(), [
-            'start_date' => 'required|date|after:today',
+            'start_date' => $startDateRule,
             'end_date' => 'required|date|after_or_equal:start_date',
             'leave_type_id' => 'required',
             'start_time' => 'nullable|date_format:H:i',
@@ -159,7 +167,7 @@ class LeaveController extends Controller
             'sl_period' => 'nullable|in:morning,evening',
             'is_half_day' => 'nullable|boolean',
             'half_day_period' => 'nullable|in:pre_lunch,post_lunch',
-            'reason' => 'nullable|string|max:1000'
+            'reason' => 'required|string|max:1000'
         ]);
 
         if ($validator->fails()) {
@@ -173,7 +181,6 @@ class LeaveController extends Controller
         $user = Auth::user();
         if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         
-        $leaveType = LeaveType::find($request->leave_type_id);
         if (!$leaveType) {
             return response()->json(['success' => false, 'message' => 'Invalid leave type selected.'], 422);
         }
@@ -309,20 +316,6 @@ class LeaveController extends Controller
             }
         }
 
-        // Step 6: Check if worklog already covers requested dates (Legacy Protection Sync)
-        $existingWorklog = Worklog::where('user_id', $user->id)
-            ->where(function($q) use ($request){
-                $q->whereBetween('work_date', [$request->start_date, $request->end_date]);
-            })
-            ->first();
-
-        if ($existingWorklog) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot apply leave for a period where a worklog entry already exists.'
-            ], 422);
-        }
-
         // Step 7: Check Overlapping Leaves
         $overlappingLeave = LeaveRequest::where('user_id', $user->id)
             ->whereIn('status', ['pending', 'approved'])
@@ -406,7 +399,7 @@ class LeaveController extends Controller
         $validator = Validator::make($request->all(), [
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'reason' => 'nullable|string|max:1000'
+            'reason' => 'required|string|max:1000'
         ]);
 
         if ($validator->fails()) {

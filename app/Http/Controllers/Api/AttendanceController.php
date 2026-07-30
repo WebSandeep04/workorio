@@ -1153,201 +1153,127 @@ class AttendanceController extends Controller
             $endDate = Carbon::now('Asia/Kolkata')->endOfMonth();
         }
 
-        // Cache actual Attendance transactions keying by physical date
-        $attendances = Attendance::with(['movements' => function ($q) {
-                $q->orderBy('time', 'asc');
+        // Eager load relation to ensure parity with Web App logic
+        $user->loadMissing(['employee.shiftRelation']);
+
+        $attendances = Attendance::with(['movements' => function($query) {
+                $query->orderBy('time');
             }])
             ->where('user_id', $user->id)
             ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->orderBy('date', 'asc')
+            ->get();
+        
+        // Fetch leaves and holidays for summary
+        $holidaysData = Holiday::whereBetween('holiday_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->get()
-            ->keyBy(function($item) {
-                return Carbon::parse($item->date)->format('Y-m-d');
+            ->keyBy(function($holiday) {
+                return Carbon::parse($holiday->holiday_date)->format('Y-m-d');
             });
+        
+        $holidays = $holidaysData->keys()->toArray();
 
-        // Standard Unified Business Logic Instantiation
-        $reportService = app(AttendanceReportService::class);
-        $user->loadMissing(['employee.shiftRelation']);
-        $shift = $user->employee->shiftRelation ?? null;
-        [$fullDayHr, $halfDayHr] = $reportService->getThresholds($shift);
-
-        // Sync External Dependencies (Holidays & Approved Overlaps)
-        $holidayDates = Holiday::whereBetween('holiday_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-            ->pluck('holiday_date')
-            ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
-            ->toArray();
-
-        $leavesRaw = LeaveRequest::where('user_id', $user->id)
+        $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', $user->id)
             ->where('status', 'approved')
-            ->where(function($q) use ($startDate, $endDate) {
-                $q->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-                  ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-                  ->orWhere(function($sq) use ($startDate, $endDate) {
-                      $sq->where('start_date', '<=', $startDate->format('Y-m-d'))->where('end_date', '>=', $endDate->format('Y-m-d'));
-                  });
+            ->where(function($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                      ->orWhereBetween('end_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                      ->orWhere(function($q) use ($startDate, $endDate) {
+                          $q->where('start_date', '<=', $startDate->format('Y-m-d'))
+                            ->where('end_date', '>=', $endDate->format('Y-m-d'));
+                      });
             })->get();
-
-        $leavesMap = [];
-        foreach ($leavesRaw as $lr) {
-            $walk = Carbon::parse($lr->start_date);
-            $term = Carbon::parse($lr->end_date);
-            while ($walk->lte($term)) {
-                $dStr = $walk->format('Y-m-d');
-                if (!isset($leavesMap[$dStr])) {
-                    if ($lr->is_rh) $leavesMap[$dStr] = 'RH';
-                    elseif ($lr->is_sl) $leavesMap[$dStr] = 'SL';
-                    elseif ($lr->is_half_day) $leavesMap[$dStr] = 'HD';
-                    else $leavesMap[$dStr] = 'L';
+            
+        $leavesDetails = [];
+        foreach ($leaveRequests as $req) {
+            $period = new \DatePeriod(new \DateTime($req->start_date), new \DateInterval('P1D'), (new \DateTime($req->end_date))->modify('+1 day'));
+            foreach ($period as $dt) {
+                if ($dt >= new \DateTime($startDate->format('Y-m-d')) && $dt <= new \DateTime($endDate->format('Y-m-d'))) {
+                    $d = $dt->format('Y-m-d');
+                    if (!isset($leavesDetails[$d])) {
+                        if ($req->leaveType && !$req->leaveType->is_paid) {
+                            $leavesDetails[$d] = 'LWP';
+                        } elseif ($req->is_rh) {
+                            $leavesDetails[$d] = 'RH';
+                        } elseif ($req->is_sl) {
+                            $leavesDetails[$d] = 'SL';
+                        } elseif ($req->is_half_day) {
+                            $leavesDetails[$d] = 'HD';
+                        } else {
+                            $leavesDetails[$d] = 'L';
+                        }
+                    }
                 }
-                $walk->addDay();
             }
         }
 
-        // Loop synthesis covering every temporal slot in reversed desc sequence
-        $dailyBreakdown = [];
-        $pointer = $endDate->copy();
-        $now = Carbon::now('Asia/Kolkata');
+        $reportService = app(AttendanceReportService::class);
+        $summary = $reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
+        
+        $shift = $user->employee->shiftRelation ?? null;
+        $dailyBreakdown = $reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $shift);
 
-        // Secure only past/present dates to avoid future projection bloat
-        if ($pointer->gt($now)) {
-            $pointer = $now->copy();
-        }
+        // Reverse the daily breakdown so it is descending, to match mobile UI requirements
+        $dailyBreakdownDesc = array_reverse($dailyBreakdown);
 
-        while ($pointer->gte($startDate)) {
-            $targetDate = $pointer->format('Y-m-d');
-            $dayName = $pointer->format('l');
-            
-            $att = $attendances->get($targetDate);
-            
-            $isWeeklyOff = false;
-            $isHalfDayWorking = false;
-            if ($shift) {
-                if ($shift->week_offs && is_array($shift->week_offs)) {
-                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-                }
-                if ($shift->half_days && is_array($shift->half_days)) {
-                    $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
-                }
-            }
-            $isHoliday = in_array($targetDate, $holidayDates);
-            
-            $leaveType = $leavesMap[$targetDate] ?? null;
-            $hasHalfDayLeave = ($leaveType === 'HD');
-            $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
-            
-            $activeFullHr = $fullDayHr;
-            $activeHalfHr = $halfDayHr;
-            if ($isHalfDayWorking) {
-                $activeFullHr = $halfDayHr;
-                $activeHalfHr = $halfDayHr / 2;
-            }
+        // Map back to legacy schema required by mobile app frontend
+        $mappedBreakdown = array_map(function($day) {
+            $formatMinutes = function($h) {
+                if ($h <= 0) return '0h 0m';
+                $m = round($h * 60);
+                $hours = floor($m / 60);
+                $mins = $m % 60;
+                return sprintf('%dh %dm', $hours, $mins);
+            };
 
-            $statusLabel = 'Absent';
-
-            if ($att) {
-                // Actual Record Exists: Delegate to Full Analytics Engine
-                $workedHours = $reportService->calculateTotalHours($att->movements, $shift, $targetDate);
-                $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
-                $statusInfo = $reportService->determineStatus(
-                    $targetDate, 
-                    $workedHours, 
-                    $activeFullHr, 
-                    $activeHalfHr, 
-                    $isWeeklyOff, 
-                    $isHoliday, 
-                    $leaveType, 
-                    $hasHalfDayLeave, 
-                    $slHours,
-                    $enforceTimeRestriction
-                );
-                $statusLabel = ucwords($statusInfo['label'] ?? 'Absent');
-            } else {
-                // Virtual Slot: Determine Structural State
-                if ($isWeeklyOff) {
-                    $statusLabel = 'Weekly Off';
-                } elseif ($isHoliday) {
-                    $statusLabel = 'Holiday';
-                } elseif ($leaveType) {
-                    if ($leaveType === 'RH') $statusLabel = 'Restricted Holiday';
-                    elseif ($leaveType === 'SL') $statusLabel = 'Short Leave';
-                    else $statusLabel = 'Leave';
-                } else {
-                    $statusLabel = 'Absent';
+            $fieldIn = '-';
+            $fieldOut = '-';
+            if (isset($day['movements']) && is_array($day['movements'])) {
+                foreach ($day['movements'] as $mov) {
+                    if (strtolower($mov['type']) === 'field') {
+                        if (strtolower($mov['action']) === 'in' && $fieldIn === '-') {
+                            $fieldIn = $mov['time'];
+                        }
+                        if (strtolower($mov['action']) === 'out') {
+                            $fieldOut = $mov['time'];
+                        }
+                    }
                 }
             }
 
-            // Compose the concrete delivery object mirroring legacy response schema
-            $row = [
-                'id' => $att ? $att->id : 'v_' . $targetDate,
-                'date' => $targetDate,
-                'display_date' => $pointer->format('D, M d, Y'),
-                'status' => $statusLabel,
-                'punch_in' => '-',
-                'punch_out' => '-',
-                'field_in' => '-',
-                'field_out' => '-',
-                'total_office_time' => '0h 0m',
-                'total_field_time' => '0h 0m',
-                'total_break_time' => '0h 0m',
-                'total_office_minutes' => 0,
-                'total_field_minutes' => 0,
-                'total_break_minutes' => 0,
+            // Fallback for punch_in/punch_out using first_in/last_out from generateDailyBreakdown
+            $punchIn = $day['first_in'] ?? '-';
+            $punchOut = $day['last_out'] ?? '-';
+
+            // Ensure status is capitalized
+            $status = isset($day['status']) ? ucwords($day['status']) : 'Absent';
+            if ($status === 'Absent' && isset($day['is_holiday']) && $day['is_holiday']) {
+                 $status = 'Holiday';
+            }
+
+            return array_merge($day, [
+                'display_date' => Carbon::parse($day['date'])->format('D, M d, Y'),
+                'status' => $status,
+                'punch_in' => $punchIn,
+                'punch_out' => $punchOut,
+                'field_in' => $fieldIn,
+                'field_out' => $fieldOut,
                 'formatted_hours' => [
-                   'office' => '0h 0m',
-                   'field' => '0h 0m',
-                   'total' => '0h 0m'
+                    'office' => $formatMinutes($day['office_hours'] ?? 0),
+                    'field' => $formatMinutes($day['field_hours'] ?? 0),
+                    'total' => $formatMinutes($day['hours'] ?? 0)
                 ]
-            ];
-
-            // Hydrate specific operational times IF real transactional data exists
-            if ($att) {
-                $moves = $att->movements;
-                $officeMoves = $moves->where('movement_type', 'office');
-                $fieldMoves = $moves->where('movement_type', 'field');
-                $breakMoves = $moves->where('movement_type', 'break');
-                
-                $officeTime = $this->calculateDuration($officeMoves);
-                $fieldTime = $this->calculateDuration($fieldMoves);
-                $breakTime = $this->calculateDuration($breakMoves);
-
-                $firstPunchIn = $moves->whereIn('movement_type', ['office', 'field'])
-                    ->where('movement_action', 'in')->sortBy('time')->first();
-                $lastPunchOut = $moves->whereIn('movement_type', ['office', 'field'])
-                    ->where('movement_action', 'out')->sortByDesc('time')->first();
-                
-                $fIn = $fieldMoves->where('movement_action', 'in')->sortBy('time')->first();
-                $fOut = $fieldMoves->where('movement_action', 'out')->sortByDesc('time')->first();
-
-                $row['punch_in'] = $firstPunchIn ? Carbon::parse($firstPunchIn->time)->timezone('Asia/Kolkata')->format('h:i A') : '-';
-                $row['punch_out'] = $lastPunchOut ? Carbon::parse($lastPunchOut->time)->timezone('Asia/Kolkata')->format('h:i A') : '-';
-                $row['field_in'] = $fIn ? Carbon::parse($fIn->time)->timezone('Asia/Kolkata')->format('h:i A') : '-';
-                $row['field_out'] = $fOut ? Carbon::parse($fOut->time)->timezone('Asia/Kolkata')->format('h:i A') : '-';
-                
-                $row['total_office_minutes'] = $officeTime;
-                $row['total_field_minutes'] = $fieldTime;
-                $row['total_break_minutes'] = $breakTime;
-
-                $row['total_office_time'] = $this->formatDuration($officeTime);
-                $row['total_field_time'] = $this->formatDuration($fieldTime);
-                $row['total_break_time'] = $this->formatDuration($breakTime);
-
-                $row['formatted_hours'] = [
-                    'office' => $this->formatHoursMinutes($officeTime),
-                    'field' => $this->formatHoursMinutes($fieldTime),
-                    'total' => $this->formatHoursMinutes($officeTime + $fieldTime)
-                ];
-            }
-
-            $dailyBreakdown[] = $row;
-            $pointer->subDay();
-        }
+            ]);
+        }, $dailyBreakdownDesc);
 
         // Structure the response adhering strictly to valid Paginator contract schemas assumed by Redux state.
         return response()->json([
-            'data' => $dailyBreakdown,
+            'data' => $mappedBreakdown,
+            'summary' => $summary,
             'current_page' => 1,
             'last_page' => 1,
-            'per_page' => count($dailyBreakdown),
-            'total' => count($dailyBreakdown),
+            'per_page' => count($mappedBreakdown),
+            'total' => count($mappedBreakdown),
         ]);
     }
     
