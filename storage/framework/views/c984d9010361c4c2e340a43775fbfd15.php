@@ -156,7 +156,7 @@
                         </div>
                         <div class="col-md-2 matrix-val-col">
                             <label style="font-size:0.75rem;" class="matrix-val-label">Days to give</label>
-                            <input type="number" step="1" min="0" class="form-control form-control-sm matrix-val-input" name="rules[<?php echo e($leave->id); ?>][value]" value="0">
+                            <input type="number" step="any" min="0" class="form-control form-control-sm matrix-val-input" name="rules[<?php echo e($leave->id); ?>][value]" value="0">
                         </div>
                         <div class="col-md-2 matrix-max-use-col">
                             <label style="font-size:0.75rem;">Max use per month</label>

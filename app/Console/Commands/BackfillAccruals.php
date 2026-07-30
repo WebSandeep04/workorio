@@ -24,7 +24,7 @@ class BackfillAccruals extends Command
      *
      * @var string
      */
-    protected $signature = 'leave:backfill-accruals';
+    protected $signature = 'leave:backfill-accruals {--tenant= : The ID of the tenant to process}';
 
     /**
      * The console command description.
@@ -50,7 +50,15 @@ class BackfillAccruals extends Command
     {
         $this->info('Starting Backfill Leave Accrual Processing...');
 
-        $tenants = Tenant::on('mysql')->get();
+        $tenantId = $this->option('tenant');
+        $query = Tenant::on('mysql');
+        
+        if ($tenantId) {
+            $query->where('id', $tenantId);
+            $this->info("Filtering by Tenant ID: {$tenantId}");
+        }
+
+        $tenants = $query->get();
 
         if ($tenants->isEmpty()) {
             $this->info("No tenants found.");
