@@ -15,6 +15,13 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+// Mobile App Version Check
+Route::get('/app-version', function () {
+    return response()->json([
+        'required_version' => env('MOBILE_APP_VERSION')
+    ]);
+});
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/kiosk/login', [KioskAuthController::class, 'kioskLogin']);
 

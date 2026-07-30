@@ -139,7 +139,7 @@ class AuthController extends Controller
                         'permissions' => $user->rolePermissions(),
                         'tenant_id' => $tenant->id,
                         'token' => $token,
-                        'version' => '1.1',
+                        'version' => env('MOBILE_APP_VERSION'),
                         'employee_id' => $user->employee_id,
                         'image' => $employee && $employee->profile_picture ? url('storage/' . $employee->profile_picture) : null,
                         'employee_details' => $employee ? [

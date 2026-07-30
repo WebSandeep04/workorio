@@ -89,26 +89,36 @@
             ?>
             <?php $__currentLoopData = $sections; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $section): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php if(isset($section['route'])): ?>
+                    <?php
+                        $baseRoute = explode('.', $section['route'])[0];
+                        $isSectionActive = request()->routeIs($section['route']) || request()->routeIs($baseRoute . '.*');
+                    ?>
                     <div class="menu-section">
-                        <a href="<?php echo e(route($section['route'])); ?>" class="sidebar-link <?php echo e(request()->routeIs($section['route']) ? 'active' : ''); ?>" title="<?php echo e($section['title']); ?>">
+                        <a href="<?php echo e(route($section['route'])); ?>" class="sidebar-link <?php echo e($isSectionActive ? 'active' : ''); ?>" title="<?php echo e($section['title']); ?>">
                             <span class="link-label"><i class="<?php echo e($section['icon']); ?>"></i><span><?php echo e($section['title']); ?></span></span>
                         </a>
                     </div>
                 <?php else: ?>
                     <?php
                         $sectionHasActive = collect($section['items'] ?? [])->contains(function ($item) {
-                            return isset($item['route']) && request()->routeIs($item['route']);
+                            if (!isset($item['route'])) return false;
+                            $baseRoute = explode('.', $item['route'])[0];
+                            return request()->routeIs($item['route']) || request()->routeIs($baseRoute . '.*');
                         });
                     ?>
                     <div class="menu-section">
-                        <a class="sidebar-link sidebar-dropdown <?php echo e($sectionHasActive ? '' : ''); ?>" data-section-key="<?php echo e($section['key']); ?>" data-bs-toggle="collapse" href="#menu_<?php echo e($section['key']); ?>" role="button" aria-expanded="<?php echo e($sectionHasActive ? 'true' : 'false'); ?>" aria-controls="menu_<?php echo e($section['key']); ?>" title="<?php echo e($section['title']); ?>">
+                        <a class="sidebar-link sidebar-dropdown <?php echo e($sectionHasActive ? 'active' : ''); ?>" data-section-key="<?php echo e($section['key']); ?>" data-bs-toggle="collapse" href="#menu_<?php echo e($section['key']); ?>" role="button" aria-expanded="<?php echo e($sectionHasActive ? 'true' : 'false'); ?>" aria-controls="menu_<?php echo e($section['key']); ?>" title="<?php echo e($section['title']); ?>">
                             <span class="link-label"><i class="<?php echo e($section['icon']); ?>"></i><span><?php echo e($section['title']); ?></span></span>
                             <i class="bi bi-chevron-down"></i>
                         </a>
                         <div class="collapse sidebar-sub <?php echo e($sectionHasActive ? 'show' : ''); ?>" id="menu_<?php echo e($section['key']); ?>">
                             <?php $__currentLoopData = $section['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <?php
-                                    $itemActive = isset($item['route']) && request()->routeIs($item['route']);
+                                    $itemActive = false;
+                                    if(isset($item['route'])){
+                                        $baseRoute = explode('.', $item['route'])[0];
+                                        $itemActive = request()->routeIs($item['route']) || request()->routeIs($baseRoute . '.*');
+                                    }
                                 ?>
                                 <a href="<?php echo e(route($item['route'])); ?>" class="sidebar-sublink <?php echo e($itemActive ? 'active' : ''); ?>" title="<?php echo e($item['tooltip'] ?? $item['title']); ?>">
                                     <i class="<?php echo e($item['icon']); ?>"></i><span><?php echo e($item['title']); ?></span>
