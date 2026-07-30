@@ -1254,10 +1254,15 @@ class AttendanceController extends Controller
             return array_merge($day, [
                 'display_date' => Carbon::parse($day['date'])->format('D, M d, Y'),
                 'status' => $status,
+                'status_reason' => $day['status_reason'] ?? '-',
                 'punch_in' => $punchIn,
                 'punch_out' => $punchOut,
                 'field_in' => $fieldIn,
                 'field_out' => $fieldOut,
+                'break_time' => $day['break_time'] ?? 0,
+                'late_by' => $day['late_by'] ?? '-',
+                'grace_balance' => $day['grace_balance'] ?? '-',
+                'late_reason' => $day['late_reason'] ?? '-',
                 'formatted_hours' => [
                     'office' => $formatMinutes($day['office_hours'] ?? 0),
                     'field' => $formatMinutes($day['field_hours'] ?? 0),
