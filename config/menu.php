@@ -215,7 +215,7 @@ return [
             'feature_flag' => 'is_approval_enabled',
             'roles' => ['admin'],
             'items' => [
-                ['route' => 'approvals.petty', 'title' => 'Petty Approval', 'icon' => 'bi bi-cash', 'permission' => 'approvals.petty'],
+                ['route' => 'approvals.petty', 'title' => 'Petty Approval', 'icon' => 'bi bi-cash', 'permission' => 'approvals.petty', 'feature_flag' => 'is_petty_cash_enable'],
                 ['route' => 'worklog-approvals', 'title' => 'Timesheet Approvals', 'icon' => 'bi bi-check2-square', 'permission' => 'approvals.worklog', 'feature_flag' => 'is_worklog_enabled'],
                 ['route' => 'attendance.approval', 'title' => 'Attendance Approval', 'icon' => 'bi bi-person-check', 'permission' => 'approvals.attendance'],
                 ['route' => 'attendance.unlock', 'title' => 'Unlock Attendance', 'icon' => 'bi bi-unlock', 'permission' => 'approvals.unlock_attendance'],
