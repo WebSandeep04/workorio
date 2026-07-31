@@ -316,7 +316,7 @@ class AttendanceController extends Controller
 
                             // User is late; require reason
                             if (empty($request->late_reason)) {
-                                $lateReasons = \App\Models\LateReason::where('active', true)->get(['id', 'reason']);
+                              $lateReasons = \App\Models\LateReason::where('active', true)->where('id','!=','6')->get(['id', 'reason']);
                                 return response()->json([
                                      'success' => false,
                                      'require_late_reason' => true,

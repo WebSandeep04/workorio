@@ -161,23 +161,27 @@ class DailyLeaveAccrual extends Command
                 // Increment their valid paid days
                 $increment = in_array($status, ['halfday', 'present (partial leave)']) ? ($rule->halfday_count_value ?? 1.0) : 1.0;
                 $counter->valid_days_count += $increment;
+                
+                $totalValidDays = (float) $counter->valid_days_count;
 
-                // Threshold Check: Did they hit the limit (e.g. 30 days) to earn the reward?
-                if ($counter->valid_days_count >= $rule->value) {
+                // Threshold Check: Calculate how many leaves they earned based on the value
+                $earnedLeaves = floor($totalValidDays / $rule->value);
+                
+                if ($earnedLeaves > 0) {
                     try {
-                        // Reward +1.00 Leave via Ledger!
+                        // Reward Leave via Ledger!
                         $this->leaveService->creditLeave(
                             $user->id,
                             $rule->leave_type_id,
-                            1.00, // Earning 1 full leave per cycle
+                            $earnedLeaves,
                             null,
-                            "Earned Accrual for reaching " . $rule->value . " valid days limit."
+                            "Earned Accrual for reaching valid days limit. Earning {$earnedLeaves} credits."
                         );
 
                         // Keep the remainder for the next cycle
-                        $counter->valid_days_count = $counter->valid_days_count - $rule->value;
-                        Log::info("User ID {$user->id} earned 1 Leave Type ID {$rule->leave_type_id}.");
-                        $this->info("Credited 1 leave to UID {$user->id} for type {$rule->leave_type_id}");
+                        $counter->valid_days_count = $totalValidDays - ($earnedLeaves * $rule->value);
+                        Log::info("User ID {$user->id} earned {$earnedLeaves} Leave Type ID {$rule->leave_type_id}.");
+                        $this->info("Credited {$earnedLeaves} leave to UID {$user->id} for type {$rule->leave_type_id}");
                     } catch (\Exception $e) {
                          Log::error("Failed crediting leave to UID {$user->id} : " . $e->getMessage());
                     }
