@@ -1400,8 +1400,8 @@ class AttendanceController extends Controller
     public function fetchUnlockLogs(Request $request): JsonResponse
     {
         $user = $this->getCurrentUser();
-        if (!$user || $user->role_id != 1) {
-            return response()->json(['success' => false, 'message' => 'Forbidden. Admin access required.'], 403);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
         }
 
         try {
@@ -1452,8 +1452,8 @@ class AttendanceController extends Controller
     public function unlockByDate(Request $request): JsonResponse
     {
         $user = $this->getCurrentUser();
-        if (!$user || $user->role_id != 1) {
-            return response()->json(['success' => false, 'message' => 'Forbidden. Admin access required.'], 403);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
         }
 
         $request->validate([
@@ -1499,8 +1499,8 @@ class AttendanceController extends Controller
     public function unlockIndividual($id): JsonResponse
     {
         $user = $this->getCurrentUser();
-        if (!$user || $user->role_id != 1) {
-            return response()->json(['success' => false, 'message' => 'Forbidden. Admin access required.'], 403);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
         }
 
         try {

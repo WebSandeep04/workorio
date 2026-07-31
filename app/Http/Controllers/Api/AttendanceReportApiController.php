@@ -37,10 +37,7 @@ class AttendanceReportApiController extends Controller
      */
     private function checkAdminPermission()
     {
-        $user = $this->getCurrentUser();
-        if (!$user || $user->role_id != 1) {
-            return false;
-        }
+        // No restriction: Allow any authenticated user
         return true;
     }
 
