@@ -986,7 +986,7 @@
               <!-- Column 1 -->
               <div class="col-md-6">
                 <div class="mb-2">
-                  <label for="add_lead_prospectus" class="form-label-modern">Prospectus</label>
+                  <label for="add_lead_prospectus" class="form-label-modern">Prospectus <span class="text-danger">*</span></label>
                   <div class="input-group input-group-sm">
                     <select class="form-select form-select-modern" id="add_lead_prospectus" name="prospectus" required>
                       <option value="">Select Prospectus</option>
@@ -1016,7 +1016,7 @@
                 </div>
 
                 <div class="mb-2">
-                  <label for="add_lead_sales_status" class="form-label-modern">Status</label>
+                  <label for="add_lead_sales_status" class="form-label-modern">Status <span class="text-danger">*</span></label>
                   <select class="form-select form-select-modern" id="add_lead_sales_status" name="sales_status" required>
                     <option value="">Loading...</option>
                   </select>
@@ -1058,7 +1058,7 @@
                 </div>
 
                 <div class="mb-2">
-                  <label for="add_lead_next_follow_up" class="form-label-modern">Next Follow-up Date</label>
+                  <label for="add_lead_next_follow_up" class="form-label-modern">Next Follow-up Date <span class="text-danger">*</span></label>
                   <input type="date" class="form-control form-control-modern" id="add_lead_next_follow_up"
                     name="next_follow_up_date" required>
                 </div>
@@ -1085,7 +1085,7 @@
                 </div>
 
                 <div class="mb-2">
-                  <label for="add_lead_remark" class="form-label-modern">Remark</label>
+                  <label for="add_lead_remark" class="form-label-modern">Remark <span class="text-danger">*</span></label>
                   <textarea class="form-control form-control-modern" id="add_lead_remark" name="remark"
                     placeholder="Enter Remark" rows="2" required></textarea>
                 </div>
@@ -1119,39 +1119,39 @@
           <form id="addProspectusForm">
             <div class="row g-2">
               <div class="col-md-6">
-                <label for="modalnewProspectusName" class="form-label-modern">Prospect Name</label>
+                <label for="modalnewProspectusName" class="form-label-modern">Prospect Name <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-modern" id="modalnewProspectusName"
                   name="modal_new_prospectus_name" placeholder="Enter Prospectus Name" required>
               </div>
               <div class="col-md-6">
-                <label for="modal_contact_person" class="form-label-modern">Contact Person</label>
+                <label for="modal_contact_person" class="form-label-modern">Contact Person <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-modern" id="modal_contact_person"
                   name="modal_contact_person" placeholder="Enter Contact Person" required>
               </div>
               <div class="col-md-6">
-                <label for="modal_contact_number" class="form-label-modern">Contact Number</label>
+                <label for="modal_contact_number" class="form-label-modern">Contact Number <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-modern" id="modal_contact_number"
                   name="modal_contact_number" placeholder="Enter Contact Number" required>
               </div>
               <div class="col-md-6">
-                <label for="modal_address" class="form-label-modern">Address</label>
+                <label for="modal_address" class="form-label-modern">Address <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-modern" id="modal_address" name="modal_address"
                   placeholder="Enter Address" required>
               </div>
               <div class="col-md-6">
-                <label for="modal_state" class="form-label-modern">State</label>
+                <label for="modal_state" class="form-label-modern">State <span class="text-danger">*</span></label>
                 <select class="form-select form-select-modern" id="modal_state" name="modal_state" required>
                   <option value="">Select State</option>
                 </select>
               </div>
               <div class="col-md-6">
-                <label for="modal_city" class="form-label-modern">City</label>
+                <label for="modal_city" class="form-label-modern">City <span class="text-danger">*</span></label>
                 <select class="form-select form-select-modern" id="modal_city" name="modal_city" required>
                   <option value="">Select City</option>
                 </select>
               </div>
               <div class="col-md-6">
-                <label for="modal_email" class="form-label-modern">Email</label>
+                <label for="modal_email" class="form-label-modern">Email <span class="text-danger">*</span></label>
                 <input type="email" class="form-control form-control-modern" id="modal_email" name="modal_email"
                   placeholder="Enter Email" required>
               </div>
@@ -1161,7 +1161,7 @@
                   name="modal_website_link" placeholder="Enter Website URL">
               </div>
               <div class="col-md-6">
-                <label for="modal_business_type" class="form-label-modern">Business Type</label>
+                <label for="modal_business_type" class="form-label-modern">Business Type <span class="text-danger">*</span></label>
                 <select class="form-select form-select-modern" id="modal_business_type" name="modal_business_type"
                   required>
                   <option value="">Loading...</option>
