@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Sales Product')
-@section('page_title', 'Sales Product')
 
-@section('content')
+<?php $__env->startSection('title', 'Sales Product'); ?>
+<?php $__env->startSection('page_title', 'Sales Product'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="container mt-3">
   <div class="row g-3 align-items-stretch">
     <!-- Lead Details -->
@@ -12,41 +12,41 @@
         <div class="card-header text-white py-2 px-3" style="background-color: #434afa;">
           <strong>Lead Details</strong>
         </div>
-        @if($record)
-        @php $first = $record; @endphp
+        <?php if($record): ?>
+        <?php $first = $record; ?>
         <div class="card-body p-3 small text-light" style="background-color: #434afa;">
           <div class="d-flex flex-column gap-2">
             <div class="row g-0">
               <div class="col-5">Lead:</div>
-              <div class="col-7 fw-bold">{{ $first->leads_name ?? '--' }}</div>
+              <div class="col-7 fw-bold"><?php echo e($first->leads_name ?? '--'); ?></div>
             </div>
             <div class="row g-0">
               <div class="col-5">Contact Person:</div>
-              <div class="col-7 fw-bold">{{ $first->contact_person ?? '--' }}</div>
+              <div class="col-7 fw-bold"><?php echo e($first->contact_person ?? '--'); ?></div>
             </div>
             <div class="row g-0">
               <div class="col-5">Contact No:</div>
-              <div class="col-7 fw-bold">{{ $first->contact_number ?? '--' }}</div>
+              <div class="col-7 fw-bold"><?php echo e($first->contact_number ?? '--'); ?></div>
             </div>
             <div class="row g-0">
               <div class="col-5">Email:</div>
-              <div class="col-7 fw-bold text-break">{{ $first->email ?? '--' }}</div>
+              <div class="col-7 fw-bold text-break"><?php echo e($first->email ?? '--'); ?></div>
             </div>
             <div class="row g-0">
               <div class="col-5">State:</div>
-              <div class="col-7 fw-bold">{{ $first->state->state_name ?? '--' }}</div>
+              <div class="col-7 fw-bold"><?php echo e($first->state->state_name ?? '--'); ?></div>
             </div>
             <div class="row g-0">
               <div class="col-5">City:</div>
-              <div class="col-7 fw-bold">{{ $first->city->city_name ?? '--' }}</div>
+              <div class="col-7 fw-bold"><?php echo e($first->city->city_name ?? '--'); ?></div>
             </div>
             <div class="row g-0">
               <div class="col-5">Product:</div>
-              <div class="col-7 fw-bold">{{ $first->product->product_name ?? '--' }}</div>
+              <div class="col-7 fw-bold"><?php echo e($first->product->product_name ?? '--'); ?></div>
             </div>
             <div class="row g-0">
               <div class="col-5">Business Type:</div>
-              <div class="col-7 fw-bold">{{ $first->businessType->business_name ?? '--' }}</div>
+              <div class="col-7 fw-bold"><?php echo e($first->businessType->business_name ?? '--'); ?></div>
             </div>
           </div>
 
@@ -56,17 +56,17 @@
             <a id="lq_link" href="#" target="_blank" class="btn btn-icon btn-primary" title="Open">
               <i class="bi bi-box-arrow-up-right"></i>
             </a>
-            <a id="lq_rev" href="{{ route('quotation') }}" class="btn btn-icon btn-yellow ms-1" title="Revise">
+            <a id="lq_rev" href="<?php echo e(route('quotation')); ?>" class="btn btn-icon btn-yellow ms-1" title="Revise">
               <i class="bi bi-arrow-repeat"></i>
             </a>
             <button id="lq_whatsapp" onclick="sendQuoteToWhatsApp()" class="btn btn-icon btn-success ms-1" title="Send to WhatsApp" style="background: linear-gradient(135deg,#25d366,#128c7e); color: white; border: 1px solid rgba(0,0,0,.08);">
               <i class="bi bi-whatsapp"></i>
             </button>
           </div>
-          <input type="hidden" id="lq_entity_type" value="{{ isset($first->customer_id) && $first->customer_id ? 'customer' : 'prospect' }}">
-          <input type="hidden" id="lq_entity_id" value="{{ $first->customer_id ?? $first->prospectus_id }}">
+          <input type="hidden" id="lq_entity_type" value="<?php echo e(isset($first->customer_id) && $first->customer_id ? 'customer' : 'prospect'); ?>">
+          <input type="hidden" id="lq_entity_id" value="<?php echo e($first->customer_id ?? $first->prospectus_id); ?>">
         </div>
-        @endif
+        <?php endif; ?>
         <div class="text-center pb-3 mt-auto" style="background-color: #434afa;">
           <button type="button" class="btn btn-sm btn-warning w-75" onclick="openEditProspectModal()">Edit</button>
         </div>
@@ -81,12 +81,12 @@
         </div>
         <div class="card-body p-3 d-flex flex-column text-white" style="background-color: #434afa;">
           <form id="remarkForm" class="flex-grow-1 d-flex flex-column">
-            <input type="hidden" name="sales_record_id" id="sales_record_id" value="{{ $record->id }}">
+            <input type="hidden" name="sales_record_id" id="sales_record_id" value="<?php echo e($record->id); ?>">
             <input type="hidden" name="remark_id" id="remark_id" value="">
 
             <div class="mb-2">
-              <label class="form-label">Date (DD/MM/YYYY)</label>
-              <input type="text" name="remark_date" id="remark_date" class="form-control form-control-sm" placeholder="dd/mm/yyyy">
+              <label class="form-label">Date</label>
+              <input type="date" name="remark_date" id="remark_date" class="form-control form-control-sm">
             </div>
 
             <div class="mb-2">
@@ -96,13 +96,13 @@
 
             <div class="mb-2">
               <label class="form-label">Estimated Ticket Value</label>
-              <input type="text" name="ticket_value" id="ticket_value" class="form-control form-control-sm" value="{{ $first->ticket_value }}" placeholder="Enter value">
+              <input type="text" name="ticket_value" id="ticket_value" class="form-control form-control-sm" value="<?php echo e($first->ticket_value); ?>" placeholder="Enter value">
             </div>
 
             <div class="mb-2">
-              <label class="form-label">Next Follow-Up Date (DD/MM/YYYY)</label>
-              <input type="text" name="next_follow_up_date" id="next_follow_up_date" class="form-control form-control-sm" placeholder="dd/mm/yyyy"
-                     value="{{ isset($first->next_follow_up_date) ? \Carbon\Carbon::parse($first->next_follow_up_date)->format('d/m/Y') : '' }}">
+              <label class="form-label">Next Follow-Up Date</label>
+              <input type="date" name="next_follow_up_date" id="next_follow_up_date" class="form-control form-control-sm"
+                     value="<?php echo e(isset($first->next_follow_up_date) ? \Carbon\Carbon::parse($first->next_follow_up_date)->format('Y-m-d') : ''); ?>">
             </div>
 
             <div class="mb-3">
@@ -128,22 +128,22 @@
        <div class="card-body p-3 overflow-auto" style="max-height: 500px; background-color: #434afa;" id="remarkList">
 
           <ul class="list-group small" id="remarkList">
-            @php $allRemarks = $record->remarks()->orderBy('remark_date','desc')->get(); @endphp
+            <?php $allRemarks = $record->remarks()->orderBy('remark_date','desc')->get(); ?>
 
-            @forelse ($allRemarks as $remark)
+            <?php $__empty_1 = true; $__currentLoopData = $allRemarks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $remark): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
               <li class="list-group-item d-flex justify-content-between align-items-start py-2 px-3">
                 <div>
-                  <strong>{{ \Carbon\Carbon::parse($remark->remark_date)->format('d/m/Y') }}:</strong>
-                  <div>{{ \Illuminate\Support\Str::limit($remark->remark, 100) }}</div>
+                  <strong><?php echo e(\Carbon\Carbon::parse($remark->remark_date)->format('d/m/Y')); ?>:</strong>
+                  <div><?php echo e(\Illuminate\Support\Str::limit($remark->remark, 100)); ?></div>
                 </div>
                 <button class="btn btn-sm btn-warning ms-2"
-                        onclick="editRemark('{{ $remark->id }}', '{{ $remark->remark_date }}', `{{ addslashes($remark->remark) }}`)">
+                        onclick="editRemark('<?php echo e($remark->id); ?>', '<?php echo e($remark->remark_date); ?>', `<?php echo e(addslashes($remark->remark)); ?>`)">
                   Edit
                 </button>
               </li>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
               <li class="list-group-item text-muted">No remarks found.</li>
-            @endforelse
+            <?php endif; ?>
           </ul>
         </div>
       </div>
@@ -227,9 +227,9 @@
   </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
   /* Targeting the scroll container */
   #remarkList {
@@ -305,12 +305,12 @@
   }
   .btn-yellow:hover { filter: brightness(1.05); }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
 
 
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
   // Store latest quote data globally
   var latestQuoteData = null;
@@ -320,7 +320,7 @@
       var type = $('#lq_entity_type').val();
       var id = $('#lq_entity_id').val();
       if (!type || !id) return;
-      $.get("{{ route('quotation.latest') }}", { type: type, id: id })
+      $.get("<?php echo e(route('quotation.latest')); ?>", { type: type, id: id })
         .done(function(resp){
             if (resp && resp.data) {
                 var d = resp.data;
@@ -328,7 +328,7 @@
                 $('#lq_version').text('v' + (d.version||'-'));
                 if (d.file_url) { $('#lq_link').attr('href', d.file_url); }
                 // Link to open the revise page directly
-                $('#lq_rev').attr('href', `{{ route('quotation.create') }}?quote=${encodeURIComponent(d.quotation_number)}&revise=1`);
+                $('#lq_rev').attr('href', `<?php echo e(route('quotation.create')); ?>?quote=${encodeURIComponent(d.quotation_number)}&revise=1`);
                 $('#latestQuoteBox').show();
             }
         })
@@ -343,7 +343,7 @@
       }
 
       // Get contact number from lead details
-      var contactNumber = '{{ $first->contact_number ?? '' }}';
+      var contactNumber = '<?php echo e($first->contact_number ?? ''); ?>';
       if (!contactNumber || contactNumber === '') {
           alert('Contact number not available');
           return;
@@ -398,7 +398,7 @@
 
    // Function to open edit prospect modal
    function openEditProspectModal() {
-       let prospectId = "{{ $first->prospectus_id }}";
+       let prospectId = "<?php echo e($first->prospectus_id); ?>";
        
        if (prospectId) {
            // Set the prospect ID
@@ -513,17 +513,20 @@
         var dateOnly = str.split('T')[0].split(' ')[0];
         var parts = dateOnly.split('-');
         if (parts.length === 3) {
-            return parts[2] + '/' + parts[1] + '/' + parts[0];
+            return parts[0] + '-' + parts[1] + '-' + parts[2];
         }
-        // If already like dd/mm/yyyy, return as is
-        if (str.indexOf('/') > -1) return str;
+        // If already like dd/mm/yyyy, convert to yyyy-mm-dd
+        if (str.indexOf('/') > -1) {
+            var p = str.split('/');
+            return p[2] + '-' + p[1] + '-' + p[0];
+        }
         // Fallback: try Date parsing
         var d = new Date(str);
         if (!isNaN(d.getTime())) {
             var dd = String(d.getDate()).padStart(2, '0');
             var mm = String(d.getMonth() + 1).padStart(2, '0');
             var yyyy = d.getFullYear();
-            return dd + '/' + mm + '/' + yyyy;
+            return yyyy + '-' + mm + '-' + dd;
         }
         return str;
     }
@@ -532,10 +535,10 @@
     // get status
 
            $(document).ready(function () {
-        const selectedStatusName = "{{ $first->status->status_name }}"; // e.g., "Cold"
+        const selectedStatusName = "<?php echo e($first->status->status_name); ?>"; // e.g., "Cold"
 
         $.ajax({
-            url: "{{ route('getStatuses') }}",
+            url: "<?php echo e(route('getStatuses')); ?>",
             type: 'GET',
             success: function (data) {
                 $('#sales_status').empty().append('<option value="">Select Status</option>');
@@ -561,7 +564,7 @@
         const dd = String(today.getDate()).padStart(2, '0');
         const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based
         const yyyy = today.getFullYear();
-        dateInput.value = `${dd}/${mm}/${yyyy}`;
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
     }
 });
 
@@ -589,10 +592,10 @@ let sales_record_id = $('#sales_record_id').val();
   console.log("sales_record_id:", sales_record_id);
 
   $.ajax({
-    url: '{{ route("saveremark") }}', 
+    url: '<?php echo e(route("saveremark")); ?>', 
     method: 'POST',
     data: {
-      _token: '{{ csrf_token() }}', 
+      _token: '<?php echo e(csrf_token()); ?>', 
       remark_id: remark_id,
       sales_record_id :sales_record_id,
       remark_date: remark_date,
@@ -616,7 +619,7 @@ let sales_record_id = $('#sales_record_id').val();
 // Load states for edit modal
 $(document).ready(function () {
     $.ajax({
-        url: "{{ route('state') }}",
+        url: "<?php echo e(route('state')); ?>",
         type: "GET",
         dataType: "json",
         success: function (states) {
@@ -636,7 +639,7 @@ $(document).ready(function () {
 
 // Load business types for edit modal
 $.ajax({
-    url: "{{ route('getbusiness') }}",
+    url: "<?php echo e(route('getbusiness')); ?>",
     type: "GET",
     success: function (data) {
         $('#edit_modal_business_type').empty().append('<option value="">Select Business Type</option>');
@@ -674,4 +677,6 @@ $('#edit_modal_state').on('change', function () {
 });
 
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/remark.blade.php ENDPATH**/ ?>
