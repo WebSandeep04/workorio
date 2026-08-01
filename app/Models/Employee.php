@@ -146,5 +146,49 @@ class Employee extends Model
     {
         return $this->hasMany(EmployeeSalary::class, 'employee_id')->orderBy('effective_from', 'desc');
     }
+
+    public function shiftHistory()
+    {
+        return $this->hasMany(EmployeeShift::class, 'employee_id')
+                    ->orderBy('effective_from', 'desc')
+                    ->orderBy('id', 'desc');
+    }
+
+    public function getShiftForDate($date)
+    {
+        $targetDate = \Carbon\Carbon::parse($date)->startOfDay();
+        
+        foreach ($this->shiftHistory as $record) {
+            if (\Carbon\Carbon::parse($record->effective_from)->startOfDay()->lte($targetDate)) {
+                return $record->shift;
+            }
+        }
+        
+        return $this->shiftRelation;
+    }
+
+    protected static function booted()
+    {
+        static::created(function ($employee) {
+            if ($employee->shift_id) {
+                \App\Models\EmployeeShift::create([
+                    'employee_id' => $employee->id,
+                    'shift_id' => $employee->shift_id,
+                    'effective_from' => $employee->date_of_joining ?: \Carbon\Carbon::today(),
+                ]);
+            }
+        });
+
+        static::updated(function ($employee) {
+            if ($employee->wasChanged('shift_id')) {
+                $effectiveDate = request('shift_effective_date', \Carbon\Carbon::today());
+                \App\Models\EmployeeShift::create([
+                    'employee_id' => $employee->id,
+                    'shift_id' => $employee->shift_id,
+                    'effective_from' => $effectiveDate,
+                ]);
+            }
+        });
+    }
 }
 

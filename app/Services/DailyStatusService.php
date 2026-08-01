@@ -25,7 +25,7 @@ class DailyStatusService
     public function getStatus($userId, $date)
     {
         $date = Carbon::parse($date)->format('Y-m-d');
-        $user = User::with(['employee.shiftRelation'])->find($userId);
+        $user = User::with(['employee.shiftHistory.shift'])->find($userId);
 
         if (!$user) {
             return $this->formatStatus('Unknown', '?', '#6c757d');
@@ -125,8 +125,9 @@ class DailyStatusService
         $dayOfWeek = $carbonDate->dayOfWeek; // 0 (Sun) to 6 (Sat)
         
         $employee = $user->employee;
-        if ($employee && $employee->shiftRelation && is_array($employee->shiftRelation->week_offs)) {
-            return in_array($dayOfWeek, $employee->shiftRelation->week_offs);
+        $shift = $employee ? $employee->getShiftForDate($date) : null;
+        if ($shift && is_array($shift->week_offs)) {
+            return in_array($dayOfWeek, $shift->week_offs);
         }
 
         // Fallback to Sunday

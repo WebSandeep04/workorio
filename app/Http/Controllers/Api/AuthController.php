@@ -104,11 +104,11 @@ class AuthController extends Controller
                     $token = $user->createToken('API Token')->plainTextToken;
                     
                     // Load employee details with shift
-                    $employee = $user->employee()->with('shiftRelation')->first();
+                    $employee = $user->employee()->with('shiftHistory.shift')->first();
                     
                     $shiftDetails = null;
-                    if ($employee && $employee->shiftRelation) {
-                        $shift = $employee->shiftRelation;
+                    if ($employee && ($shift = $employee->getShiftForDate(today()))) {
+                        // $shift is assigned in the if condition above
                         // Assuming times are stored as H:i:s and are in UTC (as per request)
                         // parsing them as today's time in UTC then converting to IST
                         try {

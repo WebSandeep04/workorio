@@ -172,8 +172,8 @@ class AttendanceReportApiController extends Controller
         $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
         
-        $user = User::with(['employee.shiftRelation'])->find($userId);
-        $shift = $user->employee->shiftRelation ?? null;
+        $user = User::with(['employee.shiftHistory.shift'])->find($userId);
+        
         
         $attendances = Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
@@ -231,7 +231,7 @@ class AttendanceReportApiController extends Controller
 
         $summary = $this->reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
         
-        $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $shift);
+        $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
         
         return [
             'user' => [
@@ -274,7 +274,7 @@ class AttendanceReportApiController extends Controller
             ->unique()
             ->toArray();
 
-        $users = User::with(['employee.shiftRelation'])
+        $users = User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
             ->where(function($query) use ($userIdsWithAttendance) {
@@ -367,7 +367,7 @@ class AttendanceReportApiController extends Controller
                 $statusCode = '-';
                 $statusClass = '';
                 
-                $shift = $user->employee->shiftRelation ?? null;
+                
                 $dayName = Carbon::parse($dateStr)->format('l');
                 $isWeeklyOff = false;
                 $isHalfDayWorking = false;
@@ -517,7 +517,7 @@ class AttendanceReportApiController extends Controller
             ->unique()
             ->toArray();
 
-        $users = User::with(['employee.shiftRelation'])
+        $users = User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
             ->where(function($query) use ($userIdsWithAttendance) {
@@ -576,16 +576,14 @@ class AttendanceReportApiController extends Controller
             $userAttendances = $attendances->get($user->id, collect());
             $userLeavesArray = $leaves->get($user->id, []);
             
-            $shift = $user->employee->shiftRelation ?? null;
+            
             $dailyBreakdown = $this->reportService->generateDailyBreakdown(
                 $userAttendances, 
                 Carbon::parse($startOfMonth), 
                 Carbon::parse($date), 
                 $holidays, 
                 $userLeavesArray, 
-                $holidaysData, 
-                $shift
-            );
+                $holidaysData, $user);
             
             $dayData = collect($dailyBreakdown)->last();
             

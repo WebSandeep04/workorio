@@ -63,9 +63,10 @@ class AttendanceController extends Controller
                 // Dynamic weekoff from Shift
                 $isWeekoff = false;
                 $employee = $user->employee;
-                if ($employee && $employee->shiftRelation && is_array($employee->shiftRelation->week_offs)) {
+                $shift = $employee ? $employee->getShiftForDate($dateStr) : null;
+                if ($shift && is_array($shift->week_offs)) {
                     // Carbon dayOfWeek returns 0 (Sunday) to 6 (Saturday)
-                    $isWeekoff = in_array($checkDate->dayOfWeek, $employee->shiftRelation->week_offs);
+                    $isWeekoff = in_array($checkDate->dayOfWeek, $shift->week_offs);
                 } else {
                     // Fallback to hardcoded Sunday if no shift or weekoffs defined
                     $isWeekoff = $checkDate->dayOfWeek === Carbon::SUNDAY;
@@ -279,14 +280,14 @@ class AttendanceController extends Controller
             // ONLY check for late reason if this is the FIRST office/field IN of the day
             if (!$hasAnyIn) {
                 $employee = $user->employee;
+                $shift = $employee ? $employee->getShiftForDate($today->format('Y-m-d')) : null;
                 Log::info('Late check: employee + shift lookup', [
                     'user_id' => $user->id,
                     'employee_id' => $employee ? $employee->id : null,
-                    'has_shift' => $employee && $employee->shiftRelation ? true : false,
+                    'has_shift' => $shift ? true : false,
                 ]);
 
-                if ($employee && $employee->shiftRelation && $employee->shiftRelation->start_time) {
-                    $shift = $employee->shiftRelation;
+                if ($shift && $shift->start_time) {
                     $shiftStart = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->start_time, 'Asia/Kolkata');
                     $allowedLateMinutes = (int) ($shift->late_min ?? 0);
                     $cutoffTime = $shiftStart->copy()->addMinutes($allowedLateMinutes);
@@ -1046,7 +1047,7 @@ class AttendanceController extends Controller
         }
 
         // Eager load relation to ensure parity with _fetchUserReportData logic
-        $user->loadMissing(['employee.shiftRelation']);
+        $user->loadMissing(['employee.shiftHistory.shift']);
 
         if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('attendance.history')) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -1118,7 +1119,7 @@ class AttendanceController extends Controller
         $summary = $this->reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
         
         $shift = $user->employee->shiftRelation ?? null;
-        $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $shift);
+        $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
 
         return response()->json([
             'attendances' => $dailyBreakdown,
@@ -1169,8 +1170,11 @@ class AttendanceController extends Controller
         
         // Late Allowance
         $lateAllowance = 0;
-        if ($user && $user->employee && $user->employee->shiftRelation) {
-            $lateAllowance = (int) $user->employee->shiftRelation->min_per_month_late_allow;
+        if ($user && $user->employee) {
+            $shift = $user->employee->getShiftForDate($today->format('Y-m-d'));
+            if ($shift) {
+                $lateAllowance = (int) $shift->min_per_month_late_allow;
+            }
         }
         $stats['late_allowance'] = $lateAllowance;
 
@@ -1224,7 +1228,7 @@ class AttendanceController extends Controller
         $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
         
-        $user = User::with(['employee.shiftRelation'])->find($userId);
+        $user = User::with(['employee.shiftHistory.shift'])->find($userId);
         $shift = $user->employee->shiftRelation ?? null;
         
         $attendances = Attendance::with(['movements' => function($query) {
@@ -1283,7 +1287,7 @@ class AttendanceController extends Controller
 
         $summary = $this->reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
         
-        $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $shift);
+        $dailyBreakdown = $this->reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
         
         return [
             'user' => [
@@ -1354,7 +1358,7 @@ class AttendanceController extends Controller
             ->unique()
             ->toArray();
 
-        $users = User::with(['employee.shiftRelation'])
+        $users = User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
             ->where(function($query) use ($userIdsWithAttendance) {
@@ -1420,9 +1424,7 @@ class AttendanceController extends Controller
                 Carbon::parse($date), 
                 $holidays, 
                 $userLeavesArray, 
-                $holidaysData, 
-                $shift
-            );
+                $holidaysData, $user);
             
             $dayData = collect($dailyBreakdown)->last();
             
@@ -1643,7 +1645,7 @@ class AttendanceController extends Controller
             ->toArray();
 
         // Get all users who are active employees OR have attendance records in the selected month, AND not admin (role_id != 1)
-        $users = User::with(['employee.shiftRelation'])
+        $users = User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
             ->where(function($query) use ($userIdsWithAttendance) {

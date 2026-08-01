@@ -74,7 +74,7 @@ class EmployeeController extends Controller
             'departmentRelation',
             'designationRelation',
             'employmentTypeRelation',
-            'shiftRelation',
+            'shiftHistory.shift',
             'stateRelation',
             'cityRelation',
             'countryRelation',

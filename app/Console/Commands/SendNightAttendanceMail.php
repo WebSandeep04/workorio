@@ -140,9 +140,7 @@ class SendNightAttendanceMail extends Command
                     Carbon::parse($todayStr),
                     $holidays,
                     $userLeavesArray,
-                    $holidaysData,
-                    $shift
-                );
+                    $holidaysData, $user);
 
                 if (empty($dailyBreakdown)) {
                     continue;

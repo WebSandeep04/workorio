@@ -106,7 +106,7 @@ class MonthlyAttendanceReviewController extends Controller
             ->unique()
             ->toArray();
 
-        $users = User::with(['employee.shiftRelation'])
+        $users = User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
             ->where(function($query) use ($userIdsWithAttendance) {

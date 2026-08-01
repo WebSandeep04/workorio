@@ -78,7 +78,7 @@ class DailyLeaveAccrual extends Command
             
             $users = User::whereHas('employee', function ($query) {
                 $query->where('status', 'active');
-            })->with(['employee.shiftRelation'])->get();
+            })->with(['employee.shiftHistory.shift'])->get();
 
             $holidays = Holiday::whereDate('holiday_date', $targetDate)->pluck('holiday_date')->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))->toArray();
 
@@ -123,9 +123,7 @@ class DailyLeaveAccrual extends Command
                 Carbon::parse($targetDate), 
                 $holidays, 
                 $leaves, 
-                null, 
-                $shift
-            );
+                null, $user);
             
             // Get ONLY the breakdown for the target date (which is the last one in the array)
             $targetDayData = collect($dailyBreakdown)->last();

@@ -87,7 +87,7 @@ class BackfillAccruals extends Command
             
             $users = User::whereHas('employee', function ($query) {
                 $query->where('status', 'active');
-            })->with(['employee.shiftRelation'])->get();
+            })->with(['employee.shiftHistory.shift'])->get();
 
             foreach ($users as $user) {
             // Only process users who have joined on or before today
@@ -181,9 +181,7 @@ class BackfillAccruals extends Command
                         $currentMonthEnd, 
                         $holidays, 
                         $leavesArray, 
-                        $holidaysData, 
-                        $shift
-                    );
+                        $holidaysData, $user);
                     
                     foreach ($monthlyBreakdown as $data) {
                         $dailyBreakdown[] = $data;

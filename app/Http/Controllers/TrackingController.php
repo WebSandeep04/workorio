@@ -227,12 +227,12 @@ class TrackingController extends Controller
         $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
 
-        $user = \App\Models\User::with(['employee.shiftRelation'])->find($userId);
+        $user = \App\Models\User::with(['employee.shiftHistory.shift'])->find($userId);
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        $shift = $user->employee->shiftRelation ?? null;
+        
 
         $attendances = \App\Models\Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
@@ -420,7 +420,7 @@ class TrackingController extends Controller
             $curr->addDay();
         }
 
-        $users = \App\Models\User::with(['employee.shiftRelation'])
+        $users = \App\Models\User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->whereHas('employee', function($query) {
                 $query->where('status', 'active')
@@ -522,7 +522,7 @@ class TrackingController extends Controller
                 $statusClass = 'text-muted';
                 $kmTravelled = 0.0;
 
-                $shift = $user->employee->shiftRelation ?? null;
+                
                 $dayName = \Carbon\Carbon::parse($dateStr)->format('l');
                 $isWeeklyOff = false;
                 $isHalfDayWorking = false;
@@ -630,7 +630,7 @@ class TrackingController extends Controller
         $dateStr = $request->date;
         $date = \Carbon\Carbon::parse($dateStr);
 
-        $users = \App\Models\User::with(['employee.shiftRelation'])
+        $users = \App\Models\User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->whereHas('employee', function($query) {
                 $query->where('status', 'active')
@@ -685,7 +685,7 @@ class TrackingController extends Controller
                 else $leaveType = 'L';
             }
 
-            $shift = $user->employee->shiftRelation ?? null;
+            
             $dayName = $date->format('l');
             $isWeeklyOff = false;
             $isHalfDayWorking = false;
@@ -783,8 +783,8 @@ class TrackingController extends Controller
         $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
 
-        $user = \App\Models\User::with(['employee.shiftRelation'])->find($userId);
-        $shift = $user->employee->shiftRelation ?? null;
+        $user = \App\Models\User::with(['employee.shiftHistory.shift'])->find($userId);
+        
 
         $attendances = \App\Models\Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
@@ -957,7 +957,7 @@ class TrackingController extends Controller
         $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
 
-        $users = \App\Models\User::with(['employee.shiftRelation'])
+        $users = \App\Models\User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->whereHas('employee', function($query) {
                 $query->where('status', 'active')
@@ -1090,7 +1090,7 @@ class TrackingController extends Controller
                     $kmTravelled = 0.0;
                     $statusCode = '-';
 
-                    $shift = $user->employee->shiftRelation ?? null;
+                    
                     $dayName = \Carbon\Carbon::parse($dateStr)->format('l');
                     $isWeeklyOff = false;
                     $isHalfDayWorking = false;
@@ -1178,7 +1178,7 @@ class TrackingController extends Controller
         $dateStr = $request->date;
         $date = \Carbon\Carbon::parse($dateStr);
 
-        $users = \App\Models\User::with(['employee.shiftRelation'])
+        $users = \App\Models\User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->whereHas('employee', function($query) {
                 $query->where('status', 'active')
@@ -1247,7 +1247,7 @@ class TrackingController extends Controller
                     else $leaveType = 'L';
                 }
 
-                $shift = $user->employee->shiftRelation ?? null;
+                
                 $dayName = $date->format('l');
                 $isWeeklyOff = false;
                 $isHalfDayWorking = false;

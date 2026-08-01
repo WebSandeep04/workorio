@@ -111,7 +111,7 @@ class AttendanceApprovalController extends Controller
                 })
                 ->first();
 
-            $shift = $employee->shiftRelation;
+            $shift = $employee->getShiftForDate(today());
             $shiftIn = $shift ? Carbon::parse($shift->start_time)->format('H:i') : '';
             $shiftOut = $shift ? Carbon::parse($shift->end_time)->format('H:i') : '';
 
@@ -128,7 +128,7 @@ class AttendanceApprovalController extends Controller
             $suggestedSlEnd = '';
 
             if ($attendance) {
-                $shift = $employee->shiftRelation;
+                $shift = $employee->getShiftForDate(today());
                 $hours = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
                 
                 [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
@@ -172,7 +172,7 @@ class AttendanceApprovalController extends Controller
                     if ($firstMovement) {
                         $punchInTime = Carbon::parse($firstMovement->time)->setTimezone('Asia/Kolkata');
                         $punchOutTime = $lastMovement ? Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata') : null;
-                        $shift = $employee->shiftRelation;
+                        // $shift is assigned in the if condition above
 
                         if ($leave->is_half_day && $shift) {
                             $shiftStart = Carbon::parse($date . ' ' . $shift->start_time, 'Asia/Kolkata');
@@ -721,7 +721,7 @@ class AttendanceApprovalController extends Controller
         }
 
         $employee = $user->employee;
-        $shift = $employee->shiftRelation;
+        $shift = $employee->getShiftForDate(today());
 
         // 1. Determine if it's a weekly off or holiday
         $isHoliday = Holiday::where('holiday_date', $date)->exists();

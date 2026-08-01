@@ -53,10 +53,10 @@ class KioskAuthController extends Controller
                 if ($user && $passwordOk && $isLoginAllowed) {
                     $token = $user->createToken('API Token')->plainTextToken;
 
-                    $employee = $user->employee()->with('shiftRelation')->first();
+                    $employee = $user->employee()->with('shiftHistory.shift')->first();
                     $shiftDetails = null;
-                    if ($employee && $employee->shiftRelation) {
-                        $shift = $employee->shiftRelation;
+                    if ($employee && ($shift = $employee->getShiftForDate(today()))) {
+                        // $shift is assigned in the if condition above
                         try {
                             $startTime = $shift->start_time ? \Carbon\Carbon::parse($shift->start_time)->format('H:i:s') : null;
                             $endTime = $shift->end_time ? \Carbon\Carbon::parse($shift->end_time)->format('H:i:s') : null;

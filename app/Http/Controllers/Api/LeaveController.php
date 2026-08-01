@@ -209,11 +209,12 @@ class LeaveController extends Controller
         // Step 2: Short Leave (Dynamic Shift Limits)
         if ($leaveType->is_short_leave) {
             $employee = $user->employee;
-            if (!$employee || !$employee->shiftRelation) {
+            $shift = $employee ? $employee->getShiftForDate($request->start_date) : null;
+            if (!$shift) {
                 return response()->json(['success' => false, 'message' => 'Active shift required for Short Leave logic.'], 422);
             }
 
-            $shift = $employee->shiftRelation;
+            // $shift already assigned above
             try {
                 $shiftEnd = Carbon::parse($shift->end_time);
                 $endLimitHours = (int) ($shift->sl_end_limit ?? 0);

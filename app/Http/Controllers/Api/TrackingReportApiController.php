@@ -123,12 +123,12 @@ class TrackingReportApiController extends Controller
             $startDate = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
             $endDate = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
 
-            $user = User::with(['employee.shiftRelation'])->find($userId);
+            $user = User::with(['employee.shiftHistory.shift'])->find($userId);
             if (!$user) {
                 return response()->json(['success' => false, 'message' => 'Target profile missing.'], 404);
             }
 
-            $shift = $user->employee->shiftRelation ?? null;
+            
 
             // Load Attendances
             $attendances = Attendance::with(['movements' => function ($query) {
@@ -330,7 +330,7 @@ class TrackingReportApiController extends Controller
                 $curr->addDay();
             }
 
-            $users = User::with(['employee.shiftRelation'])
+            $users = User::with(['employee.shiftHistory.shift'])
                 ->where('role_id', '!=', 1)
                 ->whereHas('employee', function ($query) {
                     $query->where('status', 'active')
@@ -437,7 +437,7 @@ class TrackingReportApiController extends Controller
                     $statusClass = 'text-muted';
                     $kmTravelled = 0.0;
 
-                    $shift = $user->employee->shiftRelation ?? null;
+                    
                     $dayName = Carbon::parse($dateStr)->format('l');
                     $isWeeklyOff = false;
                     $isHalfDayWorking = false;
@@ -555,7 +555,7 @@ class TrackingReportApiController extends Controller
             $dateStr = $request->date;
             $date = Carbon::parse($dateStr);
 
-            $users = User::with(['employee.shiftRelation'])
+            $users = User::with(['employee.shiftHistory.shift'])
                 ->where('role_id', '!=', 1)
                 ->whereHas('employee', function ($query) {
                     $query->where('status', 'active')
@@ -613,7 +613,7 @@ class TrackingReportApiController extends Controller
                     else $leaveType = 'L';
                 }
 
-                $shift = $user->employee->shiftRelation ?? null;
+                
                 $dayName = $date->format('l');
                 $isWeeklyOff = false;
                 $isHalfDayWorking = false;

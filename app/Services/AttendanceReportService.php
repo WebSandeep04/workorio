@@ -357,7 +357,7 @@ class AttendanceReportService
         $totalLateMinutes = 0;
         $lateLogs = [];
         
-        $shift = $user ? ($user->employee->shiftRelation ?? null) : null;
+        // Removed static $shift fetching from here
         
         // Map leaves to date => type for easier lookup
         $leaveMap = [];
@@ -375,6 +375,8 @@ class AttendanceReportService
         while ($currentDate->lte($endDate)) {
             $dayName = $currentDate->format('l');
             $isWeeklyOff = false;
+            
+            $shift = $user && $user->employee ? $user->employee->getShiftForDate($currentDate) : null;
             
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
                 $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
@@ -398,6 +400,9 @@ class AttendanceReportService
             $dateStr = $attendanceDate->format('Y-m-d');
             
             $dayName = $attendanceDate->format('l');
+            
+            $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
+            
             $isWeeklyOff = false;
             $isHalfDayWorking = false;
             if ($shift) {
@@ -534,7 +539,11 @@ class AttendanceReportService
             
             $leaveCarbon = Carbon::parse($dateStr);
             $dayName = $leaveCarbon->format('l');
+            $dayName = $leaveCarbon->format('l');
             $isWeeklyOff = false;
+            
+            $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
+            
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
                 $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
             }
@@ -566,6 +575,7 @@ class AttendanceReportService
             $holidayCarbon = Carbon::parse($holidayDate);
             $dayName = $holidayCarbon->format('l');
             $isWeeklyOff = false;
+            $shift = $user && $user->employee ? $user->employee->getShiftForDate($holidayDate) : null;
             if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
                 $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
             }
@@ -612,7 +622,7 @@ class AttendanceReportService
     /**
      * Generate daily breakdown for a user and month
      */
-    public function generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData = null, $shift = null)
+    public function generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData = null, $user = null)
     {
         $dailyData = [];
         $attendanceByDate = $attendances->keyBy(function ($attendance) {
@@ -630,6 +640,7 @@ class AttendanceReportService
             
             $isWeeklyOff = false;
             $isHalfDayWorking = false;
+            $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
             if ($shift) {
                 if ($shift->week_offs && is_array($shift->week_offs)) {
                     $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);

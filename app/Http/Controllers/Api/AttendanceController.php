@@ -1154,7 +1154,7 @@ class AttendanceController extends Controller
         }
 
         // Eager load relation to ensure parity with Web App logic
-        $user->loadMissing(['employee.shiftRelation']);
+        $user->loadMissing(['employee.shiftHistory.shift']);
 
         $attendances = Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
@@ -1211,7 +1211,7 @@ class AttendanceController extends Controller
         $summary = $reportService->calculateMonthlySummary($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
         
         $shift = $user->employee->shiftRelation ?? null;
-        $dailyBreakdown = $reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $shift);
+        $dailyBreakdown = $reportService->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leavesDetails, $holidaysData, $user);
 
         // Reverse the daily breakdown so it is descending, to match mobile UI requirements
         $dailyBreakdownDesc = array_reverse($dailyBreakdown);
