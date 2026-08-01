@@ -309,7 +309,7 @@ class LeadApiController extends Controller
         if (!empty($recipientEmails)) {
             try {
                 \Illuminate\Support\Facades\Mail::to($recipientEmails)
-                    ->send(new \App\Mail\NewLeadNotification($salesRecord, $creator, $remarkText));
+                    ->send(new \App\Mail\NewLeadNotification($salesRecord, $creator, null, $remarkText));
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Failed to send API new lead email: " . $e->getMessage());
             }
