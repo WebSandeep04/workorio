@@ -574,3 +574,7 @@
 #68 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\DontDelete\\\\l...')
 #69 {main}
 "} 
+[2026-08-01 12:09:52] local.INFO: --- Starting creditHolidayWorking for Ravi Sharma on 2026-07-23 00:00:00 ---  
+[2026-08-01 12:09:52] local.INFO: Holiday Check: NO | Weekly Off Check: NO  
+[2026-08-01 12:09:52] local.INFO: Skipping credit: Not a Holiday or Weekly Off.  
+[2026-08-01 12:09:52] local.INFO: --- Finished creditHolidayWorking for Ravi Sharma ---  
