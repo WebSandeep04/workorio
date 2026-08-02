@@ -41,6 +41,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeShiftController;
 use App\Http\Controllers\EmploymentTypeController;
 use App\Http\Controllers\EmailMarketingController;
 use App\Http\Controllers\EntryTypeController;
@@ -214,6 +215,11 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/employees/{employee}/documents', [EmployeeController::class, 'documents'])->name('employees.documents');
     Route::post('/employees/{employee}/documents', [EmployeeController::class, 'storeDocument'])->name('employees.documents.store');
     Route::delete('/employees/{employee}/documents/{document}', [EmployeeController::class, 'destroyDocument'])->name('employees.documents.destroy');
+
+    Route::get('/employee-shifts', [EmployeeShiftController::class, 'index'])->name('employee-shifts.index');
+    Route::get('/employee-shifts/list', [EmployeeShiftController::class, 'list'])->name('employee-shifts.list');
+    Route::get('/employee-shifts/{employee}/history', [EmployeeShiftController::class, 'history'])->name('employee-shifts.history');
+    Route::post('/employee-shifts/assign', [EmployeeShiftController::class, 'assign'])->name('employee-shifts.assign');
 
     Route::get('/designations', [DesignationController::class, 'index'])->name('designations.index');
     Route::get('/designations/list', [DesignationController::class, 'list'])->name('designations.list');

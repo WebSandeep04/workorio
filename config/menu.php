@@ -128,6 +128,7 @@ return [
             'roles' => ['admin'],
             'items' => [
                 ['route' => 'employees.index', 'title' => 'Employees', 'icon' => 'bi bi-people', 'permission' => 'master.employees'],
+                ['route' => 'employee-shifts.index', 'title' => 'Manage Shifts', 'icon' => 'bi bi-calendar3', 'permission' => 'master.employees'],
 
             ],
         ],
