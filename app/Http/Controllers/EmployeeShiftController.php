@@ -63,7 +63,9 @@ class EmployeeShiftController extends Controller
             'employee_ids' => 'required|array',
             'employee_ids.*' => 'exists:employees,id',
             'shift_id' => 'required|exists:shifts,id',
-            'shift_effective_date' => 'required|date',
+            'shift_effective_date' => 'required|date|after_or_equal:today',
+        ], [
+            'shift_effective_date.after_or_equal' => 'The effective date must be today or a future date.'
         ]);
 
         $employeeIds = $request->employee_ids;
