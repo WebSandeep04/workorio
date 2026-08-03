@@ -929,7 +929,7 @@ function renderMovements(movements){
     if(!movements||!movements.length) return '<div class="p-3 text-muted text-center small">No detailed movements recorded.</div>';
     
     let html = '<div class="p-3"><div class="table-responsive"><table class="table table-sm table-bordered mb-0 bg-white" style="font-size:0.75rem;">';
-    html += '<thead class="table-light"><tr><th style="width:100px;">Time</th><th>Type</th><th>Action</th><th>Description</th></tr></thead><tbody>';
+    html += '<thead class="table-light"><tr><th style="width:100px;">Time</th><th>Type</th><th>Action</th><th>Description</th><th>Location</th></tr></thead><tbody>';
     movements.forEach(m=>{
         // Badge styles for internal table
         let badgeStyle = 'background-color:#6c757d;color:white;';
@@ -948,11 +948,16 @@ function renderMovements(movements){
         const typeBadge = `<span class="badge text-white" style="background-color: #434afa;">${m.type}</span>`;
         const actBadge = `<span class="badge text-white" style="background-color: #434afa;">${m.action}</span>`;
         
+        const locationStr = (m.latitude && m.longitude) 
+            ? `<a href="https://www.google.com/maps/search/?api=1&query=${m.latitude},${m.longitude}" target="_blank" class="text-decoration-none text-primary"><i class="bi bi-geo-alt-fill text-danger me-1"></i>${m.latitude}, ${m.longitude}</a>` 
+            : '-';
+        
         html += `<tr>
             <td class="font-monospace">${m.time}</td>
             <td>${typeBadge}</td>
             <td>${actBadge}</td>
             <td>${m.description||'-'}</td>
+            <td>${locationStr}</td>
         </tr>`;
     });
     html += '</tbody></table></div></div>';

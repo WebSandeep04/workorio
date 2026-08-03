@@ -716,7 +716,9 @@ class AttendanceReportService
                         'time' => Carbon::parse($movement->time)->setTimezone('Asia/Kolkata')->format('H:i'),
                         'type' => ucfirst($movement->movement_type),
                         'action' => ucfirst($movement->movement_action),
-                        'description' => $movement->description
+                        'description' => $movement->description,
+                        'latitude' => $movement->latitude,
+                        'longitude' => $movement->longitude
                     ];
                 })->toArray();
                 
