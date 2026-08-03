@@ -1,9 +1,9 @@
-@extends('layouts.app')
 
-@section('title', 'Manage Employee Shifts')
-@section('page_title', 'Manage Shifts')
 
-@push('styles')
+<?php $__env->startSection('title', 'Manage Employee Shifts'); ?>
+<?php $__env->startSection('page_title', 'Manage Shifts'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <link href="https://cdn.datatables.net/select/1.3.4/css/select.bootstrap5.min.css" rel="stylesheet">
 <style>
@@ -18,16 +18,16 @@
     .timeline-content { background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #e9ecef; }
     .shift-btn{background-color: #434afa;}
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid p-3">
     <!-- Assignment Panel -->
     <div class="card mb-4">
         <div class="card-header">Assign Shifts</div>
         <div class="card-body">
             <form id="assignShiftForm">
-                @csrf
+                <?php echo csrf_field(); ?>
                 <div class="row align-items-end">
                     <div class="col-md-4">
                         <label class="form-label">Selected Employees</label>
@@ -37,14 +37,14 @@
                         <label class="form-label">New Shift <span class="text-danger">*</span></label>
                         <select id="new_shift_id" name="shift_id" class="form-select" required>
                             <option value="">Select Shift</option>
-                            @foreach($shifts as $shift)
-                                <option value="{{ $shift->id }}">{{ $shift->name }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $shifts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $shift): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($shift->id); ?>"><?php echo e($shift->name); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Effective Date <span class="text-danger">*</span></label>
-                        <input type="date" id="shift_effective_date" name="shift_effective_date" class="form-control" min="{{ \Carbon\Carbon::today()->format('Y-m-d') }}" required>
+                        <input type="date" id="shift_effective_date" name="shift_effective_date" class="form-control" min="<?php echo e(\Carbon\Carbon::today()->format('Y-m-d')); ?>" required>
                     </div>
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-primary shift-btn w-100" id="btnAssign">Apply Shift</button>
@@ -77,9 +77,9 @@
 </div>
 
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/select/1.3.4/js/dataTables.select.min.js"></script>
@@ -93,7 +93,7 @@ $(document).ready(function() {
     // Initialize DataTable
     var table = $('#employeesTable').DataTable({
         ajax: {
-            url: "{{ route('employee-shifts.list') }}",
+            url: "<?php echo e(route('employee-shifts.list')); ?>",
             dataSrc: ""
         },
         columns: [
@@ -167,10 +167,10 @@ $(document).ready(function() {
         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
         $.ajax({
-            url: "{{ route('employee-shifts.assign') }}",
+            url: "<?php echo e(route('employee-shifts.assign')); ?>",
             type: "POST",
             data: {
-                _token: "{{ csrf_token() }}",
+                _token: "<?php echo e(csrf_token()); ?>",
                 employee_ids: employeeIds,
                 shift_id: shiftId,
                 shift_effective_date: effectiveDate
@@ -196,4 +196,6 @@ $(document).ready(function() {
     });
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laravel\workorio\resources\views/employees/shifts.blade.php ENDPATH**/ ?>
