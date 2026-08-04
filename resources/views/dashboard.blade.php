@@ -98,7 +98,7 @@
             <div class="card" style="border: 1px solid #e5e7eb; border-radius: 16px; padding: 20px;">
                 <div class="chead" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
                     <span class="ctitle" style="font-size: 15px; font-weight: 700; color: #1e293b;">Team Attendance Today</span>
-                    <span class="va" onclick="location.href='{{ ($currentUser && $currentUser->role_id == 1) ? route('attendance.report') : route('attendance.history') }}'" style="color: #2563eb; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none;">View all</span>
+                    <span class="va" onclick="location.href='{{ ($currentUser && $currentUser->role_id == 1 || $currentUser->role_id == 3 ) ? route('attendance.report') : route('attendance.history') }}'" style="color: #2563eb; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none;">View all</span>
                 </div>
                 <div class="att-grid" style="display: grid; grid-template-columns: 2.3fr 1fr; gap: 16px;">
                     <!-- Present Block -->
