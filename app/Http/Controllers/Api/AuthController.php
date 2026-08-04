@@ -133,6 +133,7 @@ class AuthController extends Controller
                         'name' => $user->name,
                         'email' => $user->email,
                         'role_id' => $user->role_id,
+                        'is_attendace'=>$user->is_attendance,
                         'role_name' => $user->role ? $user->role->role_name : 'not found',
                         'is_manager' => $user->is_manager ?? 0,
                         'has_subordinates' => $user->subordinates()->exists(),
@@ -142,8 +143,10 @@ class AuthController extends Controller
                         'version' => env('MOBILE_APP_VERSION'),
                         'employee_id' => $user->employee_id,
                         'image' => $employee && $employee->profile_picture ? url('storage/' . $employee->profile_picture) : null,
+                        'is_field_attendance_enable' => $employee ? ($employee->is_field_attendance_enable ?? 0) : 0,
                         'employee_details' => $employee ? [
                             'date_of_birth' => $employee->date_of_birth,
+                            'is_field_attendance_enable' => $employee->is_field_attendance_enable ?? 0,
                             'shift' => $shiftDetails
                         ] : null,
                         'feature_flags' => [

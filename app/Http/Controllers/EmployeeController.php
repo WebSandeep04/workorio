@@ -361,6 +361,7 @@ class EmployeeController extends Controller
             'notes' => 'nullable|string|max:1000',
             'is_place_allowed' => 'boolean',
             'is_tracking' => 'boolean',
+            'is_field_attendance_enable' => 'boolean',
             'places' => 'array',
             'places.*' => 'exists:places,id',
             'working_type' => 'nullable|string|in:Office,Remote',

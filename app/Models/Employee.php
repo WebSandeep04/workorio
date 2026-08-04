@@ -72,6 +72,7 @@ class Employee extends Model
         'notes',
         'is_place_allowed',
         'is_tracking',
+        'is_field_attendance_enable',
         'working_type',
         'face_embeddings',
         'is_face_enrolled',
@@ -85,6 +86,7 @@ class Employee extends Model
         'experience_years' => 'decimal:2',
         'is_place_allowed' => 'boolean',
         'is_tracking' => 'boolean',
+        'is_field_attendance_enable' => 'boolean',
     ];
 
     public function documents()

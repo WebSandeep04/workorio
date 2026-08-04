@@ -1996,3 +1996,15 @@
 #63 D:\\DontDelete\\laravel\\leadmanagement (akrati ui work)\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\DontDelete\\\\l...')
 #64 {main}
 "} 
+[2026-08-04 10:04:19] local.INFO: Punch-in started {"user_id":15,"movement_type":"office","lat":"26.481461347211898","long":"80.34558029553904"} 
+[2026-08-04 10:04:19] local.INFO: Punch-in check: first IN detection {"user_id":15,"movement_type":"office","has_any_in":false} 
+[2026-08-04 10:04:19] local.INFO: Late check: employee + shift lookup {"user_id":15,"employee_id":14,"has_shift":true} 
+[2026-08-04 10:04:19] local.INFO: Late check: timing comparison {"user_id":15,"shift_start":"2026-08-04 00:00:00","late_min":0,"cutoff_time":"2026-08-04 00:00:00","now":"2026-08-04 15:34:19","is_late":true} 
+[2026-08-04 10:04:19] local.INFO: Late punch-in requires reason (no DB write) {"user_id":15,"movement_type":"office"} 
+[2026-08-04 10:07:48] local.INFO: Punch-in started {"user_id":15,"movement_type":"office","lat":null,"long":null} 
+[2026-08-04 10:07:48] local.INFO: Punch-in check: first IN detection {"user_id":15,"movement_type":"office","has_any_in":false} 
+[2026-08-04 10:07:48] local.INFO: Late check: employee + shift lookup {"user_id":15,"employee_id":14,"has_shift":true} 
+[2026-08-04 10:07:48] local.INFO: Late check: timing comparison {"user_id":15,"shift_start":"2026-08-04 00:00:00","late_min":1440,"cutoff_time":"2026-08-05 00:00:00","now":"2026-08-04 15:37:48","is_late":false} 
+[2026-08-04 10:07:48] local.INFO: Punch-in attendance resolved {"user_id":15,"attendance_id":98,"date":"2026-08-04"} 
+[2026-08-04 10:07:48] local.INFO: Auto punch-out field executed from office punch-in {"user_id":15,"attendance_id":98} 
+[2026-08-04 10:07:48] local.INFO: Punch-in movement created {"user_id":15,"attendance_id":98,"movement_id":216,"movement_type":"office","description":null} 

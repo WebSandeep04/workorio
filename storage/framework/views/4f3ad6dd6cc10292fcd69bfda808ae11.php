@@ -456,6 +456,7 @@
       <?php
           $currentUser = auth()->check() ? auth()->user() : (session()->has('user_id') ? \App\Models\User::find(session('user_id')) : null);
           $isTrackingEnabled = $currentUser?->is_tracking || optional($currentUser?->employee)->is_tracking;
+          $isFieldAttendanceEnabled = optional($currentUser?->employee)->is_field_attendance_enable;
       ?>
       <?php if(!$isTrackingEnabled): ?>
       <div class="action-buttons justify-content-around d-flex flex-wrap gap-3 align-items-center">
@@ -474,6 +475,7 @@
               </button>
             </div>
 
+          <?php if($isFieldAttendanceEnabled): ?>
           <!-- Field Actions -->
             <div class="control-actions d-flex">
                 <button type="button" class="btn btn-info text-white" style="background: #434AFA; border-radius:3px;" id="fieldPunchIn" onclick="punchIn('field')">
@@ -483,6 +485,7 @@
                 <i class="fas fa-home me-1"></i>Field Out
                 </button>
             </div>
+          <?php endif; ?>
 
           <!-- Break Actions -->
            <div class="control-actions d-grid gap-3">
