@@ -214,13 +214,30 @@ class AttendanceReportService
             ];
         }
 
-        // If has half day leave but worked hours >= full day hr, simply present
+        // Pure full day work takes precedence even if they had half-day leave
         if ($hoursInMinutes >= $fullDayInMinutes) {
             return [
                 'code' => 'P',
                 'label' => 'present',
                 'class' => 'text-success'
             ];
+        }
+
+        if ($hasHalfDayLeave) {
+            $requiredHalfDayMinutes = (int) round($fullDayInMinutes / 2);
+            if ($hoursInMinutes >= $requiredHalfDayMinutes) {
+                return [
+                    'code' => 'P2',
+                    'label' => 'halfday',
+                    'class' => 'text-primary'
+                ];
+            } else {
+                return [
+                    'code' => 'A',
+                    'label' => 'absent by less hr',
+                    'class' => 'text-danger'
+                ];
+            }
         }
 
         if ($effectiveInMinutes >= $fullDayInMinutes) {
@@ -699,7 +716,9 @@ class AttendanceReportService
                         'time' => Carbon::parse($movement->time)->setTimezone('Asia/Kolkata')->format('H:i'),
                         'type' => ucfirst($movement->movement_type),
                         'action' => ucfirst($movement->movement_action),
-                        'description' => $movement->description
+                        'description' => $movement->description,
+                        'latitude' => $movement->latitude,
+                        'longitude' => $movement->longitude
                     ];
                 })->toArray();
                 
