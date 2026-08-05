@@ -78,7 +78,6 @@ public function fetchEmployees()
         }
 
         $employees = \App\Models\Employee::select('id', 'name', 'employee_code')
-                        ->where('status', 'active')
                         ->orderBy('name')
                         ->get();
         return response()->json($employees);

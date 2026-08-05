@@ -1,8 +1,8 @@
-@extends('layouts.app')
-@section('title', 'Attendance')
-@section('page_title', 'Attendance')
 
-@push('styles')
+<?php $__env->startSection('title', 'Attendance'); ?>
+<?php $__env->startSection('page_title', 'Attendance'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .attendance-dashboard {
     padding: 0.5rem;
@@ -388,14 +388,14 @@
     }
   }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="attendance-dashboard container-fluid py-4">
   <div class="page-header mb-4">
     <h4>Attendance</h4>
     <div class="d-flex align-items-center gap-3">
-       <span class="text-muted fw-semi-bold">{{ \Carbon\Carbon::today()->format('l, F j, Y') }}</span>
+       <span class="text-muted fw-semi-bold"><?php echo e(\Carbon\Carbon::today()->format('l, F j, Y')); ?></span>
        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#tipsModal">
          <i class="fas fa-lightbulb me-1"></i> Tips
        </button>
@@ -440,7 +440,7 @@
           <span id="worklogValidationText" class="small text-muted"></span>
         </div>
       </div>
-      <a href="{{ route('worklog') }}" class="btn btn-warning btn-sm fw-bold">
+      <a href="<?php echo e(route('worklog')); ?>" class="btn btn-warning btn-sm fw-bold">
         <i class="fas fa-clock me-1"></i> Go to Worklog
       </a>
     </div>
@@ -453,12 +453,12 @@
         <!-- <span id="attendanceStatusDot" class="rounded-circle" style="width: 12px; height: 12px; background-color: #cbd5e0; display: inline-block;"></span> -->
       </div>
       
-      @php
+      <?php
           $currentUser = auth()->check() ? auth()->user() : (session()->has('user_id') ? \App\Models\User::find(session('user_id')) : null);
           $isTrackingEnabled = $currentUser?->is_tracking || optional($currentUser?->employee)->is_tracking;
           $isFieldAttendanceEnabled = optional($currentUser?->employee)->is_field_attendance_enable;
-      @endphp
-      @if(!$isTrackingEnabled)
+      ?>
+      <?php if(!$isTrackingEnabled): ?>
       <div class="action-buttons justify-content-around d-flex flex-wrap gap-3 align-items-center">
           <div class="form-check form-switch mb-0" style="padding-left: 2.5em;">
             <input class="form-check-input" type="checkbox" id="is_wfh_toggle" style="cursor: pointer; width: 2.5em; height: 1.25em;">
@@ -475,7 +475,7 @@
               </button>
             </div>
 
-          @if($isFieldAttendanceEnabled)
+          <?php if($isFieldAttendanceEnabled): ?>
           <!-- Field Actions -->
             <div class="control-actions d-flex">
                 <button type="button" class="btn btn-info text-white" style="background: #434AFA; border-radius:3px;" id="fieldPunchIn" onclick="punchIn('field')">
@@ -485,7 +485,7 @@
                 <i class="fas fa-home me-1"></i>Field Out
                 </button>
             </div>
-          @endif
+          <?php endif; ?>
 
           <!-- Break Actions -->
            <div class="control-actions d-grid gap-3">
@@ -497,7 +497,7 @@
               </button>
             </div>
       </div>
-      @endif
+      <?php endif; ?>
     </div>
 
     <div id="todayMovements" class="movements-table-container">
@@ -584,8 +584,8 @@
         <div id="messageModalExtra" class="mt-3 text-muted small"></div>
       </div>
       <div class="modal-footer justify-content-center border-0 pb-4">
-        <a href="{{ route('my-tasks.index') }}" class="btn text-white d-none" id="messageModalTaskLink" style="background-color: #434afa; border-color: #434afa; border-radius: 3px; padding: 0.5rem 1.5rem;">Go to My Tasks</a>
-        <a href="{{ route('leave.index') }}" class="btn text-white d-none" id="messageModalLeaveLink" style="background-color: #198754; border-color: #198754; border-radius: 3px; padding: 0.5rem 1.5rem;">Apply for Leave</a>
+        <a href="<?php echo e(route('my-tasks.index')); ?>" class="btn text-white d-none" id="messageModalTaskLink" style="background-color: #434afa; border-color: #434afa; border-radius: 3px; padding: 0.5rem 1.5rem;">Go to My Tasks</a>
+        <a href="<?php echo e(route('leave.index')); ?>" class="btn text-white d-none" id="messageModalLeaveLink" style="background-color: #198754; border-color: #198754; border-radius: 3px; padding: 0.5rem 1.5rem;">Apply for Leave</a>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 3px; padding: 0.5rem 1.5rem;">Close</button>
       </div>
 
@@ -675,7 +675,7 @@ function performPunchIn(type) {
     const executePunchIn = (lat = null, long = null) => {
         const payload = {
             movement_type: type,
-            _token: '{{ csrf_token() }}',
+            _token: '<?php echo e(csrf_token()); ?>',
             latitude: lat,
             longitude: long,
             work_from_home: $('#is_wfh_toggle').is(':checked') ? 1 : 0
@@ -764,7 +764,7 @@ function performPunchOut(type) {
             method: 'POST',
             data: {
                 movement_type: type,
-                _token: '{{ csrf_token() }}',
+                _token: '<?php echo e(csrf_token()); ?>',
                 latitude: lat,
                 longitude: long
             },
@@ -858,7 +858,7 @@ function performStartBreak() {
         url: '/attendance/start-break',
         method: 'POST',
         data: {
-            _token: '{{ csrf_token() }}'
+            _token: '<?php echo e(csrf_token()); ?>'
         },
         success: function(response) {
             if (response.success) {
@@ -885,7 +885,7 @@ function performEndBreak() {
         url: '/attendance/end-break',
         method: 'POST',
         data: {
-            _token: '{{ csrf_token() }}'
+            _token: '<?php echo e(csrf_token()); ?>'
         },
         success: function(response) {
             if (response.success) {
@@ -1265,12 +1265,12 @@ function showTaskReminderModal(punchType) {
 function handleTaskReminderResponse(response, punchType) {
     // Save response to database
     $.ajax({
-        url: "{{ route('attendance.task-reminder-response') }}",
+        url: "<?php echo e(route('attendance.task-reminder-response')); ?>",
         method: 'POST',
         data: {
             response: response ? 1 : 0,
             punch_type: punchType,
-            _token: '{{ csrf_token() }}'
+            _token: '<?php echo e(csrf_token()); ?>'
         },
         success: function(responseData) {
             // Close modal
@@ -1284,7 +1284,7 @@ function handleTaskReminderResponse(response, punchType) {
             
             // If user clicked Yes, redirect to my-tasks page
             if (response) {
-                window.location.href = "{{ route('my-tasks.index') }}";
+                window.location.href = "<?php echo e(route('my-tasks.index')); ?>";
             }
         },
         error: function(xhr) {
@@ -1299,7 +1299,7 @@ function handleTaskReminderResponse(response, punchType) {
             }
             
             if (response) {
-                window.location.href = "{{ route('my-tasks.index') }}";
+                window.location.href = "<?php echo e(route('my-tasks.index')); ?>";
             }
         }
     });
@@ -1338,7 +1338,7 @@ function checkWorklogValidation() {
         method: 'GET',
         cache: false,
         headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
         },
         success: function(response) {
             if (!response.can_perform_attendance) {
@@ -1389,7 +1389,7 @@ function openLateReasonModal() {
     $select.append('<option value="">-- Select reason --</option>');
 
     // Load reasons from late_reasons master
-    $.get("{{ route('late-reasons.list') }}")
+    $.get("<?php echo e(route('late-reasons.list')); ?>")
         .done(function(rows) {
             if (Array.isArray(rows)) {
                 rows.forEach(function(r) {
@@ -1465,7 +1465,7 @@ function handleLateReasonSave(e) {
                 latitude: lat,
                 longitude: long,
                 work_from_home: $('#is_wfh_toggle').is(':checked') ? 1 : 0,
-                _token: '{{ csrf_token() }}'
+                _token: '<?php echo e(csrf_token()); ?>'
             },
             success: function(resp) {
                 console.log('Punch-in response:', resp);
@@ -1536,4 +1536,6 @@ function handleLateReasonSave(e) {
 
 
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\DontDelete\laravel\leadmanagement (akrati ui work)\resources\views/attendance/index.blade.php ENDPATH**/ ?>

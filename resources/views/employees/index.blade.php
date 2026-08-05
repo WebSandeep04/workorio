@@ -988,6 +988,7 @@
             notes: $('#employee_notes').val().trim(),
             is_place_allowed: $('#employee_place_allowed').is(':checked') ? 1 : 0,
             is_tracking: $('#employee_is_tracking').is(':checked') ? 1 : 0,
+            is_field_attendance_enable: $('#employee_field_attendance_enable').is(':checked') ? 1 : 0,
             is_login: $('#employee_is_login').is(':checked') ? 1 : 0,
             password: $('#employee_password').val(),
             role_id: $('#employee_role').val(),
@@ -1209,6 +1210,7 @@
             // Places
             $('#employee_place_allowed').prop('checked', !!data.is_place_allowed);
             $('#employee_is_tracking').prop('checked', !!data.is_tracking);
+            $('#employee_field_attendance_enable').prop('checked', !!data.is_field_attendance_enable);
             $('#login_toggle_container').hide();
             $('#login_credentials_section').hide();
             selectedPlaceIds = [];
@@ -1242,6 +1244,7 @@
             // Clear Places
             $('#employee_place_allowed').prop('checked', false);
             $('#employee_is_tracking').prop('checked', false);
+            $('#employee_field_attendance_enable').prop('checked', false);
             $('#btnSelectPlaces').addClass('d-none');
             $('#selected_places_count').addClass('d-none');
             selectedPlaceIds = [];
@@ -2245,6 +2248,13 @@
                             <div class="form-check form-switch mt-1">
                                 <input class="form-check-input" type="checkbox" id="employee_is_tracking">
                                 <label class="form-check-label" for="employee_is_tracking">Enable Tracking</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Field Attendance</label>
+                            <div class="form-check form-switch mt-1">
+                                <input class="form-check-input" type="checkbox" id="employee_field_attendance_enable">
+                                <label class="form-check-label" for="employee_field_attendance_enable">Enable Field Attendance</label>
                             </div>
                         </div>
                         <div class="col-md-4">

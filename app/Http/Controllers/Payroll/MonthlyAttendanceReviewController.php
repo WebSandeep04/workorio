@@ -147,11 +147,17 @@ class MonthlyAttendanceReviewController extends Controller
             foreach ($period as $dt) {
                 $d = $dt->format('Y-m-d');
                 if ($dt >= new \DateTime($startDate->format('Y-m-d')) && $dt <= new \DateTime($endDate->format('Y-m-d'))) {
-                    $type = 'L';
-                    if ($req->is_half_day) $type = 'HD';
-                    elseif ($req->is_rh) $type = 'RH';
-                    elseif ($req->is_sl) $type = 'SL';
-                    elseif ($req->leaveType && !$req->leaveType->is_paid) $type = 'LWP';
+                    if ($req->leaveType && !$req->leaveType->is_paid) {
+                        $type = 'LWP';
+                    } elseif ($req->is_rh) {
+                        $type = 'RH';
+                    } elseif ($req->is_sl) {
+                        $type = 'SL';
+                    } elseif ($req->is_half_day) {
+                        $type = 'HD';
+                    } else {
+                        $type = 'L';
+                    }
                     
                     $allLeaves->push([
                         'user_id' => $req->user_id,
@@ -164,12 +170,17 @@ class MonthlyAttendanceReviewController extends Controller
         $leavesByUser = $allLeaves->groupBy('user_id');
 
         foreach ($users as $user) {
+            if (!$user->employee) {
+                continue;
+            }
             $userAttendances = $allAttendances->get($user->id, collect());
             
             $userLeaves = [];
             if (isset($leavesByUser[$user->id])) {
                 foreach ($leavesByUser[$user->id] as $l) {
-                    $userLeaves[$l['date']] = $l['type'];
+                    if (!isset($userLeaves[$l['date']])) {
+                        $userLeaves[$l['date']] = $l['type'];
+                    }
                 }
             }
 
