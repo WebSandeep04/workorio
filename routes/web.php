@@ -201,6 +201,16 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/admin/loans/manage', [\App\Http\Controllers\LoanController::class, 'manageIndex'])->name('loans.manage');
     Route::post('/loans/installments/{installment}/skip', [\App\Http\Controllers\LoanController::class, 'skipInstallment'])->name('loans.skip-installment');
 
+    // Salary Advance routes
+    Route::post('/salary-advances/fetch', [\App\Http\Controllers\SalaryAdvanceController::class, 'fetch'])->name('salary_advances.fetch');
+    Route::get('/salary-advances', [\App\Http\Controllers\SalaryAdvanceController::class, 'index'])->name('salary_advances.index');
+    Route::post('/salary-advances', [\App\Http\Controllers\SalaryAdvanceController::class, 'store'])->name('salary_advances.store');
+    Route::delete('/salary-advances/{id}', [\App\Http\Controllers\SalaryAdvanceController::class, 'destroy'])->name('salary_advances.destroy');
+    Route::get('/admin/salary-advances', [\App\Http\Controllers\SalaryAdvanceController::class, 'adminIndex'])->name('salary_advances.admin');
+    Route::post('/admin/salary-advances/fetch', [\App\Http\Controllers\SalaryAdvanceController::class, 'adminFetch'])->name('salary_advances.admin.fetch');
+    Route::post('/admin/salary-advances/{id}/status', [\App\Http\Controllers\SalaryAdvanceController::class, 'updateStatus'])->name('salary_advances.admin.status');
+    Route::get('/admin/salary-advances/manage', [\App\Http\Controllers\SalaryAdvanceController::class, 'manageIndex'])->name('salary_advances.manage');
+
     // Sales Status routes
     Route::get('/status/fetch', [SalesStatusController::class, 'fetchSaleStatus'])->name('status.fetch');
     Route::get('/status', [SalesStatusController::class, 'index'])->name('status');

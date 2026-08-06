@@ -128,7 +128,43 @@ class PayrollCalculationService
             $totalDeductions += $deductionAmount;
         }
 
-        $preLoanNetSalary = $totalEarnings - $totalDeductions;
+        $preDeductionNetSalary = $totalEarnings - $totalDeductions;
+        $advanceDeduction = 0;
+        $calculatedAdvances = [];
+        $currentMonthStr = Carbon::create($summary->year, $summary->month)->format('Y-m');
+
+        // Fetch active salary advances
+        $advances = \App\Models\SalaryAdvance::where('employee_id', $employeeId)
+            ->where('status', 'approved')
+            ->where('deduction_start_month', '<=', $currentMonthStr)
+            ->get();
+
+        foreach ($advances as $adv) {
+            // Check if already deducted in this payroll run
+            $existingDeduction = \App\Models\SalaryAdvanceDeduction::where('salary_advance_id', $adv->id)
+                ->where('payroll_id', $payroll->id)
+                ->first();
+                
+            if ($existingDeduction) {
+                 $advanceDeduction += $existingDeduction->amount;
+                 continue;
+            }
+
+            $rem = $adv->remainingBalance();
+            if ($rem > 0 && ($preDeductionNetSalary - $advanceDeduction) > 0) {
+                $available = $preDeductionNetSalary - $advanceDeduction;
+                $toDeduct = min($rem, $available);
+                $advanceDeduction += $toDeduct;
+                
+                $calculatedAdvances[] = [
+                    'advance_id' => $adv->id,
+                    'amount' => $toDeduct,
+                    'adv' => $adv
+                ];
+            }
+        }
+
+        $preLoanNetSalary = $preDeductionNetSalary - $advanceDeduction;
         $loanDeduction = 0;
 
         // Fetch pending loan installments for this month
@@ -221,7 +257,7 @@ class PayrollCalculationService
             }
         }
 
-        $totalDeductions += $loanDeduction;
+        $totalDeductions += $advanceDeduction + $loanDeduction;
         $netSalary = $totalEarnings - $totalDeductions;
 
         // Save Payroll Detail
@@ -233,9 +269,23 @@ class PayrollCalculationService
                 'total_deductions' => $totalDeductions,
                 'lop_deduction_amount' => $deductionAmount,
                 'statutory_deduction_amount' => array_sum($statutoryDeductions),
-                'loan_deduction_amount' => $loanDeduction
+                'loan_deduction_amount' => $loanDeduction,
+                'advance_deduction_amount' => $advanceDeduction
             ]
         );
+
+        // Save Advance Deductions
+        foreach ($calculatedAdvances as $calcAdv) {
+            \App\Models\SalaryAdvanceDeduction::create([
+                'salary_advance_id' => $calcAdv['advance_id'],
+                'payroll_id' => $payroll->id,
+                'amount' => $calcAdv['amount']
+            ]);
+            
+            if ($calcAdv['adv']->remainingBalance() <= 0) {
+                $calcAdv['adv']->update(['status' => 'completed']);
+            }
+        }
 
         // Save Component Details
         foreach ($calculatedComponents as $componentId => $amount) {

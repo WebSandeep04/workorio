@@ -158,6 +158,7 @@ class EmploymentTypeController extends Controller
             'status' => 'nullable|string|max:50',
             'notes' => 'nullable|string|max:1000',
             'max_loan_percentage' => 'nullable|numeric|min:0|max:100',
+            'max_advance_percentage' => 'nullable|numeric|min:0|max:100',
             'rules' => 'nullable|array',
         ]);
     }
