@@ -47,14 +47,25 @@ class LoanController extends Controller
 
         $maxAllowedLoan = ($grossSalary * $maxLoanPercentage) / 100;
 
-        if ($request->amount > $maxAllowedLoan) {
+        $existingLoans = \App\Models\Loan::where('employee_id', $employee->id)
+            ->whereIn('status', ['pending', 'approved'])
+            ->get();
+        
+        $currentOutstanding = $existingLoans->sum(function($loan) {
+            return $loan->remainingBalance();
+        });
+
+        $totalRequested = $currentOutstanding + $request->amount;
+
+        if ($totalRequested > $maxAllowedLoan) {
+            $errMessage = "Total outstanding loan balance including this request exceeds the maximum allowed limit ({$maxAllowedLoan}) for this employee type. Current outstanding is {$currentOutstanding}.";
             if ($request->ajax()) {
                 return response()->json([
                     'message' => 'The given data was invalid.',
-                    'errors' => ['amount' => ["Loan amount exceeds maximum allowed limit ({$maxAllowedLoan}) for this employee type."]]
+                    'errors' => ['amount' => [$errMessage]]
                 ], 422);
             }
-            return back()->withErrors(['amount' => "Loan amount exceeds maximum allowed limit ({$maxAllowedLoan}) for this employee type."])->withInput();
+            return back()->withErrors(['amount' => $errMessage])->withInput();
         }
 
         // total_installments will be updated after calculation
