@@ -170,6 +170,18 @@ return [
                 ['route' => 'payroll.process.index', 'title' => 'Process Payroll', 'icon' => 'bi bi-calculator', 'permission' => 'payroll.process'],
             ],
         ],
+        // Loan Management section
+        [
+            'key' => 'admin_loans',
+            'title' => 'Loan Management',
+            'icon' => 'bi bi-bank',
+            'feature_flag' => 'is_payroll_enabled',
+            'roles' => ['admin'],
+            'items' => [
+                ['route' => 'loans.index', 'title' => 'My Loans', 'icon' => 'bi bi-wallet2', 'permission' => 'loans.my_loans'],
+                ['route' => 'loans.manage', 'title' => 'Manage Loans', 'icon' => 'bi bi-cash-coin', 'permission' => 'loans.manage'],
+            ],
+        ],
         // Reports section
         [
             'key' => 'admin_reports',
@@ -221,6 +233,7 @@ return [
                 ['route' => 'attendance.approval', 'title' => 'Attendance Approval', 'icon' => 'bi bi-person-check', 'permission' => 'approvals.attendance'],
                 ['route' => 'attendance.unlock', 'title' => 'Unlock Attendance', 'icon' => 'bi bi-unlock', 'permission' => 'approvals.unlock_attendance'],
                 ['route' => 'leave.approvals', 'title' => 'Leave Approval', 'icon' => 'bi bi-calendar-check', 'permission' => 'approvals.leave'],
+                ['route' => 'loans.admin', 'title' => 'Loan Approval', 'icon' => 'bi bi-bank', 'permission' => 'loans.manage', 'feature_flag' => 'is_payroll_enabled'],
             ],
         ],
         // Contact Management section

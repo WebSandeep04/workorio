@@ -128,6 +128,100 @@ class PayrollCalculationService
             $totalDeductions += $deductionAmount;
         }
 
+        $preLoanNetSalary = $totalEarnings - $totalDeductions;
+        $loanDeduction = 0;
+
+        // Fetch pending loan installments for this month
+        $currentMonthStr = Carbon::create($summary->year, $summary->month)->format('Y-m');
+        $installments = \App\Models\LoanInstallment::whereHas('loan', function($q) use ($employeeId) {
+            $q->where('employee_id', $employeeId)->where('status', 'active');
+        })->where('due_month', $currentMonthStr)->where('status', 'pending')->get();
+
+        foreach ($installments as $installment) {
+            if ($preLoanNetSalary - $loanDeduction >= $installment->amount) {
+                // Full deduction
+                $loanDeduction += $installment->amount;
+                $installment->update(['status' => 'paid', 'paid_on' => now()]);
+            } else {
+                // Partial deduction handling
+                $availableForDeduction = max(0, $preLoanNetSalary - $loanDeduction);
+                if ($availableForDeduction > 0) {
+                    $loanDeduction += $availableForDeduction;
+                    $remainingInstallmentAmount = $installment->amount - $availableForDeduction;
+                    
+                    $installment->update([
+                        'amount' => $availableForDeduction,
+                        'status' => 'paid',
+                        'paid_on' => now()
+                    ]);
+
+                    // Add remaining amount to next installment or create a new one
+                    $nextInstallment = \App\Models\LoanInstallment::where('loan_id', $installment->loan_id)
+                        ->where('status', 'pending')
+                        ->where('id', '!=', $installment->id)
+                        ->orderBy('installment_number', 'asc')
+                        ->first();
+
+                    if ($nextInstallment) {
+                        $nextInstallment->update([
+                            'amount' => $nextInstallment->amount + $remainingInstallmentAmount
+                        ]);
+                    } else {
+                        // Create a new installment for the remainder
+                        $loan = $installment->loan;
+                        $newDueMonth = Carbon::createFromFormat('Y-m', $currentMonthStr)->addMonth()->format('Y-m');
+                        \App\Models\LoanInstallment::create([
+                            'loan_id' => $loan->id,
+                            'installment_number' => $installment->installment_number + 1,
+                            'due_month' => $newDueMonth,
+                            'amount' => $remainingInstallmentAmount,
+                            'status' => 'pending',
+                        ]);
+                        $loan->increment('total_installments');
+                    }
+                } else {
+                    // No salary left, skip entirely
+                    $installment->update([
+                        'status' => 'skipped',
+                        'skip_strategy' => 'add_to_next'
+                    ]);
+
+                    $nextInstallment = \App\Models\LoanInstallment::where('loan_id', $installment->loan_id)
+                        ->where('status', 'pending')
+                        ->where('id', '!=', $installment->id)
+                        ->orderBy('installment_number', 'asc')
+                        ->first();
+
+                    if ($nextInstallment) {
+                        $nextInstallment->update([
+                            'amount' => $nextInstallment->amount + $installment->amount
+                        ]);
+                    } else {
+                        $loan = $installment->loan;
+                        $newDueMonth = Carbon::createFromFormat('Y-m', $currentMonthStr)->addMonth()->format('Y-m');
+                        \App\Models\LoanInstallment::create([
+                            'loan_id' => $loan->id,
+                            'installment_number' => $installment->installment_number + 1,
+                            'due_month' => $newDueMonth,
+                            'amount' => $installment->amount,
+                            'status' => 'pending',
+                        ]);
+                        $loan->increment('total_installments');
+                    }
+                }
+            }
+        }
+        
+        // Finalize Loan logic, Check if loan is completed
+        foreach ($installments as $installment) {
+            $loan = $installment->loan;
+            $pendingCount = $loan->installments()->where('status', 'pending')->count();
+            if ($pendingCount == 0 && $loan->remainingBalance() <= 0) {
+                $loan->update(['status' => 'completed']);
+            }
+        }
+
+        $totalDeductions += $loanDeduction;
         $netSalary = $totalEarnings - $totalDeductions;
 
         // Save Payroll Detail
@@ -138,7 +232,8 @@ class PayrollCalculationService
                 'net_salary' => $netSalary,
                 'total_deductions' => $totalDeductions,
                 'lop_deduction_amount' => $deductionAmount,
-                'statutory_deduction_amount' => array_sum($statutoryDeductions)
+                'statutory_deduction_amount' => array_sum($statutoryDeductions),
+                'loan_deduction_amount' => $loanDeduction
             ]
         );
 

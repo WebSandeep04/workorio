@@ -189,6 +189,18 @@ Route::middleware(['auth.or.session'])->group(function () {
         return view('dashboard');
     });
 
+    // Loan Management
+    Route::get('/loans', [\App\Http\Controllers\LoanController::class, 'index'])->name('loans.index');
+    Route::post('/loans/fetch', [\App\Http\Controllers\LoanController::class, 'list'])->name('loans.fetch');
+    Route::get('/loans/create', [\App\Http\Controllers\LoanController::class, 'create'])->name('loans.create');
+    Route::post('/loans', [\App\Http\Controllers\LoanController::class, 'store'])->name('loans.store');
+    Route::delete('/loans/{loan}', [\App\Http\Controllers\LoanController::class, 'destroy'])->name('loans.destroy');
+    Route::get('/admin/loans', [\App\Http\Controllers\LoanController::class, 'adminIndex'])->name('loans.admin');
+    Route::post('/admin/loans/fetch', [\App\Http\Controllers\LoanController::class, 'adminFetch'])->name('loans.admin.fetch');
+    Route::post('/admin/loans/{loan}/status', [\App\Http\Controllers\LoanController::class, 'updateStatus'])->name('loans.admin.status');
+    Route::get('/admin/loans/manage', [\App\Http\Controllers\LoanController::class, 'manageIndex'])->name('loans.manage');
+    Route::post('/loans/installments/{installment}/skip', [\App\Http\Controllers\LoanController::class, 'skipInstallment'])->name('loans.skip-installment');
+
     // Sales Status routes
     Route::get('/status/fetch', [SalesStatusController::class, 'fetchSaleStatus'])->name('status.fetch');
     Route::get('/status', [SalesStatusController::class, 'index'])->name('status');
