@@ -56,7 +56,7 @@
   .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; }
   
   .custom-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.85rem; table-layout: auto; }
-  .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid #f1f3f5; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
+  .custom-table thead th { background: #fff; color: #000; font-size: 0.8rem; font-weight: 600; padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid #f1f3f5; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
   .custom-table tbody td { font-size: 0.85rem; padding: 0.65rem 0.75rem; border-bottom: 1px solid #f4f4f6; text-align: left; }
   .custom-table tbody tr:hover { background: #f8f9ff; }
   
@@ -103,7 +103,7 @@
                             <th>Total EMIs</th>
                             <th>Remaining Balance</th>
                             <th>Status</th>
-                            <th>Installments Schedule</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="manageTableBody">
@@ -180,54 +180,18 @@ $(document).ready(function() {
 
                 let rem = loan.remaining_balance !== undefined ? parseFloat(loan.remaining_balance).toFixed(2) : '0.00';
                 
-                // Build Nested Table
-                let installmentsHtml = `<div style="max-height: 200px; overflow-y: auto;">
-                    <table class="table table-sm" style="font-size: 0.75rem; margin-bottom: 0;">
-                        <tr>
-                            <th>No.</th><th>Month</th><th>Amount</th><th>Status</th><th>Action</th>
-                        </tr>`;
-                        
-                if(loan.installments && loan.installments.length > 0) {
-                    loan.installments.forEach(inst => {
-                        let iBadge = inst.status === 'paid' ? 'badge-active' : (inst.status === 'skipped' ? 'badge-skipped' : 'badge-pending');
-                        
-                        let actionHtml = '';
-                        if(inst.status === 'pending') {
-                            actionHtml = `
-                                <form class="skip-form d-inline" data-id="${inst.id}">
-                                    <select name="skip_strategy" class="form-select form-select-sm d-inline-block w-auto" style="font-size: 0.7rem; padding: 2px;" required>
-                                        <option value="add_to_next">Add to Next</option>
-                                        <option value="extend_period">Extend Period</option>
-                                    </select>
-                                    <button type="submit" class="btn-skip">Skip</button>
-                                </form>
-                            `;
-                        }
-                        
-                        installmentsHtml += `
-                            <tr>
-                                <td>${inst.installment_number}</td>
-                                <td>${inst.due_month}</td>
-                                <td>$${parseFloat(inst.amount).toFixed(2)}</td>
-                                <td><span class="${iBadge}">${inst.status.charAt(0).toUpperCase() + inst.status.slice(1)}</span></td>
-                                <td>${actionHtml}</td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    installmentsHtml += `<tr><td colspan="5" class="text-center text-muted py-2">No installments found</td></tr>`;
-                }
-                
-                installmentsHtml += `</table></div>`;
-
                 html += `
                     <tr>
-                        <td style="vertical-align: top;"><strong>${empName}</strong></td>
-                        <td style="vertical-align: top;">$${parseFloat(loan.amount).toFixed(2)}</td>
-                        <td style="vertical-align: top;">${loan.total_installments}</td>
-                        <td style="vertical-align: top;">$${rem}</td>
-                        <td style="vertical-align: top;"><span class="${badgeClass}">${loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}</span></td>
-                        <td>${installmentsHtml}</td>
+                        <td style="vertical-align: middle;"><strong>${empName}</strong></td>
+                        <td style="vertical-align: middle;">${parseFloat(loan.amount).toFixed(2)}</td>
+                        <td style="vertical-align: middle;">${loan.total_installments}</td>
+                        <td style="vertical-align: middle;">${rem}</td>
+                        <td style="vertical-align: middle;"><span class="${badgeClass}">${loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}</span></td>
+                        <td style="vertical-align: middle;">
+                            <a href="/admin/loans/${loan.id}/installments" class="btn btn-sm" title="View Installments" style="background: #434AFA; color: white; border: none; font-size: 0.8rem; border-radius: 4px; text-decoration: none;">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
                     </tr>
                 `;
             });
@@ -240,41 +204,6 @@ $(document).ready(function() {
 
     $('#loanSearch').on('keyup', renderTable);
     $('#filterStatus').on('change', renderTable);
-
-    $(document).on('submit', '.skip-form', function(e) {
-        e.preventDefault();
-        
-        if(!confirm('Are you sure you want to skip this installment?')) return;
-        
-        let form = $(this);
-        let id = form.data('id');
-        let strategy = form.find('select[name="skip_strategy"]').val();
-        
-        let btn = form.find('button[type="submit"]');
-        let ogText = btn.html();
-        btn.html('<i class="bi bi-arrow-repeat spin"></i>').prop('disabled', true);
-
-        $.ajax({
-            url: `/loans/installments/${id}/skip`,
-            type: 'POST',
-            data: { skip_strategy: strategy },
-            success: function(res) {
-                if(res.success) {
-                    showAlert('success', res.message);
-                    fetchLoans();
-                } else {
-                    showAlert('danger', res.message || 'Error occurred');
-                    btn.html(ogText).prop('disabled', false);
-                }
-            },
-            error: function(xhr) {
-                let msg = 'Failed to skip installment.';
-                if(xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
-                showAlert('danger', msg);
-                btn.html(ogText).prop('disabled', false);
-            }
-        });
-    });
 
     function showAlert(type, msg) {
         let alertHtml = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">

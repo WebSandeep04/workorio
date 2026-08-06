@@ -199,6 +199,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/admin/loans/fetch', [\App\Http\Controllers\LoanController::class, 'adminFetch'])->name('loans.admin.fetch');
     Route::post('/admin/loans/{loan}/status', [\App\Http\Controllers\LoanController::class, 'updateStatus'])->name('loans.admin.status');
     Route::get('/admin/loans/manage', [\App\Http\Controllers\LoanController::class, 'manageIndex'])->name('loans.manage');
+    Route::get('/admin/loans/{loan}/installments', [\App\Http\Controllers\LoanController::class, 'manageInstallments'])->name('loans.manage.installments');
     Route::post('/loans/installments/{installment}/skip', [\App\Http\Controllers\LoanController::class, 'skipInstallment'])->name('loans.skip-installment');
 
     // Salary Advance routes

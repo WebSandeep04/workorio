@@ -40,7 +40,7 @@
   .table-scroll { width: 100%; overflow-x: auto; padding: 0.5rem 0.75rem 1rem; }
   
   .custom-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.85rem; table-layout: auto; }
-  .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid #f1f3f5; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
+  .custom-table thead th { background: #fff; color: #000; font-size: 0.8rem; font-weight: 600; padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid #f1f3f5; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important; }
   .custom-table tbody td { font-size: 0.85rem; padding: 0.65rem 0.75rem; border-bottom: 1px solid #f4f4f6; text-align: left; }
   .custom-table tbody tr:hover { background: #f8f9ff; }
   
@@ -135,13 +135,22 @@ $(document).ready(function() {
                 
                 let badgeClass = adv.status === 'completed' ? 'badge-completed' : 'badge-active';
                 let rem = adv.remaining_balance !== undefined ? parseFloat(adv.remaining_balance).toFixed(2) : '0.00';
+                
+                let formattedMonth = adv.deduction_start_month;
+                if(formattedMonth && formattedMonth.includes('-')) {
+                    let parts = formattedMonth.split('-');
+                    let months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                    if(parts.length >= 2) {
+                        formattedMonth = months[parseInt(parts[1], 10) - 1] + '-' + parts[0];
+                    }
+                }
 
                 html += `
                     <tr>
                         <td><strong>${empName}</strong></td>
-                        <td>$${parseFloat(adv.amount).toFixed(2)}</td>
-                        <td>$${rem}</td>
-                        <td>${adv.deduction_start_month}</td>
+                        <td>${parseFloat(adv.amount).toFixed(2)}</td>
+                        <td>${rem}</td>
+                        <td>${formattedMonth}</td>
                         <td><span class="${badgeClass}">${adv.status.charAt(0).toUpperCase() + adv.status.slice(1)}</span></td>
                     </tr>
                 `;

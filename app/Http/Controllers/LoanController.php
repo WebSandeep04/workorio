@@ -30,10 +30,10 @@ class LoanController extends Controller
                 'required',
                 'date_format:Y-m',
                 function ($attribute, $value, $fail) {
-                    $nextMonth = \Carbon\Carbon::now()->startOfMonth()->addMonth();
+                    $currentMonth = \Carbon\Carbon::now()->startOfMonth();
                     $inputMonth = \Carbon\Carbon::createFromFormat('Y-m', $value)->startOfMonth();
-                    if ($inputMonth->lt($nextMonth)) {
-                        $fail('The start month must be at least from the next month.');
+                    if ($inputMonth->lt($currentMonth)) {
+                        $fail('The start month must be at least from the current month.');
                     }
                 },
             ],
@@ -115,6 +115,12 @@ class LoanController extends Controller
     public function manageIndex()
     {
         return view('loans.manage_index');
+    }
+
+    public function manageInstallments($id)
+    {
+        $loan = \App\Models\Loan::with(['employee', 'installments'])->findOrFail($id);
+        return view('loans.manage_installments', compact('loan'));
     }
 
     public function adminFetch(Request $request)

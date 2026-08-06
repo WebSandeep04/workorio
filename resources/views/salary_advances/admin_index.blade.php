@@ -154,7 +154,7 @@ $(document).ready(function() {
                 html += `
                     <tr>
                         <td><strong>${empName}</strong></td>
-                        <td>$${parseFloat(adv.amount).toFixed(2)}</td>
+                        <td>${parseFloat(adv.amount).toFixed(2)}</td>
                         <td>${adv.deduction_start_month}</td>
                         <td>${adv.reason || '-'}</td>
                         <td><span class="${badgeClass}">${adv.status.charAt(0).toUpperCase() + adv.status.slice(1)}</span></td>

@@ -193,9 +193,9 @@ $(document).ready(function() {
                 html += `
                     <tr>
                         <td style="vertical-align: top;"><strong>${empName}</strong></td>
-                        <td style="vertical-align: top;">$${parseFloat(loan.amount).toFixed(2)}</td>
+                        <td style="vertical-align: top;">${parseFloat(loan.amount).toFixed(2)}</td>
                         <td style="vertical-align: top;">${loan.total_installments}</td>
-                        <td style="vertical-align: top;">$${rem}</td>
+                        <td style="vertical-align: top;">${rem}</td>
                         <td style="vertical-align: top;"><span class="${badgeClass}">${loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}</span></td>
                         <td>${actionHtml}</td>
                     </tr>

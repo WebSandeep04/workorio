@@ -1,3 +1,5 @@
+
+
 <?php $__env->startSection('title', 'My Loans'); ?>
 <?php $__env->startSection('page_title', 'My Loans'); ?>
 
@@ -159,12 +161,8 @@
           <div class="row g-3 mb-3">
               <div class="col-md-6">
                   <label class="form-label-modern">Employee <span class="text-danger">*</span></label>
-                  <select name="employee_id" class="form-control-modern" required>
-                      <option value="">Select Employee</option>
-                      <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $emp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                          <option value="<?php echo e($emp->id); ?>"><?php echo e($emp->name); ?></option>
-                      <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                  </select>
+                  <input type="text" class="form-control-modern bg-light" value="<?php echo e(session('user_name')); ?>" readonly>
+                  <input type="hidden" name="employee_id" value="<?php echo e(\App\Models\User::find(session('user_id'))?->employee_id); ?>">
               </div>
               <div class="col-md-6">
                   <label class="form-label-modern">Loan Amount <span class="text-danger">*</span></label>
@@ -179,7 +177,7 @@
               </div>
               <div class="col-md-6">
                   <label class="form-label-modern">Start Month <span class="text-danger">*</span></label>
-                  <input type="month" name="start_month" class="form-control-modern" required value="<?php echo e(old('start_month')); ?>" min="<?php echo e(\Carbon\Carbon::now()->addMonth()->format('Y-m')); ?>">
+                  <input type="month" name="start_month" class="form-control-modern" required value="<?php echo e(old('start_month')); ?>" min="<?php echo e(\Carbon\Carbon::now()->format('Y-m')); ?>">
               </div>
           </div>
 
@@ -249,9 +247,9 @@
                         html += `
                             <tr>
                                 <td><strong>${empName}</strong></td>
-                                <td>$${amount}</td>
+                                <td>${amount}</td>
                                 <td>${loan.total_installments}</td>
-                                <td>$${rem}</td>
+                                <td>${rem}</td>
                                 <td>${statusBadge}</td>
                                 <td>${actions}</td>
                             </tr>

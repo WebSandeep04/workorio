@@ -48,7 +48,7 @@
   }
   .table-responsive { padding: 0.5rem 0.75rem 1rem; overflow-x: auto; }
   .custom-table { border-spacing: 0; width: 100%; font-size: 0.85rem; }
-  .custom-table thead th { background: #fff; font-size: 0.65rem; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; }
+  .custom-table thead th { background: #fff; font-size: 0.8rem; font-weight: 600; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; text-align: left; }
   .custom-table tbody td { font-size: 0.85rem; padding: 0.65rem 0.75rem; border-bottom: 1px solid #f4f4f6; }
   .custom-table tbody tr:hover { background: #f8f9ff; }
   
@@ -161,12 +161,8 @@
           <div class="row g-3 mb-3">
               <div class="col-md-12">
                   <label class="form-label-modern">Employee <span class="text-danger">*</span></label>
-                  <select name="employee_id" class="form-control-modern" required>
-                      <option value="">Select Employee</option>
-                      @foreach($employees as $emp)
-                          <option value="{{ $emp->id }}">{{ $emp->name }}</option>
-                      @endforeach
-                  </select>
+                  <input type="text" class="form-control-modern bg-light" value="{{ session('user_name') }}" readonly>
+                  <input type="hidden" name="employee_id" value="{{ \App\Models\User::find(session('user_id'))?->employee_id }}">
               </div>
           </div>
 
@@ -177,7 +173,7 @@
               </div>
               <div class="col-md-6">
                   <label class="form-label-modern">Deduction Start Month <span class="text-danger">*</span></label>
-                  <input type="month" name="deduction_start_month" class="form-control-modern" required value="{{ old('deduction_start_month') }}" min="{{ \Carbon\Carbon::now()->addMonth()->format('Y-m') }}">
+                  <input type="month" name="deduction_start_month" class="form-control-modern bg-light" required value="{{ \Carbon\Carbon::now()->format('Y-m') }}" readonly>
               </div>
           </div>
 
@@ -261,9 +257,9 @@
                 html += `
                     <tr>
                         <td><strong>${empName}</strong></td>
-                        <td>$${amount}</td>
+                        <td>${amount}</td>
                         <td>${adv.deduction_start_month}</td>
-                        <td>$${rem}</td>
+                        <td>${rem}</td>
                         <td>${statusBadge}</td>
                         <td>${actions}</td>
                     </tr>
