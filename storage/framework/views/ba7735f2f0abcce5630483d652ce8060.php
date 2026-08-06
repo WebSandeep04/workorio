@@ -1,7 +1,7 @@
 
 
-<?php $__env->startSection('title', 'My Loans'); ?>
-<?php $__env->startSection('page_title', 'My Loans'); ?>
+<?php $__env->startSection('title', 'My Financial Requests'); ?>
+<?php $__env->startSection('page_title', 'My Financial Requests'); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>
@@ -48,7 +48,7 @@
   }
   .table-responsive { padding: 0.5rem 0.75rem 1rem; overflow-x: auto; }
   .custom-table { border-spacing: 0; width: 100%; font-size: 0.85rem; }
-  .custom-table thead th { background: #fff; font-size: 0.65rem; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; }
+  .custom-table thead th { background: #fff; font-size: 0.8rem; font-weight: 600; padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f5; text-align: left; }
   .custom-table tbody td { font-size: 0.85rem; padding: 0.65rem 0.75rem; border-bottom: 1px solid #f4f4f6; }
   .custom-table tbody tr:hover { background: #f8f9ff; }
   
@@ -102,6 +102,65 @@
       box-shadow: 0 0 0 2px rgba(67, 74, 250, 0.1);
       outline: none;
   }
+  
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .summary-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #eceef3;
+    padding: 0.5rem;
+    box-shadow: 0px 4px 4px 0px #0000000A;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .summary-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+  }
+  .icon-blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; }
+  .icon-green { background: linear-gradient(135deg, #34d399, #10b981); color: white; }
+  .icon-purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: white; }
+  .icon-orange { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; }
+  .icon-red { background: linear-gradient(135deg, #fb7185, #f43f5e); color: white; }
+
+  .summary-card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
+    min-width: 0;
+  }
+  .summary-card-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+    color: #000;
+    line-height: 1.2;
+  }
+  .summary-card-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    color: #101828;
+  }
 </style>
 <?php $__env->stopPush(); ?>
 
@@ -113,7 +172,7 @@
         <input type="text" id="search" placeholder="Search loans..." />
     </div>
     <button type="button" class="table-search-btn" data-bs-toggle="modal" data-bs-target="#formModal" id="addBtn">
-        <i class="bi bi-plus me-1"></i>Request Loan
+        <i class="bi bi-plus me-1"></i>Request
     </button>
   </div>
 
@@ -121,22 +180,24 @@
       <div class="alert alert-success mt-2"><?php echo e(session('success')); ?></div>
   <?php endif; ?>
 
+  <div id="financialSummary" class="summary-cards d-none mt-3"></div>
 
   <div class="data-table-card mt-3">
     <div class="table-responsive">
       <table class="table custom-table" id="mainTable">
         <thead>
           <tr>
+            <th>Type</th>
             <th>Employee</th>
             <th>Amount</th>
-            <th>Total Installments</th>
+            <th>Details</th>
             <th>Remaining Balance</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody id="loansTableBody">
-          <tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-hourglass-split"></i> Loading...</td></tr>
+          <tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-hourglass-split"></i> Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -149,7 +210,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" style="font-size: 1.1rem; font-weight: 600;" id="modalTitle">
-          <i class="bi bi-plus text-white"></i> Request Loan
+          <i class="bi bi-plus text-white"></i> Request
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -158,6 +219,17 @@
           <?php echo csrf_field(); ?>
           <input type="hidden" name="_method" id="formMethod" value="POST">
           <div id="formErrors" class="alert alert-danger d-none"></div>
+          
+          <div class="row g-3 mb-3">
+              <div class="col-md-12">
+                  <label class="form-label-modern">Request Type <span class="text-danger">*</span></label>
+                  <select id="requestType" class="form-control-modern" style="font-size: 0.85rem;" required>
+                      <option value="loan">Loan</option>
+                      <option value="advance">Salary Advance</option>
+                  </select>
+              </div>
+          </div>
+
           <div class="row g-3 mb-3">
               <div class="col-md-6">
                   <label class="form-label-modern">Employee <span class="text-danger">*</span></label>
@@ -165,19 +237,26 @@
                   <input type="hidden" name="employee_id" value="<?php echo e(\App\Models\User::find(session('user_id'))?->employee_id); ?>">
               </div>
               <div class="col-md-6">
-                  <label class="form-label-modern">Loan Amount <span class="text-danger">*</span></label>
+                  <label class="form-label-modern"><span id="amountLabel">Loan</span> Amount <span class="text-danger">*</span></label>
                   <input type="number" step="0.01" name="amount" class="form-control-modern" required value="<?php echo e(old('amount')); ?>">
               </div>
           </div>
 
-          <div class="row g-3 mb-3">
+          <div class="row g-3 mb-3" id="loanFields">
               <div class="col-md-6">
                   <label class="form-label-modern">EMI Amount <span class="text-danger">*</span></label>
-                  <input type="number" step="0.01" name="emi_amount" class="form-control-modern" required value="<?php echo e(old('emi_amount')); ?>">
+                  <input type="number" step="0.01" name="emi_amount" id="emiInput" class="form-control-modern" required value="<?php echo e(old('emi_amount')); ?>">
               </div>
               <div class="col-md-6">
                   <label class="form-label-modern">Start Month <span class="text-danger">*</span></label>
-                  <input type="month" name="start_month" class="form-control-modern" required value="<?php echo e(old('start_month')); ?>" min="<?php echo e(\Carbon\Carbon::now()->format('Y-m')); ?>">
+                  <input type="month" name="start_month" id="loanStartInput" class="form-control-modern" required value="<?php echo e(old('start_month')); ?>" min="<?php echo e(\Carbon\Carbon::now()->format('Y-m')); ?>">
+              </div>
+          </div>
+
+          <div class="row g-3 mb-3 d-none" id="advanceFields">
+              <div class="col-md-6">
+                  <label class="form-label-modern">Deduction Start Month <span class="text-danger">*</span></label>
+                  <input type="month" name="deduction_start_month" id="advanceStartInput" class="form-control-modern bg-light" value="<?php echo e(\Carbon\Carbon::now()->format('Y-m')); ?>" readonly disabled>
               </div>
           </div>
 
@@ -222,23 +301,61 @@
             data: { _token: "<?php echo e(csrf_token()); ?>" },
             success: function(response) {
                 let html = '';
+                let totalLoan = 0;
+                let paidLoan = 0;
+                let remLoan = 0;
+                
+                let totalAdv = 0;
+                let paidAdv = 0;
+                let remAdv = 0;
+
                 if(response.data.length === 0) {
-                    html = '<tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4"></i><br>No loans found</td></tr>';
+                    html = '<tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4"></i><br>No requests found</td></tr>';
                 } else {
-                    response.data.forEach(function(loan) {
-                        let empName = loan.employee ? loan.employee.name : 'N/A';
-                        let amount = parseFloat(loan.amount).toFixed(2);
-                        let rem = parseFloat(loan.remaining_balance).toFixed(2);
+                    response.data.forEach(function(req) {
+                        let amt = parseFloat(req.amount) || 0;
+                        let rem = parseFloat(req.remaining_balance) || 0;
+                        let paid = amt - rem;
+                        if(paid < 0) paid = 0;
+
+                        if (req.request_type === 'loan') {
+                            totalLoan += amt;
+                            remLoan += rem;
+                            paidLoan += paid;
+                        } else {
+                            totalAdv += amt;
+                            remAdv += rem;
+                            paidAdv += paid;
+                        }
+
+                        let empName = req.employee ? req.employee.name : 'N/A';
+                        let amount = amt.toFixed(2);
+                        let remStr = rem.toFixed(2);
                         
+                        let typeBadge = req.request_type === 'loan' ? '<span class="badge bg-primary" style="font-size: 0.75rem;">Loan</span>' : '<span class="badge bg-info text-dark" style="font-size: 0.75rem;">Advance</span>';
+                        
+                        let details = '';
+                        if (req.request_type === 'loan') {
+                            details = req.total_installments + ' EMIs';
+                        } else {
+                            let formattedMonth = req.deduction_start_month;
+                            if(formattedMonth && formattedMonth.includes('-')) {
+                                let parts = formattedMonth.split('-');
+                                let months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                                if(parts.length >= 2) formattedMonth = months[parseInt(parts[1], 10) - 1] + '-' + parts[0];
+                            }
+                            details = 'Start: ' + (formattedMonth || 'N/A');
+                        }
+
                         let statusBadge = '';
-                        if(loan.status == 'active' || loan.status == 'completed') statusBadge = `<span class="badge-active">${loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}</span>`;
-                        else if(loan.status == 'rejected') statusBadge = `<span class="badge-rejected">${loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}</span>`;
-                        else statusBadge = `<span class="badge-pending">${loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}</span>`;
+                        if(req.status == 'active' || req.status == 'completed') statusBadge = `<span class="badge-active">${req.status.charAt(0).toUpperCase() + req.status.slice(1)}</span>`;
+                        else if(req.status == 'rejected') statusBadge = `<span class="badge-rejected">${req.status.charAt(0).toUpperCase() + req.status.slice(1)}</span>`;
+                        else statusBadge = `<span class="badge-pending">${req.status.charAt(0).toUpperCase() + req.status.slice(1)}</span>`;
 
                         let actions = '';
-                        if(loan.status === 'pending') {
+                        if(req.status === 'pending') {
                             actions = `
-                                <button class="btn btn-sm btn-danger py-1 px-2 delete-btn" style="font-size: 11px;" data-id="${loan.id}"><i class="bi bi-trash"></i></button>
+                                <button class="btn btn-sm btn-danger py-1 px-2 delete-btn" style="font-size: 11px;" data-id="${req.id}" data-type="${req.request_type}"><i class="bi bi-trash"></i></button>
                             `;
                         } else {
                             actions = `<span class="text-muted" style="font-size: 11px;">N/A</span>`;
@@ -246,10 +363,11 @@
                         
                         html += `
                             <tr>
+                                <td>${typeBadge}</td>
                                 <td><strong>${empName}</strong></td>
                                 <td>${amount}</td>
-                                <td>${loan.total_installments}</td>
-                                <td>${rem}</td>
+                                <td>${details}</td>
+                                <td>${remStr}</td>
                                 <td>${statusBadge}</td>
                                 <td>${actions}</td>
                             </tr>
@@ -257,6 +375,63 @@
                     });
                 }
                 $('#loansTableBody').html(html);
+
+                $('#financialSummary').html(`
+                    <div class="summary-card">
+                        <div class="summary-card-icon icon-blue">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <div class="summary-card-content">
+                            <div class="summary-card-label">Loan Amount</div>
+                            <div class="summary-card-value">${totalLoan.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-card-icon icon-green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="summary-card-content">
+                            <div class="summary-card-label">Paid Loan</div>
+                            <div class="summary-card-value">${paidLoan.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-card-icon icon-orange">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="summary-card-content">
+                            <div class="summary-card-label">Rem. Loan</div>
+                            <div class="summary-card-value">${remLoan.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-card-icon icon-purple">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="summary-card-content">
+                            <div class="summary-card-label">Adv. Amount</div>
+                            <div class="summary-card-value">${totalAdv.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-card-icon icon-green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="summary-card-content">
+                            <div class="summary-card-label">Paid Adv.</div>
+                            <div class="summary-card-value">${paidAdv.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-card-icon icon-red">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="summary-card-content">
+                            <div class="summary-card-label">Rem. Adv.</div>
+                            <div class="summary-card-value">${remAdv.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `).removeClass('d-none');
             }
         });
     }
@@ -265,11 +440,29 @@
         // Initial Fetch
         fetchLoans();
 
+        $('#requestType').on('change', function() {
+            if($(this).val() === 'loan') {
+                $('#loanFields').removeClass('d-none');
+                $('#emiInput, #loanStartInput').prop('disabled', false);
+                $('#advanceFields').addClass('d-none');
+                $('#advanceStartInput').prop('disabled', true);
+                $('#amountLabel').text('Loan');
+                $('#mainForm').attr('action', "<?php echo e(route('loans.store')); ?>");
+            } else {
+                $('#loanFields').addClass('d-none');
+                $('#emiInput, #loanStartInput').prop('disabled', true);
+                $('#advanceFields').removeClass('d-none');
+                $('#advanceStartInput').prop('disabled', false);
+                $('#amountLabel').text('Advance');
+                $('#mainForm').attr('action', "<?php echo e(route('salary_advances.store')); ?>");
+            }
+        });
+
         $('#addBtn').on('click', function() {
-            $('#mainForm').attr('action', defaultAction);
+            $('#requestType').val('loan').trigger('change');
             $('#formMethod').val('POST');
-            $('#modalTitle').html('<i class="bi bi-plus text-white"></i> Request Loan');
-            $('#mainForm')[0].reset();
+            $('#modalTitle').html('<i class="bi bi-plus text-white"></i> Request');
+            $('#mainForm').find('input[type="number"], input[type="month"]:not([readonly]), textarea').val('');
             $('#formErrors').addClass('d-none').html('');
         });
 
@@ -278,9 +471,11 @@
         // Delete
         $(document).on('click', '.delete-btn', function() {
             let id = $(this).data('id');
-            if(confirm('Are you sure you want to delete this pending loan request?')) {
+            let type = $(this).data('type');
+            let deleteUrl = type === 'loan' ? `/loans/${id}` : `/salary-advances/${id}`;
+            if(confirm(`Are you sure you want to delete this pending ${type}?`)) {
                 $.ajax({
-                    url: `/loans/${id}`,
+                    url: deleteUrl,
                     type: 'DELETE',
                     data: { _token: "<?php echo e(csrf_token()); ?>" },
                     success: function(response) {
@@ -344,10 +539,10 @@
         
         // Reset form and errors when modal is hidden
         $('#formModal').on('hidden.bs.modal', function () {
-            $('#mainForm').attr('action', defaultAction);
+            $('#requestType').val('loan').trigger('change');
             $('#formMethod').val('POST');
-            $('#modalTitle').html('<i class="bi bi-plus text-white"></i> Request Loan');
-            $('#mainForm')[0].reset();
+            $('#modalTitle').html('<i class="bi bi-plus text-white"></i> Request');
+            $('#mainForm').find('input[type="number"], input[type="month"]:not([readonly]), textarea').val('');
             $('#formErrors').addClass('d-none').html('');
             $('#saveBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Submit Request');
         });

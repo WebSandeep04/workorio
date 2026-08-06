@@ -178,8 +178,7 @@ return [
             'feature_flag' => 'is_payroll_enabled',
             'roles' => ['admin'],
             'items' => [
-                ['route' => 'loans.index', 'title' => 'My Loans', 'icon' => 'bi bi-wallet2', 'permission' => 'loans.my_loans'],
-                ['route' => 'salary_advances.index', 'title' => 'My Advances', 'icon' => 'bi bi-cash-stack', 'permission' => 'salary_advances.my_advances'],
+                ['route' => 'loans.index', 'title' => 'My Financial Requests', 'icon' => 'bi bi-wallet2', 'permission' => 'loans.my_loans'],
                 ['route' => 'loans.manage', 'title' => 'Manage Loans', 'icon' => 'bi bi-cash-coin', 'permission' => 'loans.manage'],
                 ['route' => 'salary_advances.manage', 'title' => 'Manage Advances', 'icon' => 'bi bi-bank', 'permission' => 'salary_advances.manage'],
             ],
