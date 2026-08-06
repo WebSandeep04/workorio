@@ -1,5 +1,7 @@
-<?php $__env->startSection('title', 'Loan Approvals'); ?>
-<?php $__env->startSection('page_title', 'Loan Approvals'); ?>
+
+
+<?php $__env->startSection('title', 'Financial Request Approval'); ?>
+<?php $__env->startSection('page_title', 'Financial Request Approval'); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>
@@ -66,6 +68,65 @@
   .btn-approve:hover { background: #15803d; }
   .btn-reject { background: #dc2626; color: white; border: none; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem;}
   .btn-reject:hover { background: #b91c1c; }
+
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .summary-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #eceef3;
+    padding: 0.5rem;
+    box-shadow: 0px 4px 4px 0px #0000000A;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .summary-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+  }
+  .icon-blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; }
+  .icon-green { background: linear-gradient(135deg, #34d399, #10b981); color: white; }
+  .icon-orange { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white; }
+  .icon-purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: white; }
+  .icon-red { background: linear-gradient(135deg, #fb7185, #f43f5e); color: white; }
+
+  .summary-card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
+    min-width: 0;
+  }
+  .summary-card-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+    color: #000;
+    line-height: 1.2;
+  }
+  .summary-card-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    color: #101828;
+  }
 </style>
 <?php $__env->stopPush(); ?>
 
@@ -84,7 +145,17 @@
                 <option value="rejected">Rejected</option>
             </select>
         </div>
+        <div>
+            <label class="form-label-modern"><i class="bi bi-tags"></i> Type</label>
+            <select class="form-select-modern" id="filterType">
+                <option value="">All Types</option>
+                <option value="loan">Loan</option>
+                <option value="advance">Advance</option>
+            </select>
+        </div>
     </div>
+
+    <div id="financialSummary" class="summary-cards d-none mb-3 mt-3"></div>
 
     <div class="table-search mb-2">
         <div class="table-search-field">
@@ -100,16 +171,17 @@
                 <table class="table custom-table" id="approvalsTable">
                     <thead>
                         <tr>
+                            <th>Type</th>
                             <th>Employee</th>
                             <th>Amount</th>
-                            <th>Total EMIs</th>
+                            <th>Details</th>
                             <th>Remaining Balance</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="approvalsTableBody">
-                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading loan approvals...</td></tr>
+                        <tr><td colspan="7" class="text-center py-4 text-muted">Loading approvals...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -128,20 +200,20 @@ $(document).ready(function() {
         }
     });
 
-    let allLoans = [];
+    let allRequests = [];
 
     function fetchLoans() {
-        $('#approvalsTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted">Loading loan approvals...</td></tr>');
+        $('#approvalsTableBody').html('<tr><td colspan="7" class="text-center py-4 text-muted">Loading approvals...</td></tr>');
         
         $.ajax({
             url: "<?php echo e(route('loans.admin.fetch')); ?>",
             type: "POST",
             success: function(res) {
-                allLoans = res.data || [];
+                allRequests = res.data || [];
                 renderTable();
             },
             error: function(err) {
-                $('#approvalsTableBody').html('<tr><td colspan="6" class="text-center py-4 text-danger">Failed to load data.</td></tr>');
+                $('#approvalsTableBody').html('<tr><td colspan="7" class="text-center py-4 text-danger">Failed to load data.</td></tr>');
             }
         });
     }
@@ -149,52 +221,96 @@ $(document).ready(function() {
     function renderTable() {
         let searchTerm = $('#loanSearch').val().toLowerCase();
         let statusFilter = $('#filterStatus').val();
+        let typeFilter = $('#filterType').val();
 
-        let filtered = allLoans.filter(loan => {
+        let filtered = allRequests.filter(req => {
             let matchSearch = true;
             let matchStatus = true;
+            let matchType = true;
 
             if(searchTerm) {
-                let empName = (loan.employee && loan.employee.name) ? loan.employee.name.toLowerCase() : '';
+                let empName = (req.employee && req.employee.name) ? req.employee.name.toLowerCase() : '';
                 matchSearch = empName.includes(searchTerm);
             }
 
             if(statusFilter) {
-                matchStatus = loan.status === statusFilter;
+                matchStatus = req.status === statusFilter;
             }
 
-            return matchSearch && matchStatus;
+            if(typeFilter) {
+                matchType = req.request_type === typeFilter;
+            }
+
+            return matchSearch && matchStatus && matchType;
+        });
+
+        let totalLoan = 0;
+        let approvedLoan = 0;
+        let rejectedLoan = 0;
+        let totalAdv = 0;
+        let approvedAdv = 0;
+        let rejectedAdv = 0;
+
+        // Compute metrics based on all requests (unfiltered by status) but applying search term if needed
+        // Actually, it's better to just show global stats for the whole table
+        allRequests.forEach(req => {
+            let amt = parseFloat(req.amount) || 0;
+            if (req.request_type === 'loan') {
+                totalLoan += amt;
+                if (req.status === 'approved') approvedLoan += amt;
+                if (req.status === 'rejected') rejectedLoan += amt;
+            } else {
+                totalAdv += amt;
+                if (req.status === 'approved') approvedAdv += amt;
+                if (req.status === 'rejected') rejectedAdv += amt;
+            }
         });
 
         let html = '';
         if(filtered.length === 0) {
-            html = '<tr><td colspan="6" class="text-center py-4 text-muted">No loans found.</td></tr>';
+            html = '<tr><td colspan="7" class="text-center py-4 text-muted">No requests found.</td></tr>';
         } else {
-            filtered.forEach(loan => {
-                let empName = (loan.employee && loan.employee.name) ? loan.employee.name : 'N/A';
+            filtered.forEach(req => {
+                let empName = (req.employee && req.employee.name) ? req.employee.name : 'N/A';
                 
                 let badgeClass = 'badge-pending';
-                if(loan.status === 'approved') badgeClass = 'badge-active';
-                if(loan.status === 'rejected') badgeClass = 'text-danger fw-bold'; // Replace with badge later
+                if(req.status === 'approved') badgeClass = 'badge-active';
+                if(req.status === 'rejected') badgeClass = 'text-danger fw-bold';
 
-                let rem = loan.remaining_balance !== undefined ? parseFloat(loan.remaining_balance).toFixed(2) : '0.00';
+                let rem = req.remaining_balance !== undefined ? parseFloat(req.remaining_balance).toFixed(2) : '0.00';
                 
+                let typeBadge = req.request_type === 'loan' ? '<span class="badge bg-primary" style="font-size: 0.75rem;">Loan</span>' : '<span class="badge bg-info text-dark" style="font-size: 0.75rem;">Advance</span>';
+                
+                let details = '';
+                if (req.request_type === 'loan') {
+                    details = req.total_installments + ' EMIs';
+                } else {
+                    let formattedMonth = req.deduction_start_month;
+                    if(formattedMonth && formattedMonth.includes('-')) {
+                        let parts = formattedMonth.split('-');
+                        let months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+                        if(parts.length >= 2) formattedMonth = months[parseInt(parts[1], 10) - 1] + '-' + parts[0];
+                    }
+                    details = 'Start: ' + (formattedMonth || 'N/A');
+                }
+
                 // Action Buttons
                 let actionHtml = '-';
-                if(loan.status === 'pending') {
+                if(req.status === 'pending') {
                     actionHtml = `
-                        <button class="btn-approve me-1 update-status" data-id="${loan.id}" data-status="approved">Approve</button>
-                        <button class="btn-reject update-status" data-id="${loan.id}" data-status="rejected">Reject</button>
+                        <button class="btn-approve me-1 update-status" data-id="${req.id}" data-type="${req.request_type}" data-status="approved">Approve</button>
+                        <button class="btn-reject update-status" data-id="${req.id}" data-type="${req.request_type}" data-status="rejected">Reject</button>
                     `;
                 }
 
                 html += `
                     <tr>
+                        <td style="vertical-align: top;">${typeBadge}</td>
                         <td style="vertical-align: top;"><strong>${empName}</strong></td>
-                        <td style="vertical-align: top;">$${parseFloat(loan.amount).toFixed(2)}</td>
-                        <td style="vertical-align: top;">${loan.total_installments}</td>
-                        <td style="vertical-align: top;">$${rem}</td>
-                        <td style="vertical-align: top;"><span class="${badgeClass}">${loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}</span></td>
+                        <td style="vertical-align: top;">${parseFloat(req.amount).toFixed(2)}</td>
+                        <td style="vertical-align: top;">${details}</td>
+                        <td style="vertical-align: top;">${rem}</td>
+                        <td style="vertical-align: top;"><span class="${badgeClass}">${req.status.charAt(0).toUpperCase() + req.status.slice(1)}</span></td>
                         <td>${actionHtml}</td>
                     </tr>
                 `;
@@ -202,28 +318,92 @@ $(document).ready(function() {
         }
 
         $('#approvalsTableBody').html(html);
+
+        $('#financialSummary').html(`
+            <!-- Loans -->
+            <div class="summary-card">
+                <div class="summary-card-icon icon-blue">
+                    <i class="bi bi-bank"></i>
+                </div>
+                <div class="summary-card-content">
+                    <div class="summary-card-label">Total Loan</div>
+                    <div class="summary-card-value">${totalLoan.toFixed(2)}</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-icon icon-green">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="summary-card-content">
+                    <div class="summary-card-label">Approved Loan</div>
+                    <div class="summary-card-value">${approvedLoan.toFixed(2)}</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-icon icon-red">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+                <div class="summary-card-content">
+                    <div class="summary-card-label">Rejected Loan</div>
+                    <div class="summary-card-value">${rejectedLoan.toFixed(2)}</div>
+                </div>
+            </div>
+
+            <!-- Advances -->
+            <div class="summary-card">
+                <div class="summary-card-icon icon-purple">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div class="summary-card-content">
+                    <div class="summary-card-label">Total Advance</div>
+                    <div class="summary-card-value">${totalAdv.toFixed(2)}</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-icon icon-green">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="summary-card-content">
+                    <div class="summary-card-label">Approved Advance</div>
+                    <div class="summary-card-value">${approvedAdv.toFixed(2)}</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-icon icon-red">
+                    <i class="bi bi-x-circle"></i>
+                </div>
+                <div class="summary-card-content">
+                    <div class="summary-card-label">Rejected Advance</div>
+                    <div class="summary-card-value">${rejectedAdv.toFixed(2)}</div>
+                </div>
+            </div>
+        `).removeClass('d-none');
     }
 
     fetchLoans();
 
     $('#loanSearch').on('keyup', renderTable);
     $('#filterStatus').on('change', renderTable);
+    $('#filterType').on('change', renderTable);
 
     $(document).on('click', '.update-status', function(e) {
         e.preventDefault();
         
         let status = $(this).data('status');
         let id = $(this).data('id');
+        let type = $(this).data('type');
         let actionWord = status === 'approved' ? 'approve' : 'reject';
 
-        if(!confirm(`Are you sure you want to ${actionWord} this loan?`)) return;
+        if(!confirm(`Are you sure you want to ${actionWord} this ${type}?`)) return;
         
         let btn = $(this);
         let ogText = btn.html();
         btn.html('<i class="bi bi-arrow-repeat spin"></i>').prop('disabled', true);
 
+        let url = type === 'loan' ? `/admin/loans/${id}/status` : `/admin/salary-advances/${id}/status`;
+
         $.ajax({
-            url: `/admin/loans/${id}/status`,
+            url: url,
             type: 'POST',
             data: { status: status },
             success: function(res) {

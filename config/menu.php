@@ -233,8 +233,7 @@ return [
                 ['route' => 'attendance.approval', 'title' => 'Attendance Approval', 'icon' => 'bi bi-person-check', 'permission' => 'approvals.attendance'],
                 ['route' => 'attendance.unlock', 'title' => 'Unlock Attendance', 'icon' => 'bi bi-unlock', 'permission' => 'approvals.unlock_attendance'],
                 ['route' => 'leave.approvals', 'title' => 'Leave Approval', 'icon' => 'bi bi-calendar-check', 'permission' => 'approvals.leave'],
-                ['route' => 'loans.admin', 'title' => 'Loan Approval', 'icon' => 'bi bi-bank', 'permission' => 'loans.manage', 'feature_flag' => 'is_payroll_enabled'],
-                ['route' => 'salary_advances.admin', 'title' => 'Advance Approval', 'icon' => 'bi bi-cash-stack', 'permission' => 'salary_advances.manage', 'feature_flag' => 'is_payroll_enabled'],
+                ['route' => 'loans.admin', 'title' => 'Financial Request Approval', 'icon' => 'bi bi-bank', 'permission' => 'loans.manage', 'feature_flag' => 'is_payroll_enabled'],
             ],
         ],
         // Contact Management section
