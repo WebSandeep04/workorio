@@ -45,6 +45,15 @@ return [
             ],
         ],
         [
+            'key' => 'admin_whatsapp_campaign',
+            'title' => 'WhatsApp Campaign',
+            'route' => 'whatsapp-campaigns.index',
+            'icon' => 'bi bi-whatsapp',
+            'feature_flag' => 'is_sales_enabled',
+            'roles' => ['admin'],
+            'permission' => 'sales.whatsapp',
+        ],
+        [
             'key' => 'admin_lead_generation',
             'title' => 'Lead Generation',
             'icon' => 'bi bi-person-plus',

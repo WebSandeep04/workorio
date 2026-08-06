@@ -99,6 +99,7 @@ use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\UnlockAttendanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WhatsappTemplateController;
+use App\Http\Controllers\WhatsappCampaignController;
 use App\Http\Controllers\WorkflowDependencyController;
 use App\Http\Controllers\WorkflowTaskDependencyController;
 use App\Http\Controllers\WorkflowTemplateController;
@@ -1293,4 +1294,16 @@ Route::middleware(['auth.or.session'])->group(function () {
         Route::get('report/export', [App\Http\Controllers\Payroll\PayrollController::class, 'exportReport'])->name('report.export');
         Route::get('report/export-pdf', [App\Http\Controllers\Payroll\PayrollController::class, 'exportReportPdf'])->name('report.export-pdf');
     });
+
+    // WhatsApp Campaigns
+    Route::get('whatsapp-campaigns', [WhatsappCampaignController::class, 'index'])->name('whatsapp-campaigns.index');
+    Route::post('whatsapp-campaigns/fetch', [WhatsappCampaignController::class, 'fetch'])->name('whatsapp-campaigns.fetch');
+    Route::post('whatsapp-campaigns', [WhatsappCampaignController::class, 'store'])->name('whatsapp-campaigns.store');
+    Route::put('whatsapp-campaigns/{whatsapp_campaign}', [WhatsappCampaignController::class, 'update'])->name('whatsapp-campaigns.update');
+    Route::delete('whatsapp-campaigns/{whatsapp_campaign}', [WhatsappCampaignController::class, 'destroy'])->name('whatsapp-campaigns.destroy');
+    Route::get('whatsapp-campaigns/{whatsapp_campaign}', [WhatsappCampaignController::class, 'show'])->name('whatsapp-campaigns.show');
+    Route::post('whatsapp-campaigns/{whatsapp_campaign}/add-members', [WhatsappCampaignController::class, 'addMembers'])->name('whatsapp-campaigns.add-members');
+    Route::post('whatsapp-campaigns/{whatsapp_campaign}/fetch-members', [WhatsappCampaignController::class, 'fetchMembers'])->name('whatsapp-campaigns.fetch-members');
+    Route::delete('whatsapp-campaigns/member/{id}', [WhatsappCampaignController::class, 'removeMember'])->name('whatsapp-campaigns.remove-member');
+    Route::get('whatsapp-campaigns-source-data', [WhatsappCampaignController::class, 'getSourceData'])->name('whatsapp-campaigns.source-data');
 });
