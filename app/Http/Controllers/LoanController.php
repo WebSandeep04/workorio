@@ -128,9 +128,20 @@ class LoanController extends Controller
         $loans = \App\Models\Loan::with(['employee', 'installments'])->latest()->get();
         $loans->map(function ($loan) {
             $loan->remaining_balance = $loan->remainingBalance();
+            $loan->request_type = 'loan';
             return $loan;
         });
-        return response()->json(['data' => $loans]);
+
+        $advances = \App\Models\SalaryAdvance::with(['employee', 'deductions'])->latest()->get();
+        $advances->map(function ($adv) {
+            $adv->remaining_balance = $adv->remainingBalance();
+            $adv->request_type = 'advance';
+            return $adv;
+        });
+
+        $combined = $loans->concat($advances)->sortByDesc('created_at')->values();
+
+        return response()->json(['data' => $combined]);
     }
 
     public function updateStatus(Request $request, $id)
