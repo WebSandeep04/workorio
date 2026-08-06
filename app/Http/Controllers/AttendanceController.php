@@ -1614,7 +1614,9 @@ class AttendanceController extends Controller
 
         $data = $this->_fetchDateReportData($request->date);
         
-        $pdf = Pdf::loadView('attendance.date-report-pdf', compact('data'))
+        $hide_status = $request->has('hide_status');
+
+        $pdf = Pdf::loadView('attendance.date-report-pdf', compact('data', 'hide_status'))
                 ->setPaper('a4', 'landscape');
                 
         return $pdf->download("date_attendance_report_{$request->date}.pdf");

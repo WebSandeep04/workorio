@@ -257,6 +257,11 @@
                 <i class="bi bi-calendar-event me-1"></i> Date Wise Summary
             </button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="today-tab" data-bs-toggle="tab" data-bs-target="#today-tab-pane" type="button" role="tab" aria-controls="today-tab-pane" aria-selected="false">
+                <i class="bi bi-calendar-day me-1"></i> Today's Attendance
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content" id="reportTabsContent">
@@ -584,6 +589,98 @@
                 </div>
             </div>
         </div>
+
+        <!-- Today's Attendance Tab -->
+        <div class="tab-pane fade" id="today-tab-pane" role="tabpanel" aria-labelledby="today-tab" tabindex="0">
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label" style="width: 100px;">Date</label>
+                    <input type="text" id="today_report_date" class="form-control-custom bg-light" value="{{ now()->format('Y-m-d') }}" readonly>
+                </div>
+                <button type="button" id="loadTodayReport" class="btn-load">
+                    <i class="bi bi-play-circle me-1"></i> Load Report
+                </button>
+                <button type="button" id="exportTodayReportPdf" class="btn-load" style="background-color: #434afa; color: white;">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                </button>
+            </div>
+
+            <!-- Today's Summary Cards -->
+            <div id="todayReportSummary" class="summary-cards" style="display:none;">
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-blue">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Employee Active</div>
+                        <div class="summary-card-value" id="todaySumActive">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-green">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Punch In</div>
+                        <div class="summary-card-value" id="todaySumPunchIn">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-orange">
+                        <i class="bi bi-person-x"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Not Punch In</div>
+                        <div class="summary-card-value" id="todaySumNotPunchIn">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-red">
+                        <i class="bi bi-calendar-minus"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">On Leave</div>
+                        <div class="summary-card-value" id="todaySumLeave">0</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-icon icon-red">
+                        <i class="bi bi-calendar-x"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Unpaid Leave</div>
+                        <div class="summary-card-value" id="todaySumUnpaidLeave">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modern-card data-table-card" id="todayTableCard" style="display:none;">
+                <div class="modern-card-body">
+                    <div class="table-scroll">
+                        <table class="table custom-table" id="todayTable">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>First In</th>
+                                    <th>Last Out</th>
+                                    <th>Total Hours</th>
+                                    <th>Office</th>
+                                    <th>Field</th>
+                                    <th>Break</th>
+                                    <th>Late By</th>
+                                    <th>Grace Bal.</th>
+                                    <th>Late Reason</th>
+                                    <th class="text-center">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -598,6 +695,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('exportMonthlyReportPdf').addEventListener('click', exportMonthlyReportPdf);
     document.getElementById('loadDateReport').addEventListener('click', loadDateReport);
     document.getElementById('exportDateReportPdf').addEventListener('click', exportDateReportPdf);
+    document.getElementById('loadTodayReport').addEventListener('click', loadTodayReport);
+    document.getElementById('exportTodayReportPdf').addEventListener('click', exportTodayReportPdf);
 });
 
 function exportMonthlyReport() {
@@ -1086,6 +1185,108 @@ function loadDateReport() {
                 msg = xhr.responseJSON.message;
             }
             tbody.innerHTML = `<tr><td colspan="13" class="text-center py-4 text-danger">${msg}</td></tr>`;
+            console.error(xhr.responseText);
+        }
+    });
+}
+
+function exportTodayReportPdf() {
+    const date = document.getElementById('today_report_date').value;
+    if(!date) return;
+    window.location.href = `/attendance/export-date-report-pdf?date=${date}&hide_status=1`;
+}
+
+function loadTodayReport() {
+    const date = document.getElementById('today_report_date').value;
+    const tbody = document.querySelector('#todayTable tbody');
+    const tableCard = document.getElementById('todayTableCard');
+    const summaryDiv = document.getElementById('todayReportSummary');
+    
+    if(!date) return;
+
+    summaryDiv.style.display = 'none';
+    tableCard.style.display = 'block';
+    tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading today summary matrix...</td></tr>';
+    
+    $.ajax({
+        url: '/attendance/date-report-data',
+        method: 'POST',
+        data: { date: date, _token: '{{ csrf_token() }}' },
+        success: function(res){
+            const s = res.summary;
+            
+            let totalPunchIn = 0;
+            if(res.data && res.data.length > 0) {
+                res.data.forEach(function(d){
+                    if(d.first_in && d.first_in !== '-' && d.first_in.trim() !== '') {
+                        totalPunchIn++;
+                    }
+                });
+            }
+            
+            let totalActive = s.total_users || 0;
+            let totalNotPunchIn = totalActive - totalPunchIn;
+            if (totalNotPunchIn < 0) totalNotPunchIn = 0;
+
+            document.getElementById('todaySumActive').textContent = totalActive;
+            document.getElementById('todaySumPunchIn').textContent = totalPunchIn;
+            document.getElementById('todaySumNotPunchIn').textContent = totalNotPunchIn;
+            document.getElementById('todaySumLeave').textContent = s.leave;
+            document.getElementById('todaySumUnpaidLeave').textContent = s.unpaid_leave || 0;
+            summaryDiv.style.display = 'grid';
+            
+            tbody.innerHTML = '';
+            
+            if(res.data && res.data.length > 0) {
+                res.data.forEach(function(d, idx){
+                    const tr = document.createElement('tr');
+                    
+                    if(d.status === 'holiday' || d.status === 'sunday') {
+                         if(d.hours > 0) tr.style.backgroundColor = '#f0fff4';
+                         else tr.style.backgroundColor = '#f8f9fa';
+                    } else if(d.status === 'absent') {
+                         tr.style.backgroundColor = '#fff5f5';
+                    }
+
+                    tr.innerHTML = `
+                        <td class="fw-bold text-dark">
+                            ${d.user.name} 
+                            ${d.is_wfh ? '<span class="badge bg-secondary text-white ms-1" style="font-size: 0.6rem; vertical-align: middle;">WFH</span>' : ''}
+                        </td>
+                        <td class="font-monospace">${d.first_in}</td>
+                        <td class="font-monospace">${d.last_out}</td>
+                        <td class="fw-bold">${hoursClock(d.hours)}</td>
+                        <td>${hoursClock(d.office_hours)}</td>
+                        <td>${hoursClock(d.field_hours)}</td>
+                        <td>${hoursClock(d.break_time)}</td>
+                        <td class="text-danger fw-bold" style="font-size: 0.8rem;">${d.late_by || '-'}</td>
+                        <td class="text-success fw-bold" style="font-size: 0.8rem;">${d.grace_balance || '-'}</td>
+                        <td class="text-break" style="font-size: 0.85rem;">${d.late_reason || '-'}</td>
+                        <td class="text-center">
+                            <button class="btn-view-details shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#today-mov-${idx}" aria-expanded="false">
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                        </td>`;
+                    tbody.appendChild(tr);
+                    
+                    const trDet = document.createElement('tr');
+                    trDet.innerHTML = `<td colspan="11" class="p-0 border-0">
+                        <div id="today-mov-${idx}" class="collapse bg-light border-bottom">
+                            ${renderMovements(d.movements)}
+                        </div>
+                    </td>`;
+                    tbody.appendChild(trDet);
+                });
+            } else {
+                 tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-muted">No data found for today.</td></tr>';
+            }
+        },
+        error: function(xhr){
+            let msg = 'Failed to load report. Please try again.';
+            if(xhr.responseJSON && xhr.responseJSON.message) {
+                msg = xhr.responseJSON.message;
+            }
+            tbody.innerHTML = `<tr><td colspan="11" class="text-center py-4 text-danger">${msg}</td></tr>`;
             console.error(xhr.responseText);
         }
     });
