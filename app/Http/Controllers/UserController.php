@@ -27,7 +27,8 @@ class UserController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%");
             });
         }
 
@@ -92,6 +93,7 @@ public function update(Request $request, $id)
         $validationRules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
+            'username' => 'nullable|string|unique:users,username,' . $id,
             'role_id' => 'required|exists:roles,id',
             'manager_ids' => 'nullable|array',
             'is_worklog' => 'nullable',
@@ -135,6 +137,7 @@ public function update(Request $request, $id)
     $user->update([
         'name' => $request->name,
         'email' => $request->email,
+        'username' => $request->username,
         'role_id' => $request->role_id,
         'is_worklog' => $request->is_worklog,
         'employee_id' => $request->employee_id ?: null,
@@ -167,6 +170,7 @@ public function store(Request $request)
         $validationRules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
+            'username' => 'nullable|string|unique:users,username',
             'password' => 'required|string|min:6',
             'role_id' => 'required|exists:roles,id',
             'manager_ids' => 'nullable|array',
@@ -202,6 +206,7 @@ public function store(Request $request)
         $userData = [
             'name' => $request->name,
             'email' => $request->email,
+            'username' => $request->username,
             'password' => bcrypt($request->password),
             'role_id' => $request->role_id,
             'is_worklog' => $request->is_worklog,
