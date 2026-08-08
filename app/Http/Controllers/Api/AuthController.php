@@ -24,8 +24,13 @@ class AuthController extends Controller
             $data = json_decode($content, true) ?? [];
         }
 
+        // Backward compatibility for mobile app sending 'email' instead of 'login_id'
+        if (isset($data['email']) && !isset($data['login_id'])) {
+            $data['login_id'] = $data['email'];
+        }
+
         $validator = Validator::make($data, [
-            'email' => 'required|email',
+            'login_id' => 'required|string',
             'password' => 'required|min:6',
         ]);
 
@@ -37,7 +42,7 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = $this->findUserInTenantDatabases($data['email'], $data['password']);
+        $user = $this->findUserInTenantDatabases($data['login_id'], $data['password']);
 
         if ($user) {
             return response()->json([
@@ -75,7 +80,7 @@ class AuthController extends Controller
     /**
      * Find user in tenant databases
      */
-    private function findUserInTenantDatabases($email, $password)
+    private function findUserInTenantDatabases($loginId, $password)
     {
         // Get all tenants from master database
         DB::setDefaultConnection('mysql');
@@ -93,7 +98,20 @@ class AuthController extends Controller
                 // We use Log logic similar to AuthController if needed, but for API maybe not required to spam logs
                 
                 // Try to find user in this tenant database
-                $user = User::where('email', $email)->first();
+                $user = User::where(function($query) use ($loginId) {
+                    $query->where('email', $loginId)
+                          ->orWhere('username', $loginId);
+                })->first();
+
+                // If user is found, check if they are forced to use username only
+                if ($user) {
+                    $usernameOnly = $user->is_username_login ?? 0;
+                    if ($usernameOnly && $user->username !== $loginId) {
+                        // Deny login if they used something other than their username
+                        $user = null;
+                    }
+                }
+
                 $passwordOk = $user ? Hash::check($password, $user->password) : false;
                 
                 // Check if user has login permission (default is 1 if column exists, but treat null as true for backward compatibility if needed, though migration sets default 1)
