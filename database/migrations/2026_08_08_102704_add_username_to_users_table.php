@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('username')->nullable()->unique()->after('email');
+            $table->boolean('is_username_login')->default(0)->after('username');
         });
     }
 
@@ -22,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('username');
+            $table->dropColumn(['username', 'is_username_login']);
         });
     }
 };

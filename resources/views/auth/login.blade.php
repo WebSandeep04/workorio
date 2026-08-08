@@ -37,16 +37,16 @@
             @csrf
 
             <div class="mb-3">
-                <label for="email" class="form-label">Email address</label>
+                <label for="login_id" class="form-label">Email address or Username</label>
                 <input
-                    type="email"
+                    type="text"
                     class="form-control"
-                    id="email"
-                    name="email"
-                    placeholder="admin@tenant1.com"
+                    id="login_id"
+                    name="login_id"
+                    placeholder="Enter email or username"
                     required
                     autofocus
-                    value="{{ old('email') }}"
+                    value="{{ old('login_id') }}"
                 />
             </div>
 

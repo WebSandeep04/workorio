@@ -105,7 +105,8 @@ public function update(Request $request, $id)
             'is_login' => 'nullable',
             'is_attendance' => 'nullable',
             'is_subscription' => 'nullable',
-            'is_tally_calling' => 'nullable'
+            'is_tally_calling' => 'nullable',
+            'is_username_login' => 'nullable'
         ];
         
         // Only validate employee_id exists if employees table exists
@@ -148,7 +149,9 @@ public function update(Request $request, $id)
         'is_login' => $request->is_login,
         'is_attendance' => $request->is_attendance,
         'is_subscription' => $request->is_subscription,
-        'is_tally_calling' => $request->is_tally_calling]);
+        'is_tally_calling' => $request->is_tally_calling,
+        'is_username_login' => $request->is_username_login
+    ]);
 
     // Sync managers
     if ($request->has('manager_ids')) {
@@ -183,7 +186,8 @@ public function store(Request $request)
             'is_login' => 'nullable',
             'is_attendance' => 'nullable',
             'is_subscription' => 'nullable',
-            'is_tally_calling' => 'nullable'
+            'is_tally_calling' => 'nullable',
+            'is_username_login' => 'nullable'
         ];
         
         // Only validate employee_id exists if employees table exists
@@ -218,7 +222,9 @@ public function store(Request $request)
             'is_login' => $request->is_login ?? 1,
             'is_attendance' => $request->is_attendance ?? 0,
             'is_subscription' => $request->is_subscription ?? 0,
-            'is_tally_calling' => $request->is_tally_calling ?? 0];
+            'is_tally_calling' => $request->is_tally_calling ?? 0,
+            'is_username_login' => $request->is_username_login ?? 0
+        ];
 
         $user = User::create($userData);
 

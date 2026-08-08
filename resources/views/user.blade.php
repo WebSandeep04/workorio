@@ -582,6 +582,10 @@
                         <input class="form-check-input" type="checkbox" id="edit_is_tally_calling" name="is_tally_calling">
                         <label class="form-check-label" for="edit_is_tally_calling">Tally Calling Access</label>
                     </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="edit_is_username_login" name="is_username_login">
+                        <label class="form-check-label" for="edit_is_username_login">Username Login Only</label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -692,6 +696,10 @@
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="create_is_tally_calling" name="is_tally_calling">
                         <label class="form-check-label" for="create_is_tally_calling">Tally Calling Access</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="create_is_username_login" name="is_username_login">
+                        <label class="form-check-label" for="create_is_username_login">Username Login Only</label>
                     </div>
                 </div>
             </div>
@@ -1000,6 +1008,7 @@ function openEditModal(user) {
   $('#edit_is_attendance').prop('checked', user.is_attendance == 1);
   $('#edit_is_subscription').prop('checked', user.is_subscription == 1);
   $('#edit_is_tally_calling').prop('checked', user.is_tally_calling == 1);
+  $('#edit_is_username_login').prop('checked', user.is_username_login == 1);
 
   // Load roles dropdown
   $.ajax({
@@ -1123,7 +1132,8 @@ $('#editUserForm').submit(function (e) {
       is_login: $('#edit_is_login').is(':checked') ? 1 : 0,
       is_attendance: $('#edit_is_attendance').is(':checked') ? 1 : 0,
       is_subscription: $('#edit_is_subscription').is(':checked') ? 1 : 0,
-      is_tally_calling: $('#edit_is_tally_calling').is(':checked') ? 1 : 0
+      is_tally_calling: $('#edit_is_tally_calling').is(':checked') ? 1 : 0,
+      is_username_login: $('#edit_is_username_login').is(':checked') ? 1 : 0
     },
     success: function () {
       $('#editUserModal').modal('hide');
@@ -1153,6 +1163,7 @@ $('#createUserModal').on('show.bs.modal', function () {
   $('#create_is_attendance').prop('checked', false);
   $('#create_is_subscription').prop('checked', false);
   $('#create_is_tally_calling').prop('checked', false);
+  $('#create_is_username_login').prop('checked', false);
 
   // Load roles dropdown
   $.ajax({
@@ -1232,7 +1243,8 @@ $('#createUserForm').submit(function (e) {
       is_login: $('#create_is_login').is(':checked') ? 1 : 0,
       is_attendance: $('#create_is_attendance').is(':checked') ? 1 : 0,
       is_subscription: $('#create_is_subscription').is(':checked') ? 1 : 0,
-      is_tally_calling: $('#create_is_tally_calling').is(':checked') ? 1 : 0
+      is_tally_calling: $('#create_is_tally_calling').is(':checked') ? 1 : 0,
+      is_username_login: $('#create_is_username_login').is(':checked') ? 1 : 0
     },
     success: function () {
       $('#createUserModal').modal('hide');

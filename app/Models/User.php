@@ -25,6 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'username',
+        'is_username_login',
         'password',
         'role_id',
         'is_worklog',
