@@ -1,3 +1,4 @@
+
 <?php $__env->startSection('title', 'Campaign Details'); ?>
 <?php $__env->startSection('page_title', 'Campaign: ' . $whatsapp_campaign->name); ?>
 <?php $__env->startSection('content'); ?>
