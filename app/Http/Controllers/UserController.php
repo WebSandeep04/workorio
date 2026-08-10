@@ -151,7 +151,8 @@ public function update(Request $request, $id)
         'is_subscription' => $request->is_subscription,
         'is_tally_calling' => $request->is_tally_calling,
         'is_username_login' => $request->is_username_login,
-        'is_form_lead_mail' => $request->is_form_lead_mail
+        'is_form_lead_mail' => $request->is_form_lead_mail,
+        'is_new_lead_add_mail' => $request->is_new_lead_add_mail
     ]);
 
     // Sync managers
@@ -189,7 +190,8 @@ public function store(Request $request)
             'is_subscription' => 'nullable',
             'is_tally_calling' => 'nullable',
             'is_username_login' => 'nullable',
-            'is_form_lead_mail' => 'nullable'
+            'is_form_lead_mail' => 'nullable',
+            'is_new_lead_add_mail' => 'nullable'
         ];
         
         // Only validate employee_id exists if employees table exists

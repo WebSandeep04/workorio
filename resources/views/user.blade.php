@@ -587,6 +587,10 @@
                         <label class="form-check-label" for="edit_is_form_lead_mail">Lead From Mail Access</label>
                     </div>
                     <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="edit_is_new_lead_add_mail" name="is_new_lead_add_mail">
+                        <label class="form-check-label" for="edit_is_new_lead_add_mail">New Lead Add Mail</label>
+                    </div>
+                    <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="edit_is_username_login" name="is_username_login">
                         <label class="form-check-label" for="edit_is_username_login">Username Login Only</label>
                     </div>
@@ -704,6 +708,10 @@
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="create_is_form_lead_mail" name="is_form_lead_mail">
                         <label class="form-check-label" for="create_is_form_lead_mail">Lead From Mail Access</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="create_is_new_lead_add_mail" name="is_new_lead_add_mail">
+                        <label class="form-check-label" for="create_is_new_lead_add_mail">New Lead Add Mail</label>
                     </div>
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="create_is_username_login" name="is_username_login">
@@ -1017,6 +1025,7 @@ function openEditModal(user) {
   $('#edit_is_subscription').prop('checked', user.is_subscription == 1);
   $('#edit_is_tally_calling').prop('checked', user.is_tally_calling == 1);
   $('#edit_is_form_lead_mail').prop('checked', user.is_form_lead_mail == 1);
+  $('#edit_is_new_lead_add_mail').prop('checked', user.is_new_lead_add_mail == 1);
   $('#edit_is_username_login').prop('checked', user.is_username_login == 1);
 
   // Load roles dropdown
@@ -1143,6 +1152,7 @@ $('#editUserForm').submit(function (e) {
       is_subscription: $('#edit_is_subscription').is(':checked') ? 1 : 0,
       is_tally_calling: $('#edit_is_tally_calling').is(':checked') ? 1 : 0,
       is_form_lead_mail: $('#edit_is_form_lead_mail').is(':checked') ? 1 : 0,
+      is_new_lead_add_mail: $('#edit_is_new_lead_add_mail').is(':checked') ? 1 : 0,
       is_username_login: $('#edit_is_username_login').is(':checked') ? 1 : 0
     },
     success: function () {
@@ -1174,6 +1184,7 @@ $('#createUserModal').on('show.bs.modal', function () {
   $('#create_is_subscription').prop('checked', false);
   $('#create_is_tally_calling').prop('checked', false);
   $('#create_is_form_lead_mail').prop('checked', false);
+  $('#create_is_new_lead_add_mail').prop('checked', false);
   $('#create_is_username_login').prop('checked', false);
 
   // Load roles dropdown
@@ -1256,6 +1267,7 @@ $('#createUserForm').submit(function (e) {
       is_subscription: $('#create_is_subscription').is(':checked') ? 1 : 0,
       is_tally_calling: $('#create_is_tally_calling').is(':checked') ? 1 : 0,
       is_form_lead_mail: $('#create_is_form_lead_mail').is(':checked') ? 1 : 0,
+      is_new_lead_add_mail: $('#create_is_new_lead_add_mail').is(':checked') ? 1 : 0,
       is_username_login: $('#create_is_username_login').is(':checked') ? 1 : 0
     },
     success: function () {
