@@ -50,7 +50,9 @@
     <thead>
         <tr>
             <th>User</th>
+            @if(!isset($hide_status) || !$hide_status)
             <th>Status</th>
+            @endif
             <th>First In</th>
             <th>Last Out</th>
             <th>Total (H:MM)</th>
@@ -75,7 +77,9 @@
             @foreach($data['data'] as $d)
                 <tr style="{{ ($d['status'] == 'holiday' || $d['status'] == 'sunday') ? ($d['hours'] > 0 ? 'background-color: #f0fff4;' : 'background-color: #f8f9fa;') : ($d['status'] == 'absent' ? 'background-color: #fff5f5;' : '') }}">
                     <td class="text-left"><strong>{{ $d['user']['name'] }}</strong></td>
+                    @if(!isset($hide_status) || !$hide_status)
                     <td>{{ $d['status'] === 'unpaid leave' || $d['status'] === 'lwp' ? 'LWP' : ucwords($d['status']) }} {{ $d['holiday_name'] ? "({$d['holiday_name']})" : '' }}</td>
+                    @endif
                     <td>{{ $d['first_in'] }}</td>
                     <td>{{ $d['last_out'] }}</td>
                     <td>{{ formatH($d['hours']) }}</td>

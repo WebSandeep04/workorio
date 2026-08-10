@@ -24,12 +24,12 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|email',
+            'login_id' => 'required|string',
             'password' => 'required|min:6',
         ]);
 
         // Try to find user in tenant databases
-        $user = $this->findUserInTenantDatabases($credentials['email'], $credentials['password']);
+        $user = $this->findUserInTenantDatabases($credentials['login_id'], $credentials['password']);
         
         if ($user) {
             // Use tenant_id from lookup result instead of deriving from email
@@ -51,7 +51,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'login_id' => 'The provided credentials do not match our records.',
         ]);
     }
 
@@ -208,7 +208,7 @@ class AuthController extends Controller
     /**
      * Find user in tenant databases
      */
-    private function findUserInTenantDatabases($email, $password)
+    private function findUserInTenantDatabases($loginId, $password)
     {
         // Get all tenants from master database
         DB::setDefaultConnection('mysql');
@@ -225,7 +225,20 @@ class AuthController extends Controller
                 TenantDatabaseService::setDefaultConnection($tenant->id);
                 
                 // Try to find user in this tenant database
-                $user = User::where('email', $email)->first();
+                $user = User::where(function($query) use ($loginId) {
+                    $query->where('email', $loginId)
+                          ->orWhere('username', $loginId);
+                })->first();
+
+                // If user is found, check if they are forced to use username only
+                if ($user) {
+                    $usernameOnly = $user->is_username_login ?? 0;
+                    if ($usernameOnly && $user->username !== $loginId) {
+                        // Deny login if they used something other than their username
+                        $user = null;
+                    }
+                }
+
                 $passwordOk = $user ? Hash::check($password, $user->password) : false;
                 
                 // Check if user has login permission

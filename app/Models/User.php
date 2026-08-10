@@ -24,6 +24,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'username',
+        'is_username_login',
         'password',
         'role_id',
         'is_worklog',
@@ -69,6 +71,7 @@ class User extends Authenticatable
         'is_contact_management_setup',
         'is_asset_management_setup',
         'is_email_marketing_setup',
+        'is_form_lead_mail',
     ];
 
     /**

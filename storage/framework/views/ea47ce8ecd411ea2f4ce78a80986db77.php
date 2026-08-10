@@ -458,6 +458,7 @@
             <tr>
               <th>ID</th>
               <th>Name</th>
+              <th>Username</th>
               <th>Role</th>
               <th>Email</th>
               <th>Manager</th>
@@ -467,7 +468,7 @@
           </thead>
           <tbody>
             <tr>
-              <td colspan="7" class="loading-state">
+              <td colspan="8" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
                 <p class="mt-2 mb-0">Loading users...</p>
               </td>
@@ -505,6 +506,13 @@
                 <div class="col-md-6 mb-3">
                     <label for="edit_name" class="form-label-modern">Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control form-control-modern" id="edit_name" name="name" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="edit_username" class="form-label-modern">Username</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-modern" id="edit_username" name="username" placeholder="Enter Username">
+                        <button class="btn btn-outline-secondary" type="button" onclick="generateEditUserRandomUsername()" title="Generate Random Username" style="border-color: #e0e0e0; border-left: 0;"><i class="bi bi-arrow-repeat"></i></button>
+                    </div>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="edit_email" class="form-label-modern">Email <span class="text-danger">*</span></label>
@@ -574,6 +582,14 @@
                         <input class="form-check-input" type="checkbox" id="edit_is_tally_calling" name="is_tally_calling">
                         <label class="form-check-label" for="edit_is_tally_calling">Tally Calling Access</label>
                     </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="edit_is_form_lead_mail" name="is_form_lead_mail">
+                        <label class="form-check-label" for="edit_is_form_lead_mail">Lead From Mail Access</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="edit_is_username_login" name="is_username_login">
+                        <label class="form-check-label" for="edit_is_username_login">Username Login Only</label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -605,6 +621,13 @@
                 <div class="col-md-6 mb-3">
                     <label for="create_name" class="form-label-modern">Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control form-control-modern" id="create_name" name="name" required placeholder="Enter Name">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="create_username" class="form-label-modern">Username</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-modern" id="create_username" name="username" placeholder="Enter Username">
+                        <button class="btn btn-outline-secondary" type="button" onclick="generateUserRandomUsername()" title="Generate Random Username" style="border-color: #e0e0e0; border-left: 0;"><i class="bi bi-arrow-repeat"></i></button>
+                    </div>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="create_email" class="form-label-modern">Email <span class="text-danger">*</span></label>
@@ -677,6 +700,14 @@
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" id="create_is_tally_calling" name="is_tally_calling">
                         <label class="form-check-label" for="create_is_tally_calling">Tally Calling Access</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="create_is_form_lead_mail" name="is_form_lead_mail">
+                        <label class="form-check-label" for="create_is_form_lead_mail">Lead From Mail Access</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="create_is_username_login" name="is_username_login">
+                        <label class="form-check-label" for="create_is_username_login">Username Login Only</label>
                     </div>
                 </div>
             </div>
@@ -836,7 +867,7 @@ $(function () {
     
     $('#usersTable tbody').html(`
       <tr>
-        <td colspan="7" class="loading-state">
+        <td colspan="8" class="loading-state">
           <i class="bi bi-arrow-repeat spin"></i>
           <p class="mt-2 mb-0">Loading users...</p>
         </td>
@@ -847,7 +878,7 @@ $(function () {
       if (!data.data || data.data.length === 0) {
         $('#usersTable tbody').html(`
           <tr>
-             <td colspan="7" class="empty-state">
+             <td colspan="8" class="empty-state">
               <i class="bi bi-inbox"></i>
               <h5>No Users Found</h5>
               <p>Get started by creating your first user.</p>
@@ -885,6 +916,7 @@ $(function () {
             <tr style="animation-delay: ${i * 0.1}s;">
               <td><strong>${user.id}</strong></td>
               <td><strong>${user.name}</strong></td>
+              <td>${user.username || '-'}</td>
               <td><span class="badge badge-modern-info">${user.role ? user.role.role_name : '-'}</span></td>
               <td>${user.email}</td>
               <td style="max-width: 200px; white-space: normal;">${managerDisplay}</td>
@@ -914,7 +946,7 @@ $(function () {
     }).fail(function () {
       $('#usersTable tbody').html(`
         <tr>
-          <td colspan="7" class="text-danger text-center py-4">
+          <td colspan="8" class="text-danger text-center py-4">
             <i class="bi bi-exclamation-triangle"></i>
             <p class="mt-2 mb-0">Failed to load users. Please try again.</p>
           </td>
@@ -973,6 +1005,7 @@ function deleteUser(id) {
 function openEditModal(user) {
   $('#edit_user_id').val(user.id);
   $('#edit_name').val(user.name);
+  $('#edit_username').val(user.username || '');
   $('#edit_email').val(user.email);
   $('#edit_is_worklog').prop('checked', user.is_worklog == 1);
   $('#edit_is_sales').prop('checked', user.is_sales == 1);
@@ -983,6 +1016,8 @@ function openEditModal(user) {
   $('#edit_is_attendance').prop('checked', user.is_attendance == 1);
   $('#edit_is_subscription').prop('checked', user.is_subscription == 1);
   $('#edit_is_tally_calling').prop('checked', user.is_tally_calling == 1);
+  $('#edit_is_form_lead_mail').prop('checked', user.is_form_lead_mail == 1);
+  $('#edit_is_username_login').prop('checked', user.is_username_login == 1);
 
   // Load roles dropdown
   $.ajax({
@@ -1094,6 +1129,7 @@ $('#editUserForm').submit(function (e) {
     data: {
       name: $('#edit_name').val(),
       email: $('#edit_email').val(),
+      username: $('#edit_username').val(),
       role_id: $('#edit_role').val(),
       employee_id: $('#edit_employee').val() || null,
       manager_ids: $('#edit_managers').val() || [],
@@ -1105,7 +1141,9 @@ $('#editUserForm').submit(function (e) {
       is_login: $('#edit_is_login').is(':checked') ? 1 : 0,
       is_attendance: $('#edit_is_attendance').is(':checked') ? 1 : 0,
       is_subscription: $('#edit_is_subscription').is(':checked') ? 1 : 0,
-      is_tally_calling: $('#edit_is_tally_calling').is(':checked') ? 1 : 0
+      is_tally_calling: $('#edit_is_tally_calling').is(':checked') ? 1 : 0,
+      is_form_lead_mail: $('#edit_is_form_lead_mail').is(':checked') ? 1 : 0,
+      is_username_login: $('#edit_is_username_login').is(':checked') ? 1 : 0
     },
     success: function () {
       $('#editUserModal').modal('hide');
@@ -1135,6 +1173,8 @@ $('#createUserModal').on('show.bs.modal', function () {
   $('#create_is_attendance').prop('checked', false);
   $('#create_is_subscription').prop('checked', false);
   $('#create_is_tally_calling').prop('checked', false);
+  $('#create_is_form_lead_mail').prop('checked', false);
+  $('#create_is_username_login').prop('checked', false);
 
   // Load roles dropdown
   $.ajax({
@@ -1201,6 +1241,7 @@ $('#createUserForm').submit(function (e) {
     data: {
       name: $('#create_name').val(),
       email: $('#create_email').val(),
+      username: $('#create_username').val(),
       password: $('#create_password').val(),
       role_id: $('#create_role').val(),
       employee_id: $('#create_employee').val() || null,
@@ -1213,7 +1254,9 @@ $('#createUserForm').submit(function (e) {
       is_login: $('#create_is_login').is(':checked') ? 1 : 0,
       is_attendance: $('#create_is_attendance').is(':checked') ? 1 : 0,
       is_subscription: $('#create_is_subscription').is(':checked') ? 1 : 0,
-      is_tally_calling: $('#create_is_tally_calling').is(':checked') ? 1 : 0
+      is_tally_calling: $('#create_is_tally_calling').is(':checked') ? 1 : 0,
+      is_form_lead_mail: $('#create_is_form_lead_mail').is(':checked') ? 1 : 0,
+      is_username_login: $('#create_is_username_login').is(':checked') ? 1 : 0
     },
     success: function () {
       $('#createUserModal').modal('hide');
@@ -1230,6 +1273,20 @@ $('#createUserForm').submit(function (e) {
     }
   });
 });
+
+function generateUserRandomUsername() {
+    let name = $('#create_name').val().trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!name) name = 'user';
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    $('#create_username').val(name + randomNum);
+}
+
+function generateEditUserRandomUsername() {
+    let name = $('#edit_name').val().trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!name) name = 'user';
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    $('#edit_username').val(name + randomNum);
+}
 </script>
 <style>
   .spin {

@@ -990,6 +990,7 @@
             is_tracking: $('#employee_is_tracking').is(':checked') ? 1 : 0,
             is_field_attendance_enable: $('#employee_field_attendance_enable').is(':checked') ? 1 : 0,
             is_login: $('#employee_is_login').is(':checked') ? 1 : 0,
+            username: $('#employee_username').val(),
             password: $('#employee_password').val(),
             role_id: $('#employee_role').val(),
             working_type: $('#employee_working_type').val(),
@@ -1253,6 +1254,7 @@
             // Login Setup
             $('#login_toggle_container').show();
             $('#employee_is_login').prop('checked', false).trigger('change');
+            $('#employee_username').val('');
             $('#employee_password').val('');
             $('#employee_role').val('');
             
@@ -1844,6 +1846,13 @@
         }
     });
 
+    window.generateRandomUsername = function() {
+        let name = $('#employee_name').val().trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!name) name = 'user';
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        $('#employee_username').val(name + randomNum);
+    };
+
     $(document).ready(loadEmployees);
 })();
 </script>
@@ -2165,11 +2174,18 @@
                         </div>
                         <div class="col-12" id="login_credentials_section" style="display: none;">
                             <div class="row g-2 mt-1 p-2 border rounded bg-light">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <label class="form-label">User Name <span class="text-danger">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" id="employee_username" class="form-control" placeholder="Enter username">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="generateRandomUsername()" title="Generate Random Username"><i class="bi bi-arrow-repeat"></i></button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
                                     <label class="form-label">Password <span class="text-danger">*</span></label>
                                     <input type="password" id="employee_password" class="form-control form-control-sm" placeholder="Enter password for user">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label">Role <span class="text-danger">*</span></label>
                                     <select id="employee_role" class="form-select form-select-sm">
                                         <option value="">Select Role</option>

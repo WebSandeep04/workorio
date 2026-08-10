@@ -45,6 +45,15 @@ return [
             ],
         ],
         [
+            'key' => 'admin_whatsapp_campaign',
+            'title' => 'WhatsApp Campaign',
+            'route' => 'whatsapp-campaigns.index',
+            'icon' => 'bi bi-whatsapp',
+            'feature_flag' => 'is_sales_enabled',
+            'roles' => ['admin'],
+            'permission' => 'sales.whatsapp',
+        ],
+        [
             'key' => 'admin_lead_generation',
             'title' => 'Lead Generation',
             'icon' => 'bi bi-person-plus',
@@ -170,6 +179,18 @@ return [
                 ['route' => 'payroll.process.index', 'title' => 'Process Payroll', 'icon' => 'bi bi-calculator', 'permission' => 'payroll.process'],
             ],
         ],
+        // Loan Management section
+        [
+            'key' => 'admin_loans',
+            'title' => 'Loan Management',
+            'icon' => 'bi bi-bank',
+            'feature_flag' => 'is_payroll_enabled',
+            'roles' => ['admin'],
+            'items' => [
+                ['route' => 'loans.index', 'title' => 'My Financial Requests', 'icon' => 'bi bi-wallet2', 'permission' => 'loans.my_loans'],
+                ['route' => 'loans.manage', 'title' => 'Manage Financial Requests', 'icon' => 'bi bi-cash-coin', 'permission' => 'loans.manage'],
+            ],
+        ],
         // Reports section
         [
             'key' => 'admin_reports',
@@ -182,7 +203,7 @@ return [
                 ['route' => 'attendance.report', 'title' => 'Attendance Report', 'icon' => 'bi bi-file-earmark-text', 'permission' => 'attendance.report'],
                 ['route' => 'payroll.report', 'title' => 'Salary Report', 'icon' => 'bi bi-cash-stack', 'permission' => 'payroll.report', 'feature_flag' => 'is_payroll_enabled'],
                 ['route' => 'reports.worklog', 'title' => 'Timesheet Report', 'icon' => 'bi bi-journals', 'permission' => 'reports.worklog', 'feature_flag' => 'is_worklog_enabled'],
-                ['route' => 'tracking.report', 'title' => 'Tracking Report', 'icon' => 'bi bi-geo-alt', 'permission' => 'tracking.view', 'feature_flag' => 'is_tracking_enabled'],
+                // ['route' => 'tracking.report', 'title' => 'Tracking Report', 'icon' => 'bi bi-geo-alt', 'permission' => 'tracking.view', 'feature_flag' => 'is_tracking_enabled'],
                 // ['route' => 'reports.user-worklog', 'title' => 'User-wise Report', 'icon' => 'bi bi-person-lines-fill'],
             ],
         ],
@@ -221,6 +242,7 @@ return [
                 ['route' => 'attendance.approval', 'title' => 'Attendance Approval', 'icon' => 'bi bi-person-check', 'permission' => 'approvals.attendance'],
                 ['route' => 'attendance.unlock', 'title' => 'Unlock Attendance', 'icon' => 'bi bi-unlock', 'permission' => 'approvals.unlock_attendance'],
                 ['route' => 'leave.approvals', 'title' => 'Leave Approval', 'icon' => 'bi bi-calendar-check', 'permission' => 'approvals.leave'],
+                ['route' => 'loans.admin', 'title' => 'Financial Request Approval', 'icon' => 'bi bi-bank', 'permission' => 'loans.manage', 'feature_flag' => 'is_payroll_enabled'],
             ],
         ],
         // Contact Management section

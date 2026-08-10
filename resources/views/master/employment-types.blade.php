@@ -126,6 +126,14 @@
                     <option value="inactive">Inactive</option>
                 </select>
               </div>
+              <div class="col-md-6">
+                <label class="form-label-modern">Max Loan % of Gross Salary</label>
+                <input type="number" step="0.01" class="form-control form-control-modern" id="max_loan_percentage" name="max_loan_percentage" placeholder="e.g., 50.00">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-modern">Max Advance % of Gross Salary</label>
+                <input type="number" step="0.01" class="form-control form-control-modern" id="max_advance_percentage" name="max_advance_percentage" placeholder="e.g., 20.00">
+              </div>
           </div>
 
           <!-- The Integrated Leave Matrix -->
@@ -338,6 +346,8 @@ $(function() {
         $('#modalTitle').html('<i class="bi bi-plus text-white"></i> Create Employment Type');
         $('#mainForm')[0].reset();
         $('#edit_id').val('');
+        $('#max_loan_percentage').val('');
+        $('#max_advance_percentage').val('');
         
         // Reset matrix
         $('.matrix-toggle').prop('checked', false).trigger('change');
@@ -363,6 +373,8 @@ $(function() {
         $('#edit_id').val(row.id);
         $('#name').val(row.name);
         $('#status').val(row.status);
+        $('#max_loan_percentage').val(row.max_loan_percentage);
+        $('#max_advance_percentage').val(row.max_advance_percentage);
 
 
         // Fill Rules

@@ -99,6 +99,7 @@ use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\UnlockAttendanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WhatsappTemplateController;
+use App\Http\Controllers\WhatsappCampaignController;
 use App\Http\Controllers\WorkflowDependencyController;
 use App\Http\Controllers\WorkflowTaskDependencyController;
 use App\Http\Controllers\WorkflowTemplateController;
@@ -188,6 +189,29 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     });
+
+    // Loan Management
+    Route::get('/loans', [\App\Http\Controllers\LoanController::class, 'index'])->name('loans.index');
+    Route::post('/loans/fetch', [\App\Http\Controllers\LoanController::class, 'list'])->name('loans.fetch');
+    Route::get('/loans/create', [\App\Http\Controllers\LoanController::class, 'create'])->name('loans.create');
+    Route::post('/loans', [\App\Http\Controllers\LoanController::class, 'store'])->name('loans.store');
+    Route::delete('/loans/{loan}', [\App\Http\Controllers\LoanController::class, 'destroy'])->name('loans.destroy');
+    Route::get('/admin/loans', [\App\Http\Controllers\LoanController::class, 'adminIndex'])->name('loans.admin');
+    Route::post('/admin/loans/fetch', [\App\Http\Controllers\LoanController::class, 'adminFetch'])->name('loans.admin.fetch');
+    Route::post('/admin/loans/{loan}/status', [\App\Http\Controllers\LoanController::class, 'updateStatus'])->name('loans.admin.status');
+    Route::get('/admin/loans/manage', [\App\Http\Controllers\LoanController::class, 'manageIndex'])->name('loans.manage');
+    Route::get('/admin/loans/{loan}/installments', [\App\Http\Controllers\LoanController::class, 'manageInstallments'])->name('loans.manage.installments');
+    Route::post('/loans/installments/{installment}/skip', [\App\Http\Controllers\LoanController::class, 'skipInstallment'])->name('loans.skip-installment');
+
+    // Salary Advance routes
+    Route::post('/salary-advances/fetch', [\App\Http\Controllers\SalaryAdvanceController::class, 'fetch'])->name('salary_advances.fetch');
+    Route::get('/salary-advances', [\App\Http\Controllers\SalaryAdvanceController::class, 'index'])->name('salary_advances.index');
+    Route::post('/salary-advances', [\App\Http\Controllers\SalaryAdvanceController::class, 'store'])->name('salary_advances.store');
+    Route::delete('/salary-advances/{id}', [\App\Http\Controllers\SalaryAdvanceController::class, 'destroy'])->name('salary_advances.destroy');
+    Route::get('/admin/salary-advances', [\App\Http\Controllers\SalaryAdvanceController::class, 'adminIndex'])->name('salary_advances.admin');
+    Route::post('/admin/salary-advances/fetch', [\App\Http\Controllers\SalaryAdvanceController::class, 'adminFetch'])->name('salary_advances.admin.fetch');
+    Route::post('/admin/salary-advances/{id}/status', [\App\Http\Controllers\SalaryAdvanceController::class, 'updateStatus'])->name('salary_advances.admin.status');
+    Route::get('/admin/salary-advances/manage', [\App\Http\Controllers\SalaryAdvanceController::class, 'manageIndex'])->name('salary_advances.manage');
 
     // Sales Status routes
     Route::get('/status/fetch', [SalesStatusController::class, 'fetchSaleStatus'])->name('status.fetch');
@@ -1270,4 +1294,16 @@ Route::middleware(['auth.or.session'])->group(function () {
         Route::get('report/export', [App\Http\Controllers\Payroll\PayrollController::class, 'exportReport'])->name('report.export');
         Route::get('report/export-pdf', [App\Http\Controllers\Payroll\PayrollController::class, 'exportReportPdf'])->name('report.export-pdf');
     });
+
+    // WhatsApp Campaigns
+    Route::get('whatsapp-campaigns', [WhatsappCampaignController::class, 'index'])->name('whatsapp-campaigns.index');
+    Route::post('whatsapp-campaigns/fetch', [WhatsappCampaignController::class, 'fetch'])->name('whatsapp-campaigns.fetch');
+    Route::post('whatsapp-campaigns', [WhatsappCampaignController::class, 'store'])->name('whatsapp-campaigns.store');
+    Route::put('whatsapp-campaigns/{whatsapp_campaign}', [WhatsappCampaignController::class, 'update'])->name('whatsapp-campaigns.update');
+    Route::delete('whatsapp-campaigns/{whatsapp_campaign}', [WhatsappCampaignController::class, 'destroy'])->name('whatsapp-campaigns.destroy');
+    Route::get('whatsapp-campaigns/{whatsapp_campaign}', [WhatsappCampaignController::class, 'show'])->name('whatsapp-campaigns.show');
+    Route::post('whatsapp-campaigns/{whatsapp_campaign}/add-members', [WhatsappCampaignController::class, 'addMembers'])->name('whatsapp-campaigns.add-members');
+    Route::post('whatsapp-campaigns/{whatsapp_campaign}/fetch-members', [WhatsappCampaignController::class, 'fetchMembers'])->name('whatsapp-campaigns.fetch-members');
+    Route::delete('whatsapp-campaigns/member/{id}', [WhatsappCampaignController::class, 'removeMember'])->name('whatsapp-campaigns.remove-member');
+    Route::get('whatsapp-campaigns-source-data', [WhatsappCampaignController::class, 'getSourceData'])->name('whatsapp-campaigns.source-data');
 });

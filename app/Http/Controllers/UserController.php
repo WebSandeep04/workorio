@@ -27,7 +27,8 @@ class UserController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('username', 'like', "%{$search}%");
             });
         }
 
@@ -92,6 +93,7 @@ public function update(Request $request, $id)
         $validationRules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
+            'username' => 'nullable|string|unique:users,username,' . $id,
             'role_id' => 'required|exists:roles,id',
             'manager_ids' => 'nullable|array',
             'is_worklog' => 'nullable',
@@ -103,7 +105,8 @@ public function update(Request $request, $id)
             'is_login' => 'nullable',
             'is_attendance' => 'nullable',
             'is_subscription' => 'nullable',
-            'is_tally_calling' => 'nullable'
+            'is_tally_calling' => 'nullable',
+            'is_username_login' => 'nullable'
         ];
         
         // Only validate employee_id exists if employees table exists
@@ -135,6 +138,7 @@ public function update(Request $request, $id)
     $user->update([
         'name' => $request->name,
         'email' => $request->email,
+        'username' => $request->username,
         'role_id' => $request->role_id,
         'is_worklog' => $request->is_worklog,
         'employee_id' => $request->employee_id ?: null,
@@ -145,7 +149,10 @@ public function update(Request $request, $id)
         'is_login' => $request->is_login,
         'is_attendance' => $request->is_attendance,
         'is_subscription' => $request->is_subscription,
-        'is_tally_calling' => $request->is_tally_calling]);
+        'is_tally_calling' => $request->is_tally_calling,
+        'is_username_login' => $request->is_username_login,
+        'is_form_lead_mail' => $request->is_form_lead_mail
+    ]);
 
     // Sync managers
     if ($request->has('manager_ids')) {
@@ -167,6 +174,7 @@ public function store(Request $request)
         $validationRules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
+            'username' => 'nullable|string|unique:users,username',
             'password' => 'required|string|min:6',
             'role_id' => 'required|exists:roles,id',
             'manager_ids' => 'nullable|array',
@@ -179,7 +187,9 @@ public function store(Request $request)
             'is_login' => 'nullable',
             'is_attendance' => 'nullable',
             'is_subscription' => 'nullable',
-            'is_tally_calling' => 'nullable'
+            'is_tally_calling' => 'nullable',
+            'is_username_login' => 'nullable',
+            'is_form_lead_mail' => 'nullable'
         ];
         
         // Only validate employee_id exists if employees table exists
@@ -202,6 +212,7 @@ public function store(Request $request)
         $userData = [
             'name' => $request->name,
             'email' => $request->email,
+            'username' => $request->username,
             'password' => bcrypt($request->password),
             'role_id' => $request->role_id,
             'is_worklog' => $request->is_worklog,
@@ -213,7 +224,10 @@ public function store(Request $request)
             'is_login' => $request->is_login ?? 1,
             'is_attendance' => $request->is_attendance ?? 0,
             'is_subscription' => $request->is_subscription ?? 0,
-            'is_tally_calling' => $request->is_tally_calling ?? 0];
+            'is_tally_calling' => $request->is_tally_calling ?? 0,
+            'is_username_login' => $request->is_username_login ?? 0,
+            'is_form_lead_mail' => $request->is_form_lead_mail ?? 0
+        ];
 
         $user = User::create($userData);
 

@@ -14,6 +14,8 @@ class EmploymentType extends Model
         'name',
         'status',
         'notes',
+        'max_loan_percentage',
+        'max_advance_percentage',
     ];
 
     public function employees()

@@ -64,6 +64,7 @@ class EmployeeController extends Controller
         if ($request->boolean('is_login')) {
             $request->validate([
                 'email' => 'required|email|unique:users,email',
+                'username' => 'required|string|unique:users,username',
                 'password' => 'required|min:6',
                 'role_id' => 'required|exists:roles,id'
             ]);
@@ -94,6 +95,7 @@ class EmployeeController extends Controller
             \App\Models\User::create([
                 'name' => $employee->name,
                 'email' => $employee->email,
+                'username' => $request->input('username'),
                 'password' => \Illuminate\Support\Facades\Hash::make($request->input('password')),
                 'role_id' => $request->input('role_id'),
                 'employee_id' => $employee->id,
