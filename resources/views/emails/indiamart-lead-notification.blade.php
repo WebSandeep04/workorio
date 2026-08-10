@@ -146,23 +146,9 @@
                 <p>{{ $leadData['query_message'] }}</p>
             </div>
             @endif
-            
-            <div class="divider">
-                <div class="field">
-                    <span class="label">Query ID:</span>
-                    <span class="value">{{ $leadData['unique_query_id'] ?? 'N/A' }}</span>
-                </div>
-                
-                <div class="field">
-                    <span class="label">Query Time:</span>
-                    <span class="value">{{ $leadData['query_time'] ?? now()->format('Y-m-d H:i:s') }}</span>
-                </div>
-            </div>
-            
-            <div style="text-align: center;">
-                <a href="{{ url('/indiamart/leads') }}" class="btn">View Lead in CRM</a>
-            </div>
         </div>
+            
+
         
         <div class="footer">
             <p>This is an automated notification from your Lead Management System.</p>

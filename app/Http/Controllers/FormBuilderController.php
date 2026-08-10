@@ -405,6 +405,17 @@ class FormBuilderController extends Controller
         try {
             $connection->table($table)->insert($payload);
             Log::info('[FormSubmit]['.$debugId.'] Inserted successfully', ['table' => $table]);
+            
+            try {
+                $usersToNotify = \App\Models\User::where('is_form_lead_mail', 1)->get();
+                if ($usersToNotify->isNotEmpty()) {
+                    \Illuminate\Support\Facades\Mail::to($usersToNotify)->send(new \App\Mail\IndiaMartLeadNotification($payload));
+                }
+            } catch (\Throwable $e) {
+                Log::error('[FormSubmit]['.$debugId.'] Failed to send email notification', [
+                    'message' => $e->getMessage(),
+                ]);
+            }
         } catch (\Throwable $e) {
             Log::error('[FormSubmit]['.$debugId.'] Insert failed', [
                 'message' => $e->getMessage(),
@@ -602,6 +613,15 @@ class FormBuilderController extends Controller
         if (!empty($payload)) {
             try {
                 $connection->table($table)->insert($payload);
+                
+                try {
+                    $usersToNotify = \App\Models\User::where('is_form_lead_mail', 1)->get();
+                    if ($usersToNotify->isNotEmpty()) {
+                        \Illuminate\Support\Facades\Mail::to($usersToNotify)->send(new \App\Mail\IndiaMartLeadNotification($payload));
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Failed to send public lead mail: ' . $e->getMessage());
+                }
             } catch (\Throwable $e) {
                 return redirect()->back()->with('error', 'DB insert failed: ' . $e->getMessage());
             }
