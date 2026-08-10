@@ -190,17 +190,17 @@ class LeadGenerationController extends Controller
     public function getStatusCounts()
     {
         $userId = $this->getCurrentUserId();
-        $counts = SalesStatus::select('sales_statuses.id', 'sales_statuses.status_name')
+        $counts = SalesStatus::select('sales_status.id', 'sales_status.status_name')
             ->selectRaw('count(sales_records.id) as count')
             ->leftJoin('sales_records', function($join) use ($userId) {
-                $join->on('sales_statuses.id', '=', 'sales_records.status_id')
+                $join->on('sales_status.id', '=', 'sales_records.status_id')
                      ->whereIn('sales_records.id', function($query) use ($userId) {
                          $query->select('sales_record_id')
                                ->from('lead_assignment_logs')
                                ->where('assigned_by', $userId);
                      });
             })
-            ->groupBy('sales_statuses.id', 'sales_statuses.status_name')
+            ->groupBy('sales_status.id', 'sales_status.status_name')
             ->get();
 
         return response()->json($counts);
