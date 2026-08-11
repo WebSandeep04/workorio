@@ -68,37 +68,72 @@ class LoanController extends Controller
             return back()->withErrors(['amount' => $errMessage])->withInput();
         }
 
-        // total_installments will be updated after calculation
+        $interestSetting = \App\Models\LoanInterest::latest()->first();
+        $annualInterestRate = $interestSetting ? $interestSetting->interest_rate : 0;
+        $monthlyInterestRate = $annualInterestRate / 12 / 100;
+
+        if ($monthlyInterestRate > 0) {
+            $firstMonthInterest = round($request->amount * $monthlyInterestRate, 2);
+            if ($request->emi_amount <= $firstMonthInterest) {
+                $errMessage = "The requested EMI amount ({$request->emi_amount}) is too low. It must be greater than the first month's interest ({$firstMonthInterest}) to pay off the loan.";
+                if ($request->ajax()) {
+                    return response()->json([
+                        'message' => 'The given data was invalid.',
+                        'errors' => ['emi_amount' => [$errMessage]]
+                    ], 422);
+                }
+                return back()->withErrors(['emi_amount' => $errMessage])->withInput();
+            }
+        }
+
+        $remainingAmount = $request->amount;
+        $totalInterest = 0;
+        $i = 1;
+        $installmentsData = [];
+        $startMonth = \Carbon\Carbon::createFromFormat('Y-m', $request->start_month)->startOfMonth();
+
+        while ($remainingAmount > 0.01) {
+            $monthlyInterest = $monthlyInterestRate > 0 ? round($remainingAmount * $monthlyInterestRate, 2) : 0;
+
+            $currentInstAmount = min($remainingAmount + $monthlyInterest, $request->emi_amount);
+            $principalComponent = $currentInstAmount - $monthlyInterest;
+
+            // Adjust last installment for rounding
+            if ($remainingAmount - $principalComponent < 0.01) {
+                $principalComponent = $remainingAmount;
+                $currentInstAmount = $principalComponent + $monthlyInterest;
+            }
+
+            $installmentsData[] = [
+                'installment_number' => $i,
+                'due_month' => $startMonth->copy()->addMonths($i - 1)->format('Y-m'),
+                'amount' => $currentInstAmount,
+                'principal_component' => $principalComponent,
+                'interest_component' => $monthlyInterest,
+                'status' => 'pending',
+            ];
+
+            $totalInterest += $monthlyInterest;
+            $remainingAmount -= $principalComponent;
+            $i++;
+        }
+
         $loan = \App\Models\Loan::create([
             'employee_id' => $employee->id,
             'amount' => $request->amount,
-            'total_installments' => 0,
+            'applied_interest_rate' => $annualInterestRate,
+            'total_interest' => $totalInterest,
+            'total_payable' => $request->amount + $totalInterest,
+            'total_installments' => count($installmentsData),
             'installment_amount' => $request->emi_amount,
             'status' => 'pending',
             'reason' => $request->reason,
         ]);
 
-        $startMonth = \Carbon\Carbon::createFromFormat('Y-m', $request->start_month)->startOfMonth();
-        $remainingAmount = $request->amount;
-        $i = 1;
-
-        while ($remainingAmount > 0) {
-            $currentInstAmount = min($remainingAmount, $request->emi_amount);
-
-            \App\Models\LoanInstallment::create([
-                'loan_id' => $loan->id,
-                'installment_number' => $i,
-                'due_month' => $startMonth->copy()->addMonths($i - 1)->format('Y-m'),
-                'amount' => $currentInstAmount,
-                'status' => 'pending',
-            ]);
-
-            $remainingAmount -= $currentInstAmount;
-            $i++;
+        foreach ($installmentsData as $inst) {
+            $inst['loan_id'] = $loan->id;
+            \App\Models\LoanInstallment::create($inst);
         }
-
-        // Update the actual calculated total installments
-        $loan->update(['total_installments' => $i - 1]);
 
         if ($request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Loan request created successfully and is pending approval.']);

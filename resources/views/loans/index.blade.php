@@ -189,7 +189,9 @@
           <tr>
             <th>Type</th>
             <th>Employee</th>
-            <th>Amount</th>
+            <th>Principal / Amt</th>
+            <th>Interest</th>
+            <th>Total Payable</th>
             <th>Details</th>
             <th>Remaining Balance</th>
             <th>Status</th>
@@ -332,6 +334,13 @@
                         let amount = amt.toFixed(2);
                         let remStr = rem.toFixed(2);
                         
+                        let totalInterestStr = 'N/A';
+                        let totalPayableStr = 'N/A';
+                        if (req.request_type === 'loan') {
+                            totalInterestStr = (parseFloat(req.total_interest) || 0).toFixed(2) + ' (' + (parseFloat(req.applied_interest_rate)||0) + '%)';
+                            totalPayableStr = (parseFloat(req.total_payable) || amt).toFixed(2);
+                        }
+                        
                         let typeBadge = req.request_type === 'loan' ? '<span class="badge bg-primary" style="font-size: 0.75rem;">Loan</span>' : '<span class="badge bg-info text-dark" style="font-size: 0.75rem;">Advance</span>';
                         
                         let details = '';
@@ -366,6 +375,8 @@
                                 <td>${typeBadge}</td>
                                 <td><strong>${empName}</strong></td>
                                 <td>${amount}</td>
+                                <td>${totalInterestStr}</td>
+                                <td>${totalPayableStr}</td>
                                 <td>${details}</td>
                                 <td>${remStr}</td>
                                 <td>${statusBadge}</td>
