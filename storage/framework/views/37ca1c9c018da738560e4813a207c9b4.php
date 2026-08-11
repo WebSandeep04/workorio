@@ -81,6 +81,7 @@
                                 <option value="Prospectus">Prospectus</option>
                                 <option value="Customer">Customers</option>
                                 <option value="Calling">Calling Data</option>
+                                <option value="BusinessCardScan">Contact Mgmt (Business Cards)</option>
                             </select>
                         </div>
                     </div>
@@ -344,14 +345,8 @@
                         let phoneClean = member.phone_number ? member.phone_number.replace(/[^0-9]/g, '') : '';
                         
                         let actionHtml = '';
-                        if (member.phone_number) {
-                            actionHtml = `
-                                <a href="https://wa.me/${phoneClean}" target="_blank" class="btn btn-sm btn-success py-0 px-2" title="Message">
-                                    <i class="bi bi-whatsapp"></i>
-                                </a>
-                            `;
-                        } else {
-                            actionHtml = `<span class="text-danger small">No Phone</span>`;
+                        if (!member.phone_number) {
+                            actionHtml = `<span class="text-danger small me-2">No Phone</span>`;
                         }
 
                         actionHtml += `

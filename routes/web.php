@@ -1306,4 +1306,6 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('whatsapp-campaigns/{whatsapp_campaign}/fetch-members', [WhatsappCampaignController::class, 'fetchMembers'])->name('whatsapp-campaigns.fetch-members');
     Route::delete('whatsapp-campaigns/member/{id}', [WhatsappCampaignController::class, 'removeMember'])->name('whatsapp-campaigns.remove-member');
     Route::get('whatsapp-campaigns-source-data', [WhatsappCampaignController::class, 'getSourceData'])->name('whatsapp-campaigns.source-data');
-});
+    Route::get('whatsapp-campaigns-fetch-msg91-templates', [WhatsappCampaignController::class, 'fetchMsg91Templates'])->name('whatsapp-campaigns.fetch-msg91-templates');
+    Route::post('whatsapp-campaigns/{whatsapp_campaign}/send', [WhatsappCampaignController::class, 'sendCampaign'])->name('whatsapp-campaigns.send');
+});
