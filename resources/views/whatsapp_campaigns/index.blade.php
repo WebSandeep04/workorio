@@ -435,6 +435,7 @@
                             <option value="">Loading templates...</option>
                         </select>
                     </div>
+                    <div id="dynamic_variables_container"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -630,9 +631,12 @@
         $('#campaignsRangeInfo').text(`Showing ${from}-${to} from ${total} data`);
     }
 
+    let msg91Templates = [];
+
     function openSendModal(id) {
         $('#send_campaign_id').val(id);
         $('#send_template').html('<option value="">Loading templates...</option>');
+        $('#dynamic_variables_container').html('');
         $('#sendCampaignModal').modal('show');
         
         $.ajax({
@@ -640,6 +644,7 @@
             type: 'GET',
             success: function(res) {
                 if (res.success) {
+                    msg91Templates = res.data;
                     let html = '<option value="">-- Select Template --</option>';
                     res.data.forEach(t => {
                         html += `<option value="${t.name}">${t.name}</option>`;
@@ -655,6 +660,34 @@
             }
         });
     }
+
+    $(document).on('change', '#send_template', function() {
+        let selectedTemplateName = $(this).val();
+        let container = $('#dynamic_variables_container');
+        container.html(''); // clear
+
+        if (!selectedTemplateName) return;
+
+        let template = msg91Templates.find(t => t.name === selectedTemplateName);
+        if (template && template.variables && template.variables.length > 0) {
+            let html = '<hr><h6 class="mb-3">Map Template Variables</h6>';
+            template.variables.forEach(variable => {
+                html += `
+                    <div class="mb-2 row align-items-center">
+                        <label class="col-sm-4 col-form-label text-end fw-bold">${variable}</label>
+                        <div class="col-sm-8">
+                            <select class="form-select form-select-sm" name="mappings[${variable}]" required>
+                                <option value="">-- Map to field --</option>
+                                <option value="name">Name</option>
+                                <option value="phone_number">Phone Number</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            });
+            container.html(html);
+        }
+    });
 
     $('#sendCampaignForm').submit(function(e) {
         e.preventDefault();

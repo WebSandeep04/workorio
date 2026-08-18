@@ -260,6 +260,7 @@ class WhatsappCampaignController extends Controller
                             $formatted[] = [
                                 'name' => $t['name'] ?? '',
                                 'language' => $lang['language'] ?? 'en_US',
+                                'variables' => $lang['variables'] ?? []
                             ];
                         }
                     }
@@ -321,16 +322,20 @@ class WhatsappCampaignController extends Controller
                 $phone = '91' . $phone;
             }
 
-            // Simple body parameters based on the member
-            // In a real application, you'd match the template variables exactly.
-            // Assuming standard {{1}} is name. MSG91 components array:
-            // "components": { "body_1": { "type": "text", "value": "Customer Name" } }
-            // Since we don't have full template variable details, we'll map name if available.
             $components = new \stdClass();
-            if ($member->name) {
-                $components->body_1 = [
+            $mappings = $request->input('mappings', []);
+            
+            foreach ($mappings as $variable => $field) {
+                $value = '';
+                if ($field === 'name') {
+                    $value = $member->name ?? 'Customer';
+                } elseif ($field === 'phone_number') {
+                    $value = $member->phone_number ?? '';
+                }
+                
+                $components->{$variable} = [
                     "type" => "text",
-                    "value" => $member->name
+                    "value" => $value
                 ];
             }
 
