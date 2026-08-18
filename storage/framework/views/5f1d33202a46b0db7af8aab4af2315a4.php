@@ -418,6 +418,33 @@
     </div>
 </div>
 
+<!-- Send Campaign Modal -->
+<div class="modal fade" id="sendCampaignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Campaign via MSG91</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="sendCampaignForm">
+                <input type="hidden" id="send_campaign_id" name="id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="send_template" class="form-label">Select MSG91 Template <span class="text-danger">*</span></label>
+                        <select class="form-select" id="send_template" name="template_name" required>
+                            <option value="">Loading templates...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success" id="btn-send">Send Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
@@ -465,6 +492,9 @@
                                     </a>
                                     <button class="btn btn-sm btn-primary action-btn me-1" onclick="openEditModal(${campaign.id}, '${campaign.name.replace(/'/g, "\\'")}', '${campaign.status}')" title="Edit">
                                         <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-success action-btn me-1" onclick="openSendModal(${campaign.id})" title="Send">
+                                        <i class="bi bi-send"></i>
                                     </button>
                                     <button class="btn btn-sm btn-danger action-btn" onclick="deleteCampaign(${campaign.id})" title="Delete">
                                         <i class="bi bi-trash"></i>
@@ -599,6 +629,58 @@
         }
         $('#campaignsRangeInfo').text(`Showing ${from}-${to} from ${total} data`);
     }
+
+    function openSendModal(id) {
+        $('#send_campaign_id').val(id);
+        $('#send_template').html('<option value="">Loading templates...</option>');
+        $('#sendCampaignModal').modal('show');
+        
+        $.ajax({
+            url: `<?php echo e(route('whatsapp-campaigns.fetch-msg91-templates')); ?>`,
+            type: 'GET',
+            success: function(res) {
+                if (res.success) {
+                    let html = '<option value="">-- Select Template --</option>';
+                    res.data.forEach(t => {
+                        html += `<option value="${t.name}">${t.name}</option>`;
+                    });
+                    $('#send_template').html(html);
+                } else {
+                    $('#send_template').html(`<option value="">Error: ${res.message}</option>`);
+                }
+            },
+            error: function(xhr) {
+                let msg = xhr.responseJSON?.message || 'Failed to load templates. Ensure MSG91 Settings are configured.';
+                $('#send_template').html(`<option value="">Error: ${msg}</option>`);
+            }
+        });
+    }
+
+    $('#sendCampaignForm').submit(function(e) {
+        e.preventDefault();
+        if(!confirm('Are you sure you want to send this campaign? This action cannot be undone.')) return;
+
+        $('#btn-send').prop('disabled', true).text('Sending...');
+        let id = $('#send_campaign_id').val();
+        
+        $.ajax({
+            url: `/whatsapp-campaigns/${id}/send`,
+            type: 'POST',
+            data: $(this).serialize() + '&_token=<?php echo e(csrf_token()); ?>',
+            success: function(res) {
+                $('#sendCampaignModal').modal('hide');
+                loadCampaigns(currentPage);
+                alert(res.message);
+            },
+            error: function(xhr) {
+                let msg = xhr.responseJSON?.message || 'Error sending campaign.';
+                alert(msg);
+            },
+            complete: function() {
+                $('#btn-send').prop('disabled', false).text('Send Now');
+            }
+        });
+    });
 </script>
 <?php $__env->stopPush(); ?>
 

@@ -244,7 +244,7 @@ class WhatsappCampaignController extends Controller
                 'accept' => 'application/json',
                 'authkey' => $setting->auth_key,
                 'content-type' => 'text/plain'
-            ])->get("https://control.msg91.com/api/v5/whatsapp/get-template-client/{$setting->whatsapp_number}?template_status=approved&page_size=500");
+            ])->get("https://control.msg91.com/api/v5/whatsapp/get-template-client/{$setting->whatsapp_number}?page_size=500");
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -253,12 +253,17 @@ class WhatsappCampaignController extends Controller
                 $templates = $data['data'] ?? [];
                 
                 // Format the templates
-                $formatted = array_map(function($t) {
-                    return [
-                        'name' => $t['name'] ?? '',
-                        'language' => $t['language'] ?? 'en_US',
-                    ];
-                }, $templates);
+                $formatted = [];
+                foreach ($templates as $t) {
+                    if (isset($t['languages']) && is_array($t['languages'])) {
+                        foreach ($t['languages'] as $lang) {
+                            $formatted[] = [
+                                'name' => $t['name'] ?? '',
+                                'language' => $lang['language'] ?? 'en_US',
+                            ];
+                        }
+                    }
+                }
 
                 return response()->json([
                     'success' => true,
