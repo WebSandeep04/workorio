@@ -87,6 +87,10 @@
                                 <option value="BusinessCardScan">Contact Mgmt (Business Cards)</option>
                             </select>
                         </div>
+                        <div class="col-md-4" id="source_search_container" style="display: none;">
+                            <label class="form-label">Search</label>
+                            <input type="text" class="form-control" id="source_search" placeholder="Search name or phone...">
+                        </div>
                     </div>
                     <div class="table-responsive data-table-card mt-3" id="source_data_container" style="display: none;">
                         <table class="table custom-table table-sm" id="source_table">
@@ -119,8 +123,9 @@
 
     <div class="col-md-12">
         <div class="card data-table-card">
-            <div class="card-header border-bottom">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
                 <h5 class="mb-0" style="font-family: Montserrat; font-weight: 600;">Campaign Members</h5>
+                <input type="text" id="campaign_members_search" class="form-control form-control-sm w-25" placeholder="Search members...">
             </div>
             <div class="table-responsive">
                 <table class="table custom-table mb-0">
@@ -175,24 +180,29 @@
 <script>
     let currentPage = 1;
     let selectedMembers = new Set();
+    let sourceSearchTimeout;
 
     function fetchSourceData(page = 1) {
         let sourceType = document.getElementById('source_type').value;
+        let search = document.getElementById('source_search').value;
         let container = document.getElementById('source_data_container');
+        let searchContainer = document.getElementById('source_search_container');
         let tbody = document.querySelector('#source_table tbody');
         let paginationControls = document.getElementById('pagination_controls');
         
         if (!sourceType) {
             container.style.display = 'none';
+            searchContainer.style.display = 'none';
             return;
         }
 
+        searchContainer.style.display = 'block';
         tbody.innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
         container.style.display = 'block';
         paginationControls.style.setProperty('display', 'none', 'important');
         document.getElementById('select_all').checked = false;
 
-        fetch(`{{ route('whatsapp-campaigns.source-data') }}?source_type=${sourceType}&page=${page}`)
+        fetch(`{{ route('whatsapp-campaigns.source-data') }}?source_type=${sourceType}&search=${encodeURIComponent(search)}&page=${page}`)
             .then(response => response.json())
             .then(response => {
                 let data = response.data; // Laravel pagination wraps items in 'data'
@@ -234,7 +244,30 @@
         currentPage = 1;
         selectedMembers.clear();
         document.getElementById('select_all').checked = false;
+        document.getElementById('source_search').value = '';
         fetchSourceData(currentPage);
+    });
+
+    document.getElementById('source_search').addEventListener('input', function() {
+        clearTimeout(sourceSearchTimeout);
+        sourceSearchTimeout = setTimeout(() => {
+            currentPage = 1;
+            fetchSourceData(currentPage);
+        }, 500);
+    });
+
+    document.getElementById('campaign_members_search').addEventListener('input', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#campaign_members_body tr');
+        rows.forEach(row => {
+            if (row.children.length === 1) return; // Skip loading or "No members found" row
+            let text = row.textContent.toLowerCase();
+            if (text.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
     });
 
     document.getElementById('prev_page').addEventListener('click', function() {

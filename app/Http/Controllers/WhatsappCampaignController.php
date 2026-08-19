@@ -49,23 +49,59 @@ class WhatsappCampaignController extends Controller
     public function getSourceData(Request $request)
     {
         $sourceType = $request->source_type;
+        $search = $request->search;
         $data = null;
 
         switch ($sourceType) {
             case 'SalesRecord':
-                $data = SalesRecord::select('id', 'leads_name as name', 'contact_number as phone')->paginate(50);
+                $query = SalesRecord::select('id', 'leads_name as name', 'contact_number as phone');
+                if ($search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('leads_name', 'like', "%{$search}%")
+                          ->orWhere('contact_number', 'like', "%{$search}%");
+                    });
+                }
+                $data = $query->paginate(50);
                 break;
             case 'Prospectus':
-                $data = Prospectus::select('id', 'contact_person as name', 'contact_number as phone')->paginate(50);
+                $query = Prospectus::select('id', 'contact_person as name', 'contact_number as phone');
+                if ($search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('contact_person', 'like', "%{$search}%")
+                          ->orWhere('contact_number', 'like', "%{$search}%");
+                    });
+                }
+                $data = $query->paginate(50);
                 break;
             case 'Customer':
-                $data = Customer::select('id', 'name', 'phone')->paginate(50);
+                $query = Customer::select('id', 'name', 'phone');
+                if ($search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                          ->orWhere('phone', 'like', "%{$search}%");
+                    });
+                }
+                $data = $query->paginate(50);
                 break;
             case 'Calling':
-                $data = Calling::select('id', 'contact_person as name', 'phone')->paginate(50);
+                $query = Calling::select('id', 'contact_person as name', 'phone');
+                if ($search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('contact_person', 'like', "%{$search}%")
+                          ->orWhere('phone', 'like', "%{$search}%");
+                    });
+                }
+                $data = $query->paginate(50);
                 break;
             case 'BusinessCardScan':
-                $data = BusinessCardScan::select('id', 'name', 'phone_primary as phone')->paginate(50);
+                $query = BusinessCardScan::select('id', 'name', 'phone_primary as phone');
+                if ($search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                          ->orWhere('phone_primary', 'like', "%{$search}%");
+                    });
+                }
+                $data = $query->paginate(50);
                 break;
         }
 
@@ -353,7 +389,7 @@ class WhatsappCampaignController extends Controller
         }
 
         $payload = [
-            "integrated-number" => $setting->whatsapp_number,
+            "integrated_number" => $setting->whatsapp_number,
             "content_type" => "template",
             "payload" => [
                 "messaging_product" => "whatsapp",
@@ -370,6 +406,8 @@ class WhatsappCampaignController extends Controller
             ]
         ];
 
+        \Log::info('MSG91 Bulk WhatsApp Payload:', $payload);
+
         try {
             $response = Http::withHeaders([
                 'accept' => 'application/json',
@@ -377,7 +415,12 @@ class WhatsappCampaignController extends Controller
                 'content-type' => 'application/json'
             ])->post("https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/", $payload);
 
-            if ($response->successful()) {
+            \Log::info('MSG91 Bulk WhatsApp Response:', [
+                'status' => $response->status(),
+                'body' => $response->json() ?? $response->body()
+            ]);
+
+            if ($response->successful() && isset($response->json()['hasError']) && $response->json()['hasError'] === false) {
                 $campaign->update(['status' => 'Completed']);
                 
                 foreach($members as $member) {
@@ -390,12 +433,21 @@ class WhatsappCampaignController extends Controller
                 ]);
             }
 
+            // It might be successful HTTP but hasError true
+            if ($response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to send campaign: ' . json_encode($response->json())
+                ], 400);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to send campaign: ' . $response->body()
             ], 400);
 
         } catch (\Exception $e) {
+            \Log::error('MSG91 Bulk WhatsApp Exception:', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error: ' . $e->getMessage()
