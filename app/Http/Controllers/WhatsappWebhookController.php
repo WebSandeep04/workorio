@@ -13,35 +13,42 @@ class WhatsappWebhookController extends Controller
     {
         Log::info('MSG91 Webhook Received:', $request->all());
 
-        // MSG91 inbound webhook payload parsing
-        $payload = $request->all();
+        // The MSG91 Inbound Request Received payload uses different keys:
+        // customerNumber (sender)
+        // integratedNumber (receiver)
+        // text (message content)
+        // contentType / messageType
 
-        // MSG91 sometimes sends inbound messages in an array or direct object
-        // Let's assume standard format or similar to Meta
+        $sender = $request->input('customerNumber') ?? $request->input('sender') ?? $request->input('from');
+        $receiver = $request->input('integratedNumber') ?? $request->input('receiver') ?? $request->input('to');
         
-        $sender = $request->input('sender'); // or $request->input('from')
-        $receiver = $request->input('receiver'); // or $request->input('to')
-        $message = $request->input('message');
+        // Try to get message content from 'text', or fallback to 'message' array
+        $messageText = $request->input('text');
+        $messageArray = $request->input('message'); 
         
-        // If the structure is nested inside 'data' or similar
+        // If the structure is nested inside 'data'
         if (!$sender && $request->has('data')) {
             $data = $request->input('data');
-            $sender = $data['sender'] ?? null;
-            $receiver = $data['receiver'] ?? null;
-            $message = $data['message'] ?? null;
+            $sender = $data['customerNumber'] ?? $data['sender'] ?? null;
+            $receiver = $data['integratedNumber'] ?? $data['receiver'] ?? null;
+            $messageText = $data['text'] ?? null;
+            $messageArray = $data['message'] ?? null;
         }
 
-        if ($sender && $message) {
-            $messageType = $message['type'] ?? 'text';
-            $messageText = null;
-            $mediaUrl = null;
-
-            if ($messageType === 'text') {
-                $messageText = $message['text']['body'] ?? ($message['text'] ?? '');
-            } elseif (in_array($messageType, ['image', 'document', 'audio', 'video'])) {
-                // MSG91 might provide media URL or ID
-                $mediaUrl = $message['media_url'] ?? ($message[$messageType]['link'] ?? null);
-                $messageText = $message['caption'] ?? null;
+        if ($sender && ($messageText || $messageArray)) {
+            $messageType = $request->input('contentType') ?? $request->input('messageType') ?? 'text';
+            $mediaUrl = $request->input('url') ?? null;
+            
+            // If it's a complex message array from older MSG91 versions
+            if (!$messageText && is_array($messageArray)) {
+                $msgType = $messageArray['type'] ?? 'text';
+                if ($msgType === 'text') {
+                    $messageText = $messageArray['text']['body'] ?? ($messageArray['text'] ?? '');
+                } elseif (in_array($msgType, ['image', 'document', 'audio', 'video'])) {
+                    $mediaUrl = $messageArray['media_url'] ?? ($messageArray[$msgType]['link'] ?? null);
+                    $messageText = $messageArray['caption'] ?? null;
+                }
+                $messageType = $msgType;
             }
 
             WhatsappInbox::create([
@@ -50,7 +57,7 @@ class WhatsappWebhookController extends Controller
                 'message_text' => is_string($messageText) ? $messageText : json_encode($messageText),
                 'media_url' => $mediaUrl,
                 'message_type' => $messageType,
-                'msg91_message_id' => $request->input('message_id') ?? $request->input('id'),
+                'msg91_message_id' => $request->input('uuid') ?? $request->input('message_id') ?? $request->input('id'),
                 'is_read' => false,
                 'received_at' => Carbon::now(),
             ]);
