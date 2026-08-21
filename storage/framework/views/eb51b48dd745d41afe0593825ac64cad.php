@@ -231,6 +231,15 @@
                     <div id="upcoming-leaves-list" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
                         <div style="text-align:center;padding:10px;color:#9ca3af;font-size:12px">No upcoming leaves</div>
                     </div>
+                    <?php
+                        $earnedLeaveCounter = \App\Models\LeaveAccrualCounter::where('user_id', $currentUserId)->first();
+                        $earnedLeaveDays = $earnedLeaveCounter ? floatval($earnedLeaveCounter->valid_days_count) : 0;
+                    ?>
+                    <div style="margin-top: 10px; padding: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; text-align: center;">
+                        <span style="font-size: 12px; color: #1e40af; font-weight: 500;">
+                            New earned leave will be earned in days: <strong><?php echo e($earnedLeaveDays); ?> / 45</strong>
+                        </span>
+                    </div>
                 </div>
             </div>
             <?php endif; ?>

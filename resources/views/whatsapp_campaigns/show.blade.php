@@ -64,6 +64,9 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Add Members to Campaign</h5>
+                <button class="btn btn-sm btn-success" onclick="openSendModal({{ $whatsapp_campaign->id }})">
+                    <i class="bi bi-send me-1"></i> Send Campaign
+                </button>
             </div>
             <div class="card-body">
                 @if(session('success'))
@@ -81,7 +84,12 @@
                                 <option value="Prospectus">Prospectus</option>
                                 <option value="Customer">Customers</option>
                                 <option value="Calling">Calling Data</option>
+                                <option value="BusinessCardScan">Contact Mgmt (Business Cards)</option>
                             </select>
+                        </div>
+                        <div class="col-md-4" id="source_search_container" style="display: none;">
+                            <label class="form-label">Search</label>
+                            <input type="text" class="form-control" id="source_search" placeholder="Search name or phone...">
                         </div>
                     </div>
                     <div class="table-responsive data-table-card mt-3" id="source_data_container" style="display: none;">
@@ -115,8 +123,9 @@
 
     <div class="col-md-12">
         <div class="card data-table-card">
-            <div class="card-header border-bottom">
+            <div class="card-header border-bottom d-flex justify-content-between align-items-center">
                 <h5 class="mb-0" style="font-family: Montserrat; font-weight: 600;">Campaign Members</h5>
+                <input type="text" id="campaign_members_search" class="form-control form-control-sm w-25" placeholder="Search members...">
             </div>
             <div class="table-responsive">
                 <table class="table custom-table mb-0">
@@ -137,30 +146,63 @@
         </div>
     </div>
 </div>
+
+<!-- Send Campaign Modal -->
+<div class="modal fade" id="sendCampaignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Send Campaign via MSG91</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="sendCampaignForm">
+                <input type="hidden" id="send_campaign_id" name="id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="send_template" class="form-label">Select MSG91 Template <span class="text-danger">*</span></label>
+                        <select class="form-select" id="send_template" name="template_name" required>
+                            <option value="">Loading templates...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success" id="btn-send">Send Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
     let currentPage = 1;
     let selectedMembers = new Set();
+    let sourceSearchTimeout;
 
     function fetchSourceData(page = 1) {
         let sourceType = document.getElementById('source_type').value;
+        let search = document.getElementById('source_search').value;
         let container = document.getElementById('source_data_container');
+        let searchContainer = document.getElementById('source_search_container');
         let tbody = document.querySelector('#source_table tbody');
         let paginationControls = document.getElementById('pagination_controls');
         
         if (!sourceType) {
             container.style.display = 'none';
+            searchContainer.style.display = 'none';
             return;
         }
 
+        searchContainer.style.display = 'block';
         tbody.innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
         container.style.display = 'block';
         paginationControls.style.setProperty('display', 'none', 'important');
         document.getElementById('select_all').checked = false;
 
-        fetch(`{{ route('whatsapp-campaigns.source-data') }}?source_type=${sourceType}&page=${page}`)
+        fetch(`{{ route('whatsapp-campaigns.source-data') }}?source_type=${sourceType}&search=${encodeURIComponent(search)}&page=${page}`)
             .then(response => response.json())
             .then(response => {
                 let data = response.data; // Laravel pagination wraps items in 'data'
@@ -202,7 +244,30 @@
         currentPage = 1;
         selectedMembers.clear();
         document.getElementById('select_all').checked = false;
+        document.getElementById('source_search').value = '';
         fetchSourceData(currentPage);
+    });
+
+    document.getElementById('source_search').addEventListener('input', function() {
+        clearTimeout(sourceSearchTimeout);
+        sourceSearchTimeout = setTimeout(() => {
+            currentPage = 1;
+            fetchSourceData(currentPage);
+        }, 500);
+    });
+
+    document.getElementById('campaign_members_search').addEventListener('input', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#campaign_members_body tr');
+        rows.forEach(row => {
+            if (row.children.length === 1) return; // Skip loading or "No members found" row
+            let text = row.textContent.toLowerCase();
+            if (text.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
     });
 
     document.getElementById('prev_page').addEventListener('click', function() {
@@ -344,14 +409,8 @@
                         let phoneClean = member.phone_number ? member.phone_number.replace(/[^0-9]/g, '') : '';
                         
                         let actionHtml = '';
-                        if (member.phone_number) {
-                            actionHtml = `
-                                <a href="https://wa.me/${phoneClean}" target="_blank" class="btn btn-sm btn-success py-0 px-2" title="Message">
-                                    <i class="bi bi-whatsapp"></i>
-                                </a>
-                            `;
-                        } else {
-                            actionHtml = `<span class="text-danger small">No Phone</span>`;
+                        if (!member.phone_number) {
+                            actionHtml = `<span class="text-danger small me-2">No Phone</span>`;
                         }
 
                         actionHtml += `
@@ -394,5 +453,57 @@
             });
         }
     }
+
+    function openSendModal(id) {
+        $('#send_campaign_id').val(id);
+        $('#send_template').html('<option value="">Loading templates...</option>');
+        $('#sendCampaignModal').modal('show');
+        
+        $.ajax({
+            url: `{{ route('whatsapp-campaigns.fetch-msg91-templates') }}`,
+            type: 'GET',
+            success: function(res) {
+                if (res.success) {
+                    let html = '<option value="">-- Select Template --</option>';
+                    res.data.forEach(t => {
+                        html += `<option value="${t.name}">${t.name}</option>`;
+                    });
+                    $('#send_template').html(html);
+                } else {
+                    $('#send_template').html(`<option value="">Error: ${res.message}</option>`);
+                }
+            },
+            error: function(xhr) {
+                let msg = xhr.responseJSON?.message || 'Failed to load templates. Ensure MSG91 Settings are configured.';
+                $('#send_template').html(`<option value="">Error: ${msg}</option>`);
+            }
+        });
+    }
+
+    $('#sendCampaignForm').submit(function(e) {
+        e.preventDefault();
+        if(!confirm('Are you sure you want to send this campaign? This action cannot be undone.')) return;
+
+        $('#btn-send').prop('disabled', true).text('Sending...');
+        let id = $('#send_campaign_id').val();
+        
+        $.ajax({
+            url: `/whatsapp-campaigns/${id}/send`,
+            type: 'POST',
+            data: $(this).serialize() + '&_token={{ csrf_token() }}',
+            success: function(res) {
+                $('#sendCampaignModal').modal('hide');
+                loadCampaignMembers();
+                alert(res.message);
+            },
+            error: function(xhr) {
+                let msg = xhr.responseJSON?.message || 'Error sending campaign.';
+                alert(msg);
+            },
+            complete: function() {
+                $('#btn-send').prop('disabled', false).text('Send Now');
+            }
+        });
+    });
 </script>
 @endpush

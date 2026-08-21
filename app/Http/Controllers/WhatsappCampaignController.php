@@ -8,6 +8,9 @@ use App\Models\SalesRecord;
 use App\Models\Prospectus;
 use App\Models\Customer;
 use App\Models\Calling;
+use App\Models\BusinessCardScan;
+use App\Models\Msg91Setting;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 
 class WhatsappCampaignController extends Controller
@@ -46,20 +49,59 @@ class WhatsappCampaignController extends Controller
     public function getSourceData(Request $request)
     {
         $sourceType = $request->source_type;
+        $search = $request->search;
         $data = null;
 
         switch ($sourceType) {
             case 'SalesRecord':
-                $data = SalesRecord::select('id', 'leads_name as name', 'contact_number as phone')->paginate(50);
+                $query = SalesRecord::select('id', 'leads_name as name', 'contact_number as phone');
+                if ($search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('leads_name', 'like', "%{$search}%")
+                          ->orWhere('contact_number', 'like', "%{$search}%");
+                    });
+                }
+                $data = $query->paginate(50);
                 break;
             case 'Prospectus':
-                $data = Prospectus::select('id', 'contact_person as name', 'contact_number as phone')->paginate(50);
+                $query = Prospectus::select('id', 'contact_person as name', 'contact_number as phone');
+                if ($search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('contact_person', 'like', "%{$search}%")
+                          ->orWhere('contact_number', 'like', "%{$search}%");
+                    });
+                }
+                $data = $query->paginate(50);
                 break;
             case 'Customer':
-                $data = Customer::select('id', 'name', 'phone')->paginate(50);
+                $query = Customer::select('id', 'name', 'phone');
+                if ($search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                          ->orWhere('phone', 'like', "%{$search}%");
+                    });
+                }
+                $data = $query->paginate(50);
                 break;
             case 'Calling':
-                $data = Calling::select('id', 'contact_person as name', 'phone')->paginate(50);
+                $query = Calling::select('id', 'contact_person as name', 'phone');
+                if ($search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('contact_person', 'like', "%{$search}%")
+                          ->orWhere('phone', 'like', "%{$search}%");
+                    });
+                }
+                $data = $query->paginate(50);
+                break;
+            case 'BusinessCardScan':
+                $query = BusinessCardScan::select('id', 'name', 'phone_primary as phone');
+                if ($search) {
+                    $query->where(function($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                          ->orWhere('phone_primary', 'like', "%{$search}%");
+                    });
+                }
+                $data = $query->paginate(50);
                 break;
         }
 
@@ -71,7 +113,7 @@ class WhatsappCampaignController extends Controller
         $whatsapp_campaign = WhatsappCampaign::findOrFail($id);
 
         $request->validate([
-            'source_type' => 'required|string|in:SalesRecord,Prospectus,Customer,Calling',
+            'source_type' => 'required|string|in:SalesRecord,Prospectus,Customer,Calling,BusinessCardScan',
             'member_ids' => 'required_without:select_all|array',
             'member_ids.*' => 'integer',
             'select_all' => 'boolean'
@@ -95,6 +137,9 @@ class WhatsappCampaignController extends Controller
                 case 'Calling':
                     $records = Calling::whereNotNull('phone')->get(['id', 'contact_person as name', 'phone']);
                     break;
+                case 'BusinessCardScan':
+                    $records = BusinessCardScan::whereNotNull('phone_primary')->get(['id', 'name', 'phone_primary as phone']);
+                    break;
             }
         } else {
             $records = collect();
@@ -115,6 +160,10 @@ class WhatsappCampaignController extends Controller
                     case 'Calling':
                         $record = Calling::find($memberId);
                         if ($record) $records->push((object)['id' => $record->id, 'name' => $record->contact_person, 'phone' => $record->phone]);
+                        break;
+                    case 'BusinessCardScan':
+                        $record = BusinessCardScan::find($memberId);
+                        if ($record) $records->push((object)['id' => $record->id, 'name' => $record->name, 'phone' => $record->phone_primary]);
                         break;
                 }
             }
@@ -214,5 +263,195 @@ class WhatsappCampaignController extends Controller
             'success' => true,
             'message' => 'Member removed successfully.'
         ]);
+    }
+
+    public function fetchMsg91Templates()
+    {
+        $setting = Msg91Setting::first();
+        if (!$setting || !$setting->auth_key || !$setting->whatsapp_number) {
+            return response()->json([
+                'success' => false,
+                'message' => 'MSG91 Settings not configured.'
+            ], 400);
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'accept' => 'application/json',
+                'authkey' => $setting->auth_key,
+                'content-type' => 'text/plain'
+            ])->get("https://control.msg91.com/api/v5/whatsapp/get-template-client/{$setting->whatsapp_number}?page_size=500");
+
+            if ($response->successful()) {
+                $data = $response->json();
+                // Depending on MSG91 API response structure, we might need to parse this differently.
+                // Assuming $data['data'] or similar contains the templates.
+                $templates = $data['data'] ?? [];
+                
+                // Format the templates
+                $formatted = [];
+                foreach ($templates as $t) {
+                    if (isset($t['languages']) && is_array($t['languages'])) {
+                        foreach ($t['languages'] as $lang) {
+                            $formatted[] = [
+                                'name' => $t['name'] ?? '',
+                                'language' => $lang['language'] ?? 'en_US',
+                                'variables' => $lang['variables'] ?? []
+                            ];
+                        }
+                    }
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $formatted
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch templates from MSG91.'
+            ], 400);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendCampaign(Request $request, $id)
+    {
+        $request->validate([
+            'template_name' => 'required|string',
+        ]);
+
+        $campaign = WhatsappCampaign::findOrFail($id);
+        
+        $setting = Msg91Setting::first();
+        if (!$setting || !$setting->auth_key || !$setting->whatsapp_number || !$setting->whatsapp_namespace) {
+            return response()->json([
+                'success' => false,
+                'message' => 'MSG91 Settings not completely configured.'
+            ], 400);
+        }
+
+        // Get members that haven't been sent yet
+        $members = $campaign->members()->where('status', '!=', 'Sent')->get();
+
+        if ($members->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No pending members found in this campaign.'
+            ], 400);
+        }
+
+        $toAndComponents = [];
+
+        foreach ($members as $member) {
+            if (!$member->phone_number) continue;
+            
+            $phone = preg_replace('/[^0-9]/', '', $member->phone_number);
+            
+            // MSG91 requires 91 prefix for India if not present
+            if (strlen($phone) == 10) {
+                $phone = '91' . $phone;
+            }
+
+            $components = new \stdClass();
+            $mappings = $request->input('mappings', []);
+            
+            foreach ($mappings as $variable => $field) {
+                $value = '';
+                if ($field === 'name') {
+                    $value = $member->name ?? 'Customer';
+                } elseif ($field === 'phone_number') {
+                    $value = $member->phone_number ?? '';
+                }
+                
+                $components->{$variable} = [
+                    "type" => "text",
+                    "value" => $value
+                ];
+            }
+
+            $toAndComponents[] = [
+                "to" => [ $phone ],
+                "components" => $components
+            ];
+        }
+
+        if (empty($toAndComponents)) {
+             return response()->json([
+                'success' => false,
+                'message' => 'No valid phone numbers found for the members.'
+            ], 400);
+        }
+
+        $payload = [
+            "integrated_number" => $setting->whatsapp_number,
+            "content_type" => "template",
+            "payload" => [
+                "messaging_product" => "whatsapp",
+                "type" => "template",
+                "template" => [
+                    "name" => $request->template_name,
+                    "language" => [
+                        "code" => "en", // MSG91 sometimes wants just 'en' or 'en_US'
+                        "policy" => "deterministic"
+                    ],
+                    "namespace" => $setting->whatsapp_namespace,
+                    "to_and_components" => $toAndComponents
+                ]
+            ]
+        ];
+
+        \Log::info('MSG91 Bulk WhatsApp Payload:', $payload);
+
+        try {
+            $response = Http::withHeaders([
+                'accept' => 'application/json',
+                'authkey' => $setting->auth_key,
+                'content-type' => 'application/json'
+            ])->post("https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/", $payload);
+
+            \Log::info('MSG91 Bulk WhatsApp Response:', [
+                'status' => $response->status(),
+                'body' => $response->json() ?? $response->body()
+            ]);
+
+            if ($response->successful() && isset($response->json()['hasError']) && $response->json()['hasError'] === false) {
+                $campaign->update(['status' => 'Completed']);
+                
+                foreach($members as $member) {
+                    $member->update(['status' => 'Sent']);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Campaign messages sent successfully!'
+                ]);
+            }
+
+            // It might be successful HTTP but hasError true
+            if ($response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to send campaign: ' . json_encode($response->json())
+                ], 400);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send campaign: ' . $response->body()
+            ], 400);
+
+        } catch (\Exception $e) {
+            \Log::error('MSG91 Bulk WhatsApp Exception:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -100,6 +100,7 @@ use App\Http\Controllers\UnlockAttendanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WhatsappTemplateController;
 use App\Http\Controllers\WhatsappCampaignController;
+use App\Http\Controllers\WhatsappInboxController;
 use App\Http\Controllers\WorkflowDependencyController;
 use App\Http\Controllers\WorkflowTaskDependencyController;
 use App\Http\Controllers\WorkflowTemplateController;
@@ -1296,6 +1297,9 @@ Route::middleware(['auth.or.session'])->group(function () {
     });
 
     // WhatsApp Campaigns
+    Route::get('whatsapp-inbox', [WhatsappInboxController::class, 'index'])->name('whatsapp-inbox.index');
+    Route::get('whatsapp-inbox/fetch', [WhatsappInboxController::class, 'fetch'])->name('whatsapp-inbox.fetch');
+
     Route::get('whatsapp-campaigns', [WhatsappCampaignController::class, 'index'])->name('whatsapp-campaigns.index');
     Route::post('whatsapp-campaigns/fetch', [WhatsappCampaignController::class, 'fetch'])->name('whatsapp-campaigns.fetch');
     Route::post('whatsapp-campaigns', [WhatsappCampaignController::class, 'store'])->name('whatsapp-campaigns.store');
@@ -1306,4 +1310,6 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('whatsapp-campaigns/{whatsapp_campaign}/fetch-members', [WhatsappCampaignController::class, 'fetchMembers'])->name('whatsapp-campaigns.fetch-members');
     Route::delete('whatsapp-campaigns/member/{id}', [WhatsappCampaignController::class, 'removeMember'])->name('whatsapp-campaigns.remove-member');
     Route::get('whatsapp-campaigns-source-data', [WhatsappCampaignController::class, 'getSourceData'])->name('whatsapp-campaigns.source-data');
-});
+    Route::get('whatsapp-campaigns-fetch-msg91-templates', [WhatsappCampaignController::class, 'fetchMsg91Templates'])->name('whatsapp-campaigns.fetch-msg91-templates');
+    Route::post('whatsapp-campaigns/{whatsapp_campaign}/send', [WhatsappCampaignController::class, 'sendCampaign'])->name('whatsapp-campaigns.send');
+});

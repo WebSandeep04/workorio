@@ -54,6 +54,15 @@ return [
             'permission' => 'sales.whatsapp',
         ],
         [
+            'key' => 'admin_whatsapp_inbox',
+            'title' => 'WhatsApp Inbox',
+            'route' => 'whatsapp-inbox.index',
+            'icon' => 'bi bi-chat-left-dots',
+            'feature_flag' => 'is_sales_enabled',
+            'roles' => ['admin'],
+            'permission' => 'sales.whatsapp',
+        ],
+        [
             'key' => 'admin_lead_generation',
             'title' => 'Lead Generation',
             'icon' => 'bi bi-person-plus',
