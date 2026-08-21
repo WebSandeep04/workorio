@@ -1,9 +1,9 @@
-@extends('layouts.app')
-@section('title', 'WhatsApp Inbox')
-@section('page_title', 'WhatsApp Inbox')
-@section('content')
 
-@push('styles')
+<?php $__env->startSection('title', 'WhatsApp Inbox'); ?>
+<?php $__env->startSection('page_title', 'WhatsApp Inbox'); ?>
+<?php $__env->startSection('content'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
   .stat-card { border-radius: 8px; border: 1px solid #f0f0f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; }
   .stat-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
@@ -27,7 +27,7 @@
   .custom-table tr:last-child td { border-bottom: none; }
   .badge-type { font-size: 0.65rem; padding: 4px 8px; font-weight: 500; }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
 <div class="container-fluid px-0">
     <!-- Top Stats Row -->
@@ -99,9 +99,9 @@
   </div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     let allMessages = [];
     let uniqueMessages = [];
@@ -117,7 +117,7 @@
         $('#pagination_container').hide();
         
         $.ajax({
-            url: `{{ route('whatsapp-inbox.fetch') }}`,
+            url: `<?php echo e(route('whatsapp-inbox.fetch')); ?>`,
             type: 'GET',
             success: function(response) {
                 allMessages = response.data;
@@ -280,4 +280,6 @@
         chatModal.show();
     }
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laravel\workorio\resources\views/whatsapp_inbox/index.blade.php ENDPATH**/ ?>
