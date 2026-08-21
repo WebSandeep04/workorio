@@ -32,6 +32,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetTenantDatabase::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'public/form/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
