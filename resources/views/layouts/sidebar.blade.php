@@ -85,38 +85,53 @@
             @endif
 
             @php
-                $sections = \App\Services\MenuBuilder::build();
+                $hubs = \App\Services\MenuBuilder::build();
             @endphp
-            @foreach($sections as $section)
-                @if(isset($section['route']))
-                    <div class="menu-section">
-                        <a href="{{ route($section['route']) }}" class="sidebar-link {{ request()->routeIs($section['route']) ? 'active' : '' }}" title="{{ $section['title'] }}">
-                            <span class="link-label"><i class="{{ $section['icon'] }}"></i><span>{{ $section['title'] }}</span></span>
-                        </a>
-                    </div>
-                @else
-                    @php
-                        $sectionHasActive = collect($section['items'] ?? [])->contains(function ($item) {
+            @foreach($hubs as $hub)
+                @php
+                    $hubHasActive = collect($hub['sections'] ?? [])->contains(function ($section) {
+                        return collect($section['items'] ?? [])->contains(function ($item) {
                             return isset($item['route']) && request()->routeIs($item['route']);
-                        });
-                    @endphp
-                    <div class="menu-section">
-                        <a class="sidebar-link sidebar-dropdown {{ $sectionHasActive ? '' : '' }}" data-section-key="{{ $section['key'] }}" data-bs-toggle="collapse" href="#menu_{{ $section['key'] }}" role="button" aria-expanded="{{ $sectionHasActive ? 'true' : 'false' }}" aria-controls="menu_{{ $section['key'] }}" title="{{ $section['title'] }}">
-                            <span class="link-label"><i class="{{ $section['icon'] }}"></i><span>{{ $section['title'] }}</span></span>
-                            <i class="bi bi-chevron-down"></i>
-                        </a>
-                        <div class="collapse sidebar-sub {{ $sectionHasActive ? 'show' : '' }}" id="menu_{{ $section['key'] }}">
-                            @foreach($section['items'] as $item)
-                                @php
-                                    $itemActive = isset($item['route']) && request()->routeIs($item['route']);
-                                @endphp
-                                <a href="{{ route($item['route']) }}" class="sidebar-sublink {{ $itemActive ? 'active' : '' }}" title="{{ $item['tooltip'] ?? $item['title'] }}">
-                                    <i class="{{ $item['icon'] }}"></i><span>{{ $item['title'] }}</span>
+                        }) || (isset($section['route']) && request()->routeIs($section['route']));
+                    });
+                @endphp
+                <div class="menu-section">
+                    <a class="sidebar-link sidebar-dropdown {{ $hubHasActive ? '' : '' }}" data-bs-toggle="collapse" href="#hub_{{ $hub['key'] }}" role="button" aria-expanded="{{ $hubHasActive ? 'true' : 'false' }}" aria-controls="hub_{{ $hub['key'] }}" title="{{ $hub['title'] }}">
+                        <span class="link-label"><i class="{{ $hub['icon'] }}"></i><span>{{ $hub['title'] }}</span></span>
+                        <i class="bi bi-chevron-down"></i>
+                    </a>
+                    <div class="collapse sidebar-sub {{ $hubHasActive ? 'show' : '' }}" id="hub_{{ $hub['key'] }}">
+                        @foreach($hub['sections'] as $section)
+                            @if(isset($section['route']))
+                                <a href="{{ route($section['route']) }}" class="sidebar-sublink {{ request()->routeIs($section['route']) ? 'active' : '' }}" title="{{ $section['title'] }}">
+                                    <i class="{{ $section['icon'] }}"></i><span>{{ $section['title'] }}</span>
                                 </a>
-                            @endforeach
-                        </div>
+                            @else
+                                @php
+                                    $sectionHasActive = collect($section['items'] ?? [])->contains(function ($item) {
+                                        return isset($item['route']) && request()->routeIs($item['route']);
+                                    });
+                                @endphp
+                                <div class="menu-subsection">
+                                    <a class="sidebar-link sidebar-dropdown {{ $sectionHasActive ? '' : '' }}" style="padding-left: 0.8rem; font-size: 0.9em;" data-section-key="{{ $section['key'] }}" data-bs-toggle="collapse" href="#menu_{{ $section['key'] }}" role="button" aria-expanded="{{ $sectionHasActive ? 'true' : 'false' }}" aria-controls="menu_{{ $section['key'] }}" title="{{ $section['title'] }}">
+                                        <span class="link-label"><i class="{{ $section['icon'] }}"></i><span>{{ $section['title'] }}</span></span>
+                                        <i class="bi bi-chevron-down"></i>
+                                    </a>
+                                    <div class="collapse sidebar-sub {{ $sectionHasActive ? 'show' : '' }}" id="menu_{{ $section['key'] }}">
+                                        @foreach($section['items'] as $item)
+                                            @php
+                                                $itemActive = isset($item['route']) && request()->routeIs($item['route']);
+                                            @endphp
+                                            <a href="{{ route($item['route']) }}" class="sidebar-sublink {{ $itemActive ? 'active' : '' }}" style="padding-left: 1.8rem;" title="{{ $item['tooltip'] ?? $item['title'] }}">
+                                                <i class="{{ $item['icon'] }}"></i><span>{{ $item['title'] }}</span>
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
                     </div>
-                @endif
+                </div>
             @endforeach
         </div>
 

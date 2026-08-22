@@ -101,30 +101,41 @@
         @endif
 
         <!-- Dynamic sections based on tenant features and role -->
-        @php($sections = \App\Services\MenuBuilder::build())
-        @foreach($sections as $section)
-            @if(isset($section['route']))
-                <a href="{{ route($section['route']) }}" class="mobile-menu-item" title="{{ $section['title'] }}">
-                    <i class="{{ $section['icon'] }} me-3"></i>
-                    <span>{{ $section['title'] }}</span>
+        @php($hubs = \App\Services\MenuBuilder::build())
+        @foreach($hubs as $hub)
+            <div class="mobile-menu-section">
+                <a class="mobile-menu-toggle" data-bs-toggle="collapse" href="#mobileHub_{{ $hub['key'] }}" role="button" aria-expanded="false" aria-controls="mobileHub_{{ $hub['key'] }}" title="{{ $hub['title'] }}">
+                    <i class="{{ $hub['icon'] }} me-3"></i>
+                    <span>{{ $hub['title'] }}</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-            @else
-                <div class="mobile-menu-section">
-                    <a class="mobile-menu-toggle" data-bs-toggle="collapse" href="#mobileMenu_{{ $section['key'] }}" role="button" aria-expanded="false" aria-controls="mobileMenu_{{ $section['key'] }}" title="{{ $section['title'] }}">
-                        <i class="{{ $section['icon'] }} me-3"></i>
-                        <span>{{ $section['title'] }}</span>
-                        <i class="bi bi-chevron-down ms-auto"></i>
-                    </a>
-                    <div class="collapse" id="mobileMenu_{{ $section['key'] }}">
-                        @foreach($section['items'] as $item)
-                            <a href="{{ route($item['route']) }}" class="mobile-menu-subitem" title="{{ $item['tooltip'] ?? $item['title'] }}">
-                                <i class="{{ $item['icon'] }} me-3"></i>
-                                <span>{{ $item['title'] }}</span>
+                <div class="collapse" id="mobileHub_{{ $hub['key'] }}">
+                    @foreach($hub['sections'] as $section)
+                        @if(isset($section['route']))
+                            <a href="{{ route($section['route']) }}" class="mobile-menu-subitem" title="{{ $section['title'] }}">
+                                <i class="{{ $section['icon'] }} me-3"></i>
+                                <span>{{ $section['title'] }}</span>
                             </a>
-                        @endforeach
-                    </div>
+                        @else
+                            <div class="mobile-menu-section" style="padding-left: 1rem;">
+                                <a class="mobile-menu-toggle py-2" data-bs-toggle="collapse" href="#mobileMenu_{{ $section['key'] }}" role="button" aria-expanded="false" aria-controls="mobileMenu_{{ $section['key'] }}" title="{{ $section['title'] }}" style="font-size: 0.9em;">
+                                    <i class="{{ $section['icon'] }} me-3"></i>
+                                    <span>{{ $section['title'] }}</span>
+                                    <i class="bi bi-chevron-down ms-auto"></i>
+                                </a>
+                                <div class="collapse" id="mobileMenu_{{ $section['key'] }}">
+                                    @foreach($section['items'] as $item)
+                                        <a href="{{ route($item['route']) }}" class="mobile-menu-subitem py-1" title="{{ $item['tooltip'] ?? $item['title'] }}" style="padding-left: 3.5rem; font-size: 0.85em;">
+                                            <i class="{{ $item['icon'] }} me-3"></i>
+                                            <span>{{ $item['title'] }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
                 </div>
-            @endif
+            </div>
         @endforeach
 
         @endif

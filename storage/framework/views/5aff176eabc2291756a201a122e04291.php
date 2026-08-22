@@ -85,38 +85,53 @@
             <?php endif; ?>
 
             <?php
-                $sections = \App\Services\MenuBuilder::build();
+                $hubs = \App\Services\MenuBuilder::build();
             ?>
-            <?php $__currentLoopData = $sections; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $section): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <?php if(isset($section['route'])): ?>
-                    <div class="menu-section">
-                        <a href="<?php echo e(route($section['route'])); ?>" class="sidebar-link <?php echo e(request()->routeIs($section['route']) ? 'active' : ''); ?>" title="<?php echo e($section['title']); ?>">
-                            <span class="link-label"><i class="<?php echo e($section['icon']); ?>"></i><span><?php echo e($section['title']); ?></span></span>
-                        </a>
-                    </div>
-                <?php else: ?>
-                    <?php
-                        $sectionHasActive = collect($section['items'] ?? [])->contains(function ($item) {
+            <?php $__currentLoopData = $hubs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $hub): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
+                    $hubHasActive = collect($hub['sections'] ?? [])->contains(function ($section) {
+                        return collect($section['items'] ?? [])->contains(function ($item) {
                             return isset($item['route']) && request()->routeIs($item['route']);
-                        });
-                    ?>
-                    <div class="menu-section">
-                        <a class="sidebar-link sidebar-dropdown <?php echo e($sectionHasActive ? '' : ''); ?>" data-section-key="<?php echo e($section['key']); ?>" data-bs-toggle="collapse" href="#menu_<?php echo e($section['key']); ?>" role="button" aria-expanded="<?php echo e($sectionHasActive ? 'true' : 'false'); ?>" aria-controls="menu_<?php echo e($section['key']); ?>" title="<?php echo e($section['title']); ?>">
-                            <span class="link-label"><i class="<?php echo e($section['icon']); ?>"></i><span><?php echo e($section['title']); ?></span></span>
-                            <i class="bi bi-chevron-down"></i>
-                        </a>
-                        <div class="collapse sidebar-sub <?php echo e($sectionHasActive ? 'show' : ''); ?>" id="menu_<?php echo e($section['key']); ?>">
-                            <?php $__currentLoopData = $section['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <?php
-                                    $itemActive = isset($item['route']) && request()->routeIs($item['route']);
-                                ?>
-                                <a href="<?php echo e(route($item['route'])); ?>" class="sidebar-sublink <?php echo e($itemActive ? 'active' : ''); ?>" title="<?php echo e($item['tooltip'] ?? $item['title']); ?>">
-                                    <i class="<?php echo e($item['icon']); ?>"></i><span><?php echo e($item['title']); ?></span>
+                        }) || (isset($section['route']) && request()->routeIs($section['route']));
+                    });
+                ?>
+                <div class="menu-section">
+                    <a class="sidebar-link sidebar-dropdown <?php echo e($hubHasActive ? '' : ''); ?>" data-bs-toggle="collapse" href="#hub_<?php echo e($hub['key']); ?>" role="button" aria-expanded="<?php echo e($hubHasActive ? 'true' : 'false'); ?>" aria-controls="hub_<?php echo e($hub['key']); ?>" title="<?php echo e($hub['title']); ?>">
+                        <span class="link-label"><i class="<?php echo e($hub['icon']); ?>"></i><span><?php echo e($hub['title']); ?></span></span>
+                        <i class="bi bi-chevron-down"></i>
+                    </a>
+                    <div class="collapse sidebar-sub <?php echo e($hubHasActive ? 'show' : ''); ?>" id="hub_<?php echo e($hub['key']); ?>">
+                        <?php $__currentLoopData = $hub['sections']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $section): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <?php if(isset($section['route'])): ?>
+                                <a href="<?php echo e(route($section['route'])); ?>" class="sidebar-sublink <?php echo e(request()->routeIs($section['route']) ? 'active' : ''); ?>" title="<?php echo e($section['title']); ?>">
+                                    <i class="<?php echo e($section['icon']); ?>"></i><span><?php echo e($section['title']); ?></span>
                                 </a>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        </div>
+                            <?php else: ?>
+                                <?php
+                                    $sectionHasActive = collect($section['items'] ?? [])->contains(function ($item) {
+                                        return isset($item['route']) && request()->routeIs($item['route']);
+                                    });
+                                ?>
+                                <div class="menu-subsection">
+                                    <a class="sidebar-link sidebar-dropdown <?php echo e($sectionHasActive ? '' : ''); ?>" style="padding-left: 0.8rem; font-size: 0.9em;" data-section-key="<?php echo e($section['key']); ?>" data-bs-toggle="collapse" href="#menu_<?php echo e($section['key']); ?>" role="button" aria-expanded="<?php echo e($sectionHasActive ? 'true' : 'false'); ?>" aria-controls="menu_<?php echo e($section['key']); ?>" title="<?php echo e($section['title']); ?>">
+                                        <span class="link-label"><i class="<?php echo e($section['icon']); ?>"></i><span><?php echo e($section['title']); ?></span></span>
+                                        <i class="bi bi-chevron-down"></i>
+                                    </a>
+                                    <div class="collapse sidebar-sub <?php echo e($sectionHasActive ? 'show' : ''); ?>" id="menu_<?php echo e($section['key']); ?>">
+                                        <?php $__currentLoopData = $section['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <?php
+                                                $itemActive = isset($item['route']) && request()->routeIs($item['route']);
+                                            ?>
+                                            <a href="<?php echo e(route($item['route'])); ?>" class="sidebar-sublink <?php echo e($itemActive ? 'active' : ''); ?>" style="padding-left: 1.8rem;" title="<?php echo e($item['tooltip'] ?? $item['title']); ?>">
+                                                <i class="<?php echo e($item['icon']); ?>"></i><span><?php echo e($item['title']); ?></span>
+                                            </a>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
-                <?php endif; ?>
+                </div>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
 

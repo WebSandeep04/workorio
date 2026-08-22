@@ -96,32 +96,43 @@ class MenuBuilder
         $roleId = $user->role_id;
 
         $menuConfig = config('menu');
-        $sections = [];
+        $hubs = [];
         
-        // Loop through all configured sections exactly once
-        foreach ($menuConfig['admin_sections'] as $section) {
-            // Global Feature Flag evaluation (Tenant Tier)
-            if (isset($section['feature_flag']) && (!$tenant || !$tenant->{$section['feature_flag']})) {
-                continue;
-            }
-            
-            // Pass into the core filtering engine (which handles both Admins and Custom RBAC correctly)
-            $filteredSection = static::filterItems($section, $user);
-            
-            // Sort items for Software Setup specifically alphabetically
-            if ($section['key'] === 'software_setup' && !empty($filteredSection['items'])) {
-                usort($filteredSection['items'], function($a, $b) {
-                    return strcasecmp($a['title'], $b['title']);
-                });
-            }
-            
-            // Only mount the section to the sidebar if it survived filtering or is a standalone section
-            if (!empty($filteredSection['items']) || (!empty($filteredSection) && isset($filteredSection['route']))) {
-                $sections[] = $filteredSection;
+        // Loop through all configured hubs
+        if (isset($menuConfig['admin_hubs'])) {
+            foreach ($menuConfig['admin_hubs'] as $hub) {
+                $filteredHub = $hub;
+                $filteredHub['sections'] = [];
+                
+                foreach ($hub['sections'] as $section) {
+                    // Global Feature Flag evaluation (Tenant Tier)
+                    if (isset($section['feature_flag']) && (!$tenant || !$tenant->{$section['feature_flag']})) {
+                        continue;
+                    }
+                    
+                    // Pass into the core filtering engine (which handles both Admins and Custom RBAC correctly)
+                    $filteredSection = static::filterItems($section, $user);
+                    
+                    // Sort items for Software Setup specifically alphabetically
+                    if ($hub['key'] === 'software_setup' && !empty($filteredSection['items'])) {
+                        usort($filteredSection['items'], function($a, $b) {
+                            return strcasecmp($a['title'], $b['title']);
+                        });
+                    }
+                    
+                    // Only mount the section to the sidebar if it survived filtering or is a standalone section
+                    if (!empty($filteredSection['items']) || (!empty($filteredSection) && isset($filteredSection['route']))) {
+                        $filteredHub['sections'][] = $filteredSection;
+                    }
+                }
+                
+                if (!empty($filteredHub['sections'])) {
+                    $hubs[] = $filteredHub;
+                }
             }
         }
 
-        return $sections;
+        return $hubs;
     }
 
     private static function filterItems(array $section, $user): array
