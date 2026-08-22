@@ -66,7 +66,7 @@
                 <div style="font-size:16px;font-weight:700;color:#111827">Sales Intelligence</div>
                 <div style="font-size:11.5px;color:#6b7280">Real-time performance metrics for your sales pipeline</div>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px">
+            <div class="sgrid" style="margin-bottom:20px">
                 <div class="sc" onclick="location.href='{{ route('todayfollowupstable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>Today's Followups</div><div class="sval" id="todayfollowups">0<span class="sarr">→</span></div></div>
                 <div class="sc" onclick="location.href='{{ route('underprocesstable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>Under Process</div><div class="sval" id="underprocess">0<span class="sarr">→</span></div></div>
                 <div class="sc" onclick="location.href='{{ route('todaycompletedtable') }}'" style="cursor:pointer"><div class="slbl"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>Today Completed</div><div class="sval" id="todaycompleted">0<span class="sarr">→</span></div></div>
@@ -81,7 +81,7 @@
                 <div style="font-size:16px;font-weight:700;color:#111827">Tele-Calling Status</div>
                 <div style="font-size:11.5px;color:#6b7280">Daily calling activity and follow-up tracking</div>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
+            <div class="sgrid">
                 <div class="sc" onclick="location.href='{{ route('calling.todayfollowupstable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#3b82f6;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>Today's Followups</div><div class="sval" id="c_todayfollowups">0<span class="sarr">→</span></div></div>
                 <div class="sc" onclick="location.href='{{ route('calling.underprocesstable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#f59e0b;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>Under Process</div><div class="sval" id="c_underprocess">0<span class="sarr">→</span></div></div>
                 <div class="sc" onclick="location.href='{{ route('calling.todaycompletedtable') }}'" style="cursor:pointer"><div class="slbl"><div style="background:#10b981;border-radius:6px;width:24px;height:24px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:14px;height:14px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div>Today Completed</div><div class="sval" id="c_todaycompleted">0<span class="sarr">→</span></div></div>
@@ -265,7 +265,7 @@
             @if($isApproval && $hasSubordinates)
             <div class="card">
                 <div class="chead"><span class="ctitle">Pending Approvals</span><span class="va" onclick="viewAllApprovals()" style="cursor:pointer">View all</span></div>
-                <div class="subtabs" style="overflow-x:auto;white-space:nowrap;display:block">
+                <div class="subtabs">
                     @if($isWorklog)
                     <button class="subtab act" onclick="swApprovalTab('ts',this)" style="display:inline-block">Timesheet<span class="notif-badge" id="ap-ts-badge">0</span></button>
                     @endif
@@ -350,8 +350,8 @@
 @push('styles')
 <style>
 .dashboard-wrapper{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px}
-.rtabs{display:flex;gap:4px;background:#e5e7eb;padding:3px;border-radius:9px;width:fit-content}
-.rtab{padding:6px 16px;border-radius:7px;font-size:12.5px;font-weight:500;cursor:pointer;color:#6b7280;border:none;background:transparent;transition:all .2s}
+.rtabs{display:flex;gap:4px;background:#e5e7eb;padding:3px;border-radius:9px;width:fit-content;max-width:100%;overflow-x:auto;}
+.rtab{padding:6px 16px;border-radius:7px;font-size:12.5px;font-weight:500;cursor:pointer;color:#6b7280;border:none;background:transparent;transition:all .2s;flex-shrink:0;}
 .rtab.act{background:#2563eb;color:#fff}
 .wbar{background:#fff;border-radius:9px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border:1px solid #e5e7eb}
 .wbar h2{font-size:17px;font-weight:700;color:#111827;margin:0}
@@ -364,6 +364,7 @@
 .slbl svg{width:13px;height:13px}
 .sval{font-size:20px;font-weight:700;color:#111827;display:flex;align-items:center;justify-content:space-between}
 .sarr{color:#d1d5db;font-size:14px}
+.sgrid{display:grid;grid-template-columns:repeat(6, 1fr);gap:12px}
 .hcards{display:grid;grid-template-columns:repeat(auto-fit, minmax(450px, 1fr));gap:14px;margin-bottom:14px}
 .card{background:#fff;border-radius:9px;border:1px solid #e5e7eb;padding:14px}
 .chead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -451,8 +452,8 @@
 
 .d-view { display: none !important; }
 .d-view.act { display: block !important; }
-.subtabs { display: flex; gap: 4px; background: #f3f4f6; padding: 3px; border-radius: 8px; margin-bottom: 12px; width: fit-content; }
-.subtab { padding: 5px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer; color: #6b7280; border: none; background: transparent; transition: all .2s; }
+.subtabs { display: flex; gap: 4px; background: #f3f4f6; padding: 3px; border-radius: 8px; margin-bottom: 12px; width: fit-content; max-width: 100%; overflow-x: auto; }
+.subtab { padding: 5px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer; color: #6b7280; border: none; background: transparent; transition: all .2s; flex-shrink: 0; }
 .subtab.act { background: #fff; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 .notif-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #ef4444; color: #fff; font-size: 9px; font-weight: 700; margin-left: 6px; vertical-align: text-bottom; }
 .tk-cnt, .ap-cnt { display: none; }

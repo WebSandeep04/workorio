@@ -21,3 +21,5 @@ yarn-error.log
 *.sw?
 /public/apk/app-release.apk
 *.apk
+/storage/framework/
+/storage/logs/
