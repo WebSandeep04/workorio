@@ -127,9 +127,36 @@ $createdAt = gmdate('Y-m-d H:i:s');
 $updatedAt = gmdate('Y-m-d H:i:s');
 $isRead = 0;
 
+// Determine sender name
+$senderName = null;
+$numWithout91 = preg_replace('/^91/', '', $sender);
+
+// 1. Check Customers
+$res = $mysqli->query("SELECT name FROM customers WHERE phone = '$sender' OR phone = '$numWithout91' LIMIT 1");
+if ($res && $res->num_rows > 0) {
+    $senderName = $res->fetch_assoc()['name'];
+}
+
+// 2. Check Sales Records
+if (!$senderName) {
+    $res = $mysqli->query("SELECT leads_name, contact_person FROM sales_records WHERE contact_number = '$sender' OR contact_number = '$numWithout91' LIMIT 1");
+    if ($res && $res->num_rows > 0) {
+        $row = $res->fetch_assoc();
+        $senderName = $row['leads_name'] ?: $row['contact_person'];
+    }
+}
+
+// 3. Check Campaign Members
+if (!$senderName) {
+    $res = $mysqli->query("SELECT name FROM whatsapp_campaign_members WHERE phone_number = '$sender' OR phone_number = '$numWithout91' LIMIT 1");
+    if ($res && $res->num_rows > 0) {
+        $senderName = $res->fetch_assoc()['name'];
+    }
+}
+
 $sql = "INSERT INTO `$table` 
-    (sender_number, receiver_number, message_text, media_url, message_type, msg91_message_id, is_read, received_at, created_at, updated_at) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    (sender_number, sender_name, receiver_number, message_text, media_url, message_type, msg91_message_id, is_read, received_at, created_at, updated_at) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $mysqli->prepare($sql);
 if (!$stmt) {
@@ -139,8 +166,9 @@ if (!$stmt) {
 
 try {
     $stmt->bind_param(
-        "ssssssisss",
+        "sssssssisss",
         $sender,
+        $senderName,
         $receiver,
         $messageText,
         $mediaUrl,

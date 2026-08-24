@@ -11,6 +11,7 @@ class WhatsappInbox extends Model
 
     protected $fillable = [
         'sender_number',
+        'sender_name',
         'receiver_number',
         'message_text',
         'media_url',

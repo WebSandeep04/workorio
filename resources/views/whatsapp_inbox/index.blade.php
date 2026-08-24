@@ -174,6 +174,10 @@
         const paginatedItems = uniqueMessages.slice(startIndex, endIndex);
 
         paginatedItems.forEach(msg => {
+            let senderDisplay = msg.sender_name 
+                ? `${msg.sender_name} <br><small class="text-muted">${msg.sender_number}</small>` 
+                : `${msg.sender_number}`;
+
             let text = msg.message_text ? msg.message_text : '<span class="text-muted fst-italic">(No text)</span>';
             let typeBadge = msg.message_type !== 'text' 
                 ? `<span class="badge bg-secondary badge-type">${msg.message_type}</span>` 
@@ -182,7 +186,7 @@
             
             html += `
                 <tr>
-                    <td class="fw-medium text-dark">${msg.sender_number}</td>
+                    <td class="fw-medium text-dark">${senderDisplay}</td>
                     <td>${text}</td>
                     <td>${typeBadge}</td>
                     <td>${time}</td>
