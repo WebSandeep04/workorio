@@ -278,6 +278,7 @@ return [
                     'items' => [
                         ['route' => 'whatsapp-campaigns.index', 'title' => 'WhatsApp Campaign', 'icon' => 'bi bi-whatsapp', 'permission' => 'sales.whatsapp'],
                         ['route' => 'whatsapp-inbox.index', 'title' => 'WhatsApp Inbox', 'icon' => 'bi bi-chat-left-dots', 'permission' => 'sales.whatsapp'],
+                        ['route' => 'whatsapp-templates.index', 'title' => 'Templates', 'icon' => 'bi bi-layout-text-window', 'permission' => 'sales.whatsapp'],
                     ]
                 ],
 

@@ -100,6 +100,7 @@ use App\Http\Controllers\UnlockAttendanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WhatsappTemplateController;
 use App\Http\Controllers\WhatsappCampaignController;
+use App\Http\Controllers\Msg91TemplateController;
 use App\Http\Controllers\WhatsappInboxController;
 use App\Http\Controllers\WorkflowDependencyController;
 use App\Http\Controllers\WorkflowTaskDependencyController;
@@ -1299,6 +1300,9 @@ Route::middleware(['auth.or.session'])->group(function () {
     // WhatsApp Campaigns
     Route::get('whatsapp-inbox', [WhatsappInboxController::class, 'index'])->name('whatsapp-inbox.index');
     Route::get('whatsapp-inbox/fetch', [WhatsappInboxController::class, 'fetch'])->name('whatsapp-inbox.fetch');
+
+    Route::get('whatsapp-templates', [Msg91TemplateController::class, 'index'])->name('whatsapp-templates.index');
+    Route::post('whatsapp-templates/fetch', [Msg91TemplateController::class, 'fetch'])->name('whatsapp-templates.fetch');
 
     Route::get('whatsapp-campaigns', [WhatsappCampaignController::class, 'index'])->name('whatsapp-campaigns.index');
     Route::post('whatsapp-campaigns/fetch', [WhatsappCampaignController::class, 'fetch'])->name('whatsapp-campaigns.fetch');

@@ -1,84 +1,59 @@
 @extends('layouts.app')
 @section('title', 'WhatsApp Inbox')
 @section('page_title', 'WhatsApp Inbox')
-@section('content')
 
 @push('styles')
-<style>
-  .stat-card { border-radius: 8px; border: 1px solid #f0f0f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; }
-  .stat-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-  .stat-icon-box { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 1.2rem; }
-  .stat-title { font-size: 0.65rem; font-weight: 700; color: #6c757d; letter-spacing: 0.5px; }
-  .stat-value { font-size: 1.2rem; font-weight: 700; color: #212529; line-height: 1.2; }
-  
-  .filter-section { background-color: #434afa; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
-  .filter-label { color: #fff; font-size: 0.7rem; font-weight: 500; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
-  .filter-select { font-size: 0.8rem; border: none; padding: 6px 10px; box-shadow: none; }
-  
-  .search-bar-container { background: #fff; border: 1px solid #e2e5ec; border-radius: 8px; padding: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .search-input { border: none; font-size: 0.85rem; padding: 5px 10px; width: 300px; box-shadow: none !important; }
-  .btn-add { background-color: #434afa; color: white; border: none; border-radius: 4px; font-weight: 500; padding: 6px 16px; font-size: 0.85rem; }
-  .btn-add:hover { background-color: #3238d9; color: white; }
-
-  .custom-table-card { background: #fff; border-radius: 8px; border: 1px solid #e2e5ec; box-shadow: 0 2px 4px rgba(0,0,0,0.02); overflow: hidden; }
-  .custom-table th { background: #f8f9fa; border-bottom: 1px solid #e2e5ec; font-size: 0.7rem; font-weight: 600; color: #6c757d; padding: 12px 16px; letter-spacing: 0.5px; }
-  .custom-table td { padding: 12px 16px; font-size: 0.85rem; vertical-align: middle; border-bottom: 1px solid #f4f4f6; color: #495057; }
-  .custom-table tr:hover { background-color: #fcfcfd; }
-  .custom-table tr:last-child td { border-bottom: none; }
-  .badge-type { font-size: 0.65rem; padding: 4px 8px; font-weight: 500; }
-</style>
+<link rel="stylesheet" href="{{ asset('css/whatsapp.css') }}">
 @endpush
 
-<div class="container-fluid px-0">
-    <!-- Top Stats Row -->
-    <div class="row mb-3">
-        <div class="col-12 col-md-4 col-xl-3">
-            <div class="card stat-card h-100 bg-white">
-                <div class="card-body p-3 d-flex align-items-center">
-                    <div class="stat-icon-box me-3" style="background-color: rgba(67, 74, 250, 0.1); color: #434afa;">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="stat-title text-capitalize">Total Numbers</div>
-                        <div class="stat-value" id="total_numbers_count">0</div>
-                    </div>
-                </div>
+@section('content')
+<div class="container-fluid">
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card card-4">
+            <div class="summary-card-icon icon-violet">
+                <i class="bi bi-people text-white"></i>
+            </div>
+            <div class="summary-card-content">
+                <div class="summary-card-label">Total Numbers</div>
+                <div class="summary-card-value text-primary" id="total_numbers_count">0</div>
             </div>
         </div>
     </div>
 
-    <!-- Search Section -->
-    <div class="search-bar-container">
-        <div class="d-flex align-items-center w-100">
-            <i class="bi bi-search text-muted ms-2 me-2"></i>
-            <input type="text" class="search-input flex-grow-1 w-100" placeholder="Search leads, contacts, emails...">
+    <!-- Search & Add (Separate Row) -->
+    <div class="table-search mb-2">
+        <div class="table-search-field">
+            <i class="bi bi-search"></i>
+            <input type="text" id="search_inbox" placeholder="Search leads, contacts, emails..." />
         </div>
     </div>
 
-    <!-- Table Section -->
-    <div class="custom-table-card">
-        <div class="table-responsive">
-            <table class="table custom-table mb-0">
-                <thead>
-                    <tr>
-                        <th class="text-capitalize border-0">Number</th>
-                        <th class="text-capitalize border-0">Latest Message</th>
-                        <th class="text-capitalize border-0">Type</th>
-                        <th class="text-capitalize border-0">Last Received</th>
-                        <th class="text-capitalize border-0 text-end">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="messages_container">
-                    <tr><td colspan="4" class="text-center py-4">Loading messages...</td></tr>
-                </tbody>
-            </table>
+    <!-- Data Table -->
+    <div class="modern-card data-table-card">
+        <div class="modern-card-body">
+            <div class="table-responsive">
+                <table class="table custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Latest Message</th>
+                            <th>Type</th>
+                            <th>Last Received</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="messages_container">
+                        <tr><td colspan="5" class="text-center py-4">Loading messages...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <!-- Pagination Section -->
-        <div class="d-flex justify-content-between align-items-center p-3 border-top" id="pagination_container" style="display: none;">
-            <div class="text-muted" style="font-size: 0.85rem;" id="pagination_info">Showing 0 to 0 of 0 entries</div>
-            <ul class="pagination pagination-sm mb-0" id="pagination_controls">
-                <!-- Pagination buttons will go here -->
-            </ul>
+        <div class="card-footer d-flex justify-content-between align-items-center" id="pagination_container" style="background: #fff; border-top: 1px solid #f1f3f5; font-family: Montserrat; display: none;">
+            <div id="pagination_info" style="font-size: 10px; color: #6c757d; font-weight: 500;">Showing 0 to 0 of 0 entries</div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0" id="pagination_controls"></ul>
+            </nav>
         </div>
     </div>
 
@@ -98,9 +73,7 @@
     </div>
   </div>
 </div>
-
 @endsection
-
 @push('scripts')
 <script>
     let allMessages = [];

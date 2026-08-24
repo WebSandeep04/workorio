@@ -296,7 +296,8 @@ class WhatsappCampaignController extends Controller
                             $formatted[] = [
                                 'name' => $t['name'] ?? '',
                                 'language' => $lang['language'] ?? 'en_US',
-                                'variables' => $lang['variables'] ?? []
+                                'variables' => $lang['variables'] ?? [],
+                                'components' => $lang['code'] ?? []
                             ];
                         }
                     }

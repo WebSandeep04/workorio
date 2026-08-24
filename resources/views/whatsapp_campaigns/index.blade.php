@@ -4,281 +4,7 @@
 @section('page_title', 'WhatsApp Campaigns')
 
 @push('styles')
-<style>
-  .container-fluid {
-    padding: 0.5rem;
-    padding-right: 0.5rem;
-    margin-right: 0;
-  }
-
-  .summary-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .summary-card {
-    background: #fff;
-    border-radius: 10px;
-    border: 1px solid #eceef3;
-    padding: 0.6rem;
-    box-shadow: 0px 4px 4px 0px #0000000A;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    min-height: 80px;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .metric-arrow {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    color: #000;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    position: absolute;
-    right: 6px;
-    bottom: 6px;
-    font-size: 0.8rem;
-  }
-
-  .metric-arrow:hover {
-    background: #5b59f7;
-    color: #fff;
-  }
-
-  .summary-card-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .summary-card-icon img, .summary-card-icon i {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-    font-size: 1.25rem;
-  }
-
-  .icon-violet { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: white; }
-  .icon-rose { background: linear-gradient(135deg, #fb7185, #f43f5e); color: white; }
-  .icon-sunrise { background: linear-gradient(135deg, #f97316, #fb923c); color: white; }
-
-  .summary-card-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    flex-grow: 1;
-    min-width: 0;
-  }
-
-  .summary-card-label {
-    font-size: 0.75rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    margin-bottom: 0.15rem;
-    color: #000;
-    flex-shrink: 0;
-    line-height: 1.1;
-    font-family: Montserrat;
-  }
-
-  .summary-card-value {
-    font-size: 1.1rem;
-    font-weight: 800;
-    margin: 0;
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
-    line-height: 1;
-    color: #000;
-    font-family: Montserrat;
-  }
-
-  .data-table-card {
-    background: #fff;
-    border-radius: 10px;
-    border: 1px solid #eceef3;
-    box-shadow: 0px 4px 4px 0px #0000000A;
-    overflow: hidden;
-  }
-
-  .data-table-card .table-responsive {
-    max-height: calc(100vh - 250px);
-    overflow-y: auto;
-    overflow-x: auto;
-  }
-
-  .data-table-card .custom-table {
-    margin-bottom: 0;
-    font-family: Montserrat;
-    font-size: 0.85rem;
-    background: transparent;
-    table-layout: auto;
-    min-width: 100%;
-  }
-
-  .data-table-card .custom-table thead th {
-    background: #fff;
-    color: #000;
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-weight: 700;
-    padding: 0.6rem 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid #f1f3f5;
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    white-space: nowrap;
-    font-family: Montserrat;
-  }
-
-  .data-table-card .custom-table tbody td {
-    font-size: 0.85rem;
-    padding: 0.65rem 0.75rem;
-    color: #000;
-    border-bottom: 1px solid #f4f4f6;
-    text-align: left;
-    background: transparent;
-    white-space: nowrap;
-    font-family: Montserrat;
-  }
-
-  .data-table-card .custom-table tbody tr {
-    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  }
-
-  .data-table-card .custom-table tbody tr:hover {
-    background: rgba(102, 126, 234, 0.08);
-    box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08);
-    transform: translateY(-1px);
-  }
-
-  .data-table-card .custom-table tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
-  }
-
-  .table-search {
-    width: 100%;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .table-search-field {
-    flex: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: #f4f5f7;
-    border: 1px solid #e5e7eb;
-    border-radius: 2px;
-    padding: 0.35rem 0.9rem;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  }
-
-  .table-search-btn {
-    padding: 0.35rem 1rem;
-    background: #434afa;
-    color: white;
-    border: none;
-    border-radius: 2px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-  }
-
-  .table-search-btn:hover {
-    background: #3538d4;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(67, 74, 250, 0.4);
-    color: white;
-    text-decoration: none;
-  }
-
-  .table-search-field i {
-    color: #9ca3af;
-    font-size: 0.85rem;
-  }
-
-  .table-search-field input {
-    border: none;
-    background: transparent;
-    font-size: 0.85rem;
-    width: 100%;
-    outline: none;
-    color: #111827;
-  }
-
-  .status-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 600;
-  }
-  .status-draft { background: #ffe0b2; color: #e65100; }
-  .status-active { background: #c8e6c9; color: #2e7d32; }
-  .status-completed { background: #bbdefb; color: #1565c0; }
-
-  .pagination .page-link {
-    color: #434afa;
-    border: 2px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 0.25rem 0.5rem;
-    margin: 0 2px;
-    font-size: 10px;
-    transition: all 0.3s ease;
-    font-weight: 500;
-  }
-
-  .pagination .page-item.active .page-link {
-    background: #434afa;
-    border-color: #434afa;
-    color: white;
-    box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
-  }
-
-  .pagination .page-link:hover {
-    background: rgba(67, 74, 250, 0.15);
-    border-color: #434afa;
-    transform: translateY(-1px);
-  }
-
-  .action-btn {
-    padding: 4px 8px;
-    font-size: 12px;
-    border-radius: 4px;
-    transition: all 0.2s;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: #6c757d;
-  }
-</style>
+<link rel="stylesheet" href="{{ asset('css/whatsapp.css') }}">
 @endpush
 
 @section('content')
@@ -420,7 +146,7 @@
 
 <!-- Send Campaign Modal -->
 <div class="modal fade" id="sendCampaignModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Send Campaign via MSG91</h5>
@@ -429,13 +155,31 @@
             <form id="sendCampaignForm">
                 <input type="hidden" id="send_campaign_id" name="id">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="send_template" class="form-label">Select MSG91 Template <span class="text-danger">*</span></label>
-                        <select class="form-select" id="send_template" name="template_name" required>
-                            <option value="">Loading templates...</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="send_template" class="form-label">Select MSG91 Template <span class="text-danger">*</span></label>
+                                <select class="form-select" id="send_template" name="template_name" required>
+                                    <option value="">Loading templates...</option>
+                                </select>
+                            </div>
+                            <div id="dynamic_variables_container"></div>
+                        </div>
+                        <div class="col-md-6 d-flex justify-content-center align-items-center rounded p-4" style="background-color: #efeae2; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');">
+                            <div id="whatsapp_preview_container" style="width: 100%; max-width: 340px; display: none;">
+                                <div class="whatsapp-bubble p-3" style="background-color: #dcf8c6; border-radius: 0px 8px 8px 8px; box-shadow: 0 1px 1px rgba(0,0,0,0.15);">
+                                    <div id="wa_preview_header" class="fw-bold mb-2 text-dark"></div>
+                                    <div id="wa_preview_body" class="mb-1 text-dark" style="font-size: 0.95rem; line-height: 1.4; white-space: pre-wrap; font-family: Helvetica, Arial, sans-serif;"></div>
+                                    <div id="wa_preview_footer" class="text-muted d-flex justify-content-end" style="font-size: 0.7rem; margin-top: 4px;"></div>
+                                </div>
+                                <div id="wa_preview_buttons" class="mt-2 d-flex flex-column gap-1"></div>
+                            </div>
+                            <div id="whatsapp_preview_placeholder" class="text-muted text-center w-100 bg-white p-4 rounded shadow-sm opacity-75">
+                                <i class="bi bi-whatsapp fs-1 text-success"></i>
+                                <p class="mt-2 fw-bold">Select a template to see preview</p>
+                            </div>
+                        </div>
                     </div>
-                    <div id="dynamic_variables_container"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -664,39 +408,83 @@
     $(document).on('change', '#send_template', function() {
         let selectedTemplateName = $(this).val();
         let container = $('#dynamic_variables_container');
+        let previewContainer = $('#whatsapp_preview_container');
+        let previewPlaceholder = $('#whatsapp_preview_placeholder');
         container.html(''); // clear
 
-        if (!selectedTemplateName) return;
+        if (!selectedTemplateName) {
+            previewContainer.hide();
+            previewPlaceholder.show();
+            return;
+        }
 
         let template = msg91Templates.find(t => t.name === selectedTemplateName);
-        if (template && template.variables && template.variables.length > 0) {
-            let html = '<hr><h6 class="mb-3">Map Template Variables</h6>';
-            template.variables.forEach(variable => {
-                if (variable.startsWith('header_')) {
-                    html += `
-                        <div class="mb-2 row align-items-center">
-                            <label class="col-sm-4 col-form-label text-end fw-bold">${variable} (Image)</label>
-                            <div class="col-sm-8">
-                                <input type="file" class="form-control form-control-sm" name="media[${variable}]" accept="image/*" required>
+        if (template) {
+            // Render Variables Mapping
+            if (template.variables && template.variables.length > 0) {
+                let html = '<hr><h6 class="mb-3">Map Template Variables</h6>';
+                template.variables.forEach(variable => {
+                    if (variable.startsWith('header_')) {
+                        html += `
+                            <div class="mb-2 row align-items-center">
+                                <label class="col-sm-4 col-form-label text-end fw-bold">${variable} (Image)</label>
+                                <div class="col-sm-8">
+                                    <input type="file" class="form-control form-control-sm" name="media[${variable}]" accept="image/*" required>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                } else {
-                    html += `
-                        <div class="mb-2 row align-items-center">
-                            <label class="col-sm-4 col-form-label text-end fw-bold">${variable}</label>
-                            <div class="col-sm-8">
-                                <select class="form-select form-select-sm" name="mappings[${variable}]" required>
-                                    <option value="">-- Map to field --</option>
-                                    <option value="name">Name</option>
-                                    <option value="phone_number">Phone Number</option>
-                                </select>
+                        `;
+                    } else {
+                        html += `
+                            <div class="mb-2 row align-items-center">
+                                <label class="col-sm-4 col-form-label text-end fw-bold">${variable}</label>
+                                <div class="col-sm-8">
+                                    <select class="form-select form-select-sm" name="mappings[${variable}]" required>
+                                        <option value="">-- Map to field --</option>
+                                        <option value="name">Name</option>
+                                        <option value="phone_number">Phone Number</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                }
-            });
-            container.html(html);
+                        `;
+                    }
+                });
+                container.html(html);
+            }
+
+            // Render Preview
+            previewPlaceholder.hide();
+            previewContainer.show();
+            
+            $('#wa_preview_header, #wa_preview_body, #wa_preview_footer, #wa_preview_buttons').html('');
+
+            if (template.components && template.components.length > 0) {
+                template.components.forEach(comp => {
+                    if (comp.type === 'HEADER') {
+                        if (comp.format === 'TEXT') {
+                            $('#wa_preview_header').text(comp.text);
+                        } else {
+                            let icon = comp.format === 'DOCUMENT' ? 'bi-file-earmark-pdf' : (comp.format === 'VIDEO' ? 'bi-play-btn' : 'bi-image');
+                            $('#wa_preview_header').html(`<div class="bg-secondary bg-opacity-25 rounded d-flex justify-content-center align-items-center mb-2" style="height: 100px;"><i class="bi ${icon} fs-1 text-secondary"></i></div>`);
+                        }
+                    } else if (comp.type === 'BODY') {
+                        let text = comp.text || '';
+                        // Highlight variables, avoid Blade curly braces syntax error
+                        text = text.replace(/\{\{(\d+)\}\}/g, '<span class="bg-warning text-dark px-1 rounded mx-1">@{{$1}}</span>');
+                        $('#wa_preview_body').html(text);
+                    } else if (comp.type === 'FOOTER') {
+                        $('#wa_preview_footer').text(comp.text);
+                    } else if (comp.type === 'BUTTONS' && comp.buttons) {
+                        let buttonsHtml = '';
+                        comp.buttons.forEach(btn => {
+                            let icon = btn.type === 'URL' ? 'bi-box-arrow-up-right' : (btn.type === 'PHONE_NUMBER' ? 'bi-telephone' : 'bi-reply');
+                            buttonsHtml += `<button type="button" class="btn btn-light btn-sm w-100 text-primary border shadow-sm fw-bold"><i class="bi ${icon} me-1"></i> ${btn.text}</button>`;
+                        });
+                        $('#wa_preview_buttons').html(buttonsHtml);
+                    }
+                });
+            } else {
+                $('#wa_preview_body').html('<pre class="small">' + JSON.stringify(template, null, 2) + '</pre>');
+            }
         }
     });
 
