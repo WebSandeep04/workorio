@@ -437,10 +437,16 @@ class WhatsappCampaignController extends Controller
             ]);
 
             if ($response->successful() && isset($response->json()['hasError']) && $response->json()['hasError'] === false) {
-                $campaign->update(['status' => 'Completed']);
+                $respJson = $response->json();
+                $requestId = $respJson['msgId'] ?? ($respJson['data']['msgId'] ?? null);
+
+                $campaign->update([
+                    'status' => 'Completed',
+                    'request_id' => $requestId
+                ]);
                 
                 foreach($members as $member) {
-                    $member->update(['status' => 'Sent']);
+                    $member->update(['status' => 'Pending']); // Will be updated by Webhook
                 }
 
                 return response()->json([
@@ -469,5 +475,30 @@ class WhatsappCampaignController extends Controller
                 'message' => 'Error: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getReport($id)
+    {
+        $campaign = WhatsappCampaign::with('members')->findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'campaign' => [
+                    'id' => $campaign->id,
+                    'name' => $campaign->name,
+                    'status' => $campaign->status,
+                ],
+                'members' => $campaign->members->map(function($member) {
+                    return [
+                        'id' => $member->id,
+                        'name' => $member->name ?? '-',
+                        'phone_number' => $member->phone_number,
+                        'status' => $member->status,
+                        'error_message' => $member->error_message ?? ''
+                    ];
+                })
+            ]
+        ]);
     }
 }
