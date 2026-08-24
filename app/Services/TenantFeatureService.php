@@ -57,6 +57,7 @@ class TenantFeatureService
                 'permissions' => [
                     'sales.calling.all' => 'Tele-Calling: View All',
                     'sales.calling.list' => 'Tele-Calling: List View',
+                    'sales.calling' => 'Tele-Calling: Campaign',
                     'sales.calling.my' => 'Tele-Calling: My Calls',
                     'sales.calling.team' => 'Tele-Calling: Team Calls',
                     'sales.calling.assigned' => 'Tele-Calling: Assigned Calls',
@@ -185,6 +186,35 @@ class TenantFeatureService
                 'setup_enabled' => (bool) ($tenant->is_contact_management_setup_enabled ?? false),
                 'permissions' => [
                     'contact_management.access' => 'Contact Management: Access',
+                ]
+            ],
+            'payroll' => [
+                'enabled' => (bool) ($tenant->is_payroll_enabled ?? true),
+                'setup_enabled' => (bool) ($tenant->is_payroll_setup_enabled ?? true),
+                'permissions' => [
+                    'payroll.attendance' => 'Payroll: Attendance Review',
+                    'payroll.process' => 'Payroll: Process Payroll',
+                    'payroll.report' => 'Reports: Salary Report',
+                    'setup.payroll_final_attendance' => 'Setup: Final Attendance',
+                    'setup.payroll_settings' => 'Setup: Payroll Settings',
+                    'setup.payroll_components' => 'Setup: Salary Components',
+                    'setup.payroll_structures' => 'Setup: Salary Structures',
+                    'setup.payroll_statutory' => 'Setup: Statutory Rules',
+                ]
+            ],
+            'loans' => [
+                'enabled' => (bool) ($tenant->is_payroll_enabled ?? true),
+                'setup_enabled' => false,
+                'permissions' => [
+                    'loans.my_loans' => 'Loans: My Financial Requests',
+                    'loans.manage' => 'Loans: Manage Financial Requests',
+                ]
+            ],
+            'whatsapp' => [
+                'enabled' => (bool) ($tenant->is_sales_enabled ?? true),
+                'setup_enabled' => false,
+                'permissions' => [
+                    'sales.whatsapp' => 'WhatsApp: Campaigns & Inbox',
                 ]
             ],
             'other_modules' => [
