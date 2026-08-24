@@ -672,18 +672,29 @@
         if (template && template.variables && template.variables.length > 0) {
             let html = '<hr><h6 class="mb-3">Map Template Variables</h6>';
             template.variables.forEach(variable => {
-                html += `
-                    <div class="mb-2 row align-items-center">
-                        <label class="col-sm-4 col-form-label text-end fw-bold">${variable}</label>
-                        <div class="col-sm-8">
-                            <select class="form-select form-select-sm" name="mappings[${variable}]" required>
-                                <option value="">-- Map to field --</option>
-                                <option value="name">Name</option>
-                                <option value="phone_number">Phone Number</option>
-                            </select>
+                if (variable.startsWith('header_')) {
+                    html += `
+                        <div class="mb-2 row align-items-center">
+                            <label class="col-sm-4 col-form-label text-end fw-bold">${variable} (Image)</label>
+                            <div class="col-sm-8">
+                                <input type="file" class="form-control form-control-sm" name="media[${variable}]" accept="image/*" required>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    html += `
+                        <div class="mb-2 row align-items-center">
+                            <label class="col-sm-4 col-form-label text-end fw-bold">${variable}</label>
+                            <div class="col-sm-8">
+                                <select class="form-select form-select-sm" name="mappings[${variable}]" required>
+                                    <option value="">-- Map to field --</option>
+                                    <option value="name">Name</option>
+                                    <option value="phone_number">Phone Number</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+                }
             });
             container.html(html);
         }
@@ -696,10 +707,15 @@
         $('#btn-send').prop('disabled', true).text('Sending...');
         let id = $('#send_campaign_id').val();
         
+        let formData = new FormData(this);
+        formData.append('_token', '{{ csrf_token() }}');
+
         $.ajax({
             url: `/whatsapp-campaigns/${id}/send`,
             type: 'POST',
-            data: $(this).serialize() + '&_token={{ csrf_token() }}',
+            data: formData,
+            processData: false,
+            contentType: false,
             success: function(res) {
                 $('#sendCampaignModal').modal('hide');
                 loadCampaigns(currentPage);

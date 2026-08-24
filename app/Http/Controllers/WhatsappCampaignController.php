@@ -346,6 +346,14 @@ class WhatsappCampaignController extends Controller
             ], 400);
         }
 
+        $mediaUrls = [];
+        if ($request->hasFile('media')) {
+            foreach ($request->file('media') as $variable => $file) {
+                $path = $file->store('campaign_media', 'public');
+                $mediaUrls[$variable] = asset('storage/' . $path);
+            }
+        }
+
         $toAndComponents = [];
 
         foreach ($members as $member) {
@@ -372,6 +380,13 @@ class WhatsappCampaignController extends Controller
                 $components->{$variable} = [
                     "type" => "text",
                     "value" => $value
+                ];
+            }
+
+            foreach ($mediaUrls as $variable => $url) {
+                $components->{$variable} = [
+                    "type" => "image",
+                    "value" => $url
                 ];
             }
 
