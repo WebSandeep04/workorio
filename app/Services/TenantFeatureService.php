@@ -211,7 +211,7 @@ class TenantFeatureService
                 ]
             ],
             'whatsapp' => [
-                'enabled' => (bool) ($tenant->is_sales_enabled ?? true),
+                'enabled' => (bool) ($tenant->is_whatsapp_enabled ?? true),
                 'setup_enabled' => false,
                 'permissions' => [
                     'sales.whatsapp' => 'WhatsApp: Campaigns & Inbox',

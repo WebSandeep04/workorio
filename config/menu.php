@@ -273,7 +273,7 @@ return [
                     'key' => 'whatsapp_campaign',
                     'title' => 'Campaign',
                     'icon' => 'bi bi-whatsapp',
-                    'feature_flag' => 'is_sales_enabled',
+                    'feature_flag' => 'is_whatsapp_enabled',
                     'roles' => ['admin'],
                     'items' => [
                         ['route' => 'whatsapp-campaigns.index', 'title' => 'WhatsApp Campaign', 'icon' => 'bi bi-whatsapp', 'permission' => 'sales.whatsapp'],
