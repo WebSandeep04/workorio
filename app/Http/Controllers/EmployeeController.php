@@ -136,6 +136,12 @@ class EmployeeController extends Controller
         $data = $this->validateEmployee($request, $employee->id);
         $employee->update($data);
 
+        if (isset($data['status']) && strtolower($data['status']) === 'inactive') {
+            if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
+                \App\Models\User::where('employee_id', $employee->id)->update(['is_login' => 0]);
+            }
+        }
+
         // Fix existing temp codes to the formal 'Emp-{id}' format
         if (str_starts_with($employee->employee_code, 'emp-temp-')) {
             $employee->employee_code = $this->formatEmployeeCode($employee->id);
