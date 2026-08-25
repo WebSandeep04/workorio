@@ -250,9 +250,11 @@
                                     <a href="/whatsapp-campaigns/${campaign.id}/report-view" class="btn btn-sm text-white action-btn me-1" style="background-color: #20c997;" title="View Report">
                                         <i class="bi bi-card-list"></i>
                                     </a>
+                                    ${campaign.status === 'Draft' ? `
                                     <button class="btn btn-sm btn-danger action-btn" onclick="deleteCampaign(${campaign.id})" title="Delete">
                                         <i class="bi bi-trash"></i>
                                     </button>
+                                    ` : ''}
                                 </td>
                             </tr>
                         `;

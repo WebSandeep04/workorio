@@ -24,7 +24,7 @@
     color: #000;
     font-size: 0.65rem;
     letter-spacing: 0.08em;
-    text-transform: uppercase;
+    text-transform: none;
     font-weight: 700;
     padding: 0.6rem 0.75rem;
     text-align: left;
@@ -64,9 +64,9 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Add Members to Campaign</h5>
-                <button class="btn btn-sm btn-success" onclick="openSendModal({{ $whatsapp_campaign->id }})">
-                    <i class="bi bi-send me-1"></i> Send Campaign
-                </button>
+                <a href="{{ route('whatsapp-campaigns.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Campaigns
+                </a>
             </div>
             <div class="card-body">
                 @if(session('success'))

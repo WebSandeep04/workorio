@@ -23,7 +23,7 @@
                 <i class="bi bi-people fs-5 text-white"></i>
             </div>
             <div class="summary-card-content">
-                <div class="summary-card-label">Total Members</div>
+                <div class="summary-card-label" style="text-transform: none !important;">Total Members</div>
                 <div class="summary-card-value text-dark">{{ $totalMembers }}</div>
             </div>
         </div>
@@ -32,7 +32,7 @@
                 <i class="bi bi-check-circle fs-5 text-white"></i>
             </div>
             <div class="summary-card-content">
-                <div class="summary-card-label">Successfully Sent</div>
+                <div class="summary-card-label" style="text-transform: none !important;">Successfully Sent</div>
                 <div class="summary-card-value text-success">{{ $sentCount }}</div>
             </div>
         </div>
@@ -41,7 +41,7 @@
                 <i class="bi bi-x-circle fs-5 text-white"></i>
             </div>
             <div class="summary-card-content">
-                <div class="summary-card-label">Failed</div>
+                <div class="summary-card-label" style="text-transform: none !important;">Failed</div>
                 <div class="summary-card-value text-danger">{{ $failedCount }}</div>
             </div>
         </div>
@@ -50,7 +50,7 @@
                 <i class="bi bi-hourglass fs-5 text-white"></i>
             </div>
             <div class="summary-card-content">
-                <div class="summary-card-label">Pending</div>
+                <div class="summary-card-label" style="text-transform: none !important;">Pending</div>
                 <div class="summary-card-value text-warning">{{ $pendingCount }}</div>
             </div>
         </div>
@@ -63,10 +63,10 @@
                 <table class="table custom-table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Phone Number</th>
-                            <th>Status</th>
-                            <th>Error / Reason</th>
+                            <th style="text-transform: none !important;">Name</th>
+                            <th style="text-transform: none !important;">Phone Number</th>
+                            <th style="text-transform: none !important;">Status</th>
+                            <th style="text-transform: none !important;">Error / Reason</th>
                         </tr>
                     </thead>
                     <tbody>

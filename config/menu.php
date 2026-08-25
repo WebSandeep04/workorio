@@ -271,15 +271,30 @@ return [
             'sections' => [
                 [
                     'key' => 'whatsapp_campaign',
-                    'title' => 'Campaign',
+                    'route' => 'whatsapp-campaigns.index',
+                    'title' => 'WhatsApp Campaign',
                     'icon' => 'bi bi-whatsapp',
                     'feature_flag' => 'is_whatsapp_enabled',
                     'roles' => ['admin'],
-                    'items' => [
-                        ['route' => 'whatsapp-campaigns.index', 'title' => 'WhatsApp Campaign', 'icon' => 'bi bi-whatsapp', 'permission' => 'sales.whatsapp'],
-                        ['route' => 'whatsapp-inbox.index', 'title' => 'WhatsApp Inbox', 'icon' => 'bi bi-chat-left-dots', 'permission' => 'sales.whatsapp'],
-                        ['route' => 'whatsapp-templates.index', 'title' => 'Templates', 'icon' => 'bi bi-layout-text-window', 'permission' => 'sales.whatsapp'],
-                    ]
+                    'permission' => 'sales.whatsapp'
+                ],
+                [
+                    'key' => 'whatsapp_inbox',
+                    'route' => 'whatsapp-inbox.index',
+                    'title' => 'WhatsApp Inbox',
+                    'icon' => 'bi bi-chat-left-dots',
+                    'feature_flag' => 'is_whatsapp_enabled',
+                    'roles' => ['admin'],
+                    'permission' => 'sales.whatsapp'
+                ],
+                [
+                    'key' => 'whatsapp_templates',
+                    'route' => 'whatsapp-templates.index',
+                    'title' => 'Templates',
+                    'icon' => 'bi bi-layout-text-window',
+                    'feature_flag' => 'is_whatsapp_enabled',
+                    'roles' => ['admin'],
+                    'permission' => 'sales.whatsapp'
                 ],
 
             ]
