@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\WhatsappInbox;
+use App\Traits\TenantAwareStorage;
 
 class WhatsappInboxController extends Controller
 {
+    use TenantAwareStorage;
+
     public function index()
     {
         return view('whatsapp_inbox.index');
@@ -22,8 +25,13 @@ class WhatsappInboxController extends Controller
     {
         $request->validate([
             'recipient_number' => 'required',
-            'message' => 'required'
+            'message' => 'nullable|string',
+            'file' => 'nullable|file|max:10240'
         ]);
+
+        if (empty($request->message) && !$request->hasFile('file')) {
+            return response()->json(['success' => false, 'message' => 'Please provide a message or attach a file.'], 400);
+        }
 
         $setting = \App\Models\Msg91Setting::first();
         if (!$setting || !$setting->auth_key || !$setting->whatsapp_number) {
@@ -39,16 +47,53 @@ class WhatsappInboxController extends Controller
         $payload = [
             "integrated_number" => $setting->whatsapp_number,
             "recipient_number" => $recipientNumber,
-            "content_type" => "text",
-            "text" => $request->message
         ];
 
+        $mediaUrl = null;
+        $messageType = 'reply'; // Text reply by default
+
+        if ($request->hasFile('file')) {
+            $path = $this->storeTenantFile($request->file('file'), 'whatsapp_media');
+            // Force HTTPS if in production, otherwise use asset default
+            $isProduction = config('app.env') === 'production' || str_contains(url('/'), 'app.workorio.com');
+            $mediaUrl = asset('storage/' . $path, $isProduction);
+            
+            $file = $request->file('file');
+            $extension = strtolower($file->getClientOriginalExtension());
+            $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+            
+            $msg91Type = $isImage ? 'image' : 'document';
+            $messageType = $isImage ? 'image_reply' : 'document_reply';
+
+            $payload["content_type"] = $msg91Type;
+            $payload["attachment_url"] = $mediaUrl;
+            
+            if (!$isImage) {
+                $payload["filename"] = $file->getClientOriginalName();
+            }
+            
+            // Only add caption if message is provided
+            if (!empty($request->message)) {
+                $payload["caption"] = $request->message;
+            }
+        } else {
+            $payload["content_type"] = "text";
+            $payload["text"] = $request->message;
+        }
+
         try {
+            \Illuminate\Support\Facades\Log::info('MSG91 Outbound Payload', $payload);
+
             $response = \Illuminate\Support\Facades\Http::withHeaders([
                 'accept' => 'application/json',
                 'authkey' => $setting->auth_key,
                 'content-type' => 'application/json'
             ])->post("https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/", $payload);
+
+            \Illuminate\Support\Facades\Log::info('MSG91 Outbound Response', [
+                'status' => $response->status(),
+                'body' => $response->json()
+            ]);
 
             if ($response->successful() && isset($response->json()['hasError']) && $response->json()['hasError'] === false) {
                 // Log reply to inbox
@@ -56,15 +101,21 @@ class WhatsappInboxController extends Controller
                     'sender_number' => $setting->whatsapp_number,
                     'receiver_number' => $recipientNumber,
                     'message_text' => $request->message,
-                    'message_type' => 'reply',
+                    'media_url' => $mediaUrl,
+                    'message_type' => $messageType,
                     'received_at' => now(),
                     'is_read' => 1
                 ]);
 
                 return response()->json(['success' => true, 'message' => 'Reply sent successfully.']);
             } else {
-                $errorMsg = $response->json()['message'] ?? 'Failed to send reply.';
-                return response()->json(['success' => false, 'message' => $errorMsg], 400);
+                $rawBody = $response->body();
+                $status = $response->status();
+                return response()->json([
+                    'success' => false, 
+                    'message' => "MSG91 Error ($status): " . $rawBody, 
+                    'debug' => $rawBody
+                ], 400);
             }
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
