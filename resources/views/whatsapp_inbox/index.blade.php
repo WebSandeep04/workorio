@@ -70,6 +70,15 @@
       <div class="modal-body" id="chatHistoryBody" style="background-color: #f4f5f7; max-height: 65vh; overflow-y: auto;">
         <!-- Chat bubbles go here -->
       </div>
+      <div id="replyExpiredAlert" class="alert alert-warning m-3" style="display: none; padding: 0.5rem 1rem; font-size: 0.85rem;">
+          <i class="bi bi-info-circle"></i> The 24-hour window for replying has expired.
+      </div>
+      <div class="modal-footer" id="replyFooter" style="display: none; background-color: #f4f5f7; border-top: 1px solid #e2e5ec; padding: 0.75rem;">
+        <div class="input-group w-100">
+            <input type="text" id="replyMessage" class="form-control" placeholder="Type your reply...">
+            <button class="btn" style="background-color: #434afa; color: white;" id="sendReplyBtn" onclick="sendReply()">Send <i class="bi bi-send"></i></button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -226,35 +235,127 @@
 
     function viewChatHistory(senderNumber) {
         $('#modalSenderNumber').text(senderNumber);
+        $('#replyMessage').val('');
         
-        let history = allMessages.filter(msg => msg.sender_number === senderNumber);
+        let history = allMessages.filter(msg => msg.sender_number === senderNumber || (msg.message_type === 'reply' && msg.receiver_number === senderNumber));
         // Sort chronologically for the chat (oldest first)
         history.sort((a, b) => new Date(a.received_at) - new Date(b.received_at));
 
         let chatHtml = '';
+        let lastReceivedDate = null;
+
         history.forEach(msg => {
             let text = msg.message_text ? msg.message_text : '<span class="text-muted fst-italic">(No text)</span>';
             let time = new Date(msg.received_at).toLocaleString();
+            let isReply = msg.message_type === 'reply';
+
+            if (!isReply) {
+                if (!lastReceivedDate || new Date(msg.received_at) > lastReceivedDate) {
+                    lastReceivedDate = new Date(msg.received_at);
+                }
+            }
             
-            chatHtml += `
-                <div class="mb-3 d-flex justify-content-start">
-                    <div class="p-2 bg-white shadow-sm" style="max-width: 85%; border: 1px solid #e2e5ec; border-radius: 12px 12px 12px 0px;">
-                        <div class="mb-1 text-dark" style="font-size: 0.9rem;">${text}</div>
-                        <div class="text-muted text-end" style="font-size: 0.65rem;">
-                            ${msg.message_type !== 'text' ? `<span class="badge bg-secondary me-1">${msg.message_type}</span>` : ''}
-                            ${time}
+            if (isReply) {
+                chatHtml += `
+                    <div class="mb-3 d-flex justify-content-end">
+                        <div class="p-2 bg-white shadow-sm" style="max-width: 85%; border: 1px solid #e2e5ec; border-radius: 12px 12px 0px 12px; background-color: #e3f2fd !important;">
+                            <div class="mb-1 text-dark" style="font-size: 0.9rem;">${text}</div>
+                            <div class="text-muted text-end" style="font-size: 0.65rem;">
+                                ${time}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                chatHtml += `
+                    <div class="mb-3 d-flex justify-content-start">
+                        <div class="p-2 bg-white shadow-sm" style="max-width: 85%; border: 1px solid #e2e5ec; border-radius: 12px 12px 12px 0px;">
+                            <div class="mb-1 text-dark" style="font-size: 0.9rem;">${text}</div>
+                            <div class="text-muted text-end" style="font-size: 0.65rem;">
+                                ${msg.message_type !== 'text' ? `<span class="badge bg-secondary me-1">${msg.message_type}</span>` : ''}
+                                ${time}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
         });
-
-        if(chatHtml === '') chatHtml = '<div class="text-center text-muted">No messages found.</div>';
 
         $('#chatHistoryBody').html(chatHtml);
         
+        if (lastReceivedDate) {
+            let now = new Date();
+            let diffMs = now - lastReceivedDate;
+            let diffHours = diffMs / (1000 * 60 * 60);
+            
+            if (diffHours < 23.5) {
+                $('#replyFooter').show();
+                $('#replyExpiredAlert').hide();
+            } else {
+                $('#replyFooter').hide();
+                $('#replyExpiredAlert').show();
+            }
+        } else {
+            $('#replyFooter').hide();
+            $('#replyExpiredAlert').hide();
+        }
+
         var chatModal = new bootstrap.Modal(document.getElementById('chatHistoryModal'));
         chatModal.show();
+        
+        setTimeout(() => {
+            $('#chatHistoryBody').scrollTop($('#chatHistoryBody')[0].scrollHeight);
+        }, 100);
+    }
+
+    function sendReply() {
+        let recipient = $('#modalSenderNumber').text();
+        let message = $('#replyMessage').val().trim();
+        
+        if (!message) {
+            alert('Please enter a message.');
+            return;
+        }
+        
+        $('#sendReplyBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...');
+        
+        $.ajax({
+            url: `{{ route('whatsapp-inbox.reply') }}`,
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                recipient_number: recipient,
+                message: message
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#replyMessage').val('');
+                    loadMessages(); // reload all messages
+                    
+                    let time = new Date().toLocaleString();
+                    let chatHtml = `
+                        <div class="mb-3 d-flex justify-content-end">
+                            <div class="p-2 bg-white shadow-sm" style="max-width: 85%; border: 1px solid #e2e5ec; border-radius: 12px 12px 0px 12px; background-color: #e3f2fd !important;">
+                                <div class="mb-1 text-dark" style="font-size: 0.9rem;">${message}</div>
+                                <div class="text-muted text-end" style="font-size: 0.65rem;">
+                                    ${time}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    $('#chatHistoryBody').append(chatHtml);
+                    $('#chatHistoryBody').scrollTop($('#chatHistoryBody')[0].scrollHeight);
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function(xhr) {
+                alert(xhr.responseJSON?.message || 'Error sending reply');
+            },
+            complete: function() {
+                $('#sendReplyBtn').prop('disabled', false).html('Send <i class="bi bi-send"></i>');
+            }
+        });
     }
 </script>
 @endpush
