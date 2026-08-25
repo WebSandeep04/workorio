@@ -126,6 +126,33 @@
         </div>
     </div>
 </div>
+<!-- Test Message Modal -->
+<div class="modal fade" id="testMessageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Test Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="testMessageForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Template Name</label>
+                        <input type="text" class="form-control" id="test_template_name" name="template_name" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Phone Number</label>
+                        <input type="text" class="form-control" name="phone_number" placeholder="Enter 10 digit number" required pattern="\d{10,12}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="btn-send-test">Send Test</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 @push('scripts')
 <script>
@@ -212,8 +239,11 @@
                             <button type="button" class="btn btn-sm text-white px-3 py-1 shadow-sm me-1" style="background-color: #434afa; border-radius: 4px; font-weight: 500;" onclick="showPreview(${index})" title="Show Preview">
                                 <i class="bi bi-eye"></i> Preview
                             </button>
-                            <button type="button" class="btn btn-sm text-white px-3 py-1 shadow-sm" style="background-color: #20c997; border-radius: 4px; font-weight: 500;" onclick="openMappingModal(${index})" title="Map Variables">
+                            <button type="button" class="btn btn-sm text-white px-3 py-1 shadow-sm me-1" style="background-color: #20c997; border-radius: 4px; font-weight: 500;" onclick="openMappingModal(${index})" title="Map Variables">
                                 <i class="bi bi-diagram-3"></i> Map Variables
+                            </button>
+                            <button type="button" class="btn btn-sm text-white px-3 py-1 shadow-sm" style="background-color: #f39c12; border-radius: 4px; font-weight: 500;" onclick="openTestModal('${item.name}')" title="Test Template">
+                                <i class="bi bi-send"></i> Test
                             </button>
                         </td>
                     </tr>
@@ -374,13 +404,6 @@
         let formData = new FormData(this);
         formData.append('_token', '{{ csrf_token() }}');
         
-        // We need to convert mappings array structure for FormData if needed, but simple name attribute handles it.
-        // E.g. name="mappings[header_1]"
-
-        // However, if there are no variables, we just save an empty mapping
-        
-        // Ensure that JSON string is sent for mappings if we want to follow Controller logic exactly
-        // Wait, the controller expects $request->mappings to be a JSON string.
         let mappingObj = {};
         $(this).serializeArray().forEach(item => {
             if (item.name.startsWith('mappings[')) {
@@ -406,6 +429,41 @@
             },
             complete: function() {
                 $('#btn-save-mapping').prop('disabled', false).text('Save Mapping');
+            }
+        });
+    });
+
+    function openTestModal(templateName) {
+        $('#test_template_name').val(templateName);
+        $('#testMessageForm')[0].reset();
+        $('#test_template_name').val(templateName); // Restore after reset
+        $('#testMessageModal').modal('show');
+    }
+
+    $('#testMessageForm').submit(function(e) {
+        e.preventDefault();
+        let btn = $('#btn-send-test');
+        btn.prop('disabled', true).text('Sending...');
+
+        let formData = new FormData(this);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        $.ajax({
+            url: `{{ route('whatsapp-templates.test') }}`,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                $('#testMessageModal').modal('hide');
+                alert(res.message);
+            },
+            error: function(xhr) {
+                let msg = xhr.responseJSON?.message || 'Error sending test message.';
+                alert(msg);
+            },
+            complete: function() {
+                btn.prop('disabled', false).text('Send Test');
             }
         });
     });

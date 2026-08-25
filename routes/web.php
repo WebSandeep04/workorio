@@ -1306,6 +1306,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('whatsapp-templates/fetch', [Msg91TemplateController::class, 'fetch'])->name('whatsapp-templates.fetch');
     Route::get('whatsapp-templates/mapping/{template_name}', [Msg91TemplateController::class, 'getMapping'])->name('whatsapp-templates.mapping.get');
     Route::post('whatsapp-templates/mapping/store', [Msg91TemplateController::class, 'storeMapping'])->name('whatsapp-templates.mapping.store');
+    Route::post('whatsapp-templates/test', [Msg91TemplateController::class, 'sendTestMessage'])->name('whatsapp-templates.test');
 
     Route::get('whatsapp-campaigns', [WhatsappCampaignController::class, 'index'])->name('whatsapp-campaigns.index');
     Route::post('whatsapp-campaigns/fetch', [WhatsappCampaignController::class, 'fetch'])->name('whatsapp-campaigns.fetch');

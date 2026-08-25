@@ -153,4 +153,101 @@ class Msg91TemplateController extends Controller
             'data' => $mappingRecord
         ]);
     }
+
+    public function sendTestMessage(Request $request)
+    {
+        $request->validate([
+            'template_name' => 'required|string',
+            'phone_number' => 'required|string',
+        ]);
+
+        $setting = Msg91Setting::first();
+        if (!$setting || !$setting->auth_key || !$setting->whatsapp_number) {
+            return response()->json([
+                'success' => false,
+                'message' => 'MSG91 Settings not configured.'
+            ], 400);
+        }
+
+        $phone = $request->phone_number;
+        // MSG91 requires 91 prefix for India if not present
+        if (strlen($phone) == 10) {
+            $phone = '91' . $phone;
+        }
+
+        // Get template mapping
+        $mappingRecord = WhatsappTemplateMapping::where('template_name', $request->template_name)->first();
+        
+        $components = new \stdClass();
+        if ($mappingRecord) {
+            $mappings = $mappingRecord->mappings ?? [];
+            $mediaUrls = $mappingRecord->media_urls ?? [];
+
+            foreach ($mappings as $variable => $field) {
+                $value = 'Test';
+                if ($field === 'phone_number') {
+                    $value = $phone;
+                }
+                $components->{$variable} = [
+                    "type" => "text",
+                    "value" => $value
+                ];
+            }
+
+            foreach ($mediaUrls as $variable => $url) {
+                $components->{$variable} = [
+                    "type" => "image",
+                    "value" => $url
+                ];
+            }
+        }
+
+        $toAndComponents = [
+            [
+                "to" => [ $phone ],
+                "components" => $components
+            ]
+        ];
+
+        $payload = [
+            "integrated_number" => $setting->whatsapp_number,
+            "content_type" => "template",
+            "payload" => [
+                "messaging_product" => "whatsapp",
+                "type" => "template",
+                "template" => [
+                    "name" => $request->template_name,
+                    "language" => [
+                        "code" => "en", 
+                        "policy" => "deterministic"
+                    ],
+                    "namespace" => $setting->whatsapp_namespace ?? '',
+                    "to_and_components" => $toAndComponents
+                ]
+            ]
+        ];
+
+        try {
+            $response = Http::withHeaders([
+                'accept' => 'application/json',
+                'authkey' => $setting->auth_key,
+                'content-type' => 'application/json'
+            ])->post("https://control.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/", $payload);
+
+            if ($response->successful() && isset($response->json()['hasError']) && $response->json()['hasError'] === false) {
+                return response()->json(['success' => true, 'message' => 'Test message sent successfully!']);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send test message: ' . ($response->json()['message'] ?? 'Unknown error')
+            ], 400);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
