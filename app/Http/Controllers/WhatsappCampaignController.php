@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\WhatsappCampaign;
 use App\Models\WhatsappCampaignMember;
+use App\Models\WhatsappTemplateMapping;
 use App\Models\SalesRecord;
 use App\Models\Prospectus;
 use App\Models\Customer;
@@ -355,13 +356,9 @@ class WhatsappCampaignController extends Controller
             ], 400);
         }
 
-        $mediaUrls = [];
-        if ($request->hasFile('media')) {
-            foreach ($request->file('media') as $variable => $file) {
-                $path = $file->store('campaign_media', 'public');
-                $mediaUrls[$variable] = asset('storage/' . $path);
-            }
-        }
+        $mappingRecord = WhatsappTemplateMapping::where('template_name', $request->template_name)->first();
+        $mappings = $mappingRecord ? ($mappingRecord->mappings ?? []) : [];
+        $mediaUrls = $mappingRecord ? ($mappingRecord->media_urls ?? []) : [];
 
         $toAndComponents = [];
 
@@ -376,7 +373,6 @@ class WhatsappCampaignController extends Controller
             }
 
             $components = new \stdClass();
-            $mappings = $request->input('mappings', []);
             
             foreach ($mappings as $variable => $field) {
                 $value = '';

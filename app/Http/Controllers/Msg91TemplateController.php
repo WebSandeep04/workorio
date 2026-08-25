@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Msg91Setting;
+use App\Models\WhatsappTemplateMapping;
+use App\Traits\TenantAwareStorage;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class Msg91TemplateController extends Controller
 {
+    use TenantAwareStorage;
     public function index()
     {
         return view('whatsapp_templates.index');
@@ -105,5 +109,48 @@ class Msg91TemplateController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function getMapping($template_name)
+    {
+        $mapping = WhatsappTemplateMapping::where('template_name', $template_name)->first();
+        return response()->json([
+            'success' => true,
+            'mapping' => $mapping
+        ]);
+    }
+
+    public function storeMapping(Request $request)
+    {
+        $request->validate([
+            'template_name' => 'required|string',
+        ]);
+
+        $templateName = $request->template_name;
+        $mappings = json_decode($request->mappings, true) ?? [];
+        
+        $mappingRecord = WhatsappTemplateMapping::firstOrNew(['template_name' => $templateName]);
+        
+        $existingMediaUrls = $mappingRecord->media_urls ?? [];
+        
+        if ($request->hasFile('media')) {
+            $basePath = $this->getTenantPath('template_media');
+            
+            foreach ($request->file('media') as $variable => $file) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs($basePath, $filename, 'public');
+                $existingMediaUrls[$variable] = asset('storage/' . $path);
+            }
+        }
+
+        $mappingRecord->mappings = $mappings;
+        $mappingRecord->media_urls = $existingMediaUrls;
+        $mappingRecord->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Template mapping saved successfully!',
+            'data' => $mappingRecord
+        ]);
     }
 }

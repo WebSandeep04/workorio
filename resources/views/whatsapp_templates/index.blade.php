@@ -102,6 +102,30 @@
         </div>
     </div>
 </div>
+
+<!-- Map Variables Modal -->
+<div class="modal fade" id="mapVariablesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mapModalTitle">Map Template Variables</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="mapVariablesForm">
+                <input type="hidden" id="map_template_name" name="template_name">
+                <div class="modal-body">
+                    <div id="mapping_container">
+                        <div class="text-center text-muted py-3">Loading variables...</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success" id="btn-save-mapping">Save Mapping</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 @push('scripts')
 <script>
@@ -185,8 +209,11 @@
                         <td class="text-muted">${item.language}</td>
                         <td>${statusBadge}</td>
                         <td class="text-end">
-                            <button type="button" class="btn btn-sm text-white px-3 py-1 shadow-sm" style="background-color: #434afa; border-radius: 4px; font-weight: 500;" onclick="showPreview(${index})" title="Show Preview">
-                                <i class="bi bi-eye"></i> Show Preview
+                            <button type="button" class="btn btn-sm text-white px-3 py-1 shadow-sm me-1" style="background-color: #434afa; border-radius: 4px; font-weight: 500;" onclick="showPreview(${index})" title="Show Preview">
+                                <i class="bi bi-eye"></i> Preview
+                            </button>
+                            <button type="button" class="btn btn-sm text-white px-3 py-1 shadow-sm" style="background-color: #20c997; border-radius: 4px; font-weight: 500;" onclick="openMappingModal(${index})" title="Map Variables">
+                                <i class="bi bi-diagram-3"></i> Map Variables
                             </button>
                         </td>
                     </tr>
@@ -277,5 +304,110 @@
 
         $('#previewTemplateModal').modal('show');
     }
+    function openMappingModal(index) {
+        let template = allTemplates[index];
+        if (!template) return;
+        
+        $('#mapModalTitle').text('Map Variables - ' + template.name);
+        $('#map_template_name').val(template.name);
+        $('#mapping_container').html('<div class="text-center text-muted py-3">Loading variables...</div>');
+        $('#mapVariablesModal').modal('show');
+
+        // Fetch existing mappings
+        $.ajax({
+            url: `/whatsapp-templates/mapping/${template.name}`,
+            type: 'GET',
+            success: function(res) {
+                renderMappingForm(template, res.mapping);
+            },
+            error: function() {
+                renderMappingForm(template, null);
+            }
+        });
+    }
+
+    function renderMappingForm(template, existingMapping) {
+        let container = $('#mapping_container');
+        container.html('');
+
+        let mappings = existingMapping ? existingMapping.mappings : {};
+        let mediaUrls = existingMapping ? existingMapping.media_urls : {};
+
+        if (template.variables && template.variables.length > 0) {
+            let html = '';
+            template.variables.forEach(variable => {
+                if (variable.startsWith('header_')) {
+                    let existingImg = mediaUrls && mediaUrls[variable] ? `<div class="mt-2"><a href="${mediaUrls[variable]}" target="_blank" class="small text-primary">View current media</a></div>` : '';
+                    html += `
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">${variable} (Image/Document)</label>
+                            <input type="file" class="form-control" name="media[${variable}]" accept="image/*,application/pdf">
+                            ${existingImg}
+                        </div>
+                    `;
+                } else {
+                    let mapValue = mappings && mappings[variable] ? mappings[variable] : '';
+                    let isName = mapValue === 'name' ? 'selected' : '';
+                    let isPhone = mapValue === 'phone_number' ? 'selected' : '';
+                    html += `
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">${variable}</label>
+                            <select class="form-select" name="mappings[${variable}]" required>
+                                <option value="">-- Map to field --</option>
+                                <option value="name" ${isName}>Name</option>
+                                <option value="phone_number" ${isPhone}>Phone Number</option>
+                            </select>
+                        </div>
+                    `;
+                }
+            });
+            container.html(html);
+        } else {
+            container.html('<div class="alert alert-info border-0 shadow-sm">This template does not require any dynamic variables to be mapped.</div>');
+        }
+    }
+
+    $('#mapVariablesForm').submit(function(e) {
+        e.preventDefault();
+        $('#btn-save-mapping').prop('disabled', true).text('Saving...');
+        
+        let formData = new FormData(this);
+        formData.append('_token', '{{ csrf_token() }}');
+        
+        // We need to convert mappings array structure for FormData if needed, but simple name attribute handles it.
+        // E.g. name="mappings[header_1]"
+
+        // However, if there are no variables, we just save an empty mapping
+        
+        // Ensure that JSON string is sent for mappings if we want to follow Controller logic exactly
+        // Wait, the controller expects $request->mappings to be a JSON string.
+        let mappingObj = {};
+        $(this).serializeArray().forEach(item => {
+            if (item.name.startsWith('mappings[')) {
+                let key = item.name.match(/\[(.*?)\]/)[1];
+                mappingObj[key] = item.value;
+            }
+        });
+        formData.set('mappings', JSON.stringify(mappingObj));
+
+        $.ajax({
+            url: `{{ route('whatsapp-templates.mapping.store') }}`,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                $('#mapVariablesModal').modal('hide');
+                alert(res.message);
+            },
+            error: function(xhr) {
+                let msg = xhr.responseJSON?.message || 'Error saving mapping.';
+                alert(msg);
+            },
+            complete: function() {
+                $('#btn-save-mapping').prop('disabled', false).text('Save Mapping');
+            }
+        });
+    });
 </script>
 @endpush

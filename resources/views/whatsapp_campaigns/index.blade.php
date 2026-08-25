@@ -431,37 +431,6 @@
 
         let template = msg91Templates.find(t => t.name === selectedTemplateName);
         if (template) {
-            // Render Variables Mapping
-            if (template.variables && template.variables.length > 0) {
-                let html = '<hr><h6 class="mb-3">Map Template Variables</h6>';
-                template.variables.forEach(variable => {
-                    if (variable.startsWith('header_')) {
-                        html += `
-                            <div class="mb-2 row align-items-center">
-                                <label class="col-sm-4 col-form-label text-end fw-bold">${variable} (Image)</label>
-                                <div class="col-sm-8">
-                                    <input type="file" class="form-control form-control-sm" name="media[${variable}]" accept="image/*" required>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        html += `
-                            <div class="mb-2 row align-items-center">
-                                <label class="col-sm-4 col-form-label text-end fw-bold">${variable}</label>
-                                <div class="col-sm-8">
-                                    <select class="form-select form-select-sm" name="mappings[${variable}]" required>
-                                        <option value="">-- Map to field --</option>
-                                        <option value="name">Name</option>
-                                        <option value="phone_number">Phone Number</option>
-                                    </select>
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
-                container.html(html);
-            }
-
             // Render Preview
             previewPlaceholder.hide();
             previewContainer.show();
