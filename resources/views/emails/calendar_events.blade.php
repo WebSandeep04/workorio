@@ -7,25 +7,27 @@
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f6f9fc;">
 
 @php
-    function getStatusColor($statusName) {
-        if (empty($statusName)) {
-            return '#ffc107'; // Default: yellow for pending
+    if (!function_exists('getStatusColor')) {
+        function getStatusColor($statusName) {
+            if (empty($statusName)) {
+                return '#ffc107'; // Default: yellow for pending
+            }
+            $statusLower = strtolower(trim($statusName));
+            $colorMap = [
+                'pending' => '#ffc107',
+                'created' => '#28a745',
+                'completed' => '#28a745',
+                'done' => '#28a745',
+                'missed' => '#dc3545',
+                'cancelled' => '#dc3545',
+                'canceled' => '#dc3545',
+                'in progress' => '#17a2b8',
+                'in-progress' => '#17a2b8',
+                'on hold' => '#6c757d',
+                'on-hold' => '#6c757d',
+            ];
+            return $colorMap[$statusLower] ?? '#6c757d'; 
         }
-        $statusLower = strtolower(trim($statusName));
-        $colorMap = [
-            'pending' => '#ffc107',
-            'created' => '#28a745',
-            'completed' => '#28a745',
-            'done' => '#28a745',
-            'missed' => '#dc3545',
-            'cancelled' => '#dc3545',
-            'canceled' => '#dc3545',
-            'in progress' => '#17a2b8',
-            'in-progress' => '#17a2b8',
-            'on hold' => '#6c757d',
-            'on-hold' => '#6c757d',
-        ];
-        return $colorMap[$statusLower] ?? '#6c757d'; 
     }
 
     $rangeEvents = $payload['rangeEvents'];
