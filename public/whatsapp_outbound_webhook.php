@@ -65,6 +65,9 @@ if (!is_array($payload)) {
     exit;
 }
 
+// Log payload for debugging
+file_put_contents(__DIR__ . '/msg91_webhook_payload.log', date('Y-m-d H:i:s') . " - " . json_encode($payload) . "\n", FILE_APPEND);
+
 // Map variables from payload (handles default MSG91 structure or custom variables)
 $requestId = $payload['requestId'] ?? $payload['request_id'] ?? null;
 $customerNumber = $payload['customerNumber'] ?? $payload['mobile'] ?? $payload['recipient'] ?? null;
@@ -83,6 +86,12 @@ if (!$requestId && isset($payload['data']) && is_array($payload['data'])) {
 // If no request ID or customer number, ignore
 if (!$requestId || !$customerNumber) {
     echo json_encode(['status' => 'ignored', 'message' => 'missing_request_id_or_customer_number']);
+    exit;
+}
+
+// Handle MSG91 test run payload
+if ($requestId === '{{requestId}}' || $customerNumber === '{{customerNumber}}') {
+    echo json_encode(['status' => 'success', 'message' => 'webhook_test_successful']);
     exit;
 }
 
@@ -143,8 +152,8 @@ if ($res && $res->num_rows > 0) {
     
     $updateStmt->close();
 } else {
-    // Campaign not found
-    echo json_encode(['status' => 'ignored', 'message' => 'campaign_not_found']);
+    // Campaign not found (happens during MSG91 test runs when they use dummy IDs)
+    echo json_encode(['status' => 'success', 'message' => 'campaign_not_found_but_webhook_is_working']);
     $stmt->close();
 }
 

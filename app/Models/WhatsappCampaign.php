@@ -12,6 +12,7 @@ class WhatsappCampaign extends Model
     protected $fillable = [
         'name',
         'status',
+        'request_id',
     ];
 
     public function members()

@@ -438,7 +438,9 @@ class WhatsappCampaignController extends Controller
 
             if ($response->successful() && isset($response->json()['hasError']) && $response->json()['hasError'] === false) {
                 $respJson = $response->json();
-                $requestId = $respJson['msgId'] ?? ($respJson['data']['msgId'] ?? null);
+                
+                // MSG91 returns request_id, not msgId in the bulk V5 API
+                $requestId = $respJson['request_id'] ?? $respJson['msgId'] ?? ($respJson['data']['msgId'] ?? null);
 
                 $campaign->update([
                     'status' => 'Completed',
