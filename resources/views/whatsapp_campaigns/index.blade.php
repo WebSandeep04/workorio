@@ -64,7 +64,9 @@
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
-                            <th>Members Count</th>
+                            <th>Total Members</th>
+                            <th>Sent</th>
+                            <th>Failed</th>
                             <th>Status</th>
                             <th>Created At</th>
                             <th class="text-center">Action</th>
@@ -72,7 +74,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="6" class="text-center py-4">Loading...</td>
+                            <td colspan="8" class="text-center py-4">Loading...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -190,39 +192,7 @@
     </div>
 </div>
 
-<!-- View Report Modal -->
-<div class="modal fade" id="reportCampaignModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Campaign Report: <span id="report_campaign_name" class="fw-bold"></span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-0">
-                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                    <table class="table custom-table table-hover mb-0" id="report_table">
-                        <thead style="position: sticky; top: 0; z-index: 1;">
-                            <tr>
-                                <th>Name</th>
-                                <th>Phone Number</th>
-                                <th>Status</th>
-                                <th>Error / Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="4" class="text-center py-4">Loading report...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer bg-light border-top-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 @endsection
 
@@ -249,7 +219,7 @@
                 $('#summary-draft').text(response.summary.draft);
 
                 if (data.length === 0) {
-                    html = `<tr><td colspan="6" class="empty-state"><i class="bi bi-inbox fs-1"></i><p>No campaigns found.</p></td></tr>`;
+                    html = `<tr><td colspan="8" class="empty-state"><i class="bi bi-inbox fs-1"></i><p>No campaigns found.</p></td></tr>`;
                 } else {
                     data.forEach(campaign => {
                         let statusClass = 'status-draft';
@@ -262,7 +232,9 @@
                             <tr>
                                 <td>${campaign.id}</td>
                                 <td><strong>${campaign.name}</strong></td>
-                                <td>${campaign.members_count} members</td>
+                                <td><b>${campaign.members_count || 0}</b></td>
+                                <td class="text-success"><b>${campaign.sent_count || 0}</b></td>
+                                <td class="text-danger"><b>${campaign.failed_count || 0}</b></td>
                                 <td><span class="status-badge ${statusClass}">${campaign.status}</span></td>
                                 <td>${date}</td>
                                 <td class="text-center">
@@ -275,9 +247,9 @@
                                     <button class="btn btn-sm btn-success action-btn me-1" onclick="openSendModal(${campaign.id})" title="Send">
                                         <i class="bi bi-send"></i>
                                     </button>
-                                    <button class="btn btn-sm text-white action-btn me-1" style="background-color: #20c997;" onclick="openReportModal(${campaign.id})" title="View Report">
+                                    <a href="/whatsapp-campaigns/${campaign.id}/report-view" class="btn btn-sm text-white action-btn me-1" style="background-color: #20c997;" title="View Report">
                                         <i class="bi bi-card-list"></i>
-                                    </button>
+                                    </a>
                                     <button class="btn btn-sm btn-danger action-btn" onclick="deleteCampaign(${campaign.id})" title="Delete">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -293,7 +265,7 @@
                 updateRangeInfo(response.campaigns.from, response.campaigns.to, response.campaigns.total);
             },
             error: function() {
-                $('#campaigns_table tbody').html(`<tr><td colspan="6" class="text-center text-danger py-4">Error loading data.</td></tr>`);
+                $('#campaigns_table tbody').html(`<tr><td colspan="8" class="text-center text-danger py-4">Error loading data.</td></tr>`);
             }
         });
     }
@@ -556,49 +528,6 @@
         });
     });
 
-    function openReportModal(id) {
-        $('#report_campaign_name').text('Loading...');
-        $('#report_table tbody').html('<tr><td colspan="4" class="text-center py-4">Loading report...</td></tr>');
-        $('#reportCampaignModal').modal('show');
 
-        $.ajax({
-            url: `/whatsapp-campaigns/${id}/report`,
-            type: 'GET',
-            success: function(res) {
-                if(res.success) {
-                    $('#report_campaign_name').text(res.data.campaign.name);
-                    let html = '';
-                    if(res.data.members.length === 0) {
-                        html = '<tr><td colspan="4" class="text-center py-4">No members found.</td></tr>';
-                    } else {
-                        res.data.members.forEach(member => {
-                            let badgeClass = 'bg-secondary';
-                            let statusLower = member.status ? member.status.toLowerCase() : '';
-                            
-                            if (statusLower === 'delivered' || statusLower === 'read' || statusLower === 'completed') badgeClass = 'bg-success';
-                            else if (statusLower === 'sent') badgeClass = 'bg-info';
-                            else if (statusLower === 'failed') badgeClass = 'bg-danger';
-                            else if (statusLower === 'pending') badgeClass = 'bg-warning text-dark';
-
-                            html += `
-                                <tr>
-                                    <td>${member.name}</td>
-                                    <td>${member.phone_number || '-'}</td>
-                                    <td><span class="badge ${badgeClass}">${member.status || 'Unknown'}</span></td>
-                                    <td class="text-danger small">${member.error_message || '-'}</td>
-                                </tr>
-                            `;
-                        });
-                    }
-                    $('#report_table tbody').html(html);
-                } else {
-                    $('#report_table tbody').html(`<tr><td colspan="4" class="text-center text-danger py-4">Failed to load report.</td></tr>`);
-                }
-            },
-            error: function() {
-                $('#report_table tbody').html(`<tr><td colspan="4" class="text-center text-danger py-4">Error loading report.</td></tr>`);
-            }
-        });
-    }
 </script>
 @endpush

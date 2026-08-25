@@ -202,7 +202,15 @@ class WhatsappCampaignController extends Controller
 
     public function fetch(Request $request)
     {
-        $query = WhatsappCampaign::withCount('members')->latest();
+        $query = WhatsappCampaign::withCount([
+            'members',
+            'members as sent_count' => function ($query) {
+                $query->whereIn('status', ['Sent', 'Delivered', 'Read', 'Completed']);
+            },
+            'members as failed_count' => function ($query) {
+                $query->where('status', 'Failed');
+            }
+        ])->latest();
         
         $total = $query->count();
         $campaigns = $query->paginate(10);
@@ -502,5 +510,17 @@ class WhatsappCampaignController extends Controller
                 })
             ]
         ]);
+    }
+
+    public function reportView($id)
+    {
+        $campaign = WhatsappCampaign::with('members')->findOrFail($id);
+        
+        $totalMembers = $campaign->members->count();
+        $sentCount = $campaign->members->whereIn('status', ['Sent', 'Delivered', 'Read', 'Completed'])->count();
+        $failedCount = $campaign->members->where('status', 'Failed')->count();
+        $pendingCount = $campaign->members->where('status', 'Pending')->count();
+
+        return view('whatsapp_campaigns.report', compact('campaign', 'totalMembers', 'sentCount', 'failedCount', 'pendingCount'));
     }
 }
