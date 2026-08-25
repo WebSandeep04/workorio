@@ -7,91 +7,87 @@
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <!-- Summary Cards -->
-    <div class="summary-cards">
-        <div class="summary-card card-4">
-            <div class="summary-card-icon icon-violet">
-                <i class="bi bi-people text-white"></i>
+<div class="container-fluid pt-3 pb-3" style="height: calc(100vh - 80px); display: flex; flex-direction: column;">
+    
+    <!-- Main Chat Interface -->
+    <div class="row flex-grow-1 overflow-hidden shadow-sm" style="background: white; border-radius: 8px; border: 1px solid #e2e5ec; margin: 0;">
+        
+        <!-- Left Panel: Contacts List -->
+        <div class="col-md-4 col-lg-3 border-end p-0 d-flex flex-column h-100">
+            <!-- Header/Search -->
+            <div class="p-3 border-bottom" style="background-color: #f8f9fa;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0 fw-bold" style="color: #434afa;">WhatsApp Inbox</h6>
+                    <span class="badge rounded-pill" style="background-color: #434afa; font-weight: normal;" id="total_numbers_count">0</span>
+                </div>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="search_inbox" class="form-control border-start-0 ps-0" placeholder="Search contacts..." onkeyup="filterContacts()">
+                </div>
             </div>
-            <div class="summary-card-content">
-                <div class="summary-card-label">Total Numbers</div>
-                <div class="summary-card-value text-primary" id="total_numbers_count">0</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Search & Add (Separate Row) -->
-    <div class="table-search mb-2">
-        <div class="table-search-field">
-            <i class="bi bi-search"></i>
-            <input type="text" id="search_inbox" placeholder="Search leads, contacts, emails..." />
-        </div>
-    </div>
-
-    <!-- Data Table -->
-    <div class="modern-card data-table-card">
-        <div class="modern-card-body">
-            <div class="table-responsive">
-                <table class="table custom-table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Number</th>
-                            <th>Latest Message</th>
-                            <th>Type</th>
-                            <th>Last Received</th>
-                            <th class="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="messages_container">
-                        <tr><td colspan="5" class="text-center py-4">Loading messages...</td></tr>
-                    </tbody>
-                </table>
+            
+            <!-- Contact List -->
+            <div class="flex-grow-1 overflow-auto" id="contacts_list">
+                <div class="text-center py-4 text-muted">Loading messages...</div>
             </div>
         </div>
-        <div class="card-footer d-flex justify-content-between align-items-center" id="pagination_container" style="background: #fff; border-top: 1px solid #f1f3f5; font-family: Montserrat; display: none;">
-            <div id="pagination_info" style="font-size: 10px; color: #6c757d; font-weight: 500;">Showing 0 to 0 of 0 entries</div>
-            <nav>
-                <ul class="pagination pagination-sm mb-0" id="pagination_controls"></ul>
-            </nav>
-        </div>
-    </div>
 
-</div>
-
-<!-- Modal for Chat History -->
-<div class="modal fade" id="chatHistoryModal" tabindex="-1" aria-labelledby="chatHistoryModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable">
-    <div class="modal-content border-0 shadow">
-      <div class="modal-header" style="background-color: #434afa; color: white;">
-        <h5 class="modal-title" id="chatHistoryModalLabel" style="font-size: 1rem;">Chat History: <span id="modalSenderNumber" class="fw-bold"></span></h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="chatHistoryBody" style="background-color: #f4f5f7; max-height: 65vh; overflow-y: auto;">
-        <!-- Chat bubbles go here -->
-      </div>
-      <div id="replyExpiredAlert" class="alert alert-warning m-3" style="display: none; padding: 0.5rem 1rem; font-size: 0.85rem;">
-          <i class="bi bi-info-circle"></i> The 24-hour window for replying has expired.
-      </div>
-      <div class="modal-footer flex-column align-items-start" id="replyFooter" style="display: none; background-color: #f4f5f7; border-top: 1px solid #e2e5ec; padding: 0.75rem;">
-        <div id="filePreviewContainer" style="display: none; width: 100%; margin-bottom: 8px;">
-            <div class="d-flex align-items-center bg-white p-2 border rounded shadow-sm" style="max-width: 300px;">
-                <i class="bi bi-file-earmark-text text-primary fs-4 me-2" id="filePreviewIcon"></i>
-                <div class="text-truncate flex-grow-1" id="filePreviewName" style="font-size: 0.85rem;">filename.pdf</div>
-                <button type="button" class="btn-close ms-2" style="font-size: 0.7rem;" onclick="clearReplyFile()"></button>
+        <!-- Right Panel: Active Chat -->
+        <div class="col-md-8 col-lg-9 p-0 d-flex flex-column h-100 position-relative">
+            
+            <!-- Default Empty State -->
+            <div id="chat_empty_state" class="d-flex flex-column justify-content-center align-items-center h-100 w-100 bg-light" style="position: absolute; top: 0; left: 0; z-index: 10;">
+                <div class="rounded-circle d-flex justify-content-center align-items-center mb-3" style="width: 80px; height: 80px; background-color: #e2e5ec;">
+                    <i class="bi bi-whatsapp" style="font-size: 2.5rem; color: #434afa;"></i>
+                </div>
+                <h5 class="text-muted fw-bold">Select a chat to start messaging</h5>
+                <p class="text-muted small">Choose a contact from the left panel to view history and reply.</p>
             </div>
+            
+            <!-- Chat Header -->
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background-color: #f8f9fa;">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3" style="width: 45px; height: 45px; background-color: #434afa !important;">
+                        <i class="bi bi-person-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold" id="chat_header_name" style="font-size: 1.05rem;">-</h6>
+                        <small class="text-muted" id="modalSenderNumber" style="font-size: 0.8rem;">-</small> <!-- Kept ID for JS compatibility -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Body -->
+            <div class="flex-grow-1 overflow-auto p-4" id="chatHistoryBody" style="background-color: #f0f2f5;">
+                <!-- Chat bubbles go here -->
+            </div>
+            
+            <!-- Chat Footer (Input) -->
+            <div id="replyExpiredAlert" class="alert alert-warning m-2" style="display: none; padding: 0.5rem 1rem; font-size: 0.85rem;">
+                <i class="bi bi-info-circle"></i> The 24-hour window for replying has expired.
+            </div>
+            <div class="p-3 border-top flex-column align-items-start" id="replyFooter" style="display: none; background-color: #f8f9fa;">
+                <div id="filePreviewContainer" style="display: none; width: 100%; margin-bottom: 8px;">
+                    <div class="d-flex align-items-center bg-white p-2 border rounded shadow-sm" style="max-width: 300px;">
+                        <i class="bi bi-file-earmark-text text-primary fs-4 me-2" id="filePreviewIcon"></i>
+                        <div class="text-truncate flex-grow-1" id="filePreviewName" style="font-size: 0.85rem;">filename.pdf</div>
+                        <button type="button" class="btn-close ms-2" style="font-size: 0.7rem;" onclick="clearReplyFile()"></button>
+                    </div>
+                </div>
+                <div class="input-group w-100 shadow-sm rounded">
+                    <button class="btn btn-white border bg-white" type="button" onclick="document.getElementById('replyFile').click()" title="Attach File" style="border-radius: 8px 0 0 8px;">
+                        <i class="bi bi-paperclip fs-5 text-secondary"></i>
+                    </button>
+                    <input type="file" id="replyFile" style="display: none;" onchange="handleReplyFileSelect(this)">
+                    <input type="text" id="replyMessage" class="form-control border-start-0" placeholder="Type a message..." style="box-shadow: none;" onkeypress="if(event.key === 'Enter') sendReply();">
+                    <button class="btn" style="background-color: #434afa; color: white; border-radius: 0 8px 8px 0;" id="sendReplyBtn" onclick="sendReply()">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
+
         </div>
-        <div class="input-group w-100">
-            <button class="btn btn-light border" type="button" onclick="document.getElementById('replyFile').click()" title="Attach File">
-                <i class="bi bi-paperclip fs-5 text-secondary"></i>
-            </button>
-            <input type="file" id="replyFile" style="display: none;" onchange="handleReplyFileSelect(this)">
-            <input type="text" id="replyMessage" class="form-control" placeholder="Type your reply...">
-            <button class="btn" style="background-color: #434afa; color: white;" id="sendReplyBtn" onclick="sendReply()">Send <i class="bi bi-send"></i></button>
-        </div>
-      </div>
     </div>
-  </div>
 </div>
 @endsection
 @push('scripts')
@@ -143,112 +139,88 @@
                     // Update total numbers count
                     $('#total_numbers_count').text(uniqueMessages.length);
                     
-                    currentPage = 1;
-                    renderTable();
+                    renderContactList();
                 }
             },
             error: function() {
-                $('#messages_container').html('<tr><td colspan="5" class="text-center py-4 text-danger">Error loading messages.</td></tr>');
-                $('#pagination_container').hide();
+                $('#contacts_list').html('<div class="text-center py-4 text-danger">Error loading messages.</div>');
             }
         });
     }
 
-    function renderTable() {
+    function renderContactList() {
         let html = '';
-        const totalItems = uniqueMessages.length;
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
-        
-        if (totalItems === 0) {
-            $('#messages_container').html('<tr><td colspan="5" class="text-center py-4 text-muted">No messages found.</td></tr>');
-            $('#pagination_container').hide();
-            return;
-        }
-
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-        const paginatedItems = uniqueMessages.slice(startIndex, endIndex);
-
-        paginatedItems.forEach(msg => {
-            let senderDisplay = msg.sender_name 
-                ? `${msg.sender_name} <br><small class="text-muted">${msg.sender_number}</small>` 
-                : `${msg.sender_number}`;
-
-            let text = msg.message_text ? msg.message_text : '<span class="text-muted fst-italic">(No text)</span>';
-            let typeBadge = msg.message_type !== 'text' 
-                ? `<span class="badge bg-secondary badge-type">${msg.message_type}</span>` 
-                : `<span class="badge bg-light text-dark border badge-type">text</span>`;
-            let time = new Date(msg.received_at).toLocaleString();
-            
-            html += `
-                <tr>
-                    <td class="fw-medium text-dark">${senderDisplay}</td>
-                    <td>${text}</td>
-                    <td>${typeBadge}</td>
-                    <td>${time}</td>
-                    <td class="text-end">
-                        <button class="btn btn-sm text-white px-3 py-1" style="background-color: #434afa; border-radius: 4px; font-weight: 500;" onclick="viewChatHistory('${msg.sender_number}')">
-                            <i class="bi bi-chat-dots"></i> View
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-        
-        $('#messages_container').html(html);
-        
-        if (totalPages > 0) {
-            $('#pagination_container').css('display', 'flex');
-            $('#pagination_info').text(`Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`);
-            renderPaginationControls(totalPages);
+        if (uniqueMessages.length === 0) {
+            html = '<div class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No chats found.</div>';
         } else {
-            $('#pagination_container').css('display', 'none');
+            uniqueMessages.forEach(msg => {
+                let senderName = msg.sender_name || msg.sender_number;
+                let text = msg.message_text ? msg.message_text : (msg.media_url ? 'Media message' : 'No text');
+                
+                let time = new Date(msg.received_at);
+                let timeStr = time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                // Add date if not today
+                if (time.toDateString() !== new Date().toDateString()) {
+                    timeStr = time.toLocaleDateString([], {month: 'short', day: 'numeric'});
+                }
+                
+                // Truncate text
+                if(text.length > 35) text = text.substring(0, 35) + '...';
+                
+                let mediaIcon = msg.message_type !== 'text' ? '<i class="bi bi-image me-1"></i> ' : '';
+                
+                html += `
+                    <div class="contact-item p-3 border-bottom" onclick="viewChatHistory('${msg.sender_number}', '${msg.sender_name || ''}')" style="cursor: pointer; transition: background 0.2s;" data-number="${msg.sender_number}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold text-truncate text-dark" style="max-width: 70%; font-size: 0.95rem;">${senderName}</h6>
+                            <small class="text-muted" style="font-size: 0.75rem;">${timeStr}</small>
+                        </div>
+                        <div class="text-muted text-truncate" style="font-size: 0.85rem;">
+                            ${mediaIcon}${text}
+                        </div>
+                    </div>
+                `;
+            });
         }
+        $('#contacts_list').html(html);
+        
+        // Add hover effect
+        $('.contact-item').hover(function() {
+            if (!$(this).hasClass('active-chat')) {
+                $(this).css('background-color', '#f8f9fa');
+            }
+        }, function() {
+            if (!$(this).hasClass('active-chat')) {
+                $(this).css('background-color', 'transparent');
+            }
+        });
     }
 
-    function renderPaginationControls(totalPages) {
-        let paginationHtml = '';
-        
-        // Previous Button
-        paginationHtml += `
-            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;" style="color: #434afa;">Previous</a>
-            </li>
-        `;
-        
-        // Page Numbers
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, currentPage + 2);
-        
-        for (let i = startPage; i <= endPage; i++) {
-            let activeStyle = i === currentPage ? 'background-color: #434afa; border-color: #434afa; color: white;' : 'color: #434afa;';
-            paginationHtml += `
-                <li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="changePage(${i}); return false;" style="${activeStyle}">${i}</a>
-                </li>
-            `;
-        }
-        
-        // Next Button
-        paginationHtml += `
-            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;" style="color: #434afa;">Next</a>
-            </li>
-        `;
-        
-        $('#pagination_controls').html(paginationHtml);
+    function filterContacts() {
+        let query = $('#search_inbox').val().toLowerCase();
+        $('.contact-item').each(function() {
+            let text = $(this).text().toLowerCase();
+            if (text.indexOf(query) > -1) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
     }
 
-    function changePage(page) {
-        const totalPages = Math.ceil(uniqueMessages.length / itemsPerPage);
-        if (page >= 1 && page <= totalPages) {
-            currentPage = page;
-            renderTable();
-        }
-    }
-
-    function viewChatHistory(senderNumber) {
+    function viewChatHistory(senderNumber, senderName = '') {
+        // Hide empty state properly (d-flex overrides jQuery hide)
+        $('#chat_empty_state').removeClass('d-flex').addClass('d-none');
+        
+        // Update header
         $('#modalSenderNumber').text(senderNumber);
+        $('#chat_header_name').text(senderName || senderNumber);
+        
+        // Style active contact in list
+        $('.contact-item').removeClass('active-chat').css({'background-color': 'transparent', 'border-left': 'none'});
+        let activeEl = $(`.contact-item[data-number="${senderNumber}"]`);
+        activeEl.addClass('active-chat').css({'background-color': '#f0f2f5', 'border-left': '4px solid #434afa'});
+        
         $('#replyMessage').val('');
         clearReplyFile();
         
@@ -320,7 +292,7 @@
             let diffHours = diffMs / (1000 * 60 * 60);
             
             if (diffHours < 23.5) {
-                $('#replyFooter').show();
+                $('#replyFooter').css('display', 'flex'); // Use flex for layout
                 $('#replyExpiredAlert').hide();
             } else {
                 $('#replyFooter').hide();
@@ -331,9 +303,6 @@
             $('#replyExpiredAlert').hide();
         }
 
-        var chatModal = new bootstrap.Modal(document.getElementById('chatHistoryModal'));
-        chatModal.show();
-        
         setTimeout(() => {
             $('#chatHistoryBody').scrollTop($('#chatHistoryBody')[0].scrollHeight);
         }, 100);
