@@ -121,4 +121,13 @@ class WhatsappInboxController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+    public function markAsRead(Request $request)
+    {
+        $sender = $request->input('sender_number');
+        WhatsappInbox::where('sender_number', $sender)
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
+        return response()->json(['success' => true]);
+    }
 }

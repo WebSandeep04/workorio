@@ -20,9 +20,14 @@
                     <h6 class="mb-0 fw-bold" style="color: #434afa;">WhatsApp Inbox</h6>
                     <span class="badge rounded-pill" style="background-color: #434afa; font-weight: normal;" id="total_numbers_count">0</span>
                 </div>
-                <div class="input-group input-group-sm">
+                <div class="input-group input-group-sm mb-2">
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" id="search_inbox" class="form-control border-start-0 ps-0" placeholder="Search contacts..." onkeyup="filterContacts()">
+                </div>
+                <div class="d-flex gap-1" style="font-size: 0.8rem;">
+                    <button class="btn btn-sm btn-primary flex-fill active" id="filter_all" onclick="setFilter('all')">All (<span id="count_all">0</span>)</button>
+                    <button class="btn btn-sm btn-outline-primary flex-fill" id="filter_unread" onclick="setFilter('unread')">Unread (<span id="count_unread">0</span>)</button>
+                    <button class="btn btn-sm btn-outline-primary flex-fill" id="filter_read" onclick="setFilter('read')">Read (<span id="count_read">0</span>)</button>
                 </div>
             </div>
             
@@ -101,6 +106,8 @@
         loadMessages();
     });
 
+    let currentFilter = 'all';
+
     function loadMessages() {
         $('#messages_container').html('<tr><td colspan="5" class="text-center py-4">Loading messages...</td></tr>');
         $('#pagination_container').hide();
@@ -123,12 +130,18 @@
                     incomingMessages.forEach(msg => {
                         if (!groupedMessages[msg.sender_number]) {
                             groupedMessages[msg.sender_number] = msg;
+                            groupedMessages[msg.sender_number].unread_count = 0;
                         } else {
                             let existingDate = new Date(groupedMessages[msg.sender_number].received_at);
                             let newDate = new Date(msg.received_at);
                             if (newDate > existingDate) {
+                                let oldUnread = groupedMessages[msg.sender_number].unread_count;
                                 groupedMessages[msg.sender_number] = msg;
+                                groupedMessages[msg.sender_number].unread_count = oldUnread;
                             }
+                        }
+                        if (msg.is_read == 0) {
+                            groupedMessages[msg.sender_number].unread_count++;
                         }
                     });
 
@@ -149,11 +162,17 @@
     }
 
     function renderContactList() {
+        let unreadCount = 0;
+        let readCount = 0;
+
         let html = '';
         if (uniqueMessages.length === 0) {
             html = '<div class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No chats found.</div>';
         } else {
             uniqueMessages.forEach(msg => {
+                if (msg.unread_count > 0) unreadCount++;
+                else readCount++;
+
                 let senderName = msg.sender_name || msg.sender_number;
                 let text = msg.message_text ? msg.message_text : (msg.media_url ? 'Media message' : 'No text');
                 
@@ -168,21 +187,36 @@
                 if(text.length > 35) text = text.substring(0, 35) + '...';
                 
                 let mediaIcon = msg.message_type !== 'text' ? '<i class="bi bi-image me-1"></i> ' : '';
+                let unreadBadge = msg.unread_count > 0 ? `<span class="badge bg-success rounded-pill ms-2" style="font-size: 0.7rem;">${msg.unread_count}</span>` : '';
+                let fwClass = msg.unread_count > 0 ? 'fw-bold' : '';
                 
                 html += `
-                    <div class="contact-item p-3 border-bottom" onclick="viewChatHistory('${msg.sender_number}', '${msg.sender_name || ''}')" style="cursor: pointer; transition: background 0.2s;" data-number="${msg.sender_number}">
+                    <div class="contact-item p-3 border-bottom" data-unread="${msg.unread_count > 0 ? 'true' : 'false'}" onclick="viewChatHistory('${msg.sender_number}', '${msg.sender_name || ''}')" style="cursor: pointer; transition: background 0.2s;" data-number="${msg.sender_number}">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <h6 class="mb-0 fw-bold text-truncate text-dark" style="max-width: 70%; font-size: 0.95rem;">${senderName}</h6>
-                            <small class="text-muted" style="font-size: 0.75rem;">${timeStr}</small>
+                            <h6 class="mb-0 text-truncate text-dark ${fwClass}" style="max-width: 70%; font-size: 0.95rem;">${senderName}</h6>
+                            <div class="text-end">
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">${timeStr}</small>
+                            </div>
                         </div>
-                        <div class="text-muted text-truncate" style="font-size: 0.85rem;">
-                            ${mediaIcon}${text}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted text-truncate ${fwClass}" style="font-size: 0.85rem; max-width: 80%;">
+                                ${mediaIcon}${text}
+                            </div>
+                            ${unreadBadge}
                         </div>
                     </div>
                 `;
             });
         }
         $('#contacts_list').html(html);
+
+        $('#count_all').text(uniqueMessages.length);
+        $('#count_unread').text(unreadCount);
+        $('#count_read').text(readCount);
+        $('#total_numbers_count').text(uniqueMessages.length);
+        
+        // Re-apply filter
+        filterContacts();
         
         // Add hover effect
         $('.contact-item').hover(function() {
@@ -196,11 +230,26 @@
         });
     }
 
+    function setFilter(filterType) {
+        currentFilter = filterType;
+        $('#filter_all, #filter_read, #filter_unread').removeClass('active btn-primary').addClass('btn-outline-primary');
+        $(`#filter_${filterType}`).removeClass('btn-outline-primary').addClass('active btn-primary');
+        filterContacts();
+    }
+
     function filterContacts() {
         let query = $('#search_inbox').val().toLowerCase();
         $('.contact-item').each(function() {
             let text = $(this).text().toLowerCase();
-            if (text.indexOf(query) > -1) {
+            let isUnread = $(this).data('unread') === true;
+
+            let matchQuery = text.indexOf(query) > -1;
+            let matchFilter = true;
+            
+            if (currentFilter === 'unread' && !isUnread) matchFilter = false;
+            if (currentFilter === 'read' && isUnread) matchFilter = false;
+
+            if (matchQuery && matchFilter) {
                 $(this).show();
             } else {
                 $(this).hide();
@@ -221,6 +270,39 @@
         let activeEl = $(`.contact-item[data-number="${senderNumber}"]`);
         activeEl.addClass('active-chat').css({'background-color': '#f0f2f5', 'border-left': '4px solid #434afa'});
         
+        // Mark as read in backend if there are unread messages
+        if (activeEl.data('unread') === true) {
+            $.ajax({
+                url: `{{ route('whatsapp-inbox.read') }}`,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    sender_number: senderNumber
+                },
+                success: function(res) {
+                    if (res.success) {
+                        let msgObj = uniqueMessages.find(m => m.sender_number === senderNumber);
+                        if (msgObj) msgObj.unread_count = 0;
+                        
+                        // Update DOM elements instead of full render
+                        activeEl.data('unread', false);
+                        activeEl.find('.bg-success').remove(); // remove badge
+                        activeEl.find('h6').removeClass('fw-bold');
+                        activeEl.find('.text-muted.text-truncate').removeClass('fw-bold');
+                        
+                        // Update counts
+                        let unreadCount = parseInt($('#count_unread').text()) - 1;
+                        let readCount = parseInt($('#count_read').text()) + 1;
+                        $('#count_unread').text(Math.max(0, unreadCount));
+                        $('#count_read').text(readCount);
+                        
+                        // Refresh filter visibility if needed
+                        filterContacts();
+                    }
+                }
+            });
+        }
+
         $('#replyMessage').val('');
         clearReplyFile();
         

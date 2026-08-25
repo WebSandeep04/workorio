@@ -1301,6 +1301,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('whatsapp-inbox', [WhatsappInboxController::class, 'index'])->name('whatsapp-inbox.index');
     Route::get('whatsapp-inbox/fetch', [WhatsappInboxController::class, 'fetch'])->name('whatsapp-inbox.fetch');
     Route::post('whatsapp-inbox/reply', [WhatsappInboxController::class, 'reply'])->name('whatsapp-inbox.reply');
+    Route::post('whatsapp-inbox/read', [WhatsappInboxController::class, 'markAsRead'])->name('whatsapp-inbox.read');
 
     Route::get('whatsapp-templates', [Msg91TemplateController::class, 'index'])->name('whatsapp-templates.index');
     Route::post('whatsapp-templates/fetch', [Msg91TemplateController::class, 'fetch'])->name('whatsapp-templates.fetch');
