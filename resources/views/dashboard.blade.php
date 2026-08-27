@@ -61,7 +61,7 @@
 
         @if($isSales || $isCalling)
         <div style="margin-bottom:20px">
-            @if($isSales)
+            @if($isSales && $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermissionPrefix('sales.')))
             <div style="margin-bottom:10px">
                 <div style="font-size:16px;font-weight:700;color:#111827">Sales Intelligence</div>
                 <div style="font-size:11.5px;color:#6b7280">Real-time performance metrics for your sales pipeline</div>
@@ -76,7 +76,7 @@
             </div>
             @endif
 
-            @if($isCalling)
+            @if($isCalling && $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermissionPrefix('sales.calling')))
             <div style="margin-bottom:10px; margin-top: 20px;">
                 <div style="font-size:16px;font-weight:700;color:#111827">Tele-Calling Status</div>
                 <div style="font-size:11.5px;color:#6b7280">Daily calling activity and follow-up tracking</div>
@@ -94,7 +94,7 @@
         @endif
 
         <div class="hcards">
-            @if($isAttendance)
+            @if($isAttendance && $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermissionPrefix('attendance.')))
             <div class="card" style="border: 1px solid #e5e7eb; border-radius: 16px; padding: 20px;">
                 <div class="chead" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
                     <span class="ctitle" style="font-size: 15px; font-weight: 700; color: #1e293b;">Team Attendance Today</span>
@@ -152,7 +152,7 @@
             </div>
             @endif
 
-            @if($isSales)
+            @if($isSales && $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermissionPrefix('sales.')))
             <div class="card">
                 <div class="chead"><span class="ctitle">Lead Source Breakdown</span><span style="color:#9ca3af;font-size:16px;cursor:pointer;letter-spacing:2px">···</span></div>
                 <div class="dw">
@@ -166,7 +166,7 @@
         </div>
 
         <div class="hcards">
-            @if($isTasks)
+            @if($isTasks && $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermissionPrefix('task.')))
             <div class="card">
                 <div class="chead"><span class="ctitle">Task</span><span class="va">View all</span></div>
                 <div class="subtabs">
@@ -182,7 +182,7 @@
             </div>
             @endif
 
-            @if($isSales)
+            @if($isSales && $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermission('sales.payment_followup')))
             <div class="card">
                 <div class="chead"><span class="ctitle">Due Payments</span><span id="overdue-badge" style="display:none;font-size:11px;background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:8px;font-weight:600">0 Overdue</span></div>
                 <div id="due-payments-list">
@@ -193,7 +193,7 @@
         </div>
 
         <div class="hcards">
-            @if($isSubs)
+            @if($isSubs && $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermission('subscription.view')))
             <div class="card">
                 <div class="chead"><span class="ctitle">Due Subscriptions</span><span class="va" onclick="location.href='{{ route('subscriptions.index') }}'">View all</span></div>
                 <div id="due-subscriptions-list">
@@ -202,8 +202,14 @@
             </div>
             @endif
 
-            @if($isPettyCash)
+            @php
+                $canViewPettyCash = $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermission('petty_cash.view'));
+                $canViewLeaves = $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermission('attendance.leave'));
+            @endphp
+            @if($isPettyCash && ($canViewPettyCash || $canViewLeaves))
             <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; gap: 12px; height: 100%;">
+                
+                @if($canViewPettyCash)
                 <!-- Petty Cash Section -->
                 <div>
                     <div class="chead">
@@ -220,10 +226,14 @@
                         <div class="pcb" style="background:#f0fdf4"><div class="pcb-val" id="pc-rem" style="color:#15803d">₹0</div><div class="pcb-lbl">Remaining</div></div>
                     </div>
                 </div>
+                @endif
 
+                @if($canViewPettyCash && $canViewLeaves)
                 <!-- Divider -->
                 <hr style="border:0; border-top:1px solid #e5e7eb; margin:4px 0;">
+                @endif
 
+                @if($canViewLeaves)
                 <!-- Upcoming Leaves Section -->
                 <div>
                     <div class="chead">
@@ -243,12 +253,13 @@
                         </span>
                     </div>
                 </div>
+                @endif
             </div>
             @endif
         </div>
 
         <div class="hcards">
-            @if($isCalendar)
+            @if($isCalendar && $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermission('calendar.view')))
             <div class="card">
                 <div class="cal-hdr">
                     <button class="cal-nav" onclick="prevM()">‹</button>
@@ -262,7 +273,7 @@
             </div>
             @endif
 
-            @if($isApproval && $hasSubordinates)
+            @if($isApproval && $hasSubordinates && $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermissionPrefix('approvals.')))
             <div class="card">
                 <div class="chead"><span class="ctitle">Pending Approvals</span><span class="va" onclick="viewAllApprovals()" style="cursor:pointer">View all</span></div>
                 <div class="subtabs">
@@ -316,7 +327,7 @@
             @endif
         </div>
         <div class="hcards">
-            @if($isAttendance)
+            @if($isAttendance && $currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermissionPrefix('attendance.')))
             <div class="card">
                 <div class="chead">
                     <span class="ctitle">Upcoming Holidays</span>
@@ -327,12 +338,14 @@
                 </div>
             </div>
             @endif
+            @if($currentUser && ($currentUser->role_id == 1 || $currentUser->role_id == 3 || $currentUser->hasPermissionPrefix('attendance.')))
             <div class="card">
                 <div class="chead"><span class="ctitle">Celebrations</span></div>
                 <div id="celebrations-list" style="display: flex; flex-direction: column; gap: 12px;">
                     <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px">Loading celebrations...</div>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 
@@ -502,7 +515,9 @@ var smmData={};
 var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 function renderCal(y,m){
-  document.getElementById('cal-ml').textContent=MONTHS[m]+' '+y;
+  var mlEl = document.getElementById('cal-ml');
+  if(!mlEl) return;
+  mlEl.textContent=MONTHS[m]+' '+y;
   var firstDay=new Date(y,m,1).getDay();
   var days=new Date(y,m+1,0).getDate();
   var todayRef=new Date();
@@ -632,7 +647,9 @@ function viewAllApprovals() {
 }
 
 function updatePC(){
-    var period = document.getElementById('pc-period').value;
+    var periodEl = document.getElementById('pc-period');
+    if (!periodEl) return;
+    var period = periodEl.value;
     $.ajax({
         url: '/petty-cash/summary?period=' + period,
         method: 'GET',
