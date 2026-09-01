@@ -1805,6 +1805,10 @@ class AttendanceController extends Controller
                     $statusData = $this->reportService->determineStatusAndReason($origStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($userLeavesDetails[$dateStr]), $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
                     
                     $finalLabel = strtolower($statusData['status']);
+                    if ($att && $att->is_wfh && str_contains($finalLabel, 'present')) {
+                        $finalLabel = 'halfday';
+                    }
+
                     if ($finalLabel === 'absent') {
                         $statusCode = 'A';
                         $statusClass = 'text-danger';

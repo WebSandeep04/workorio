@@ -474,6 +474,10 @@ class AttendanceReportService
                 $finalStatusData = $this->determineStatusAndReason($statusInfo['label'], $dayHours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($leaveMap[$dateStr]), $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
                 $finalStatusLabel = strtolower($finalStatusData['status']);
 
+                if ($attendance->is_wfh && str_contains($finalStatusLabel, 'present')) {
+                    $finalStatusLabel = 'halfday';
+                }
+
                 $lastOutMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->last();
                 if (!$lastOutMov && $dayHours > 0) {
                     $finalStatusLabel = 'absent';
@@ -780,6 +784,11 @@ class AttendanceReportService
                 
                 $dayData['status'] = $statusData['status'];
                 $dayData['status_reason'] = $statusData['reason'];
+                
+                if ($dayData['is_wfh'] && str_contains(strtolower($dayData['status']), 'present')) {
+                    $dayData['status'] = 'halfday';
+                    $dayData['status_reason'] = 'WFH Policy (Treated as Half Day)';
+                }
                 
                 if ($dayData['last_out'] === '-' && $dayData['hours'] > 0) {
                     $dayData['status'] = 'absent';
