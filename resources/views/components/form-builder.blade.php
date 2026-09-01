@@ -42,7 +42,8 @@
     };
 @endphp
 
-<form class="row g-3" method="POST" action="{{ $submitUrl }}">
+
+<form id="fb-embedded-form" class="row g-3" method="POST" action="{{ $submitUrl }}">
     @csrf
     @if(!empty($embed))
         <input type="hidden" name="_fb_embed" value="1">
@@ -75,8 +76,59 @@
     @endif
 
     <div class="col-12 text-center">
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button id="fb-submit-btn" type="submit" class="btn btn-primary">Submit</button>
     </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('fb-embedded-form');
+    const submitBtn = document.getElementById('fb-submit-btn');
+
+    if(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // UI Loading state
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = 'Submitting...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if(!response.ok && response.status !== 422) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if(data.success) {
+                    form.reset();
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                } else {
+                    alert(data.message || 'There was an error submitting the form. Please check your inputs.');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('A network error occurred. Please try again.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    }
+});
+</script>
 
 

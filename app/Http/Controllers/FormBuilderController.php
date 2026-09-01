@@ -629,8 +629,10 @@ class FormBuilderController extends Controller
              return redirect()->back()->with('error', 'No valid fields to save.');
         }
 
-        // return redirect()->route('public.form.view', ['tenant' => $tenant, 'form' => $form])
-        //                  ->with('success', 'Thanks! Your response has been recorded.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Thanks! Your response has been recorded.'
+        ]);
     }
 }
 

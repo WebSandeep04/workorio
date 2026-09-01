@@ -39,7 +39,10 @@
 
     $htmlLines = [];
     $htmlLines[] = '<!-- FormBuilder HTML Embed Code -->';
-    $htmlLines[] = '<form method="POST" action="' . $publicSubmitUrl . '" class="row g-3">';
+    
+
+    // The Form
+    $htmlLines[] = '<form id="fb-embedded-form-' . $form->id . '" method="POST" action="' . $publicSubmitUrl . '" style="font-family: sans-serif;">';
     $htmlLines[] = '    <input type="hidden" name="_fb_embed" value="1">';
     foreach ($fields as $field) {
         $name = $field['name'] ?? null;
@@ -60,9 +63,44 @@
         $htmlLines[] = '    </div>';
     }
     $htmlLines[] = '    <div class="col-12 text-end" style="margin-top: 1rem; text-align: right;">';
-    $htmlLines[] = '        <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.5rem; background: #434afa; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Submit</button>';
+    $htmlLines[] = '        <button id="fb-submit-btn-' . $form->id . '" type="submit" class="btn btn-primary" style="padding: 0.5rem 1.5rem; background: #434afa; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Submit</button>';
     $htmlLines[] = '    </div>';
     $htmlLines[] = '</form>';
+    
+    // AJAX Submission Script
+    $htmlLines[] = '<script>';
+    $htmlLines[] = 'document.addEventListener("DOMContentLoaded", function() {';
+    $htmlLines[] = '    var form = document.getElementById("fb-embedded-form-' . $form->id . '");';
+    $htmlLines[] = '    var submitBtn = document.getElementById("fb-submit-btn-' . $form->id . '");';
+    $htmlLines[] = '    if(form) {';
+    $htmlLines[] = '        form.addEventListener("submit", function(e) {';
+    $htmlLines[] = '            e.preventDefault();';
+    $htmlLines[] = '            var originalText = submitBtn.innerHTML;';
+    $htmlLines[] = '            submitBtn.innerHTML = "Submitting...";';
+    $htmlLines[] = '            submitBtn.disabled = true;';
+    $htmlLines[] = '            var formData = new FormData(form);';
+    $htmlLines[] = '            fetch(form.action, { method: "POST", body: formData, headers: { "Accept": "application/json" } })';
+    $htmlLines[] = '            .then(function(res) { return res.json(); })';
+    $htmlLines[] = '            .then(function(data) {';
+    $htmlLines[] = '                if(data.success) {';
+    $htmlLines[] = '                    form.reset();';
+    $htmlLines[] = '                    submitBtn.innerHTML = originalText;';
+    $htmlLines[] = '                    submitBtn.disabled = false;';
+    $htmlLines[] = '                } else {';
+    $htmlLines[] = '                    alert(data.message || "There was an error.");';
+    $htmlLines[] = '                    submitBtn.innerHTML = originalText;';
+    $htmlLines[] = '                    submitBtn.disabled = false;';
+    $htmlLines[] = '                }';
+    $htmlLines[] = '            }).catch(function(err) {';
+    $htmlLines[] = '                alert("Network error occurred.");';
+    $htmlLines[] = '                submitBtn.innerHTML = originalText;';
+    $htmlLines[] = '                submitBtn.disabled = false;';
+    $htmlLines[] = '            });';
+    $htmlLines[] = '        });';
+    $htmlLines[] = '    }';
+    $htmlLines[] = '});';
+    $htmlLines[] = '</script>';
+
     $htmlSnippet = implode("\n", $htmlLines);
 @endphp
 
