@@ -789,13 +789,14 @@ class AttendanceApprovalController extends Controller
                         ->exists();
 
                     if (!$exists) {
-                        \Log::info("No previous credit found. Proceeding to grant 1.0 credit.");
+                        $creditAmount = $attendance->is_wfh ? 0.5 : 1.0;
+                        \Log::info("No previous credit found. Proceeding to grant {$creditAmount} credit.");
                         $this->leaveBalanceService->creditLeave(
                             $user->id,
                             $leaveType->id,
-                            1.0,
+                            $creditAmount,
                             $attendance,
-                            "Auto-credit for working on " . ($isHoliday ? "Holiday" : "Weekly Off") . " (" . Carbon::parse($date)->format('d M Y') . ")"
+                            "Auto-credit for working on " . ($isHoliday ? "Holiday" : "Weekly Off") . ($attendance->is_wfh ? " (WFH)" : "") . " (" . Carbon::parse($date)->format('d M Y') . ")"
                         );
                         \Log::info("Credit granted successfully.");
                     } else {

@@ -424,8 +424,14 @@ class AttendanceReportApiController extends Controller
                     $statusData = $this->reportService->determineStatusAndReason($origStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($userLeavesDetails[$dateStr]), $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
                     
                     $finalLabel = strtolower($statusData['status']);
-                    if ($att && $att->is_wfh && str_contains($finalLabel, 'present')) {
-                        $finalLabel = 'halfday';
+                    $isWfhWowOrHw = false;
+                    
+                    if ($att && $att->is_wfh) {
+                        if (str_contains($finalLabel, 'working')) {
+                            $isWfhWowOrHw = true;
+                        } elseif (str_contains($finalLabel, 'present')) {
+                            $finalLabel = 'halfday';
+                        }
                     }
 
                     if ($finalLabel === 'absent') {
@@ -436,6 +442,9 @@ class AttendanceReportApiController extends Controller
                         $statusClass = 'text-primary';
                     } else {
                         $statusCode = $origStatusCode;
+                        if ($isWfhWowOrHw && ($origStatusCode === 'W/O-W' || $origStatusCode === 'H/W')) {
+                            $statusCode = $origStatusCode === 'W/O-W' ? 'W/O-W<sub>wfh</sub>' : 'H/W<sub>wfh</sub>';
+                        }
                         $statusClass = $origStatusClass;
                     }
                     $statusReason = $statusData['reason'];
