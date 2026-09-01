@@ -455,11 +455,10 @@ class AttendanceReportService
 
             if ($isWeeklyOff || in_array($dateStr, $holidays)) {
                 $statusInfo = $this->determineStatus($dateStr, $dayHours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
-                $increment = ($attendance->is_wfh) ? 0.5 : 1.0;
                 if ($statusInfo['code'] === 'W/O-W') {
-                    $totalSundaysWorked += $increment;
+                    $totalSundaysWorked++;
                 } elseif ($statusInfo['code'] === 'H/W') {
-                    $totalHolidaysWorked += $increment;
+                    $totalHolidaysWorked++;
                 }
             }
             
