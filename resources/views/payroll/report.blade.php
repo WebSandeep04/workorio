@@ -190,7 +190,10 @@ $(document).ready(function() {
                         <th class="text-center" style="min-width: 120px;">Total Weekly Off</th>
                         <th class="text-center" style="min-width: 100px;">Total Holidays</th>
                         <th class="text-center" style="min-width: 150px;">Total Deduction Days</th>
-                        <th class="text-end" style="min-width: 150px;">Deduction Amount</th>
+                        <th class="text-end" style="min-width: 150px;">Days Deduction</th>
+                        <th class="text-end" style="min-width: 150px;">Advance Deduction</th>
+                        <th class="text-end" style="min-width: 150px;">Loan Deduction</th>
+                        <th class="text-end" style="min-width: 150px;">Total Deduction</th>
                         <th class="text-center" style="min-width: 120px;">Working Days</th>
                         <th class="text-end" style="min-width: 120px;">Paid Salary</th>
                     </tr>`;
@@ -222,6 +225,9 @@ $(document).ready(function() {
                             <td class="text-center">${row.total_weekly_off}</td>
                             <td class="text-center">${row.total_holidays}</td>
                             <td class="text-center text-danger">${row.total_deduction_days}</td>
+                            <td class="text-end text-danger">₹${row.lop_deduction}</td>
+                            <td class="text-end text-danger">₹${row.advance_deduction}</td>
+                            <td class="text-end text-danger">₹${row.loan_deduction}</td>
                             <td class="text-end text-danger">₹${row.deduction_amount}</td>
                             <td class="text-center fw-medium">${row.payable_days}</td>
                             <td class="text-end ${salaryClass}">${salaryText}</td>

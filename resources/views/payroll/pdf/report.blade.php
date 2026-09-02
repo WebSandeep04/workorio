@@ -37,7 +37,10 @@
                 <th>Total Weekly Off</th>
                 <th>Total Holidays</th>
                 <th>Total Deduction Days</th>
-                <th class="text-end">Deduction Amount</th>
+                <th class="text-end">Days Deduction</th>
+                <th class="text-end">Advance Deduction</th>
+                <th class="text-end">Loan Deduction</th>
+                <th class="text-end">Total Deduction</th>
                 <th>Payable Days</th>
                 <th class="text-end">Paid Salary</th>
             </tr>
@@ -48,6 +51,9 @@
                     $paid = $paidSalaries[$summary->employee_id] ?? null;
                     $comps = $employeeComponents[$summary->employee_id] ?? [];
                     $deductionAmount = $employeeDeductions[$summary->employee_id] ?? 0;
+                    $advanceDeduction = $employeeAdvanceDeductions[$summary->employee_id] ?? 0;
+                    $loanDeduction = $employeeLoanDeductions[$summary->employee_id] ?? 0;
+                    $lopDeduction = $employeeLopDeductions[$summary->employee_id] ?? 0;
                     
                     $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
                     $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
@@ -70,6 +76,9 @@
                     <td>{{ $summary->total_weekly_offs ?? 0 }}</td>
                     <td>{{ $summary->total_holidays ?? 0 }}</td>
                     <td>{{ $deductionDays }}</td>
+                    <td class="text-end">Rs. {{ $lopDeduction }}</td>
+                    <td class="text-end">Rs. {{ $advanceDeduction }}</td>
+                    <td class="text-end">Rs. {{ $loanDeduction }}</td>
                     <td class="text-end">Rs. {{ $deductionAmount }}</td>
                     <td>{{ $payableDays }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? 'Rs. ' . number_format($paid, 0, '', '') : 'Not Generated' }}</td>
