@@ -299,6 +299,8 @@ class PayrollController extends Controller
         $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions) {
             $file = fopen('php://output', 'w');
             
+            $grandTotalPaidSalary = 0;
+            
             // Header Row
             $columns = array_merge(
                 ['Employee Code', 'Employee Name'],
@@ -306,7 +308,7 @@ class PayrollController extends Controller
                 [
                     'Total Working Days', 'Full Day', 'Half Day', 'Leave', 'Unpaid Leave', 
                     'Absent', 'Total Weekly Off', 'Total Holidays', 'Holiday Work', 'Sunday Work', 
-                    'Total Present', 'Deduction Days', 'Days Deduction', 'Advance Deduction', 'Loan Deduction', 'Total Deduction', 'Payable Days', 'Paid Salary'
+                    'Total Present', 'Deduction Days', 'Days deduction amount', 'Advance Deduction', 'Loan Deduction', 'Total Deduction', 'Paid Salary'
                 ]
             );
             fputcsv($file, $columns);
@@ -329,7 +331,10 @@ class PayrollController extends Controller
                 }
 
                 $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
-                $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
+                
+                if ($paid !== null) {
+                    $grandTotalPaidSalary += (float)$paid;
+                }
 
                 $row = array_merge($row, [
                     $summary->total_working_days ?? 0,
@@ -348,12 +353,16 @@ class PayrollController extends Controller
                     $advanceDeduction,
                     $loanDeduction,
                     $deductionAmount,
-                    $payableDays,
                     $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated'
                 ]);
 
                 fputcsv($file, $row);
             }
+            
+            $totalRow = array_fill(0, count($columns), '');
+            $totalRow[count($columns) - 2] = 'Grand Total:';
+            $totalRow[count($columns) - 1] = number_format($grandTotalPaidSalary, 0, '', '');
+            fputcsv($file, $totalRow);
             
             fclose($file);
         };

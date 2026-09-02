@@ -37,15 +37,15 @@
                 <th>Total Weekly Off</th>
                 <th>Total Holidays</th>
                 <th>Total Deduction Days</th>
-                <th class="text-end">Days Deduction</th>
+                <th class="text-end">Days deduction amount</th>
                 <th class="text-end">Advance Deduction</th>
                 <th class="text-end">Loan Deduction</th>
                 <th class="text-end">Total Deduction</th>
-                <th>Payable Days</th>
                 <th class="text-end">Paid Salary</th>
             </tr>
         </thead>
         <tbody>
+            @php $grandTotalPaidSalary = 0; @endphp
             @foreach($summaries as $summary)
                 @php
                     $paid = $paidSalaries[$summary->employee_id] ?? null;
@@ -57,13 +57,16 @@
                     
                     $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
                     $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
+                    if ($paid !== null) {
+                        $grandTotalPaidSalary += (float)$paid;
+                    }
                 @endphp
                 <tr>
                     <td class="text-start nowrap">{{ $summary->employee ? $summary->employee->employee_code : '-' }}</td>
                     <td class="text-start nowrap">{{ $summary->employee ? $summary->employee->name : 'Unknown' }}</td>
                     
                     @foreach($uniqueComponents as $comp)
-                        <td class="text-end">Rs. {{ isset($comps[$comp]) ? round($comps[$comp]) : 0 }}</td>
+                        <td class="text-end">{{ isset($comps[$comp]) ? round($comps[$comp]) : 0 }}</td>
                     @endforeach
                     
                     <td>{{ $summary->total_working_days ?? 0 }}</td>
@@ -76,17 +79,22 @@
                     <td>{{ $summary->total_weekly_offs ?? 0 }}</td>
                     <td>{{ $summary->total_holidays ?? 0 }}</td>
                     <td>{{ $deductionDays }}</td>
-                    <td class="text-end">Rs. {{ $lopDeduction }}</td>
-                    <td class="text-end">Rs. {{ $advanceDeduction }}</td>
-                    <td class="text-end">Rs. {{ $loanDeduction }}</td>
-                    <td class="text-end">Rs. {{ $deductionAmount }}</td>
-                    <td>{{ $payableDays }}</td>
-                    <td class="text-end nowrap">{{ $paid !== null ? 'Rs. ' . number_format($paid, 0, '', '') : 'Not Generated' }}</td>
+                    <td class="text-end">{{ $lopDeduction }}</td>
+                    <td class="text-end">{{ $advanceDeduction }}</td>
+                    <td class="text-end">{{ $loanDeduction }}</td>
+                    <td class="text-end">{{ $deductionAmount }}</td>
+                    <td class="text-end nowrap">{{ $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated' }}</td>
                 </tr>
             @endforeach
+            @if($summaries->isNotEmpty())
+                <tr>
+                    <td colspan="{{ 16 + count($uniqueComponents) }}" class="text-end" style="font-weight: bold;">Grand Total:</td>
+                    <td class="text-end nowrap" style="font-weight: bold;">{{ number_format($grandTotalPaidSalary, 0, '', '') }}</td>
+                </tr>
+            @endif
             @if($summaries->isEmpty())
                 <tr>
-                    <td colspan="{{ 15 + count($uniqueComponents) }}">No data available for this month.</td>
+                    <td colspan="{{ 17 + count($uniqueComponents) }}">No data available for this month.</td>
                 </tr>
             @endif
         </tbody>
