@@ -340,237 +340,64 @@ class AttendanceReportService
         $daysOnLeave = 0;
         $totalLeaves = 0; 
         $totalUnpaidLeaves = 0;
+        $totalShortLeaves = 0;
         $presentDays = 0; 
         $halfDays = 0; 
         $totalSundays = 0;
         $totalSundaysWorked = 0;
         $totalHolidaysWorked = 0;
-        $totalLess8_30 = 0;
-        $totalMore8_30 = 0;
-        $lateCount = 0;
         $totalLateMinutes = 0;
-        $lateLogs = [];
         
-        // Removed static $shift fetching from here
+        // Use the single source of truth mapper!
+        $dailyBreakdown = $this->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData, $user);
         
-        // Map leaves to date => type for easier lookup
-        $leaveMap = [];
-        if (is_array($leaves)) {
-            foreach ($leaves as $key => $val) {
-                if (is_int($key)) {
-                    $leaveMap[$val] = 'L'; // Default to Leave if only date is provided
-                } else {
-                    $leaveMap[$key] = $val;
-                }
-            }
-        }
-        
-        $currentDate = $startDate->copy();
-        while ($currentDate->lte($endDate)) {
-            $dayName = $currentDate->format('l');
-            $isWeeklyOff = false;
+        foreach ($dailyBreakdown as $dayData) {
+            $code = $dayData['code'];
+            $status = strtolower($dayData['status']);
+            $isHoliday = $dayData['is_holiday'];
+            $isSunday = $dayData['is_sunday'];
             
-            $shift = $user && $user->employee ? $user->employee->getShiftForDate($currentDate) : null;
-            
-            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-            }
-
-            if ($isWeeklyOff) {
+            if ($isSunday) {
                 $totalSundays++;
-            } elseif (!in_array($currentDate->format('Y-m-d'), $holidays)) {
+            } elseif (!$isHoliday) {
                 $totalWorkingDays++;
             }
-            $currentDate->addDay();
-        }
-        
-        $attendanceDates = [];
-        $leaveDates = [];
-        $holidaysWithAttendance = []; 
-        $lateDaysExceeded = 0;
-        
-        foreach ($attendances as $attendance) {
-            $attendanceDate = Carbon::parse($attendance->date);
-            $dateStr = $attendanceDate->format('Y-m-d');
             
-            $dayName = $attendanceDate->format('l');
+            $totalHours += $dayData['hours'];
+            $totalOfficeHours += $dayData['office_hours'];
+            $totalFieldHours += $dayData['field_hours'];
+            $totalBreakTime += $dayData['break_time'];
+            $totalCycles['office'] += $dayData['cycles']['office'] ?? 0;
+            $totalCycles['field'] += $dayData['cycles']['field'] ?? 0;
+            $totalCycles['break'] += $dayData['cycles']['break'] ?? 0;
+            $totalLateMinutes += (int) ($dayData['late_minutes'] ?? 0);
             
-            $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
-            
-            $isWeeklyOff = false;
-            $isHalfDayWorking = false;
-            if ($shift) {
-                if ($shift->week_offs && is_array($shift->week_offs)) {
-                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-                }
-                if ($shift->half_days && is_array($shift->half_days)) {
-                    $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
-                }
-            }
-
-            $lateBy = (int) abs($attendance->late_minutes ?? 0);
-            $previousGrace = $shift ? ($shift->min_per_month_late_allow - $totalLateMinutes) : 0;
-            $totalLateMinutes += $lateBy;
-
-            if ($shift && $lateBy > 0) {
-                $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $totalLateMinutes) < 0;
-                if ($isGraceExhaustedNow) {
-                    $lateDaysExceeded++;
-                }
-            }
-
-            $dayHours = $this->calculateTotalHours($attendance->movements, $shift, $attendance->date);
-            [$fullDayHr, $halfDayHr] = $this->getThresholds($shift);
-            if ($isHalfDayWorking) {
-                $fullDayHr = $halfDayHr;
-                $halfDayHr = $halfDayHr / 2;
-            }
-            $leaveType = $leaveMap[$dateStr] ?? null;
-            $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
-            $hasHalfDayLeave = ($leaveType === 'HD');
-            $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
-
-            if ($isWeeklyOff || in_array($dateStr, $holidays)) {
-                $statusInfo = $this->determineStatus($dateStr, $dayHours, $fullDayHr, $halfDayHr, $isWeeklyOff, in_array($dateStr, $holidays), $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
-                if ($statusInfo['code'] === 'W/O-W') {
-                    $totalSundaysWorked++;
-                } elseif ($statusInfo['code'] === 'H/W') {
-                    $totalHolidaysWorked++;
-                }
-            }
-            
-            if (!$isWeeklyOff && !in_array($dateStr, $holidays)) {
-                $totalHours += $dayHours;
-                
-                $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
-                $statusInfo = $this->determineStatus($dateStr, $dayHours, $fullDayHr, $halfDayHr, false, false, $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
-                $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
-                $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
-                
-                $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
-                $finalStatusData = $this->determineStatusAndReason($statusInfo['label'], $dayHours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, isset($leaveMap[$dateStr]), $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
-                $finalStatusLabel = strtolower($finalStatusData['status']);
-
-                if ($attendance->is_wfh && str_contains($finalStatusLabel, 'present')) {
-                    $finalStatusLabel = 'halfday';
-                }
-
-                $lastOutMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->last();
-                if (!$lastOutMov && $dayHours > 0) {
-                    $finalStatusLabel = 'absent';
-                }
-
-                if (in_array($finalStatusLabel, ['present', 'present with sl', 'present with hd'])) {
-                    $presentDays++;
-                    $attendanceDates[] = $dateStr;
-                    $totalDaysWorked++;
-                } elseif (in_array($finalStatusLabel, ['halfday', 'present (partial leave)'])) {
-                    $halfDays++;
-                    $attendanceDates[] = $dateStr;
-                    $totalDaysWorked++;
-                }
-
-                [$origFullDayHr, $origHalfDayHr] = $this->getThresholds($shift);
-                $effectiveInMinutes = (int) round(($dayHours + $slHours + ($hasHalfDayLeave ? $origHalfDayHr : 0)) * 60);
-                if ($effectiveInMinutes >= (int) round($origFullDayHr * 60)) {
-                    $totalMore8_30++;
-                } elseif ($effectiveInMinutes >= (int) round($origHalfDayHr * 60)) {
-                    $totalLess8_30++;
-                }
-                
-                $totalOfficeHours += $this->calculateTypeHours($attendance->movements, 'office');
-                $totalFieldHours += $this->calculateTypeHours($attendance->movements, 'field');
-                $totalBreakTime += $this->calculateTypeHours($attendance->movements, 'break');
-                
-                $cycles = $this->calculateDayCycles($attendance->movements);
-                $totalCycles['office'] += $cycles['office'];
-                $totalCycles['field'] += $cycles['field'];
-                $totalCycles['break'] += $cycles['break'];
-
-                // Late Check
-                if ($shift && $shift->start_time) {
-                    $firstPunch = $attendance->movements->whereIn('movement_type', ['office', 'field'])->first();
-                    if ($firstPunch) {
-                        $punchTime = Carbon::parse($firstPunch->time)->setTimezone('Asia/Kolkata');
-                        $shiftDate = Carbon::parse($attendance->date)->format('Y-m-d');
-                        $shiftTime = Carbon::parse($shift->start_time)->format('H:i:s');
-                        $shiftStart = Carbon::parse($shiftDate . ' ' . $shiftTime, 'Asia/Kolkata');
-                        $lateThreshold = $shiftStart->copy()->addMinutes($shift->late_min ?? 0);
-                        
-                        $isLate = false;
-                        $reason = '';
-                        
-                        if ($punchTime->gt($lateThreshold)) {
-                            if ($dayHours >= ($shift->half_day_hr ?? 4)) {
-                                $lateCount++;
-                                $isLate = true;
-                                $reason = 'Late: Punched after threshold and worked >= half day';
-                            } else {
-                                $reason = 'Not Late: Punched after threshold but worked < half day';
-                            }
-                        } else {
-                            $reason = 'Not Late: on time';
-                        }
-                        
-                        $lateLogs[] = [
-                            'date' => $dateStr,
-                            'punch' => $punchTime->toDateTimeString(),
-                            'threshold' => $lateThreshold->toDateTimeString(),
-                            'hours' => $dayHours,
-                            'is_late' => $isLate,
-                            'reason' => $reason
-                        ];
-                    }
-                }
-            }
-        }
-        $totalShortLeaves = 0;
-        $uniqueLeaves = array_unique(array_keys($leaveMap));
-        
-        $leaveDates = [];
-        foreach ($uniqueLeaves as $dateStr) {
-            $leaveType = $leaveMap[$dateStr] ?? 'L';
-            
-            if ($leaveType === 'SL') {
+            if (in_array($code, ['P'])) {
+                $presentDays++;
+                $totalDaysWorked++;
+            } elseif ($code === 'P2') {
+                $halfDays++;
+                $totalDaysWorked++;
+            } elseif ($code === 'W/O-W' || $code === 'W/O-W<sub>wfh</sub>') {
+                $totalSundaysWorked++;
+                $totalDaysWorked++;
+            } elseif ($code === 'H/W' || $code === 'H/W<sub>wfh</sub>') {
+                $totalHolidaysWorked++;
+                $totalDaysWorked++;
+            } elseif ($code === 'LWP') {
+                $totalUnpaidLeaves++;
+            } elseif ($code === 'SL') {
                 $totalShortLeaves++;
-            }
-            
-            $leaveCarbon = Carbon::parse($dateStr);
-            $dayName = $leaveCarbon->format('l');
-            $dayName = $leaveCarbon->format('l');
-            $isWeeklyOff = false;
-            
-            $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
-            
-            if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-            }
-
-            if (!$isWeeklyOff 
-                && !in_array($dateStr, $holidays) 
-                && !in_array($dateStr, $attendanceDates)
-                && !in_array($dateStr, $holidaysWithAttendance)) {
-                
-                if ($leaveType === 'LWP') {
-                    $totalUnpaidLeaves++;
-                } else {
-                    $totalLeaves++;
-                }
-
-                // Do we count SL in daysOnLeave (absents)?
-                // Let's assume SL is not a full leave. But for now keep it same logic unless requested.
-                if ($leaveType !== 'SL') {
-                    if ($leaveType !== 'LWP') {
-                        $leaveDates[] = $dateStr;
-                        $daysOnLeave++;
-                    }
-                }
+                $totalLeaves++;
+            } elseif (in_array($code, ['L', 'RH', 'HD'])) {
+                $totalLeaves++;
+                $daysOnLeave++;
             }
         }
         
         $totalHolidays = 0;
         foreach ($holidays as $holidayDate) {
-            $holidayCarbon = Carbon::parse($holidayDate);
+            $holidayCarbon = \Carbon\Carbon::parse($holidayDate);
             $dayName = $holidayCarbon->format('l');
             $isWeeklyOff = false;
             $shift = $user && $user->employee ? $user->employee->getShiftForDate($holidayDate) : null;
@@ -603,17 +430,12 @@ class AttendanceReportService
             'total_sundays_worked' => $totalSundaysWorked,
             'total_holidays' => $totalHolidays,
             'total_holidays_worked' => $totalHolidaysWorked,
-            'total_hours' => round($totalHours, 2),
-            'total_office_hours' => round($totalOfficeHours, 2),
-            'total_field_hours' => round($totalFieldHours, 2),
-            'total_break_time' => round($totalBreakTime, 2),
-            'avg_hours_per_day' => $totalDaysWorked > 0 ? round($totalHours / $totalDaysWorked, 2) : 0,
+            'total_hours' => $totalHours,
+            'total_office_hours' => $totalOfficeHours,
+            'total_field_hours' => $totalFieldHours,
+            'total_break_time' => $totalBreakTime,
             'total_cycles' => $totalCycles,
-            'total_less_8_30' => $totalLess8_30,
-            'total_more_8_30' => $totalMore8_30,
-            'late_count' => $lateCount,
-            'total_late_minutes' => $totalLateMinutes,
-            'late_logs' => $lateLogs
+            'total_late_minutes' => $totalLateMinutes
         ];
     }
 

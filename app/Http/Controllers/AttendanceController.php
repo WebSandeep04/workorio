@@ -1289,7 +1289,7 @@ class AttendanceController extends Controller
                 'name' => $user->name,
                 'designation' => $user->employee->designation->name ?? 'N/A'
             ],
-            'daily_status' => $dailyData,
+            'daily_breakdown' => $dailyData,
             'summary' => $summary
         ];
     }
@@ -1386,26 +1386,24 @@ class AttendanceController extends Controller
             $dailyData = $this->reportService->generateDailyBreakdown($userAttendance, $dateObj, $dateObj, $holidays, $leaveArr, $holidaysData, $user);
             $dayData = $dailyData[0];
             
-            $reportData[] = [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'designation' => $user->employee->designation->name ?? 'N/A'
-                ],
-                'data' => $dayData
+            $dayData['user'] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'designation' => $user->employee->designation->name ?? 'N/A'
             ];
+            $reportData[] = $dayData;
         }
 
         return [
             'date' => $dateObj->format('M j, Y'),
             'summary' => [
                 'total_working' => count($users),
-                'total_present' => collect($reportData)->whereIn('data.code', ['P', 'P2', 'W/O-W', 'H/W'])->count(),
-                'total_absent' => collect($reportData)->where('data.code', 'A')->count(),
-                'total_leaves' => collect($reportData)->whereIn('data.code', ['L', 'HD', 'SL', 'RH', 'LWP'])->count(),
-                'total_na' => collect($reportData)->where('data.code', 'NA')->count()
+                'total_present' => collect($reportData)->whereIn('code', ['P', 'P2', 'W/O-W', 'H/W'])->count(),
+                'total_absent' => collect($reportData)->where('code', 'A')->count(),
+                'total_leaves' => collect($reportData)->whereIn('code', ['L', 'HD', 'SL', 'RH', 'LWP'])->count(),
+                'total_na' => collect($reportData)->where('code', 'NA')->count()
             ],
-            'users' => $reportData
+            'data' => $reportData
         ];
     }
 
@@ -1656,7 +1654,7 @@ class AttendanceController extends Controller
                     'name' => $user->name,
                     'designation' => $user->employee->designation->name ?? 'N/A'
                 ],
-                'daily_status' => $dailyStatuses,
+                'daily_statuses' => $dailyStatuses,
                 'summary' => $summary
             ];
         }
@@ -1664,10 +1662,11 @@ class AttendanceController extends Controller
         return [
             'month' => [
                 'display' => $startDate->format('F Y'),
-                'value' => $month
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
+                'dates' => $dates
             ],
-            'dates' => $dates,
-            'users' => $usersData
+            'data' => $usersData
         ];
     }
 
