@@ -25,7 +25,6 @@
                 <th style='padding:6px; border:1px solid #ddd;'>Hours</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Late By</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Late Reason</th>
-                <th style='padding:6px; border:1px solid #ddd;'>Grace Balance</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Final Status</th>
                 <th style='padding:6px; border:1px solid #ddd;'>Status Reason</th>
             </tr>
@@ -56,7 +55,6 @@
                     <td style='padding:5px; border:1px solid #ddd; color:#8e44ad; font-weight:bold;'>{{ $row['total_hours'] }}</td>
                     <td style='padding:5px; border:1px solid #ddd;'>{{ $row['late_by'] ?? '-' }}</td>
                     <td style='padding:5px; border:1px solid #ddd; {{ $lrStyle }}'>{{ $row['late_reason'] }}</td>
-                    <td style='padding:5px; border:1px solid #ddd;'>{{ $row['grace_balance'] ?? '-' }}</td>
                     <td style='padding:5px; border:1px solid #ddd; color:{{ $statusColor }}; font-weight:bold; text-transform:capitalize;'>{{ $displayStatus }}</td>
                     <td style='padding:5px; border:1px solid #ddd;'>{{ $row['status_reason'] ?? '-' }}</td>
                 </tr>
@@ -84,7 +82,6 @@
                     <th style='padding:0; border:1px solid #ddd;'>Hours</th>
                     <th style='padding:0; border:1px solid #ddd;'>Late By</th>
                     <th style='padding:0; border:1px solid #ddd;'>Late Reason</th>
-                    <th style='padding:0; border:1px solid #ddd;'>Grace Balance</th>
                     <th style='padding:0; border:1px solid #ddd;'>Final Status</th>
                     <th style='padding:0; border:1px solid #ddd;'>Status Reason</th>
                 </tr>
@@ -115,7 +112,6 @@
                         <td style='padding:0; border:1px solid #ddd; color:#8e44ad; font-weight:bold;'>{{ $record['total_hours'] }}</td>
                         <td style='padding:0; border:1px solid #ddd;'>{{ $record['late_by'] ?? '-' }}</td>
                         <td style='padding:0; border:1px solid #ddd; {{ $lrStyle }}'>{{ $record['late_reason'] }}</td>
-                        <td style='padding:0; border:1px solid #ddd;'>{{ $record['grace_balance'] ?? '-' }}</td>
                         <td style='padding:0; border:1px solid #ddd; color:{{ $statusColor }}; font-weight:bold; text-transform:capitalize;'>{{ $displayStatus }}</td>
                         <td style='padding:0; border:1px solid #ddd;'>{{ $record['status_reason'] ?? '-' }}</td>
                     </tr>

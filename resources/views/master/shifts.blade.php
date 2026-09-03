@@ -101,7 +101,7 @@
             <th>Full (H)</th>
             <th>Half (H)</th>
             <th>Ext. (H)</th>
-            <th>Monthly Late Allow</th>
+            
             <th>Status</th>
             <th class="text-center">Actions</th>
           </tr>
@@ -148,34 +148,12 @@
                 <input type="number" class="form-control form-control-modern" id="late_min" name="late_min" min="0" value="15">
               </div>
               <div class="col-md-3">
-                <label class="form-label-modern">Monthly Late Allow (Min)</label>
-                <input type="number" class="form-control form-control-modern" id="min_per_month_late_allow" name="min_per_month_late_allow" min="0" value="0" placeholder="e.g. 120">
-              </div>
-              <div class="col-md-3">
                 <label class="form-label-modern">SL End Limit (H)</label>
                 <input type="number" class="form-control form-control-modern" id="sl_end_limit" name="sl_end_limit" min="0" value="0">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label-modern">Grace Punishment?</label>
-                <select id="is_grace_punish" name="is_grace_punish" class="form-control form-control-modern">
-                    <option value="0">No Penalty</option>
-                    <option value="1">Halfday on Late</option>
-                </select>
               </div>
           </div>
 
           <div class="row g-3 mb-4">
-              <div class="col-md-3">
-                <label class="form-label-modern">Grace Bounce Days</label>
-                <input type="number" class="form-control form-control-modern" id="grace_bounce_day" name="grace_bounce_day" min="0" value="0" placeholder="e.g. 1">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label-modern">Exempt Grace on Overtime?</label>
-                <select id="exempt_grace_on_overtime" name="exempt_grace_on_overtime" class="form-control form-control-modern">
-                    <option value="1">Yes (Exempt)</option>
-                    <option value="0">No Penalty Allowed</option>
-                </select>
-              </div>
               <div class="col-md-3">
                 <label class="form-label-modern">Time Restriction on W/O & Holiday?</label>
                 <select id="enforce_time_restriction_on_overtime" name="enforce_time_restriction_on_overtime" class="form-control form-control-modern">
@@ -312,7 +290,7 @@ $(function() {
                     <td>${row.full_day_hr || '-'}h</td>
                     <td>${row.half_day_hr || '-'}h</td>
                     <td>${row.extended_hr || '-'}h</td>
-                    <td>${row.min_per_month_late_allow || '0'} Min</td>
+                    
                     <td><span class="${statusBadge}">${statusText}</span></td>
                     <td class="text-center">
                         <button class="btn-action btn-action-edit editBtn" data-id="${row.id}" title="Edit"><i class="bi bi-pencil"></i></button>
@@ -355,10 +333,6 @@ $(function() {
         $('#full_day_hr').val(row.full_day_hr);
         $('#half_day_hr').val(row.half_day_hr);
         $('#extended_hr').val(row.extended_hr);
-        $('#min_per_month_late_allow').val(row.min_per_month_late_allow || 0);
-        $('#is_grace_punish').val(row.is_grace_punish ? '1' : '0');
-        $('#grace_bounce_day').val(row.grace_bounce_day || 0);
-        $('#exempt_grace_on_overtime').val(row.exempt_grace_on_overtime ? '1' : '0');
         $('#enforce_time_restriction_on_overtime').val(row.enforce_time_restriction_on_overtime ? '1' : '0');
         
         if (row.grant_comp_off_for_overtime !== undefined && row.grant_comp_off_for_overtime !== null) {

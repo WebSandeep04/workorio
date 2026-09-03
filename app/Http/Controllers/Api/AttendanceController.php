@@ -641,6 +641,10 @@ class AttendanceController extends Controller
         // Check if user has pending tasks
         $hasPendingTasks = $this->hasPendingTasks($user->id);
         
+        if (isset($this->reportService)) {
+            $this->reportService->computeAndSaveDailyStatus($attendance);
+        }
+        
         return response()->json([
             'success' => true,
             'message' => 'Successfully punched out for ' . $request->movement_type . ' (Cycle ' . $currentCycle . ' completed)',

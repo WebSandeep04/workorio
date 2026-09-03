@@ -129,30 +129,36 @@ class AttendanceApprovalController extends Controller
 
             if ($attendance) {
                 $shift = $employee->getShiftForDate(today());
-                $hours = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
                 
-                [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
-                
-                // Check if it's a Weekly Off or Holiday
-                $dayName = Carbon::parse($date)->format('l');
-                $isWeeklyOff = false;
-                if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                    $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-                }
-                $isHoliday = \App\Models\Holiday::where('holiday_date', $date)->exists();
+                if (!empty($attendance->computed_status)) {
+                    $hours = (float) $attendance->computed_hours;
+                    $status = ucfirst($attendance->computed_status);
+                } else {
+                    $hours = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
+                    
+                    [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
+                    
+                    // Check if it's a Weekly Off or Holiday
+                    $dayName = Carbon::parse($date)->format('l');
+                    $isWeeklyOff = false;
+                    if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
+                        $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
+                    }
+                    $isHoliday = \App\Models\Holiday::where('holiday_date', $date)->exists();
 
-                $hasHalfDayLeave = ($leave && $leave->is_half_day && in_array(strtolower($leave->status), ['approved', 'pending']));
-                $slHours = 0;
-                if ($leave && $leave->is_sl && $leave->start_time && $leave->end_time) {
-                    $slS = Carbon::parse($leave->start_time);
-                    $slE = Carbon::parse($leave->end_time);
-                    $slHours = $slS->diffInMinutes($slE) / 60;
-                }
+                    $hasHalfDayLeave = ($leave && $leave->is_half_day && in_array(strtolower($leave->status), ['approved', 'pending']));
+                    $slHours = 0;
+                    if ($leave && $leave->is_sl && $leave->start_time && $leave->end_time) {
+                        $slS = Carbon::parse($leave->start_time);
+                        $slE = Carbon::parse($leave->end_time);
+                        $slHours = $slS->diffInMinutes($slE) / 60;
+                    }
 
-                $lType = ($leave && $leave->is_sl) ? 'SL' : null;
-                $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
-                $statusInfo = $this->reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $lType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
-                $status = $statusInfo['label'];
+                    $lType = ($leave && $leave->is_sl) ? 'SL' : null;
+                    $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+                    $statusInfo = $this->reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $lType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
+                    $status = $statusInfo['label'];
+                }
             }
 
             if ($leave) {
@@ -252,6 +258,8 @@ class AttendanceApprovalController extends Controller
                 'is_early_out' => $isEarlyOut,
                 'suggested_sl_start' => $suggestedSlStart,
                 'suggested_sl_end' => $suggestedSlEnd,
+                'is_overridden' => $attendance ? $attendance->is_overridden : false,
+                'computed_status' => $attendance ? $attendance->computed_status : null,
                 'edit_history' => ($attendance && $attendance->editLogs()->exists()) ? $attendance->editLogs->map(function($log) {
                     return [
                         'by' => $log->editor->name,
@@ -432,6 +440,18 @@ class AttendanceApprovalController extends Controller
         }
     }
 
+    public function recalculate($id)
+    {
+        try {
+            $attendance = Attendance::findOrFail($id);
+            $attendance->update(['is_overridden' => false]);
+            $this->reportService->computeAndSaveDailyStatus($attendance);
+            return response()->json(['success' => true, 'message' => 'Attendance status recalculated successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function updateTimes(Request $request, $id)
     {
         $request->validate([
@@ -497,6 +517,19 @@ class AttendanceApprovalController extends Controller
                         'description' => 'Manual adjustment'
                     ]);
                 }
+            }
+
+            if ($request->filled('force_status')) {
+                $attendance->update([
+                    'computed_status' => $request->force_status,
+                    'is_overridden' => true,
+                    'status_reason' => 'Forced by Admin'
+                ]);
+            } else {
+                // If HR changed times, we must recalculate, and remove any previous override
+                $attendance->update(['is_overridden' => false]);
+                $attendance->refresh(); // load new movements
+                $this->reportService->computeAndSaveDailyStatus($attendance);
             }
 
             DB::commit();

@@ -214,7 +214,7 @@
                             <th>Field</th>
                             <th>Break</th>
                             <th>Late By</th>
-                            <th>Grace Bal.</th>
+                            
                             <th>Late Reason</th>
                             <th class="text-center">Details</th>
                         </tr>
@@ -359,7 +359,6 @@ function displayAttendanceData(attendances, summary) {
             <td>${fieldHours > 0 ? formatHoursMinutes(fieldHours) : '-'}</td>
             <td>${breakHours > 0 ? formatHoursMinutes(breakHours) : '-'}</td>
             <td class="${attendance.late_by && attendance.late_by !== '-' ? 'text-danger fw-medium' : ''}">${attendance.late_by || '-'}</td>
-            <td class="text-success fw-medium">${attendance.grace_balance || '-'}</td>
             <td class="text-muted small" style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${attendance.late_reason || ''}">${attendance.late_reason || '-'}</td>
             <td class="text-center">
                 ${attendance.movements && attendance.movements.length > 0 ? `

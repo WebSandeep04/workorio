@@ -393,7 +393,7 @@
                                     <th>Field</th>
                                     <th>Break</th>
                                     <th>Late By</th>
-                                    <th>Grace Bal.</th>
+                                    
                                     <th>Late Reason</th>
                                     <th class="text-center">Details</th>
                                 </tr>
@@ -576,7 +576,7 @@
                                     <th>Field</th>
                                     <th>Break</th>
                                     <th>Late By</th>
-                                    <th>Grace Bal.</th>
+                                    
                                     <th>Late Reason</th>
                                     <th class="text-center">Details</th>
                                 </tr>
@@ -668,7 +668,7 @@
                                     <th>Field</th>
                                     <th>Break</th>
                                     <th>Late By</th>
-                                    <th>Grace Bal.</th>
+                                    
                                     <th>Late Reason</th>
                                     <th class="text-center">Details</th>
                                 </tr>
@@ -816,7 +816,6 @@ function loadReport(){
                         <td>${hoursClock(d.field_hours)}</td>
                         <td>${hoursClock(d.break_time)}</td>
                         <td class="text-danger fw-bold" style="font-size: 0.8rem;">${d.late_by || '-'}</td>
-                        <td class="text-success fw-bold" style="font-size: 0.8rem;">${d.grace_balance || '-'}</td>
                         <td class="text-break" style="color: #000; font-size: 0.85rem;">${d.late_reason || '-'}</td>
                         <td class="text-center">
                             <button class="btn-view-details shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#mov-${idx}" aria-expanded="false">
@@ -1158,7 +1157,6 @@ function loadDateReport() {
                         <td>${hoursClock(d.field_hours)}</td>
                         <td>${hoursClock(d.break_time)}</td>
                         <td class="text-danger fw-bold" style="font-size: 0.8rem;">${d.late_by || '-'}</td>
-                        <td class="text-success fw-bold" style="font-size: 0.8rem;">${d.grace_balance || '-'}</td>
                         <td class="text-break" style="font-size: 0.85rem;">${d.late_reason || '-'}</td>
                         <td class="text-center">
                             <button class="btn-view-details shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#date-mov-${idx}" aria-expanded="false">
@@ -1260,7 +1258,6 @@ function loadTodayReport() {
                         <td>${hoursClock(d.field_hours)}</td>
                         <td>${hoursClock(d.break_time)}</td>
                         <td class="text-danger fw-bold" style="font-size: 0.8rem;">${d.late_by || '-'}</td>
-                        <td class="text-success fw-bold" style="font-size: 0.8rem;">${d.grace_balance || '-'}</td>
                         <td class="text-break" style="font-size: 0.85rem;">${d.late_reason || '-'}</td>
                         <td class="text-center">
                             <button class="btn-view-details shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#today-mov-${idx}" aria-expanded="false">

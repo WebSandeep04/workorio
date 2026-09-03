@@ -885,6 +885,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/attendance/approve-bulk', [AttendanceApprovalController::class, 'bulkApprove'])->name('attendance.approve-bulk');
     Route::post('/attendance/post-daily', [AttendanceApprovalController::class, 'postDaily'])->name('attendance.post-daily');
     Route::post('/attendance/update-times/{id}', [AttendanceApprovalController::class, 'updateTimes'])->name('attendance.update-times');
+    Route::post('/attendance/recalculate/{id}', [AttendanceApprovalController::class, 'recalculate'])->name('attendance.recalculate');
     Route::get('/attendance/leave-balances/{userId}', [AttendanceApprovalController::class, 'getLeaveBalances'])->name('attendance.leave-balances');
     Route::post('/attendance/apply-quick-leave', [AttendanceApprovalController::class, 'applyQuickLeave'])->name('attendance.apply-quick-leave');
 

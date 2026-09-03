@@ -288,64 +288,41 @@ class AttendanceReportService
         ];
     }
 
-    public function determineStatusAndReason($originalStatusLabel, $hours, $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $isLeave, $isHalfDayLeave, $isGracePunish = 0, $graceBounceDays = 0, $lateDaysExceeded = 0, $exemptGraceOnOvertime = 1)
+    public function determineStatusAndReason($origStatus, $dayHours, $fullDayHr, $halfDayHr, $lateBy, $isLeave, $hasHalfDayLeave)
     {
-        $finalStatus = $originalStatusLabel;
+        $status = $origStatus;
         $reason = '-';
+        $statusLower = strtolower($status);
 
-        $statusLower = strtolower($originalStatusLabel);
-        
-        $isOvertime = str_contains($statusLower, 'working') && (str_contains($statusLower, 'holiday') || str_contains($statusLower, 'w/o') || str_contains($statusLower, 'sunday'));
+        if ($lateBy > 0) {
+            $reason = 'Late by ' . $lateBy . ' mins';
+        }
 
-        if (str_contains($statusLower, 'present') || str_contains($statusLower, 'working')) {
-            if ($lateBy > 0 && $previousGrace < $lateBy && !($isOvertime && $exemptGraceOnOvertime)) {
-                if ($isGracePunish) {
-                    if ($lateDaysExceeded > $graceBounceDays) {
-                        $finalStatus = 'halfday';
-                        $reason = 'Monthly grace exhausted & bounce limits passed';
-                    } else {
-                        $reason = 'Grace exhausted but covered under bounce day';
-                    }
-                } else {
-                    $reason = 'Monthly grace exhausted';
+        if (str_contains($statusLower, 'present')) {
+            if ($dayHours >= $fullDayHr) {
+                if ($hasHalfDayLeave) {
+                    $status = 'present (partial leave)';
+                    $reason = 'Worked full day while on Half Day Leave';
                 }
-            } else if ($lateBy > 0) {
-                $reason = 'Covered under grace';
-            } else if (str_contains($statusLower, 'sl')) {
-                $reason = 'Present with SL';
-            } else {
-                $reason = '-';
+            } else if ($dayHours >= $halfDayHr) {
+                if (!$hasHalfDayLeave) {
+                    $status = 'halfday';
+                    $reason = "Worked less than " . intval($fullDayHr) . " hrs";
+                }
             }
         } else if (str_contains($statusLower, 'absent')) {
-            if ($hours <= 0 && !$isLeave) {
+            if ($dayHours <= 0 && !$isLeave) {
                 $reason = 'No attendance recorded';
             } else {
                 $reason = "Worked less than " . intval($halfDayHr) . " hrs";
             }
             $finalStatus = 'absent';
-        } else if (str_contains($statusLower, 'halfday')) {
-            if ($isHalfDayLeave) {
-                $reason = 'Approved Half Day';
-            } else if ($lateBy > 0 && $previousGrace < $lateBy) {
-                $reason = 'Monthly grace exhausted';
-            } else {
-                $reason = "Worked less than " . intval($fullDayHr) . " hrs";
-            }
-            $finalStatus = 'halfday';
-        } else if (str_contains($statusLower, 'leave') || str_contains($statusLower, 'holiday') || str_contains($statusLower, 'off')) {
-            if (str_contains($statusLower, 'unpaid leave')) {
-                $finalStatus = 'unpaid leave';
-                $reason = 'Unpaid Leave';
-            } elseif (str_contains($statusLower, 'leave') && !str_contains($statusLower, 'sl')) {
-                $finalStatus = 'leave';
-                $reason = 'On Leave';
-            } else {
-                $finalStatus = strtolower($originalStatusLabel);
-                $reason = '-';
-            }
         }
-
-        return ['status' => $finalStatus, 'reason' => $reason];
+        
+        return [
+            'status' => $status,
+            'reason' => $reason
+        ];
     }
 
     /**
@@ -646,12 +623,9 @@ class AttendanceReportService
     public function generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData = null, $user = null)
     {
         $dailyData = [];
-        $attendanceByDate = $attendances->keyBy(function ($attendance) {
-            return Carbon::parse($attendance->date)->format('Y-m-d');
+        $attendanceByDate = $attendances->keyBy(function ($item) {
+            return \Carbon\Carbon::parse($item->date)->format('Y-m-d');
         });
-        
-        $cumulativeLateMinutes = 0;
-        $lateDaysExceeded = 0;
         
         $currentDate = $startDate->copy();
         while ($currentDate->lte($endDate)) {
@@ -680,8 +654,10 @@ class AttendanceReportService
                 'is_leave' => isset($leaves[$dateStr]),
                 'leave_type' => $leaves[$dateStr] ?? null,
                 'holiday_name' => null,
-                'status' => 'absent',
+                'status' => 'NA',
                 'status_reason' => '-',
+                'code' => 'NA',
+                'class' => 'text-secondary',
                 'hours' => 0,
                 'office_hours' => 0,
                 'field_hours' => 0,
@@ -697,27 +673,41 @@ class AttendanceReportService
             
             if (isset($attendanceByDate[$dateStr])) {
                 $attendance = $attendanceByDate[$dateStr];
-                $dayData['hours'] = $this->calculateTotalHours($attendance->movements, $shift, $dateStr);
+                
+                if (!empty($attendance->computed_status)) {
+                    $dayData['hours'] = (float) $attendance->computed_hours;
+                    $dayData['status'] = $attendance->computed_status;
+                    $dayData['status_reason'] = $attendance->status_reason;
+                } else {
+                    $dayData['hours'] = (float) ($attendance->computed_hours ?? 0);
+                    $dayData['status'] = 'NA';
+                    $dayData['status_reason'] = '-';
+                }
+                
+                $dayData['late_minutes'] = (int) ($attendance->late_minutes ?? 0);
+                if ($dayData['late_minutes'] > 0) {
+                    $dayData['late_by'] = $dayData['late_minutes'] . ' min';
+                }
+                
                 $dayData['office_hours'] = $this->calculateTypeHours($attendance->movements, 'office');
                 $dayData['field_hours'] = $this->calculateTypeHours($attendance->movements, 'field');
                 $dayData['break_time'] = $this->calculateTypeHours($attendance->movements, 'break');
                 $dayData['cycles'] = $this->calculateDayCycles($attendance->movements);
-                $dayData['late_minutes'] = (int) ($attendance->late_minutes ?? 0);
                 $dayData['is_wfh'] = $attendance->is_wfh;
                 
                 $firstInMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'in')->first();
                 if ($firstInMov) {
-                    $dayData['first_in'] = Carbon::parse($firstInMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
+                    $dayData['first_in'] = \Carbon\Carbon::parse($firstInMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
                 }
                 
                 $lastOutMov = $attendance->movements->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->last();
                 if ($lastOutMov) {
-                    $dayData['last_out'] = Carbon::parse($lastOutMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
+                    $dayData['last_out'] = \Carbon\Carbon::parse($lastOutMov->time)->setTimezone('Asia/Kolkata')->format('H:i');
                 }
                 
                 $dayData['movements'] = $attendance->movements->map(function($movement) {
                     return [
-                        'time' => Carbon::parse($movement->time)->setTimezone('Asia/Kolkata')->format('H:i'),
+                        'time' => \Carbon\Carbon::parse($movement->time)->setTimezone('Asia/Kolkata')->format('H:i'),
                         'type' => ucfirst($movement->movement_type),
                         'action' => ucfirst($movement->movement_action),
                         'description' => $movement->description,
@@ -734,99 +724,94 @@ class AttendanceReportService
                     ->toArray();
                 
                 $dayData['description'] = !empty($descriptions) ? implode('<br>', $descriptions) : null;
-
-                [$fullDayHr, $halfDayHr] = $this->getThresholds($shift);
-                if ($isHalfDayWorking) {
-                    $fullDayHr = $halfDayHr;
-                    $halfDayHr = $halfDayHr / 2;
-                }
                 
-                $slHours = ($dayData['leave_type'] === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
-                $hasHalfDayLeave = ($dayData['leave_type'] === 'HD');
-                $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
-                $statusInfo = $this->determineStatus($dateStr, $dayData['hours'], $fullDayHr, $halfDayHr, $isWeeklyOff, $dayData['is_holiday'], $dayData['leave_type'], $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
-                $origStatus = $statusInfo['label'];
-                
-                $lateBy = $dayData['late_minutes'];
-                $cumulativeLateMinutes += $lateBy;
-
-                if ($shift && $lateBy > 0) {
-                    $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $cumulativeLateMinutes) < 0;
-                    if ($isGraceExhaustedNow) {
-                        $lateDaysExceeded++;
+                if ($dayData['late_minutes'] > 0 && $firstInMov && $firstInMov->description) {
+                    $desc = trim($firstInMov->description);
+                    $prefix = "Late punch-in: ";
+                    if (stripos($desc, $prefix) === 0) {
+                        $dayData['late_reason'] = trim(substr($desc, strlen($prefix)));
+                    } else {
+                        $dayData['late_reason'] = trim($desc);
                     }
                 }
 
-                $previousGrace = 0;
-                if ($shift && isset($shift->min_per_month_late_allow)) {
-                    $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
-                    $dayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
-                    $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
-                }
-
-                if ($lateBy > 0) {
-                    $dayData['late_by'] = $lateBy . ' min';
-                    if ($firstInMov && $firstInMov->description) {
-                        $desc = trim($firstInMov->description);
-                        $prefix = "Late punch-in: ";
-                        if (stripos($desc, $prefix) === 0) {
-                            $dayData['late_reason'] = trim(substr($desc, strlen($prefix)));
-                        } else {
-                            $dayData['late_reason'] = trim($desc);
-                        }
-                    }
-                }
-                
-                $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
-                $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
-                $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
-                $statusData = $this->determineStatusAndReason($origStatus, $dayData['hours'], $fullDayHr, $halfDayHr, $lateBy, $previousGrace, $dayData['is_leave'], $hasHalfDayLeave, $isGracePunish, $graceBounceDays, $lateDaysExceeded, $exemptGraceOnOvertime);
-                
-                $dayData['status'] = $statusData['status'];
-                $dayData['status_reason'] = $statusData['reason'];
-                
-                if ($dayData['is_wfh'] && str_contains(strtolower($dayData['status']), 'present')) {
-                    $dayData['status'] = 'halfday';
-                    $dayData['status_reason'] = 'WFH Policy (Treated as Half Day)';
-                }
-                
-                if ($dayData['last_out'] === '-' && $dayData['hours'] > 0) {
-                    $dayData['status'] = 'absent';
-                    $dayData['status_reason'] = 'punchout is missing';
-                }
-                
                 if ($dayData['is_holiday'] && $holidaysData && isset($holidaysData[$dateStr])) {
                     $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
                 }
+                
+                $finalLabel = strtolower($dayData['status']);
+                $isWfhWowOrHw = false;
+                if ($attendance->is_wfh) {
+                    if (str_contains($finalLabel, 'working')) {
+                        $isWfhWowOrHw = true;
+                    } elseif (str_contains($finalLabel, 'present')) {
+                        $finalLabel = 'halfday';
+                    }
+                }
+
+                if ($finalLabel === 'na') {
+                    $dayData['code'] = 'NA';
+                    $dayData['class'] = 'text-secondary';
+                } elseif ($finalLabel === 'absent') {
+                    $dayData['code'] = 'A';
+                    $dayData['class'] = 'text-danger';
+                } elseif (str_contains($finalLabel, 'halfday')) {
+                    $dayData['code'] = 'P2';
+                    $dayData['class'] = 'text-primary';
+                } elseif (str_contains($finalLabel, 'present')) {
+                    $dayData['code'] = 'P';
+                    $dayData['class'] = 'text-success';
+                } elseif (str_contains($finalLabel, 'weekly off working')) {
+                    $dayData['code'] = $isWfhWowOrHw ? 'W/O-W<sub>wfh</sub>' : 'W/O-W';
+                    $dayData['class'] = 'text-success';
+                } elseif (str_contains($finalLabel, 'holiday working')) {
+                    $dayData['code'] = $isWfhWowOrHw ? 'H/W<sub>wfh</sub>' : 'H/W';
+                    $dayData['class'] = 'text-success';
+                } else {
+                    $dayData['code'] = 'P';
+                    $dayData['class'] = 'text-success';
+                }
+                
+                if (!$lastOutMov && ((float)($attendance->computed_hours ?? 0)) > 0) {
+                    $dayData['code'] = 'A';
+                    $dayData['class'] = 'text-danger';
+                }
+
             } else {
                 if ($isWeeklyOff) {
                     $dayData['status'] = 'weekly off';
+                    $dayData['code'] = 'S';
+                    $dayData['class'] = 'text-danger small';
                 } elseif (in_array($dateStr, $holidays)) {
                     $dayData['status'] = 'holiday';
+                    $dayData['code'] = 'H';
+                    $dayData['class'] = 'text-secondary';
                     if ($holidaysData && isset($holidaysData[$dateStr])) {
                         $dayData['holiday_name'] = $holidaysData[$dateStr]->name;
                     }
                 } elseif (isset($leaves[$dateStr])) {
                     if ($leaves[$dateStr] === 'RH') {
                         $dayData['status'] = 'restricted holiday';
+                        $dayData['code'] = 'RH';
+                        $dayData['class'] = 'text-primary';
                     } elseif ($leaves[$dateStr] === 'SL') {
                         $dayData['status'] = 'short leave';
+                        $dayData['code'] = 'SL';
+                        $dayData['class'] = 'text-info';
                     } elseif ($leaves[$dateStr] === 'LWP') {
                         $dayData['status'] = 'unpaid leave';
+                        $dayData['code'] = 'LWP';
+                        $dayData['class'] = 'text-danger';
                     } else {
                         $dayData['status'] = 'leave';
+                        $dayData['code'] = 'L';
+                        $dayData['class'] = 'text-warning';
                     }
                 } else {
-                    $dayData['status'] = 'absent';
-                    $dayData['status_reason'] = 'No attendance recorded';
-                }
-                
-                // If user is absent today, update grace balance to current cumulative if we have shift data
-                if ($dayData['grace_balance'] === '-') {
-                    if ($shift && isset($shift->min_per_month_late_allow)) {
-                        $graceBalanceVal = $shift->min_per_month_late_allow - $cumulativeLateMinutes;
-                        $dayData['grace_balance'] = max(0, $graceBalanceVal) . ' min';
-                    }
+                    $dayData['status'] = 'NA';
+                    $dayData['status_reason'] = '-';
+                    $dayData['code'] = 'NA';
+                    $dayData['class'] = 'text-secondary';
                 }
             }
             
@@ -835,5 +820,99 @@ class AttendanceReportService
         }
         
         return $dailyData;
+    }
+
+    public function computeAndSaveDailyStatus(\App\Models\Attendance $attendance)
+    {
+        if ($attendance->is_overridden) {
+            return $attendance;
+        }
+
+        $dateStr = \Carbon\Carbon::parse($attendance->date)->format('Y-m-d');
+        $user = \App\Models\User::with('employee')->find($attendance->user_id);
+        $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
+        
+        $hours = $this->calculateTotalHours($attendance->movements, $shift, $dateStr);
+        
+        $leave = \App\Models\LeaveRequest::where('user_id', $user->id)
+            ->where('status', 'approved')
+            ->whereDate('start_date', '<=', $dateStr)
+            ->whereDate('end_date', '>=', $dateStr)
+            ->first();
+            
+        $leaveType = $leave ? ($leave->is_half_day ? 'HD' : ($leave->is_sl ? 'SL' : ($leave->is_rh ? 'RH' : 'L'))) : null;
+        $hasHalfDayLeave = ($leaveType === 'HD');
+        $slHours = ($leaveType === 'SL' && $shift) ? (float)($shift->sl_end_limit ?? 0) : 0;
+        
+        $dayName = \Carbon\Carbon::parse($dateStr)->format('l');
+        $isWeeklyOff = false;
+        $isHalfDayWorking = false;
+        if ($shift) {
+            if ($shift->week_offs && is_array($shift->week_offs)) {
+                $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
+            }
+            if ($shift->half_days && is_array($shift->half_days)) {
+                $isHalfDayWorking = in_array(date('w', strtotime($dayName)), $shift->half_days);
+            }
+        }
+        
+        $isHoliday = \App\Models\Holiday::whereDate('holiday_date', $dateStr)->exists();
+        
+        [$fullDayHr, $halfDayHr] = $this->getThresholds($shift);
+        if ($isHalfDayWorking) {
+            $fullDayHr = $halfDayHr;
+            $halfDayHr = $halfDayHr / 2;
+        }
+        
+        $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+        
+        $statusInfo = $this->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
+        $origStatus = $statusInfo['label'];
+        
+        $lateBy = (int) ($attendance->late_minutes ?? 0);
+        $cumulativeLateMinutes = $lateBy;
+        $previousGrace = 0;
+        $lateDaysExceeded = 0;
+        
+        if ($shift && $lateBy > 0) {
+            $cumulativeLateMinutes = \App\Models\Attendance::where('user_id', $user->id)
+                ->whereBetween('date', [\Carbon\Carbon::parse($dateStr)->startOfMonth()->format('Y-m-d'), $dateStr])
+                ->sum('late_minutes');
+                
+            $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $cumulativeLateMinutes) < 0;
+            if ($isGraceExhaustedNow) {
+                $lateDaysExceeded = 1;
+            }
+            $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
+        }
+
+        $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
+        $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
+        $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
+        
+        $statusData = $this->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, ($leave !== null), $hasHalfDayLeave);
+        
+        $finalStatus = strtolower($statusData['status']);
+        $statusReason = $statusData['reason'];
+        
+        if ($attendance->is_wfh && str_contains($finalStatus, 'present')) {
+            $finalStatus = 'halfday';
+            $statusReason = 'WFH Policy (Treated as Half Day)';
+        }
+        
+        $lastOutMov = $attendance->movements()->whereIn('movement_type', ['office', 'field'])->where('movement_action', 'out')->latest('id')->first();
+        if (!$lastOutMov && $hours > 0) {
+            $finalStatus = 'absent';
+            $statusReason = 'punchout is missing';
+        }
+        
+        $attendance->update([
+            'computed_status' => $finalStatus,
+            'computed_hours' => round($hours, 2),
+            'is_late' => $lateBy > 0,
+            'status_reason' => $statusReason
+        ]);
+        
+        return $attendance;
     }
 }

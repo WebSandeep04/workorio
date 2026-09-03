@@ -381,6 +381,15 @@
             <label class="small fw-bold">Punch Out Time</label>
             <input type="time" class="form-control form-control-sm" name="out_time" id="edit_out_time">
           </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Force Status (Override)</label>
+            <select class="form-select form-select-sm" name="force_status" id="edit_force_status">
+                <option value="">-- Auto Calculate --</option>
+                <option value="present">Present</option>
+                <option value="absent">Absent</option>
+                <option value="halfday">Half Day</option>
+            </select>
+          </div>
           <div class="mb-1">
             <label class="form-label small fw-bold text-danger">Reason for Change <span class="text-danger">*</span></label>
             <textarea class="form-control form-control-sm" name="reason" id="edit_reason" rows="2" required placeholder="e.g. Forgot to punch in..."></textarea>
@@ -646,7 +655,7 @@ $(document).ready(function() {
                         // Always allow editing times if attendance exists
                         if (item.id) {
                             actions = `
-                                <button class="btn-action text-primary ms-1" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}')">
+                                <button class="btn-action text-primary ms-1" title="Edit Times" onclick="editTimes(${item.id}, '${item.in_time_raw}', '${item.out_time_raw}', '${item.computed_status || ''}', ${item.is_overridden ? 'true' : 'false'})">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <button class="btn-action text-danger ms-1" title="Void Attendance (Make Absent)" onclick="voidAttendance(${item.id})">
@@ -755,12 +764,38 @@ $(document).ready(function() {
     }
 
     // Edit Times Modal Helper
-    window.editTimes = function(id, inRaw, outRaw) {
+    window.editTimes = function(id, inRaw, outRaw, computedStatus, isOverridden) {
         $('#edit_attendance_id').val(id);
         $('#edit_in_time').val(inRaw);
         $('#edit_out_time').val(outRaw);
+        
+        if (isOverridden && computedStatus) {
+            $('#edit_force_status').val(computedStatus.toLowerCase());
+        } else {
+            $('#edit_force_status').val('');
+        }
+        
         $('#edit_reason').val('');
         $('#editTimeModal').modal('show');
+    }
+
+    window.recalculateAttendance = function(id) {
+        if (!confirm('Are you sure you want to recalculate this attendance? Any forced overrides will be cleared.')) return;
+        $.ajax({
+            url: "/attendance/recalculate/" + id,
+            type: 'POST',
+            data: { _token: '{{ csrf_token() }}' },
+            success: function(response) {
+                if (response.success) {
+                    fetchAttendance(currentPage);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('Error recalculating attendance.');
+            }
+        });
     }
 
     // Submit Time Edit

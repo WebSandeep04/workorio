@@ -20,6 +20,11 @@ class Attendance extends Model
         'is_locked',
         'reject_reason',
         'late_minutes',
+        'computed_status',
+        'computed_hours',
+        'is_late',
+        'status_reason',
+        'is_overridden',
     ];
 
     protected $casts = [
