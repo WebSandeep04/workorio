@@ -129,8 +129,8 @@
                     <td class="text-secondary">{{ $s['days_on_leave'] }}</td>
                     <td class="text-danger">{{ $s['total_unpaid_leaves'] ?? 0 }}</td>
                     <td class="text-danger">{{ $s['days_absent'] }}</td>
-                    <td>{{ $s['total_less_8_30'] }}</td>
-                    <td>{{ $s['total_more_8_30'] }}</td>
+                    <td>{{ $s['total_less_8_30'] ?? 0 }}</td>
+                    <td>{{ $s['total_more_8_30'] ?? 0 }}</td>
                     <td class="text-danger">{{ $s['late_count'] ?? 0 }}</td>
                     <td class="text-danger">{{ $s['total_late_minutes'] ?? 0 }}</td>
                 </tr>

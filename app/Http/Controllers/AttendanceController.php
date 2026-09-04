@@ -1330,12 +1330,12 @@ class AttendanceController extends Controller
             ], 422);
         }
 
-        $data = $this->_fetchMonthlyReportData($request->month, $request->branch_id, $request->department_id);
+        $data = $this->_fetchMonthlyReportData($request->month, $request->branch_id, $request->department_id, $request->status);
 
         return response()->json($data);
     }
 
-    private function _fetchDateReportData($date, $branchId = null, $departmentId = null)
+    private function _fetchDateReportData($date, $branchId = null, $departmentId = null, $statusId = null)
     {
         $dateObj = \Carbon\Carbon::parse($date);
         $dateStr = $dateObj->format('Y-m-d');
@@ -1354,10 +1354,11 @@ class AttendanceController extends Controller
                 })->orWhereIn('id', $userIdsWithAttendance);
             });
 
-        if ($branchId || $departmentId) {
-            $usersQuery->whereHas('employee', function($q) use ($branchId, $departmentId) {
+        if ($branchId || $departmentId || $statusId) {
+            $usersQuery->whereHas('employee', function($q) use ($branchId, $departmentId, $statusId) {
                 if ($branchId) $q->where('branch_id', $branchId);
                 if ($departmentId) $q->where('department_id', $departmentId);
+                if ($statusId) $q->where('status', $statusId);
             });
         }
 
@@ -1435,7 +1436,7 @@ class AttendanceController extends Controller
             ], 422);
         }
 
-        $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id);
+        $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id, $request->status);
         unset($data['carbonDate']);
 
         return response()->json($data);
@@ -1454,7 +1455,7 @@ class AttendanceController extends Controller
         }
 
         $month = $request->month;
-        $data = $this->_fetchMonthlyReportData($month, $request->branch_id, $request->department_id);
+        $data = $this->_fetchMonthlyReportData($month, $request->branch_id, $request->department_id, $request->status);
         
         $filename = "attendance_report_{$month}.csv";
         
@@ -1498,8 +1499,8 @@ class AttendanceController extends Controller
                 $row[] = $s['total_holidays_worked'];
                 $row[] = $s['days_on_leave'];
                 $row[] = $s['days_absent'];
-                $row[] = $s['total_less_8_30'];
-                $row[] = $s['total_more_8_30'];
+                $row[] = $s['total_less_8_30'] ?? 0;
+                $row[] = $s['total_more_8_30'] ?? 0;
                 $row[] = $s['late_count'] ?? 0;
                 $row[] = $s['total_late_minutes'] ?? 0;
                 
@@ -1525,7 +1526,7 @@ class AttendanceController extends Controller
         }
 
         $month = $request->month;
-        $data = $this->_fetchMonthlyReportData($month, $request->branch_id, $request->department_id);
+        $data = $this->_fetchMonthlyReportData($month, $request->branch_id, $request->department_id, $request->status);
         
         $pdf = Pdf::loadView('attendance.monthly-report-pdf', compact('data', 'month'))
                 ->setPaper('a2', 'landscape');
@@ -1564,7 +1565,7 @@ class AttendanceController extends Controller
             return back()->with('error', 'Cannot generate report for future dates.');
         }
 
-        $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id);
+        $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id, $request->status);
         
         $hide_status = $request->has('hide_status');
 
@@ -1574,7 +1575,7 @@ class AttendanceController extends Controller
         return $pdf->download("date_attendance_report_{$request->date}.pdf");
     }
 
-    private function _fetchMonthlyReportData($month, $branchId = null, $departmentId = null)
+    private function _fetchMonthlyReportData($month, $branchId = null, $departmentId = null, $statusId = null)
     {
         $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
@@ -1605,10 +1606,11 @@ class AttendanceController extends Controller
                 })->orWhereIn('id', $userIdsWithAttendance);
             });
 
-        if ($branchId || $departmentId) {
-            $usersQuery->whereHas('employee', function($q) use ($branchId, $departmentId) {
+        if ($branchId || $departmentId || $statusId) {
+            $usersQuery->whereHas('employee', function($q) use ($branchId, $departmentId, $statusId) {
                 if ($branchId) $q->where('branch_id', $branchId);
                 if ($departmentId) $q->where('department_id', $departmentId);
+                if ($statusId) $q->where('status', $statusId);
             });
         }
 

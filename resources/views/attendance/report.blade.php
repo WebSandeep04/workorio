@@ -463,6 +463,14 @@
                     </select>
                 </div>
                 <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select id="monthly_status" class="form-select-custom filter-status">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label class="filter-label">Month</label>
                     <input type="month" id="monthly_month" class="form-control-custom" value="{{ now()->format('Y-m') }}">
                 </div>
@@ -524,6 +532,14 @@
                     <label class="filter-label">Dept</label>
                     <select id="date_department_id" class="form-select-custom filter-department">
                         <option value="">All Departments</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select id="date_status" class="form-select-custom filter-status">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -836,26 +852,28 @@ function exportMonthlyReport() {
     const month = document.getElementById('monthly_month').value;
     const branchId = document.getElementById('monthly_branch_id').value;
     const deptId = document.getElementById('monthly_department_id').value;
+    const statusId = document.getElementById('monthly_status').value;
     if(!month) return;
     
     if (isFutureMonth(month)) {
         showToast('Cannot generate report for future months.', 'error');
         return;
     }
-    window.location.href = `/attendance/export-monthly-report?month=${month}&branch_id=${branchId}&department_id=${deptId}`;
+    window.location.href = `/attendance/export-monthly-report?month=${month}&branch_id=${branchId}&department_id=${deptId}&status=${statusId}`;
 }
 
 function exportMonthlyReportPdf() {
     const month = document.getElementById('monthly_month').value;
     const branchId = document.getElementById('monthly_branch_id').value;
     const deptId = document.getElementById('monthly_department_id').value;
+    const statusId = document.getElementById('monthly_status').value;
     if(!month) return;
     
     if (isFutureMonth(month)) {
         showToast('Cannot generate report for future months.', 'error');
         return;
     }
-    window.location.href = `/attendance/export-monthly-report-pdf?month=${month}&branch_id=${branchId}&department_id=${deptId}`;
+    window.location.href = `/attendance/export-monthly-report-pdf?month=${month}&branch_id=${branchId}&department_id=${deptId}&status=${statusId}`;
 }
 
 function exportUserReportPdf() {
@@ -875,6 +893,7 @@ function exportDateReportPdf() {
     const date = document.getElementById('report_date').value;
     const branchId = document.getElementById('date_branch_id').value;
     const deptId = document.getElementById('date_department_id').value;
+    const statusId = document.getElementById('date_status').value;
     
     if(!date) return;
     
@@ -886,7 +905,7 @@ function exportDateReportPdf() {
         return;
     }
     
-    window.location.href = `/attendance/export-date-report-pdf?date=${date}&branch_id=${branchId}&department_id=${deptId}`;
+    window.location.href = `/attendance/export-date-report-pdf?date=${date}&branch_id=${branchId}&department_id=${deptId}&status=${statusId}`;
 }
 
 function loadReport(){
@@ -1000,6 +1019,7 @@ function loadMonthlySummary(){
     
     const branchId = document.getElementById('monthly_branch_id').value;
     const deptId = document.getElementById('monthly_department_id').value;
+    const statusId = document.getElementById('monthly_status').value;
     
     if(!month) return;
 
@@ -1016,7 +1036,7 @@ function loadMonthlySummary(){
     $.ajax({
         url: '/attendance/monthly-report-data',
         method: 'POST',
-        data: { month: month, branch_id: branchId, department_id: deptId, _token: '{{ csrf_token() }}' },
+        data: { month: month, branch_id: branchId, department_id: deptId, status: statusId, _token: '{{ csrf_token() }}' },
         success: function(res){
             // 1. Build Header
             let headerRow = '<tr><th class="sticky-col" style="min-width:150px; background:#fff; left:0; z-index:10; border-right:2px solid #f1f3f5;">User</th>';
@@ -1083,8 +1103,8 @@ function loadMonthlySummary(){
                     rowHtml += `<td class="text-center text-secondary fw-bold">${s.days_on_leave}</td>`;
                     rowHtml += `<td class="text-center text-danger fw-bold">${s.total_unpaid_leaves || 0}</td>`;
                     rowHtml += `<td class="text-center text-danger fw-bold">${s.days_absent}</td>`;
-                    rowHtml += `<td class="text-center fw-bold" style="color: #64748b;">${s.total_less_8_30}</td>`;
-                    rowHtml += `<td class="text-center fw-bold" style="color: #434afa;">${s.total_more_8_30}</td>`;
+                    rowHtml += `<td class="text-center fw-bold" style="color: #64748b;">${s.total_less_8_30 || 0}</td>`;
+                    rowHtml += `<td class="text-center fw-bold" style="color: #434afa;">${s.total_more_8_30 || 0}</td>`;
                     rowHtml += `<td class="text-center fw-bold text-danger">${s.late_count || 0}</td>`;
                     
                     tr.innerHTML = rowHtml;
@@ -1243,6 +1263,7 @@ function loadDateReport() {
     
     const branchId = document.getElementById('date_branch_id').value;
     const deptId = document.getElementById('date_department_id').value;
+    const statusId = document.getElementById('date_status').value;
     
     if(!date) return;
 
@@ -1261,7 +1282,7 @@ function loadDateReport() {
     $.ajax({
         url: '/attendance/date-report-data',
         method: 'POST',
-        data: { date: date, branch_id: branchId, department_id: deptId, _token: '{{ csrf_token() }}' },
+        data: { date: date, branch_id: branchId, department_id: deptId, status: statusId, _token: '{{ csrf_token() }}' },
         success: function(res){
             const s = res.summary;
             document.getElementById('dateSumUsers').textContent = s.total_users;

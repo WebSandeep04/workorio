@@ -47,8 +47,8 @@
             <td>Sunday Working: <span class="text-info">{{ $s['total_sundays_worked'] }}</span></td>
         </tr>
         <tr>
-            <td>Less Shift Hr: {{ $s['total_less_8_30'] }}</td>
-            <td>More Shift Hr: {{ $s['total_more_8_30'] }}</td>
+            <td>Less Shift Hr: {{ $s['total_less_8_30'] ?? 0 }}</td>
+            <td>More Shift Hr: {{ $s['total_more_8_30'] ?? 0 }}</td>
             <td></td>
             <td></td>
         </tr>
