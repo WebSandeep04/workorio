@@ -1,96 +1,61 @@
-# Attendance Report Logic & Scenario Documentation
+# Attendance System Analysis: Punch-In/Out & Status Logic
 
-The attendance reporting system has been unified into a **Single Source of Truth** using `AttendanceReportService`. It strictly depends on the `computed_status` column in the database (which is set when employees punch out or when the system cron runs), ensuring reports load fast and consistently without redundant real-time math.
-
----
-
-## 1. Core Logic Overview
-
-### A. How the Database is Updated (`computeAndSaveDailyStatus`)
-Whenever an action occurs (a user punches out, or the daily cron job runs), the `AttendanceReportService` calculates the total hours worked and compares it against shift thresholds (taking grace into account). 
-The final result (e.g. `Present`, `Halfday`, `Absent`) is permanently saved to the `computed_status` column in the `attendances` table. 
-
-> [!IMPORTANT]
-> The reports **do not recalculate this status**. They simply read the `computed_status` column. If you change a shift policy today, past report statuses remain unchanged unless you explicitly recalculate the past days via a background command.
-
-### B. How the Reports Read the Data (`generateDailyBreakdown`)
-All reports (Monthly, User-wise, Date-wise) across both the Web Application and the API hit a single function: `generateDailyBreakdown`.
-
-This function takes an array of attendances, loops through the required date range, and determines what to display for each day using the following strict priority logic:
-
-1. **Has Attendance in Database?**
-   - If yes, it reads `computed_status` (e.g., "present", "halfday", "absent", "weekly off working", "holiday working").
-   - It maps these text statuses to short UI codes (`P`, `P2`, `A`, `W/O-W`, `H/W`).
-   - *WFH check*: If the attendance row has `is_wfh = 1`, it appends a `wfh` subscript (e.g. `P` becomes `P2` (halfday) if strictly instructed, or `H/W` becomes `H/W (wfh)`).
-
-2. **Is it a Holiday?**
-   - If no attendance row exists, but the date is listed in the `holidays` table, it assigns code `H` (Holiday).
-
-3. **Is it a Weekly Off (Sunday/Custom)?**
-   - If no attendance, and not a holiday, it checks the user's active shift rules.
-   - If the day matches the shift's `week_offs` array (e.g., Sunday), it assigns code `S` (Weekly Off).
-
-4. **Is the User on an Approved Leave?**
-   - If none of the above apply, but the user has an approved `LeaveRequest` spanning this date, it assigns a specific leave code:
-     - `RH`: Restricted Holiday
-     - `SL`: Short Leave
-     - `LWP`: Leave Without Pay
-     - `HD`: Half Day
-     - `L`: Standard Paid Leave
-
-5. **Fallback to NA (Not Available)**
-   - If the date has no attendance, is not a holiday, is not a weekly off, and the user has no approved leave, the system assigns **`NA`** (`text-secondary`).
-   - *Why `NA` and not `Absent`?* If a user forgets to punch in, or a new month starts and days are empty, the system waits for the cron job to officially mark them as `Absent` and insert a row into the database. Until then, empty days are strictly `NA`.
+This document provides a deep analysis of how the current attendance punch-in and punch-out mechanisms function, along with a comprehensive breakdown of all attendance statuses and their specific scenarios.
 
 ---
 
-## 2. Summary Calculation (`calculateMonthlySummary`)
+## 1. Punch-In Logic (`Api\AttendanceController@punchIn`)
 
-The top tiles on the report views (e.g., "Total Working Days", "Total Present") are generated using `calculateMonthlySummary`. 
-This function now piggy-backs on the exact same `generateDailyBreakdown` logic. It iterates through the exact mapped data and counts the occurrences of each code:
+When a user attempts to punch in (for `office`, `field`, or `break`), the system runs a series of validations and logic flows:
 
-- **Working Days**: Every day that is NOT a holiday and NOT a weekly off.
-- **Present**: Count of `P` and `P2` (Halfday).
-- **Absent**: Count of `A`. *(Note: `NA` days are NOT counted as absent here. Only official `A` codes are counted).*
-- **On Leave**: Count of `L`, `RH`, `HD`.
-- **Unpaid Leaves**: Count of `LWP`.
+### A. Pre-requisite Validations
+1. **Worklog Dependency**: If the user has `is_worklog` enabled, they must have completed their previous day's worklog (or have an approved leave/holiday/week-off) before they can perform any attendance action today. If incomplete, punch-in is **blocked**.
+2. **Attendance Lock**: If today's attendance record (`is_locked`) is locked, punch-in is **blocked**.
+3. **Active Break Check**: If the user is currently on an active break (punched into a break but not ended it), punching in for office or field is **blocked**.
 
----
+### B. Location & Place Validation (Office/Field only)
+- If it is the **first** office/field punch-in of the day, location constraints are applied.
+- The system checks the user's distance against their allowed location radiuses (`is_place_allowed`).
+- If the user is outside the allowed radius, punch-in is **blocked**, unless they flagged it as an `emergency_attendance`.
 
-## 3. Scenarios & Expected Outcomes
+### C. Late Punch-In Calculation
+- Only checked during the **first** office/field punch-in of the day.
+- Checks the user's shift start time and allowed `late_min` grace period.
+- If the user is late and does NOT have an approved/pending leave for today:
+  - A `late_reason` is **required**. If missing, the API throws an error prompting for a reason.
+  - The exact `late_minutes` are recorded.
 
-### Scenario 1: A user works a normal day and punches out.
-1. System calculates they worked 9 hours.
-2. `computed_status` is saved as `present`.
-3. The report displays **`P`**.
+### D. Movement Execution & Smart Detection
+- **Auto-Checkout**: If punching in for `office`, it automatically punches them out of `field` (and vice-versa).
+- **Movement Record**: A `Movement` row is created with `movement_action = 'in'`, time, location, and `late_reason` (if applicable).
+- **Smart Early Return**: If the user had an approved full-day leave for today but punched in anyway, the leave is flagged with `has_attendance_overlap`.
 
-### Scenario 2: A user is completely missing on a Tuesday, and the cron job has NOT run yet.
-1. No row exists in `attendances` for Tuesday.
-2. Not a holiday, not a weekly off, no leave.
-3. The report displays **`NA`**.
-
-### Scenario 3: A user is missing on a Tuesday, and the cron job HAS run.
-1. The cron job forces a calculation, sees 0 hours, and creates an `attendances` row with `computed_status = 'absent'`.
-2. The report sees the row and displays **`A`**.
-
-### Scenario 4: A user works on a Sunday (Weekly Off).
-1. They punch in and out.
-2. System detects it's a weekly off but sees they worked. `computed_status` is saved as `weekly off working`.
-3. The report displays **`W/O-W`**.
-
-### Scenario 5: Future dates in the current month.
-1. Since future dates have no attendance and the cron hasn't run, they fall through to the default logic.
-2. If it's a Sunday, they show **`S`**.
-3. If it's a regular Wednesday, they show **`NA`**.
+### E. Live Tracking Flag
+- The API response returns an `is_tracking` boolean flag based on the `Employee` model settings. This instructs the frontend mobile app whether it should continuously track the user's location while they are punched in.
 
 ---
 
-## 4. Where is the Code Located?
+## 2. Punch-Out Logic (`Api\AttendanceController@punchOut`)
 
-- **The Brain**: `app/Services/AttendanceReportService.php`
-  - `generateDailyBreakdown()` -> The mapper.
-  - `calculateMonthlySummary()` -> The counter.
-- **The Delivery**: 
-  - `app/Http/Controllers/AttendanceController.php` (Web Views)
-  - `app/Http/Controllers/Api/AttendanceReportApiController.php` (Mobile API)
-  - Both controllers do nothing but query the basic raw data (Attendance, Leaves, Holidays, Users) and pass it to the Service to do the mapping.
+### A. Pre-requisite Validations
+1. **Worklog Dependency**: Same as punch-in.
+2. **Task Validation**: A strict blocker. If the user has pending tasks (not marked done/completed) with due dates up to today, and these tasks were **not updated today**, the punch-out is **blocked**. The user must add remarks or update the task status.
+3. **Attendance Lock**: Same as punch-in.
+4. **Active Break Check**: Cannot punch out of office/field if currently on a break.
+5. **State Validation**: Checks if the user is actually punched in for the requested `movement_type` before allowing a punch-out.
+6. **Location Validation**: Location distance checking is enforced upon punch-out, identical to punch-in.
+
+### B. Execution & Status Computation
+- Creates a `Movement` row with `movement_action = 'out'`.
+- **Crucial Step - Status Determination**: Immediately triggers `AttendanceReportService->computeAndSaveDailyStatus()`. This means the user's total hours, late minutes, and final daily status (Present, Halfday, Absent, etc.) are **exactly determined and permanently updated during the punch-out action**.
+- Similar to punch-in, the API response also includes the `is_tracking` flag to update the frontend's tracking state.
+
+---
+
+## 3. Break Logic
+- **Start Break**: Creates a `break` movement with action `start`. Blocked if another break is already active or if attendance is locked.
+- **End Break**: Creates a `break` movement with action `end`. Blocked if no active break exists.
+
+
+
+
