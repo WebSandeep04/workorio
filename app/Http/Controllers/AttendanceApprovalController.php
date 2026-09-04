@@ -181,14 +181,11 @@ class AttendanceApprovalController extends Controller
                         // $shift is assigned in the if condition above
 
                         if ($leave->is_half_day && $shift) {
-                            $shiftStart = Carbon::parse($date . ' ' . $shift->start_time, 'Asia/Kolkata');
-                            $shiftEnd = Carbon::parse($date . ' ' . $shift->end_time, 'Asia/Kolkata');
-                            $midPoint = $shiftStart->copy()->addMinutes($shiftStart->diffInMinutes($shiftEnd) / 2);
-                            
-                            if ($leave->half_day_period === 'pre_lunch') {
-                                if ($punchInTime->gte($midPoint)) $hasOverlap = false;
+                            $fullDayHr = $shift->full_day_hr ?? 8;
+                            if ($hours >= $fullDayHr) {
+                                $hasOverlap = true;
                             } else {
-                                if ($punchOutTime && $punchOutTime->lte($midPoint)) $hasOverlap = false;
+                                $hasOverlap = false;
                             }
                         } elseif ($leave->is_sl && $leave->start_time && $leave->end_time) {
                             $slStart = Carbon::parse($date . ' ' . $leave->start_time, 'Asia/Kolkata');
@@ -215,21 +212,6 @@ class AttendanceApprovalController extends Controller
                     $status = (strtolower($leave->status) === 'approved') ? 'On Leave' : 'Pending Leave';
                     $leaveDetails = $leaveType;
                     $leaveIdForOverlap = null;
-                }
-            }
-
-            // Detect Early Out for Short Leave option
-            if ($attendance && $shift && $shift->end_time && $lastMovement && $lastMovement->movement_action === 'out') {
-                $punchOut = Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata');
-                $shiftEnd = Carbon::parse($date . ' ' . $shift->end_time, 'Asia/Kolkata');
-                
-                $slLimitMin = $shift->sl_end_limit ?? 0;
-                $slThreshold = $shiftEnd->copy()->subMinutes($slLimitMin);
-                
-                if ($punchOut->lt($slThreshold)) {
-                    $isEarlyOut = true;
-                    $suggestedSlStart = $punchOut->format('H:i');
-                    $suggestedSlEnd = $shiftEnd->format('H:i');
                 }
             }
 
