@@ -290,50 +290,47 @@ class AttendanceController extends Controller
                 if ($shift && $shift->start_time) {
                     $shiftStart = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->start_time, 'Asia/Kolkata');
                     $allowedLateMinutes = (int) ($shift->late_min ?? 0);
-                    $cutoffTime = $shiftStart->copy()->addMinutes($allowedLateMinutes);
+                    
+                    // Fetch any active leave for today
+                    $leaveForToday = LeaveRequest::where('user_id', $user->id)
+                        ->where('start_date', '<=', $today->toDateString())
+                        ->where('end_date', '>=', $today->toDateString())
+                        ->whereIn('status', ['pending', 'approved'])
+                        ->first();
+                        
+                    // Base expected start time is normal shift start
+                    $expectedStartTime = $shiftStart->copy();
+                    
+                    // If they have the morning off, push their expected start time to the shift's midpoint
+                    if ($leaveForToday && $leaveForToday->is_half_day && $leaveForToday->half_day_period === 'pre_lunch') {
+                        $shiftEnd = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->end_time, 'Asia/Kolkata');
+                        $expectedStartTime->addMinutes($shiftStart->diffInMinutes($shiftEnd) / 2);
+                    }
+                    
+                    // Calculate strict cutoff using the dynamic expected start time + allowed grace
+                    $cutoffTime = $expectedStartTime->copy()->addMinutes($allowedLateMinutes);
                     $now = Carbon::now('Asia/Kolkata');
 
                     Log::info('Late check: timing comparison', [
                         'user_id' => $user->id,
                         'shift_start' => $shiftStart->toDateTimeString(),
+                        'expected_start' => $expectedStartTime->toDateTimeString(),
                         'late_min' => $allowedLateMinutes,
                         'cutoff_time' => $cutoffTime->toDateTimeString(),
                         'now' => $now->toDateTimeString(),
                         'is_late' => $now->greaterThan($cutoffTime),
+                        'has_leave' => $leaveForToday ? true : false,
                     ]);
 
-                    // ONLY require late reason if current time is AFTER (shift_start + late_min)
+                    // ONLY require late reason if current time is AFTER dynamic cutoff
                     if ($now->greaterThan($cutoffTime)) {
-                        // Check if user already has an approved or pending leave for today
-                        // (which would exempt them from the late calculation and allowance check)
-                        $hasLeaveToday = LeaveRequest::where('user_id', $user->id)
-                            ->where('start_date', '<=', $today->toDateString())
-                            ->where('end_date', '>=', $today->toDateString())
-                            ->whereIn('status', ['pending', 'approved'])
-                            ->exists();
+                        $lateMinutesToRecord = (int) abs($now->diffInMinutes($cutoffTime));
 
-                        if ($hasLeaveToday) {
-                            // If they have a leave, we don't record late minutes
-                            $lateMinutesToRecord = 0;
-                        } else {
-                            $lateMinutesToRecord = (int) abs($now->diffInMinutes($cutoffTime));
+                        // User is late; require reason
+                        if (empty($request->late_reason)) {
 
-                            // Check if monthly late allowance exceeded
-                            $thisMonth = Carbon::now('Asia/Kolkata')->startOfMonth();
-                            $alreadyUsedLateMinutes = (int) abs(Attendance::where('user_id', $user->id)
-                                ->where('date', '>=', $thisMonth)
-                                ->sum('late_minutes'));
-                                
-                            $monthlyLateAllowance = (int) ($shift->min_per_month_late_allow ?? 0);
-
-                            // The late allowance check is now only for information/logging, not a blocker.
-                            // We previously blocked punch-in here if (alreadyUsedLateMinutes + lateMinutesToRecord) > monthlyLateAllowance.
-                            
-                            // User is late; require reason
-                            if (empty($request->late_reason)) {
-
-                                Log::info('Late punch-in requires reason (no DB write)', [
-                                    'user_id' => $user->id,
+                            Log::info('Late punch-in requires reason (no DB write)', [
+                                'user_id' => $user->id,
                                     'movement_type' => $request->movement_type,
                                 ]);
                                 return response()->json([
@@ -343,18 +340,6 @@ class AttendanceController extends Controller
                                 ], 422);
                             }
                             $description = 'Late punch-in: ' . $request->late_reason;
-                        }
-
-                        Log::info('Late check: timing comparison', [
-                            'user_id' => $user->id,
-                            'shift_start' => $shiftStart->toDateTimeString(),
-                            'late_min' => $allowedLateMinutes,
-                            'cutoff_time' => $cutoffTime->toDateTimeString(),
-                            'now' => $now->toDateTimeString(),
-                            'is_late' => true,
-                            'late_minutes' => $lateMinutesToRecord,
-                            'has_leave' => $hasLeaveToday
-                        ]);
                     }
                 }
             } else {
@@ -1168,15 +1153,7 @@ class AttendanceController extends Controller
         $stats['month_hours'] = $totalMonthHours;
         $stats['total_late_minutes'] = $totalLateMinutes;
         
-        // Late Allowance
-        $lateAllowance = 0;
-        if ($user && $user->employee) {
-            $shift = $user->employee->getShiftForDate($today->format('Y-m-d'));
-            if ($shift) {
-                $lateAllowance = (int) $shift->min_per_month_late_allow;
-            }
-        }
-        $stats['late_allowance'] = $lateAllowance;
+
 
         $stats['avg_hours_per_day'] = $stats['total_days'] > 0 ? round($totalMonthHours / $stats['total_days'], 2) : 0;
 
