@@ -26,6 +26,7 @@ class Shift extends Model
         'half_days',
         'full_day_hr',
         'half_day_hr',
+        'halfday_leave_req_min',
         'extended_hr',
     ];
 

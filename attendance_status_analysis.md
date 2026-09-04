@@ -23,7 +23,7 @@ The system uses the concept of **Effective Minutes** to determine statuses invol
 
 ### **Halfday (`P2`)**
 - **Scenario 1 (Standard Halfday)**: The employee's actual worked hours are `>=` the Half Day Shift requirement, but strictly less than the Full Day Shift requirement.
-- **Scenario 2 (With Half Day Leave)**: The employee took an approved Half Day leave and successfully worked `>= (Full Day Hours / 2)`.
+- **Scenario 2 (With Half Day Leave)**: The employee took an approved Half Day leave and successfully worked the required minimum minutes configured in their Shift (`halfday_leave_req_min`, defaults to 270 mins / 4:30 hr).
 - **Scenario 3 (WFH Downgrade Policy)**: The employee actually earned a "Present" status, but their attendance is marked as Work From Home (`is_wfh = true`). The system forcefully downgrades it to a Halfday. Reason: *WFH Policy (Treated as Half Day)*.
 
 ### **Absent (`A`)**
@@ -31,7 +31,7 @@ The system uses the concept of **Effective Minutes** to determine statuses invol
 - **Scenario 2 (Insufficient Hours)**: The employee worked some hours, but the total was strictly less than the required Half Day hours. Reason: *Worked less than X hrs*.
 - **Scenario 3 (Missing Punch-out / Ghost Shift)**: The employee logged some hours but does not have a final `out` movement for the day. Status forcefully becomes `absent`. Reason: *punchout is missing*.
 - **Scenario 4 (Short Leave Failure)**: The employee took a Short Leave, but their **actual** worked hours (without SL allowance) fell below the required Half Day threshold. They are marked Absent. Label: *absent by less hr*.
-- **Scenario 5 (Half Day Leave Failure)**: The employee took a Half Day leave but failed to work `>= (Full Day Hours / 2)`. Label: *absent by less hr*.
+- **Scenario 5 (Half Day Leave Failure)**: The employee took a Half Day leave but failed to work their shift's required `halfday_leave_req_min` (defaults to 270 mins / 4:30 hr). Label: *absent by less hr*.
 
 ---
 

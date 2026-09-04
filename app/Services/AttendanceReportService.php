@@ -163,7 +163,7 @@ class AttendanceReportService
         return $cycles;
     }
 
-    public function determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false, $shortLeaveHr = 0, $enforceTimeRestriction = 0)
+    public function determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType = null, $hasHalfDayLeave = false, $shortLeaveHr = 0, $enforceTimeRestriction = 0, $halfDayLeaveReqMin = 270)
     {
         $hoursInMinutes = (int) round($hours * 60);
         $fullDayInMinutes = (int) round($fullDayHr * 60);
@@ -224,7 +224,7 @@ class AttendanceReportService
         }
 
         if ($hasHalfDayLeave) {
-            $requiredHalfDayMinutes = (int) round($fullDayInMinutes / 2);
+            $requiredHalfDayMinutes = $halfDayLeaveReqMin;
             if ($hoursInMinutes >= $requiredHalfDayMinutes) {
                 return [
                     'code' => 'P2',
@@ -681,8 +681,9 @@ class AttendanceReportService
         }
         
         $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
+        $halfDayLeaveReqMin = $shift ? ($shift->halfday_leave_req_min ?? 270) : 270;
         
-        $statusInfo = $this->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
+        $statusInfo = $this->determineStatus($dateStr, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $leaveType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction, $halfDayLeaveReqMin);
         $origStatus = $statusInfo['label'];
         
         $lateBy = (int) ($attendance->late_minutes ?? 0);
