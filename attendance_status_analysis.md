@@ -1,71 +1,76 @@
 # Deep Analysis of Attendance Statuses & Scenarios
 
-The exact attendance status (e.g., Present, Absent, Halfday) is definitively computed during the **punch-out** action via the `AttendanceReportService`. The system calculates total effective hours based on the *first* IN movement and the *last* OUT movement, bounded strictly by the employee's shift timings.
+The exact attendance status (e.g., Present, Absent, Halfday) is computed definitively during the **punch-out** action via the `AttendanceReportService`. The system calculates total effective hours based on the *first* IN movement and the *last* OUT movement, bounded strictly by the employee's shift timings.
 
 Below is an exhaustive breakdown of every possible status, the scenarios that trigger them, and the specific rules applied in the backend logic.
 
 ---
 
-## 1. Statuses Based on Working Hours
+## 1. Effective Hours and Time Thresholds
+The system uses the concept of **Effective Minutes** to determine statuses involving partial leaves.
+- `effectiveInMinutes = hoursInMinutes + shortLeaveInMinutes + (hasHalfDayLeave ? halfDayInMinutes : 0)`
+- **SL Stacking Prevention**: If an employee takes a Half Day leave, their Short Leave allowance is forced to 0. If they applied for SL, it is internally treated as a Half Day leave.
+- **Half Day Working (Shift Policy)**: If the shift dictates the day is a "Half Day Working" day, the `fullDayHr` requirement becomes the standard `halfDayHr`, and the new `halfDayHr` requirement becomes half of that.
+
+---
+
+## 2. Statuses Based on Working Hours
 
 ### **Present (`P`)**
-- **Scenario 1 (Normal Shift)**: The employee's total worked hours are equal to or greater than the required Full Day Shift hours.
-- **Scenario 2 (With Short Leave)**: The employee took an approved Short Leave (SL). Their actual worked hours plus the Short Leave allowance hours are >= the Full Day hours requirement. The system effectively grants them the remaining hours needed for a full day. (Label internally tracks as `present with SL`).
-- **Scenario 3 (Overachieving on Half Day Leave)**: The employee was on an approved Half Day leave, but ended up working equal to or more than the required Full Day hours anyway. The system awards a Present status but sets the reason to *Worked full day while on Half Day Leave*.
+- **Scenario 1 (Normal Shift)**: The employee's actual worked hours are `>=` the Full Day Shift hours. Takes precedence over all leaves.
+- **Scenario 2 (With Short Leave)**: The employee took an approved Short Leave (SL). Their `effectiveInMinutes` (actual worked + SL allowance) is `>=` the Full Day hours requirement. Internal label: `present with SL`, code `P (SL)`.
+- **Scenario 3 (Overachieving on Half Day Leave)**: The employee was on an approved Half Day leave, but actually worked `>=` Full Day hours. They are marked standard Present (`P`), and any overlaps or early returns are expected to be handled manually via the Attendance Approval system.
 
 ### **Halfday (`P2`)**
-- **Scenario 1 (Insufficient Full Day Hours)**: The employee's worked hours are >= the Half Day Shift requirement, but strictly less than the Full Day Shift requirement.
-- **Scenario 2 (With Half Day Leave)**: The employee took an approved Half Day leave and successfully worked >= (Full Day Hours / 2). They receive the `P2` status to complete the day.
-- **Scenario 3 (WFH Downgrade Policy)**: The employee worked the required Full Day hours, but their attendance is marked as Work From Home (`is_wfh = true`). The system enforces a policy that automatically downgrades a Present to a Halfday. The reason provided is *WFH Policy (Treated as Half Day)*.
+- **Scenario 1 (Standard Halfday)**: The employee's actual worked hours are `>=` the Half Day Shift requirement, but strictly less than the Full Day Shift requirement.
+- **Scenario 2 (With Half Day Leave)**: The employee took an approved Half Day leave and successfully worked `>= (Full Day Hours / 2)`.
+- **Scenario 3 (WFH Downgrade Policy)**: The employee actually earned a "Present" status, but their attendance is marked as Work From Home (`is_wfh = true`). The system forcefully downgrades it to a Halfday. Reason: *WFH Policy (Treated as Half Day)*.
 
 ### **Absent (`A`)**
-- **Scenario 1 (No Attendance / Zero Hours)**: The employee did not punch in at all, logged 0 hours, and has no approved leave for the day. Reason: *No attendance recorded*.
+- **Scenario 1 (No Attendance / Zero Hours)**: The employee did not punch in at all (`hours <= 0`) and has no approved leave. Reason: *No attendance recorded*.
 - **Scenario 2 (Insufficient Hours)**: The employee worked some hours, but the total was strictly less than the required Half Day hours. Reason: *Worked less than X hrs*.
-- **Scenario 3 (Missing Punch-out / Ghost Shift)**: The employee punched in but never punched out. Even if they mathematically accrued enough hours by the end of the day, the lack of a final `out` movement strictly forces an Absent status. Reason: *punchout is missing*.
-- **Scenario 4 (Short Leave Failure)**: The employee took a Short Leave, but even with the SL allowance, their actual worked hours fell below the required Half Day threshold.
-- **Scenario 5 (Half Day Leave Failure)**: The employee took a Half Day leave but failed to work the minimum required half-day quota (Full Day Hours / 2). 
+- **Scenario 3 (Missing Punch-out / Ghost Shift)**: The employee logged some hours but does not have a final `out` movement for the day. Status forcefully becomes `absent`. Reason: *punchout is missing*.
+- **Scenario 4 (Short Leave Failure)**: The employee took a Short Leave, but their **actual** worked hours (without SL allowance) fell below the required Half Day threshold. They are marked Absent. Label: *absent by less hr*.
+- **Scenario 5 (Half Day Leave Failure)**: The employee took a Half Day leave but failed to work `>= (Full Day Hours / 2)`. Label: *absent by less hr*.
 
 ---
 
-## 2. Statuses on Special Days (Weekends & Holidays)
+## 3. Statuses on Special Days (Weekends & Holidays)
 
 ### **Weekly Off Working (`W/O-W`)**
-- **Scenario**: The employee punched in and worked on their designated Sunday/Weekly Off.
-  - *Note on Time Restrictions*: If the shift setting `enforce_time_restriction_on_overtime` is enabled, the employee MUST log at least Half Day hours to earn this status. If it's disabled, any amount of logged time (> 0 hours) earns this status.
-  - If `is_wfh` is true, the internal code tracks this as `W/O-W_wfh`.
+- **Scenario**: The employee worked on a designated Weekly Off.
+  - *Time Restriction Policy*: If `enforce_time_restriction_on_overtime` is enabled in their shift, their `effectiveInMinutes` MUST be `>=` Half Day hours to earn this status.
+  - If disabled, ANY worked time (`hours > 0`) earns this status.
+  - WFH downgrade logic does NOT apply to W/O-W (unless the label contains 'present').
 
 ### **Holiday Working (`H/W`)**
-- **Scenario**: The employee punched in and worked on a designated company Holiday.
-  - The same time restriction rules apply here as they do for Weekly Off Working.
-  - If `is_wfh` is true, the internal code tracks this as `H/W_wfh`.
+- **Scenario**: The employee worked on a designated company Holiday.
+  - Identical Time Restriction Policy as Weekly Off Working.
 
-### **Weekly Off (`W/O` or `S`)**
-- **Scenario**: A standard Sunday/Weekly off where the employee logged 0 hours.
+### **Weekly Off (`W/O`)**
+- **Scenario**: A standard Weekly off where the employee logged 0 hours (or failed the time restriction policy).
 
 ### **Holiday (`H`)**
-- **Scenario**: A standard company Holiday where the employee logged 0 hours.
+- **Scenario**: A standard Holiday where the employee logged 0 hours (or failed the time restriction policy).
 
 ---
 
-## 3. Statuses Driven by Approved Leaves
+## 4. Statuses Driven by Approved Leaves
 
-These statuses override standard working rules if the employee logs 0 hours on that day:
+These fallback statuses apply if the employee logs 0 hours and does not meet any working conditions:
 
-- **Leave (`L`)**: The employee has an approved standard full-day leave.
-- **Short Leave (`SL`)**: The employee has an approved Short Leave (only falls back to this if they didn't work at all).
-- **Half Day (`HD`)**: The employee has an approved Half Day Leave (only falls back to this if they didn't work at all).
-- **Restricted Holiday (`RH`)**: The employee took an approved Restricted Holiday.
-- **Unpaid Leave (`LWP`)**: The employee is on approved Leave Without Pay.
+- **Leave (`L`)**: Approved standard full-day leave.
+- **Restricted Holiday (`RH`)**: Approved Restricted Holiday.
+- **Unpaid Leave (`LWP`)**: Approved Leave Without Pay.
 
 ---
 
-## 4. Notable Status Modifiers & Reasons (`status_reason`)
+## 5. Notable Status Modifiers & Reasons (`status_reason`)
 
-The `status_reason` column in the database provides human-readable context for why a specific status was assigned:
+The `status_reason` column in the database provides human-readable context. Rules are applied in this priority:
 
-- **"Late by X mins"**: Always appended if the employee's first punch-in was past the shift start time + allowed grace period.
-- **"Worked full day while on Half Day Leave"**: An explicit flag showing the employee overachieved on a day they were granted half-time off.
-- **"Worked less than X hrs"**: Explains why an employee received a Halfday or Absent status despite logging some time.
-- **"punchout is missing"**: Explicitly penalizes the employee with an Absent status because they forgot to punch out.
-- **"No attendance recorded"**: The default reason for an Absent status with 0 hours and no leave.
-- **"WFH Policy (Treated as Half Day)"**: Hardcoded backend policy that penalizes all Work From Home attendances by capping them at Halfday regardless of the actual hours logged.
+1. **"WFH Policy (Treated as Half Day)"**: Forcefully overwrites any reason if a Present status is downgraded due to WFH.
+2. **"punchout is missing"**: Forcefully overwrites reason if a working shift is missing a final punchout.
+3. **"Late by X mins"**: If the employee was late (`late_minutes > 0`), this becomes the base reason.
+4. **"Worked less than X hrs"**: Applied to Absents and Halfdays (when not overriden by WFH or Late reasons).
+5. **"No attendance recorded"**: Pure zero-hour absent days.

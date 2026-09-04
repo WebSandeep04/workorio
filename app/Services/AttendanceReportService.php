@@ -299,12 +299,7 @@ class AttendanceReportService
         }
 
         if (str_contains($statusLower, 'present')) {
-            if ($dayHours >= $fullDayHr) {
-                if ($hasHalfDayLeave) {
-                    $status = 'present (partial leave)';
-                    $reason = 'Worked full day while on Half Day Leave';
-                }
-            } else if ($dayHours >= $halfDayHr) {
+            if ($dayHours >= $halfDayHr && $dayHours < $fullDayHr) {
                 if (!$hasHalfDayLeave) {
                     $status = 'halfday';
                     $reason = "Worked less than " . intval($fullDayHr) . " hrs";
@@ -488,7 +483,6 @@ class AttendanceReportService
                 'first_in' => '-',
                 'last_out' => '-',
                 'late_by' => '-',
-                'grace_balance' => '-',
                 'late_reason' => '-',
                 'movements' => []
             ];
@@ -692,25 +686,6 @@ class AttendanceReportService
         $origStatus = $statusInfo['label'];
         
         $lateBy = (int) ($attendance->late_minutes ?? 0);
-        $cumulativeLateMinutes = $lateBy;
-        $previousGrace = 0;
-        $lateDaysExceeded = 0;
-        
-        if ($shift && $lateBy > 0) {
-            $cumulativeLateMinutes = \App\Models\Attendance::where('user_id', $user->id)
-                ->whereBetween('date', [\Carbon\Carbon::parse($dateStr)->startOfMonth()->format('Y-m-d'), $dateStr])
-                ->sum('late_minutes');
-                
-            $isGraceExhaustedNow = ($shift->min_per_month_late_allow - $cumulativeLateMinutes) < 0;
-            if ($isGraceExhaustedNow) {
-                $lateDaysExceeded = 1;
-            }
-            $previousGrace = $shift->min_per_month_late_allow - ($cumulativeLateMinutes - $lateBy);
-        }
-
-        $isGracePunish = $shift ? ($shift->is_grace_punish ?? 0) : 0;
-        $graceBounceDays = $shift ? ($shift->grace_bounce_day ?? 0) : 0;
-        $exemptGraceOnOvertime = $shift ? ($shift->exempt_grace_on_overtime ?? 1) : 1;
         
         $statusData = $this->determineStatusAndReason($origStatus, $hours, $fullDayHr, $halfDayHr, $lateBy, ($leave !== null), $hasHalfDayLeave);
         
