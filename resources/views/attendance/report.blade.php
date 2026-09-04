@@ -271,10 +271,34 @@
             <!-- Filters -->
             <div class="filter-bar">
                 <div class="filter-group">
+                    <label class="filter-label">Branch</label>
+                    <select id="user_branch_id" class="form-select-custom filter-branch">
+                        <option value="">All Branches</option>
+                        @foreach($branches as $b)
+                            <option value="{{ $b->id }}">{{ $b->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Dept</label>
+                    <select id="user_department_id" class="form-select-custom filter-department">
+                        <option value="">All Departments</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select id="user_status" class="form-select-custom filter-status">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="">All Status</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label class="filter-label">User</label>
                     <select id="user_id" class="form-select-custom">
+                        <option value="">Select User</option>
                         @foreach($users as $u)
-                            <option value="{{ $u->id }}">{{ $u->name }}</option>
+                            <option value="{{ $u->id }}" data-branch="{{ $u->employee->branch_id ?? '' }}" data-dept="{{ $u->employee->department_id ?? '' }}" data-status="{{ $u->employee->status ?? '' }}">{{ $u->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -424,6 +448,21 @@
         <div class="tab-pane fade" id="monthly-tab-pane" role="tabpanel" aria-labelledby="monthly-tab" tabindex="0">
             <div class="filter-bar">
                 <div class="filter-group">
+                    <label class="filter-label">Branch</label>
+                    <select id="monthly_branch_id" class="form-select-custom filter-branch">
+                        <option value="">All Branches</option>
+                        @foreach($branches as $b)
+                            <option value="{{ $b->id }}">{{ $b->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Dept</label>
+                    <select id="monthly_department_id" class="form-select-custom filter-department">
+                        <option value="">All Departments</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label class="filter-label">Month</label>
                     <input type="month" id="monthly_month" class="form-control-custom" value="{{ now()->format('Y-m') }}">
                 </div>
@@ -472,6 +511,21 @@
         <!-- Date Wise Tab -->
         <div class="tab-pane fade" id="date-tab-pane" role="tabpanel" aria-labelledby="date-tab" tabindex="0">
             <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label">Branch</label>
+                    <select id="date_branch_id" class="form-select-custom filter-branch">
+                        <option value="">All Branches</option>
+                        @foreach($branches as $b)
+                            <option value="{{ $b->id }}">{{ $b->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Dept</label>
+                    <select id="date_department_id" class="form-select-custom filter-department">
+                        <option value="">All Departments</option>
+                    </select>
+                </div>
                 <div class="filter-group">
                     <label class="filter-label" style="width: 100px;">Select Date</label>
                     <input type="date" id="report_date" class="form-control-custom" value="{{ now()->format('Y-m-d') }}">
@@ -594,6 +648,21 @@
         <div class="tab-pane fade" id="today-tab-pane" role="tabpanel" aria-labelledby="today-tab" tabindex="0">
             <div class="filter-bar">
                 <div class="filter-group">
+                    <label class="filter-label">Branch</label>
+                    <select id="today_branch_id" class="form-select-custom filter-branch">
+                        <option value="">All Branches</option>
+                        @foreach($branches as $b)
+                            <option value="{{ $b->id }}">{{ $b->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Dept</label>
+                    <select id="today_department_id" class="form-select-custom filter-department">
+                        <option value="">All Departments</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label class="filter-label" style="width: 100px;">Date</label>
                     <input type="text" id="today_report_date" class="form-control-custom bg-light" value="{{ now()->format('Y-m-d') }}" readonly>
                 </div>
@@ -697,28 +766,96 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('exportDateReportPdf').addEventListener('click', exportDateReportPdf);
     document.getElementById('loadTodayReport').addEventListener('click', loadTodayReport);
     document.getElementById('exportTodayReportPdf').addEventListener('click', exportTodayReportPdf);
+
+    const filterBranches = document.querySelectorAll('.filter-branch');
+    filterBranches.forEach(branchSelect => {
+        branchSelect.addEventListener('change', function() {
+            const branchId = this.value;
+            const deptSelect = this.closest('.filter-bar').querySelector('.filter-department');
+            deptSelect.innerHTML = '<option value="">All Departments</option>';
+            if (branchId) {
+                $.get("{{ route('departments.options') }}", { branch_id: branchId })
+                    .done(function (rows) {
+                        rows.forEach(function (dept) {
+                            deptSelect.innerHTML += `<option value="${dept.id}">${dept.name}</option>`;
+                        });
+                    });
+            }
+            if (this.id === 'user_branch_id') filterUsers();
+        });
+    });
+
+    const filterDepartments = document.querySelectorAll('.filter-department');
+    filterDepartments.forEach(deptSelect => {
+        deptSelect.addEventListener('change', function() {
+            if (this.id === 'user_department_id') filterUsers();
+        });
+    });
+
+    const filterStatus = document.querySelectorAll('.filter-status');
+    filterStatus.forEach(statusSelect => {
+        statusSelect.addEventListener('change', function() {
+            if (this.id === 'user_status') filterUsers();
+        });
+    });
 });
+
+function filterUsers() {
+    const branchId = document.getElementById('user_branch_id').value;
+    const deptId = document.getElementById('user_department_id').value;
+    const statusId = document.getElementById('user_status').value;
+    const userSelect = document.getElementById('user_id');
+    
+    Array.from(userSelect.options).forEach(opt => {
+        if (opt.value === "") return;
+        const uBranch = opt.getAttribute('data-branch');
+        const uDept = opt.getAttribute('data-dept');
+        const uStatus = opt.getAttribute('data-status');
+        
+        let show = true;
+        if (branchId && uBranch !== branchId) show = false;
+        if (deptId && uDept !== deptId) show = false;
+        if (statusId && uStatus !== statusId) show = false;
+        
+        opt.hidden = !show;
+        opt.disabled = !show;
+    });
+    
+    if (userSelect.selectedOptions[0] && userSelect.selectedOptions[0].hidden) {
+        userSelect.value = '';
+        for (let i = 0; i < userSelect.options.length; i++) {
+            if (!userSelect.options[i].hidden && userSelect.options[i].value !== '') {
+                userSelect.value = userSelect.options[i].value;
+                break;
+            }
+        }
+    }
+}
 
 function exportMonthlyReport() {
     const month = document.getElementById('monthly_month').value;
+    const branchId = document.getElementById('monthly_branch_id').value;
+    const deptId = document.getElementById('monthly_department_id').value;
     if(!month) return;
     
     if (isFutureMonth(month)) {
         showToast('Cannot generate report for future months.', 'error');
         return;
     }
-    window.location.href = `/attendance/export-monthly-report?month=${month}`;
+    window.location.href = `/attendance/export-monthly-report?month=${month}&branch_id=${branchId}&department_id=${deptId}`;
 }
 
 function exportMonthlyReportPdf() {
     const month = document.getElementById('monthly_month').value;
+    const branchId = document.getElementById('monthly_branch_id').value;
+    const deptId = document.getElementById('monthly_department_id').value;
     if(!month) return;
     
     if (isFutureMonth(month)) {
         showToast('Cannot generate report for future months.', 'error');
         return;
     }
-    window.location.href = `/attendance/export-monthly-report-pdf?month=${month}`;
+    window.location.href = `/attendance/export-monthly-report-pdf?month=${month}&branch_id=${branchId}&department_id=${deptId}`;
 }
 
 function exportUserReportPdf() {
@@ -736,6 +873,8 @@ function exportUserReportPdf() {
 
 function exportDateReportPdf() {
     const date = document.getElementById('report_date').value;
+    const branchId = document.getElementById('date_branch_id').value;
+    const deptId = document.getElementById('date_department_id').value;
     
     if(!date) return;
     
@@ -747,7 +886,7 @@ function exportDateReportPdf() {
         return;
     }
     
-    window.location.href = `/attendance/export-date-report-pdf?date=${date}`;
+    window.location.href = `/attendance/export-date-report-pdf?date=${date}&branch_id=${branchId}&department_id=${deptId}`;
 }
 
 function loadReport(){
@@ -859,6 +998,9 @@ function loadMonthlySummary(){
     const tbody = document.querySelector('#monthlyTable tbody');
     const tableCard = document.getElementById('monthlyTableCard');
     
+    const branchId = document.getElementById('monthly_branch_id').value;
+    const deptId = document.getElementById('monthly_department_id').value;
+    
     if(!month) return;
 
     if (isFutureMonth(month)) {
@@ -869,12 +1011,12 @@ function loadMonthlySummary(){
     tableCard.style.display = 'block';
     
     // Show loading state
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading summary matrix...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="35" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading summary matrix...</td></tr>';
     
     $.ajax({
         url: '/attendance/monthly-report-data',
         method: 'POST',
-        data: { month: month, _token: '{{ csrf_token() }}' },
+        data: { month: month, branch_id: branchId, department_id: deptId, _token: '{{ csrf_token() }}' },
         success: function(res){
             // 1. Build Header
             let headerRow = '<tr><th class="sticky-col" style="min-width:150px; background:#fff; left:0; z-index:10; border-right:2px solid #f1f3f5;">User</th>';
@@ -1099,6 +1241,9 @@ function loadDateReport() {
     const tableCard = document.getElementById('dateTableCard');
     const summaryDiv = document.getElementById('dateReportSummary');
     
+    const branchId = document.getElementById('date_branch_id').value;
+    const deptId = document.getElementById('date_department_id').value;
+    
     if(!date) return;
 
     const now = new Date();
@@ -1116,7 +1261,7 @@ function loadDateReport() {
     $.ajax({
         url: '/attendance/date-report-data',
         method: 'POST',
-        data: { date: date, _token: '{{ csrf_token() }}' },
+        data: { date: date, branch_id: branchId, department_id: deptId, _token: '{{ csrf_token() }}' },
         success: function(res){
             const s = res.summary;
             document.getElementById('dateSumUsers').textContent = s.total_users;
@@ -1190,12 +1335,16 @@ function loadDateReport() {
 
 function exportTodayReportPdf() {
     const date = document.getElementById('today_report_date').value;
+    const branchId = document.getElementById('today_branch_id').value;
+    const deptId = document.getElementById('today_department_id').value;
     if(!date) return;
-    window.location.href = `/attendance/export-date-report-pdf?date=${date}&hide_status=1`;
+    window.location.href = `/attendance/export-date-report-pdf?date=${date}&branch_id=${branchId}&department_id=${deptId}&hide_status=1`;
 }
 
 function loadTodayReport() {
     const date = document.getElementById('today_report_date').value;
+    const branchId = document.getElementById('today_branch_id').value;
+    const deptId = document.getElementById('today_department_id').value;
     const tbody = document.querySelector('#todayTable tbody');
     const tableCard = document.getElementById('todayTableCard');
     const summaryDiv = document.getElementById('todayReportSummary');
@@ -1209,7 +1358,7 @@ function loadTodayReport() {
     $.ajax({
         url: '/attendance/date-report-data',
         method: 'POST',
-        data: { date: date, _token: '{{ csrf_token() }}' },
+        data: { date: date, branch_id: branchId, department_id: deptId, _token: '{{ csrf_token() }}' },
         success: function(res){
             const s = res.summary;
             

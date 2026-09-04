@@ -1209,7 +1209,10 @@ class AttendanceController extends Controller
         $userIdsWithAttendance = \App\Models\Attendance::pluck('user_id')->unique()->toArray();
 
         // Get all users for the dropdown - including active employees and inactive employees with attendance
-        $users = User::select('id', 'name', 'email')
+        $users = User::select('id', 'name', 'email', 'employee_id')
+            ->with(['employee' => function($q) {
+                $q->select('id', 'branch_id', 'department_id', 'status');
+            }])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
             ->where(function($query) use ($userIdsWithAttendance) {
@@ -1220,7 +1223,9 @@ class AttendanceController extends Controller
             ->orderBy('name')
             ->get();
             
-        return view('attendance.report', compact('users'));
+        $branches = \App\Models\Branch::where('status', 'active')->orderBy('name')->get();
+            
+        return view('attendance.report', compact('users', 'branches'));
     }
 
     private function _fetchUserReportData($userId, $month)
@@ -1314,7 +1319,9 @@ class AttendanceController extends Controller
     public function getMonthlyReportData(Request $request): JsonResponse
     {
         $request->validate([
-            'month' => 'required|date_format:Y-m'
+            'month' => 'required|date_format:Y-m',
+            'branch_id' => 'nullable|exists:branches,id',
+            'department_id' => 'nullable|exists:departments,id'
         ]);
 
         if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
@@ -1323,12 +1330,12 @@ class AttendanceController extends Controller
             ], 422);
         }
 
-        $data = $this->_fetchMonthlyReportData($request->month);
+        $data = $this->_fetchMonthlyReportData($request->month, $request->branch_id, $request->department_id);
 
         return response()->json($data);
     }
 
-    private function _fetchDateReportData($date)
+    private function _fetchDateReportData($date, $branchId = null, $departmentId = null)
     {
         $dateObj = \Carbon\Carbon::parse($date);
         $dateStr = $dateObj->format('Y-m-d');
@@ -1338,16 +1345,23 @@ class AttendanceController extends Controller
             ->unique()
             ->toArray();
 
-        $users = \App\Models\User::with(['employee.shiftHistory.shift'])
+        $usersQuery = \App\Models\User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
             ->where(function($query) use ($userIdsWithAttendance) {
                 $query->whereHas('employee', function($q) {
                     $q->where('status', 'active');
                 })->orWhereIn('id', $userIdsWithAttendance);
-            })
-            ->orderBy('name')
-            ->get();
+            });
+
+        if ($branchId || $departmentId) {
+            $usersQuery->whereHas('employee', function($q) use ($branchId, $departmentId) {
+                if ($branchId) $q->where('branch_id', $branchId);
+                if ($departmentId) $q->where('department_id', $departmentId);
+            });
+        }
+
+        $users = $usersQuery->orderBy('name')->get();
 
         $attendances = \App\Models\Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
@@ -1410,7 +1424,9 @@ class AttendanceController extends Controller
     public function getDateReportData(Request $request): JsonResponse
     {
         $request->validate([
-            'date' => 'required|date'
+            'date' => 'required|date',
+            'branch_id' => 'nullable|exists:branches,id',
+            'department_id' => 'nullable|exists:departments,id'
         ]);
 
         if (Carbon::parse($request->date)->startOfDay()->gt(Carbon::today())) {
@@ -1419,7 +1435,7 @@ class AttendanceController extends Controller
             ], 422);
         }
 
-        $data = $this->_fetchDateReportData($request->date);
+        $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id);
         unset($data['carbonDate']);
 
         return response()->json($data);
@@ -1428,7 +1444,9 @@ class AttendanceController extends Controller
     public function exportMonthlyReport(Request $request)
     {
         $request->validate([
-            'month' => 'required|date_format:Y-m'
+            'month' => 'required|date_format:Y-m',
+            'branch_id' => 'nullable|exists:branches,id',
+            'department_id' => 'nullable|exists:departments,id'
         ]);
 
         if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
@@ -1436,7 +1454,7 @@ class AttendanceController extends Controller
         }
 
         $month = $request->month;
-        $data = $this->_fetchMonthlyReportData($month);
+        $data = $this->_fetchMonthlyReportData($month, $request->branch_id, $request->department_id);
         
         $filename = "attendance_report_{$month}.csv";
         
@@ -1497,7 +1515,9 @@ class AttendanceController extends Controller
     public function exportMonthlyReportPdf(Request $request)
     {
         $request->validate([
-            'month' => 'required|date_format:Y-m'
+            'month' => 'required|date_format:Y-m',
+            'branch_id' => 'nullable|exists:branches,id',
+            'department_id' => 'nullable|exists:departments,id'
         ]);
 
         if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
@@ -1505,7 +1525,7 @@ class AttendanceController extends Controller
         }
 
         $month = $request->month;
-        $data = $this->_fetchMonthlyReportData($month);
+        $data = $this->_fetchMonthlyReportData($month, $request->branch_id, $request->department_id);
         
         $pdf = Pdf::loadView('attendance.monthly-report-pdf', compact('data', 'month'))
                 ->setPaper('a2', 'landscape');
@@ -1535,14 +1555,16 @@ class AttendanceController extends Controller
     public function exportDateReportPdf(Request $request)
     {
         $request->validate([
-            'date' => 'required|date'
+            'date' => 'required|date',
+            'branch_id' => 'nullable|exists:branches,id',
+            'department_id' => 'nullable|exists:departments,id'
         ]);
 
         if (Carbon::parse($request->date)->isFuture()) {
             return back()->with('error', 'Cannot generate report for future dates.');
         }
 
-        $data = $this->_fetchDateReportData($request->date);
+        $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id);
         
         $hide_status = $request->has('hide_status');
 
@@ -1552,7 +1574,7 @@ class AttendanceController extends Controller
         return $pdf->download("date_attendance_report_{$request->date}.pdf");
     }
 
-    private function _fetchMonthlyReportData($month)
+    private function _fetchMonthlyReportData($month, $branchId = null, $departmentId = null)
     {
         $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
@@ -1574,16 +1596,23 @@ class AttendanceController extends Controller
             ->unique()
             ->toArray();
 
-        $users = \App\Models\User::with(['employee.shiftHistory.shift'])
+        $usersQuery = \App\Models\User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
             ->where(function($query) use ($userIdsWithAttendance) {
                 $query->whereHas('employee', function($q) {
                     $q->where('status', 'active');
                 })->orWhereIn('id', $userIdsWithAttendance);
-            })
-            ->orderBy('name')
-            ->get();
+            });
+
+        if ($branchId || $departmentId) {
+            $usersQuery->whereHas('employee', function($q) use ($branchId, $departmentId) {
+                if ($branchId) $q->where('branch_id', $branchId);
+                if ($departmentId) $q->where('department_id', $departmentId);
+            });
+        }
+
+        $users = $usersQuery->orderBy('name')->get();
 
         $allAttendances = \App\Models\Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');

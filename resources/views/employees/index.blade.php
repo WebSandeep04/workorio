@@ -1016,8 +1016,17 @@
         }
         $.get(deptOptionsUrl, { branch_id: branchId })
             .done(function (rows) {
+                let actualSelectedId = selectedId;
+                if (selectedId === 'find_general') {
+                    const defaultDept = rows.find(d => d.name === 'General');
+                    if (defaultDept) {
+                        actualSelectedId = defaultDept.id;
+                    } else {
+                        actualSelectedId = '';
+                    }
+                }
                 rows.forEach(function (dept) {
-                    select.append(`<option value="${dept.id}" ${selectedId && Number(selectedId) === Number(dept.id) ? 'selected' : ''}>${escapeHtml(dept.name)}</option>`);
+                    select.append(`<option value="${dept.id}" ${actualSelectedId && Number(actualSelectedId) === Number(dept.id) ? 'selected' : ''}>${escapeHtml(dept.name)}</option>`);
                 });
             })
             .fail(function () {
@@ -1128,7 +1137,13 @@
         $('#modal_profile_picture_input').val('');
 
         var branchId = data ? (data.branch_id || (data.branch ? data.branch.id : '')) : '';
-        var deptId = data ? (data.department_id || (data.department_relation ? data.department_relation.id : '')) : '';
+        if (!data) {
+            const defaultBranch = branchOptions.find(b => b.name === 'General');
+            if (defaultBranch) {
+                branchId = defaultBranch.id;
+            }
+        }
+        var deptId = data ? (data.department_id || (data.department_relation ? data.department_relation.id : '')) : (branchId ? 'find_general' : '');
         var designationId = data ? (data.designation_id || (data.designation_relation ? data.designation_relation.id : '')) : '';
         var employmentTypeId = data ? (data.employment_type_id || (data.employment_type_relation ? data.employment_type_relation.id : '')) : '';
         var shiftId = data ? (data.shift_id || (data.shift_relation ? data.shift_relation.id : '')) : '';
