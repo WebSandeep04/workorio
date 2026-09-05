@@ -77,6 +77,7 @@ class ShiftController extends Controller
             'full_day_hr' => 'nullable|numeric|min:0',
             'half_day_hr' => 'nullable|numeric|min:0',
             'extended_hr' => 'nullable|numeric|min:0',
+            'halfday_leave_req_min' => 'nullable|integer|min:0',
         ]);
     }
 }

@@ -101,13 +101,14 @@
             <th>Full (H)</th>
             <th>Half (H)</th>
             <th>Ext. (H)</th>
+            <th>Half Req (M)</th>
             
             <th>Status</th>
             <th class="text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td colspan="9" class="text-center text-muted py-3">Loading...</td></tr>
+          <tr><td colspan="10" class="text-center text-muted py-3">Loading...</td></tr>
         </tbody>
       </table>
     </div>
@@ -153,30 +154,30 @@
               </div>
           </div>
 
-          <div class="row g-3 mb-4">
-              <div class="col-md-3">
+          <div class="row g-3 mb-4 align-items-end">
+              <div class="col-md-4">
                 <label class="form-label-modern">Time Restriction on W/O & Holiday?</label>
                 <select id="enforce_time_restriction_on_overtime" name="enforce_time_restriction_on_overtime" class="form-control form-control-modern">
                   <option value="1">Yes</option>
                   <option value="0">No</option>
                 </select>
               </div>
-              <div class="col-md-3">
+              <div class="col-md-4">
                 <label class="form-label-modern">Grant Comp Off on W/O & Holiday?</label>
                 <select id="grant_comp_off_for_overtime" name="grant_comp_off_for_overtime" class="form-control form-control-modern">
                   <option value="1" selected>Yes</option>
                   <option value="0">No</option>
                 </select>
               </div>
-            </div>
-          <div class="row g-3 mb-4">
-              <div class="col-md-3">
+              <div class="col-md-4">
                 <label class="form-label-modern">Status</label>
                 <select id="is_active" name="is_active" class="form-control form-control-modern">
                     <option value="1">Active</option>
                     <option value="0">Inactive</option>
                 </select>
               </div>
+            </div>
+          <div class="row g-3 mb-4">
               <div class="col-md-3">
                 <label class="form-label-modern">Full Day Hours</label>
                 <input type="number" step="0.5" class="form-control form-control-modern" id="full_day_hr" name="full_day_hr" min="0" placeholder="e.g. 9">
@@ -184,6 +185,10 @@
               <div class="col-md-3">
                 <label class="form-label-modern">Half Day Hours</label>
                 <input type="number" step="0.5" class="form-control form-control-modern" id="half_day_hr" name="half_day_hr" min="0" placeholder="e.g. 4.5">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label-modern">Halfday Leave Req (Min)</label>
+                <input type="number" class="form-control form-control-modern" id="halfday_leave_req_min" name="halfday_leave_req_min" min="0" placeholder="e.g. 270">
               </div>
               <div class="col-md-3">
                 <label class="form-label-modern">Extended Hours</label>
@@ -290,6 +295,7 @@ $(function() {
                     <td>${row.full_day_hr || '-'}h</td>
                     <td>${row.half_day_hr || '-'}h</td>
                     <td>${row.extended_hr || '-'}h</td>
+                    <td>${row.halfday_leave_req_min || '270'}m</td>
                     
                     <td><span class="${statusBadge}">${statusText}</span></td>
                     <td class="text-center">
@@ -333,6 +339,7 @@ $(function() {
         $('#full_day_hr').val(row.full_day_hr);
         $('#half_day_hr').val(row.half_day_hr);
         $('#extended_hr').val(row.extended_hr);
+        $('#halfday_leave_req_min').val(row.halfday_leave_req_min || 270);
         $('#enforce_time_restriction_on_overtime').val(row.enforce_time_restriction_on_overtime ? '1' : '0');
         
         if (row.grant_comp_off_for_overtime !== undefined && row.grant_comp_off_for_overtime !== null) {
