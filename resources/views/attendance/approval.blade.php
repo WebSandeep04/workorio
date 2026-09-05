@@ -451,16 +451,7 @@
           </div>
 
           <div id="ql_sl_fields" style="display:none;" class="mb-3">
-            <div class="row g-2">
-                <div class="col-6">
-                    <label class="form-label small fw-bold">Start Time</label>
-                    <input type="time" class="form-control form-control-sm" name="start_time" id="ql_sl_start">
-                </div>
-                <div class="col-6">
-                    <label class="form-label small fw-bold">End Time</label>
-                    <input type="time" class="form-control form-control-sm" name="end_time" id="ql_sl_end">
-                </div>
-            </div>
+            <span class="small text-muted"><i class="bi bi-info-circle"></i> A standard short leave allowance will be applied automatically.</span>
           </div>
 
           <div class="mb-1">
@@ -681,7 +672,7 @@ $(document).ready(function() {
                         const isAlreadyPresent = item.status.toLowerCase().includes('present');
                         const hasLeave = item.leave_details !== null && item.leave_details !== '';
 
-                        if ((item.status.toLowerCase() === 'absent' || item.status.toLowerCase() === 'absent by less hr' || item.is_early_out) && !hasLeave && !isAlreadyPresent) {
+                        if ((item.status.toLowerCase() === 'absent' || item.status.toLowerCase() === 'absent by less hr' || item.status.toLowerCase() === 'halfday' || item.status.toLowerCase() === 'na' || item.is_early_out) && !hasLeave && !isAlreadyPresent) {
                             let slParams = `${item.user_id}`;
                             if (item.is_early_out) {
                                 slParams = `${item.user_id}, true, '${item.suggested_sl_start}', '${item.suggested_sl_end}'`;
@@ -903,8 +894,20 @@ $(document).ready(function() {
         
         if (selected.val()) {
             $('#ql_category_container').show();
-            if (isSl) $('#ql_sl_option').show(); else $('#ql_sl_option').hide();
-            if (allowHd) $('#ql_hd_option').show(); else $('#ql_hd_option').hide();
+            if (isSl) {
+                $('#ql_sl_option').show();
+                $('#ql_cat_short').prop('checked', true);
+                $('#ql_cat_full').parent().hide(); // Hide full day option
+            } else {
+                $('#ql_sl_option').hide();
+                $('#ql_cat_full').parent().show(); // Ensure full day option is visible
+            }
+            
+            if (allowHd) {
+                $('#ql_hd_option').show();
+            } else {
+                $('#ql_hd_option').hide();
+            }
             
             // If currently selected category is hidden, reset to full
             if ((isSl === false && $('#ql_cat_short').is(':checked')) || (allowHd === false && $('#ql_cat_half').is(':checked'))) {
@@ -921,12 +924,7 @@ $(document).ready(function() {
         $('#ql_hd_fields').toggle(cat === 'half');
         $('#ql_sl_fields').toggle(cat === 'short');
         
-        // Reset required state if needed (optional but good practice)
-        if (cat === 'short') {
-            $('#ql_sl_start, #ql_sl_end').attr('required', true);
-        } else {
-            $('#ql_sl_start, #ql_sl_end').removeAttr('required');
-        }
+
     }
 
     $('#quickLeaveForm').submit(function(e) {

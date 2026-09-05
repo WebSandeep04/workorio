@@ -300,7 +300,9 @@ class AttendanceReportService
 
         if (str_contains($statusLower, 'present')) {
             if ($dayHours >= $halfDayHr && $dayHours < $fullDayHr) {
-                if (!$hasHalfDayLeave) {
+                // If they have Half Day leave OR they have a Short Leave (indicated by 'sl' in the status),
+                // do not downgrade them to halfday based purely on raw hours.
+                if (!$hasHalfDayLeave && !str_contains($statusLower, 'sl')) {
                     $status = 'halfday';
                     $reason = "Worked less than " . intval($fullDayHr) . " hrs";
                 }

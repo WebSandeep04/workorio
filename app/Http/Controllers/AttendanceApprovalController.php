@@ -128,37 +128,16 @@ class AttendanceApprovalController extends Controller
             $suggestedSlEnd = '';
 
             if ($attendance) {
-                $shift = $employee->getShiftForDate(today());
-                
                 if (!empty($attendance->computed_status)) {
                     $hours = (float) $attendance->computed_hours;
                     $status = ucfirst($attendance->computed_status);
                 } else {
-                    $hours = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
-                    
-                    [$fullDayHr, $halfDayHr] = $this->reportService->getThresholds($shift);
-                    
-                    // Check if it's a Weekly Off or Holiday
-                    $dayName = Carbon::parse($date)->format('l');
-                    $isWeeklyOff = false;
-                    if ($shift && $shift->week_offs && is_array($shift->week_offs)) {
-                        $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
-                    }
-                    $isHoliday = \App\Models\Holiday::where('holiday_date', $date)->exists();
-
-                    $hasHalfDayLeave = ($leave && $leave->is_half_day && in_array(strtolower($leave->status), ['approved', 'pending']));
-                    $slHours = 0;
-                    if ($leave && $leave->is_sl && $leave->start_time && $leave->end_time) {
-                        $slS = Carbon::parse($leave->start_time);
-                        $slE = Carbon::parse($leave->end_time);
-                        $slHours = $slS->diffInMinutes($slE) / 60;
-                    }
-
-                    $lType = ($leave && $leave->is_sl) ? 'SL' : null;
-                    $enforceTimeRestriction = $shift ? ($shift->enforce_time_restriction_on_overtime ?? 0) : 0;
-                    $statusInfo = $this->reportService->determineStatus($date, $hours, $fullDayHr, $halfDayHr, $isWeeklyOff, $isHoliday, $lType, $hasHalfDayLeave, $slHours, $enforceTimeRestriction);
-                    $status = $statusInfo['label'];
+                    $hours = 0;
+                    $status = 'NA';
                 }
+            } else {
+                $status = 'NA';
+                $hours = 0;
             }
 
             if ($leave) {
@@ -170,48 +149,13 @@ class AttendanceApprovalController extends Controller
                     $leaveType .= " (Short Leave)";
                 }
                 
-                // If they punched in but also have leave (Overlap)
-                if ($attendance) {
-                    $hasOverlap = true;
-                    
-                    // For Half Day/SL, check if they actually overlapped with the leave period
-                    if ($firstMovement) {
-                        $punchInTime = Carbon::parse($firstMovement->time)->setTimezone('Asia/Kolkata');
-                        $punchOutTime = $lastMovement ? Carbon::parse($lastMovement->time)->setTimezone('Asia/Kolkata') : null;
-                        // $shift is assigned in the if condition above
-
-                        if ($leave->is_half_day && $shift) {
-                            $fullDayHr = $shift->full_day_hr ?? 8;
-                            if ($hours >= $fullDayHr) {
-                                $hasOverlap = true;
-                            } else {
-                                $hasOverlap = false;
-                            }
-                        } elseif ($leave->is_sl && $leave->start_time && $leave->end_time) {
-                            $slStart = Carbon::parse($date . ' ' . $leave->start_time, 'Asia/Kolkata');
-                            $slEnd = Carbon::parse($date . ' ' . $leave->end_time, 'Asia/Kolkata');
-                            
-                            // No overlap if:
-                            // 1. Worked entirely BEFORE the SL started
-                            // 2. Started work entirely AFTER the SL ended
-                            if (($punchOutTime && $punchOutTime->lte($slStart)) || ($punchInTime->gte($slEnd))) {
-                                $hasOverlap = false;
-                            }
-                        }
-                    }
-
-                    if ($hasOverlap) {
-                        $leaveDetails = "Overlap with {$leaveType} (" . ucfirst($leave->status) . ")";
-                        $leaveIdForOverlap = $leave->id;
-                    } else {
-                        // Clean split: Leave in one half, Work in the other.
-                        $leaveDetails = $leaveType;
-                        $leaveIdForOverlap = null;
-                    }
-                } else {
+                $leaveDetails = $leaveType;
+                // If there's no attendance but they are on leave, should it show On Leave instead of NA?
+                // The instruction says "if null then show NA" meaning if attendance DB column is null.
+                // However, if there's absolutely no attendance record, maybe we show On Leave? 
+                // Let's stick to the prompt strictly for the status if attendance is null but we can show Leave in details.
+                if (!$attendance) {
                     $status = (strtolower($leave->status) === 'approved') ? 'On Leave' : 'Pending Leave';
-                    $leaveDetails = $leaveType;
-                    $leaveIdForOverlap = null;
                 }
             }
 
@@ -557,8 +501,8 @@ class AttendanceApprovalController extends Controller
             'leave_type_id' => 'required|exists:leave_types,id',
             'leave_category' => 'required|in:full,half,short',
             'half_day_period' => 'nullable|required_if:leave_category,half|in:pre_lunch,post_lunch',
-            'start_time' => 'nullable|required_if:leave_category,short',
-            'end_time' => 'nullable|required_if:leave_category,short',
+            'start_time' => 'nullable',
+            'end_time' => 'nullable',
             'reason' => 'required|string|min:5'
         ]);
 
@@ -609,8 +553,8 @@ class AttendanceApprovalController extends Controller
                 'is_sl' => $category === 'short',
                 'is_half_day' => $category === 'half',
                 'half_day_period' => $category === 'half' ? $request->half_day_period : null,
-                'start_time' => $category === 'short' ? $request->start_time : null,
-                'end_time' => $category === 'short' ? $request->end_time : null,
+                'start_time' => null,
+                'end_time' => null,
                 'start_date' => $date,
                 'end_date' => $date,
                 'total_days' => $totalDays,
@@ -630,6 +574,16 @@ class AttendanceApprovalController extends Controller
                 'reference_id' => $leave->id,
                 'remarks' => "Absence adjusted (" . ucfirst($category) . "): " . $request->reason
             ]);
+
+            // 4. Recalculate attendance status if attendance exists for this day
+            $attendance = \App\Models\Attendance::with(['user.employee.shiftRelation', 'movements'])
+                ->where('user_id', $userId)
+                ->whereDate('date', $date)
+                ->first();
+
+            if ($attendance) {
+                $this->reportService->computeAndSaveDailyStatus($attendance);
+            }
 
             DB::commit();
             return response()->json(['success' => true, 'message' => 'Absence converted to Leave successfully.']);
@@ -689,8 +643,11 @@ class AttendanceApprovalController extends Controller
                 ]);
             }
 
+            $attendance = $attendance->fresh(['user.employee.shiftRelation', 'movements']);
+            $this->reportService->computeAndSaveDailyStatus($attendance);
+
             // Grant 1 credit if it's a Weekly Off or Holiday and they are present
-            $this->creditHolidayWorking($attendance->fresh(['user.employee.shiftRelation', 'movements']));
+            $this->creditHolidayWorking($attendance);
 
             return response()->json(['success' => true, 'message' => 'Attendance marked successfully']);
         } catch (\Exception $e) {
