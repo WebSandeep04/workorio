@@ -150,11 +150,36 @@ class AttendanceApprovalController extends Controller
                 }
                 
                 $leaveDetails = $leaveType;
-                // If there's no attendance but they are on leave, should it show On Leave instead of NA?
-                // The instruction says "if null then show NA" meaning if attendance DB column is null.
-                // However, if there's absolutely no attendance record, maybe we show On Leave? 
-                // Let's stick to the prompt strictly for the status if attendance is null but we can show Leave in details.
-                if (!$attendance) {
+                
+                if ($attendance) {
+                    $hasOverlap = false;
+                    $shift = $employee->getShiftForDate($date);
+                    
+                    // Calculate real hours for the overlap check if not stored
+                    $checkHours = $hours;
+                    if (empty($attendance->computed_status)) {
+                        $checkHours = $this->reportService->calculateTotalHours($attendance->movements, $shift, $date);
+                    }
+                    
+                    $fullDayHr = $shift->full_day_hr ?? 8;
+                    
+                    if (!$leave->is_half_day && !$leave->is_sl) {
+                        // Full Day Leave: any work hours means an overlap
+                        if ($checkHours > 0) {
+                            $hasOverlap = true;
+                        }
+                    } else {
+                        // Half Day or Short Leave: overlap if they worked a full day anyway
+                        if ($checkHours >= $fullDayHr) {
+                            $hasOverlap = true;
+                        }
+                    }
+
+                    if ($hasOverlap) {
+                        $leaveDetails = "Overlap with {$leaveType} (" . ucfirst($leave->status) . ")";
+                        $leaveIdForOverlap = $leave->id;
+                    }
+                } else {
                     $status = (strtolower($leave->status) === 'approved') ? 'On Leave' : 'Pending Leave';
                 }
             }
