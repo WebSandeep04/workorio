@@ -340,6 +340,7 @@ class AttendanceReportService
         $totalShortLeaves = 0;
         $presentDays = 0; 
         $halfDays = 0; 
+        $daysAbsent = 0;
         $totalSundays = 0;
         $totalSundaysWorked = 0;
         $totalHolidaysWorked = 0;
@@ -369,9 +370,13 @@ class AttendanceReportService
             $totalCycles['break'] += $dayData['cycles']['break'] ?? 0;
             $totalLateMinutes += (int) ($dayData['late_minutes'] ?? 0);
             
-            if (in_array($code, ['P'])) {
+            if (in_array($code, ['P', 'P (SL)'])) {
                 $presentDays++;
                 $totalDaysWorked++;
+                
+                if ($code === 'P (SL)') {
+                    $totalShortLeaves++;
+                }
             } elseif ($code === 'P2') {
                 $halfDays++;
                 $totalDaysWorked++;
@@ -389,6 +394,8 @@ class AttendanceReportService
             } elseif (in_array($code, ['L', 'RH', 'HD'])) {
                 $totalLeaves++;
                 $daysOnLeave++;
+            } elseif ($code === 'A') {
+                $daysAbsent++;
             }
         }
         
@@ -405,8 +412,6 @@ class AttendanceReportService
                 $totalHolidays++;
             }
         }
-        
-        $daysAbsent = max(0, $totalWorkingDays - $totalDaysWorked - $daysOnLeave - $totalUnpaidLeaves);
         
         $attendancePercentage = $totalWorkingDays > 0 
             ? round((($presentDays + $halfDays) / $totalWorkingDays) * 100, 1) 
@@ -570,16 +575,19 @@ class AttendanceReportService
                 if ($finalLabel === 'na') {
                     $dayData['code'] = 'NA';
                     $dayData['class'] = 'text-secondary';
-                } elseif ($finalLabel === 'absent') {
+                } elseif (str_contains($finalLabel, 'absent')) {
                     $dayData['code'] = 'A';
                     $dayData['class'] = 'text-danger';
                 } elseif (str_contains($finalLabel, 'halfday')) {
                     $dayData['code'] = 'P2';
                     $dayData['class'] = 'text-primary';
+                } elseif (str_contains($finalLabel, 'present with sl')) {
+                    $dayData['code'] = 'P (SL)';
+                    $dayData['class'] = 'text-success';
                 } elseif (str_contains($finalLabel, 'present')) {
                     $dayData['code'] = 'P';
                     $dayData['class'] = 'text-success';
-                } elseif (str_contains($finalLabel, 'weekly off working')) {
+                } elseif (str_contains($finalLabel, 'weekly off working') || str_contains($finalLabel, 'sunday working')) {
                     $dayData['code'] = $isWfhWowOrHw ? 'W/O-W<sub>wfh</sub>' : 'W/O-W';
                     $dayData['class'] = 'text-success';
                 } elseif (str_contains($finalLabel, 'holiday working')) {
