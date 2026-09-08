@@ -65,6 +65,18 @@
         <option value="{{ $yr }}" {{ date('Y') == $yr ? 'selected' : '' }}>{{ $yr }}</option>
       @endforeach
     </select>
+    
+    <div class="ms-auto d-flex gap-2">
+      <button id="btnSync" class="table-search-btn" style="background: #10B981; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+        <i class="bi bi-arrow-repeat me-1"></i> Sync Data
+      </button>
+      <button id="btnLockAll" class="table-search-btn" style="background: #F59E0B; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);">
+        <i class="bi bi-lock-fill me-1"></i> Lock All
+      </button>
+      <a href="{{ route('payroll.process.index') }}" id="btnProceedPayroll" class="table-search-btn text-decoration-none d-flex align-items-center">
+        Proceed to Payroll <i class="bi bi-arrow-right-short ms-1"></i>
+      </a>
+    </div>
   </div>
 
   <div class="modern-card data-table-card">
@@ -90,6 +102,7 @@
               <th>Total Holidays</th>
               <th>Total Deduction Days</th>
               <th>Working Days</th>
+              <th class="text-center">Status</th>
             </tr>
           </thead>
           <tbody id="attendanceTableBody">
@@ -157,7 +170,7 @@ $(function () {
   const baseUrl = "{{ route('payroll.attendance.review') }}";
   let searchTimeout;
   
-  loadAttendance();
+  // Removed immediate loadAttendance() call, handled by syncAndLoad() below
 
   function loadAttendance(page = 1) {
     let search = $('#search').val();
@@ -222,6 +235,9 @@ $(function () {
               <td>${row.total_holidays || 0}</td>
               <td><span class="text-danger fw-bold">${parseFloat(row.total_deduction_days || 0)}</span></td>
               <td><strong>${workingDays}</strong></td>
+              <td class="text-center">
+                ${row.is_locked ? '<span class="badge-modern-success"><i class="bi bi-lock-fill me-1"></i>Locked</span>' : '<span class="badge-modern-secondary"><i class="bi bi-unlock-fill me-1"></i>Unlocked</span>'}
+              </td>
             </tr>
           `;
         });
@@ -247,10 +263,77 @@ $(function () {
     if (page) loadAttendance(page);
   });
   
-  $('#search, #filterMonth, #filterYear').on('change keyup', function() {
+  $('#search').on('keyup', function() {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => loadAttendance(1), 300);
   });
+  
+  $('#filterMonth, #filterYear').on('change', function() {
+      syncAndLoad();
+  });
+  
+  $('#btnSync').on('click', function() {
+      syncAndLoad();
+  });
+  
+  function syncAndLoad() {
+      const btn = $('#btnSync');
+      const originalHtml = btn.html();
+      const month = $('#filterMonth').val();
+      const year = $('#filterYear').val();
+      
+      btn.html('<i class="bi bi-arrow-repeat spin me-1"></i> Syncing...').prop('disabled', true);
+      
+      $.ajax({
+          url: "{{ route('payroll.attendance.sync') }}",
+          type: 'POST',
+          data: { month: month, year: year },
+          headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+          success: function(res) {
+              btn.html(originalHtml).prop('disabled', false);
+              loadAttendance(1);
+          },
+          error: function() {
+              btn.html(originalHtml).prop('disabled', false);
+              alert('Failed to sync data.');
+              loadAttendance(1);
+          }
+      });
+  }
+
+  $('#btnLockAll').on('click', function() {
+      if(!confirm('Are you sure you want to lock all attendance records for the selected month? Once locked, records cannot be edited.')) return;
+      
+      const btn = $(this);
+      const originalHtml = btn.html();
+      const month = $('#filterMonth').val();
+      const year = $('#filterYear').val();
+      
+      btn.html('<i class="bi bi-hourglass spin me-1"></i> Locking...').prop('disabled', true);
+      
+      $.ajax({
+          url: "{{ route('payroll.attendance.lockAll') }}",
+          type: 'POST',
+          data: { month: month, year: year },
+          headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+          success: function(res) {
+              btn.html(originalHtml).prop('disabled', false);
+              if(res.success) {
+                  loadAttendance(1);
+              } else {
+                  alert(res.message);
+              }
+          },
+          error: function() {
+              btn.html(originalHtml).prop('disabled', false);
+              alert('Failed to lock records.');
+          }
+      });
+  });
+
+  // Initial Sync and Load on Page Ready
+  syncAndLoad();
+
 });
 </script>
 @endpush

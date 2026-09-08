@@ -349,7 +349,6 @@ return [
                     'icon' => 'bi bi-calendar-check',
                     'roles' => ['admin'],
                     'items' => [
-                        ['route' => 'payroll.final_attendance.view', 'title' => 'Final Attendance', 'icon' => 'bi bi-calendar-check', 'permission' => 'setup.payroll_final_attendance', 'feature_flag' => 'is_payroll_setup_enabled'],
                         ['route' => 'holiday', 'title' => 'Holidays', 'icon' => 'bi bi-calendar2-event', 'permission' => 'setup.holidays', 'feature_flag' => 'is_attendance_setup_enabled'],
                         ['route' => 'late-reasons.index', 'title' => 'Late Reasons', 'icon' => 'bi bi-clock-history', 'permission' => 'setup.late_reasons', 'feature_flag' => 'is_master_setup_enabled'],
                         ['route' => 'calendar-missed-reasons.index', 'title' => 'Missed Reason', 'icon' => 'bi bi-calendar-x', 'feature_flag' => 'is_calendar_setup_enabled', 'permission' => 'setup.calendar_missed_reasons'],

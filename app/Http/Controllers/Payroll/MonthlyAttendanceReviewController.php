@@ -83,6 +83,20 @@ class MonthlyAttendanceReviewController extends Controller
         return response()->json(['success' => true, 'message' => 'Attendance unlocked successfully.']);
     }
 
+    public function lockAll(Request $request)
+    {
+        $validated = $request->validate([
+            'month' => 'required|integer|between:1,12',
+            'year' => 'required|integer'
+        ]);
+
+        MonthlyAttendanceSummary::where('month', $validated['month'])
+            ->where('year', $validated['year'])
+            ->update(['is_locked' => true]);
+            
+        return response()->json(['success' => true, 'message' => 'All attendances locked successfully.']);
+    }
+
     public function sync(Request $request, AttendanceReportService $reportService, PayrollCalculationService $payrollService)
     {
         $request->validate([
