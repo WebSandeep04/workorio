@@ -394,7 +394,7 @@ class AttendanceReportService
             } elseif (in_array($code, ['L', 'RH', 'HD'])) {
                 $totalLeaves++;
                 $daysOnLeave++;
-            } elseif ($code === 'A') {
+            } elseif (in_array($code, ['A', 'NA'])) {
                 $daysAbsent++;
             }
         }
