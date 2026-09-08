@@ -10,8 +10,8 @@ use App\Services\AttendanceReportService;
 
 class BackfillAttendanceStatuses extends Command
 {
-    protected $signature = 'attendance:backfill {--tenant= : Specific tenant ID to process}';
-    protected $description = 'Backfills computed_status for all historical attendance records';
+    protected $signature = 'attendance:backfill {--tenant= : Specific tenant ID to process} {--month= : Specific month (1-12) to backfill} {--year= : Specific year to backfill} {--force : Recalculate even if computed_status is already set}';
+    protected $description = 'Backfills or recalculates computed_status for historical attendance records';
 
     public function handle(AttendanceReportService $reportService)
     {
@@ -27,7 +27,21 @@ class BackfillAttendanceStatuses extends Command
             try {
                 TenantDatabaseService::setDefaultConnection($tenant->id);
                 
-                $attendances = Attendance::whereNull('computed_status')->get();
+                $query = Attendance::query();
+                
+                if ($this->option('month')) {
+                    $query->whereMonth('date', $this->option('month'));
+                }
+                
+                if ($this->option('year')) {
+                    $query->whereYear('date', $this->option('year'));
+                }
+                
+                if (!$this->option('force')) {
+                    $query->whereNull('computed_status');
+                }
+                
+                $attendances = $query->get();
                 $count = $attendances->count();
                 
                 if ($count === 0) {
