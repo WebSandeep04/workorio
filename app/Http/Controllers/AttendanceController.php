@@ -1249,7 +1249,7 @@ class AttendanceController extends Controller
             if ($leave->is_half_day) $lType = 'HD';
             elseif ($leave->is_sl) $lType = 'SL';
             elseif ($leave->is_rh) $lType = 'RH';
-            elseif ($leave->leaveType && strtolower($leave->leaveType->name) === 'lwp') $lType = 'LWP';
+            elseif ($leave->leaveType && !$leave->leaveType->is_paid) $lType = 'LWP';
             
             $curr = $lStart->copy();
             while ($curr->lte($lEnd)) {
@@ -1365,7 +1365,7 @@ class AttendanceController extends Controller
             if ($leave->is_half_day) $lType = 'HD';
             elseif ($leave->is_sl) $lType = 'SL';
             elseif ($leave->is_rh) $lType = 'RH';
-            elseif ($leave->leaveType && strtolower($leave->leaveType->name) === 'lwp') $lType = 'LWP';
+            elseif ($leave->leaveType && !$leave->leaveType->is_paid) $lType = 'LWP';
             $userLeaves[$leave->user_id] = $lType;
         }
 
@@ -1626,7 +1626,7 @@ class AttendanceController extends Controller
             if ($leave->is_half_day) $lType = 'HD';
             elseif ($leave->is_sl) $lType = 'SL';
             elseif ($leave->is_rh) $lType = 'RH';
-            elseif ($leave->leaveType && strtolower($leave->leaveType->name) === 'lwp') $lType = 'LWP';
+            elseif ($leave->leaveType && !$leave->leaveType->is_paid) $lType = 'LWP';
             
             $currL = $lStart->copy();
             while ($currL->lte($lEnd)) {
