@@ -394,7 +394,7 @@ class AttendanceReportService
             } elseif (in_array($code, ['L', 'RH', 'HD'])) {
                 $totalLeaves++;
                 $daysOnLeave++;
-            } elseif (in_array($code, ['A', 'NA'])) {
+            } elseif ($code === 'A') {
                 $daysAbsent++;
             }
         }
@@ -469,6 +469,18 @@ class AttendanceReportService
                 }
             }
 
+            $isBeforeJoining = false;
+            if ($user && $user->employee && $user->employee->date_of_joining) {
+                $joiningDate = \Carbon\Carbon::parse($user->employee->date_of_joining)->format('Y-m-d');
+                if ($dateStr < $joiningDate) {
+                    $isBeforeJoining = true;
+                }
+            }
+
+            $defaultStatus = $isBeforeJoining ? 'NA' : 'absent';
+            $defaultCode = $isBeforeJoining ? 'NA' : 'A';
+            $defaultClass = $isBeforeJoining ? 'text-secondary' : 'text-danger';
+
             $dayData = [
                 'date' => $dateStr,
                 'display_date' => $displayDate,
@@ -478,10 +490,10 @@ class AttendanceReportService
                 'is_leave' => isset($leaves[$dateStr]),
                 'leave_type' => $leaves[$dateStr] ?? null,
                 'holiday_name' => null,
-                'status' => 'NA',
+                'status' => $defaultStatus,
                 'status_reason' => '-',
-                'code' => 'NA',
-                'class' => 'text-secondary',
+                'code' => $defaultCode,
+                'class' => $defaultClass,
                 'hours' => 0,
                 'office_hours' => 0,
                 'field_hours' => 0,
@@ -503,7 +515,7 @@ class AttendanceReportService
                     $dayData['status_reason'] = $attendance->status_reason;
                 } else {
                     $dayData['hours'] = (float) ($attendance->computed_hours ?? 0);
-                    $dayData['status'] = 'NA';
+                    $dayData['status'] = $defaultStatus;
                     $dayData['status_reason'] = '-';
                 }
                 
@@ -573,8 +585,9 @@ class AttendanceReportService
                 }
 
                 if ($finalLabel === 'na') {
-                    $dayData['code'] = 'NA';
-                    $dayData['class'] = 'text-secondary';
+                    $dayData['status'] = $defaultStatus;
+                    $dayData['code'] = $defaultCode;
+                    $dayData['class'] = $defaultClass;
                 } elseif (str_contains($finalLabel, 'absent')) {
                     $dayData['code'] = 'A';
                     $dayData['class'] = 'text-danger';
@@ -634,11 +647,17 @@ class AttendanceReportService
                         $dayData['class'] = 'text-warning';
                     }
                 } else {
-                    $dayData['status'] = 'NA';
+                    $dayData['status'] = $defaultStatus;
                     $dayData['status_reason'] = '-';
-                    $dayData['code'] = 'NA';
-                    $dayData['class'] = 'text-secondary';
+                    $dayData['code'] = $defaultCode;
+                    $dayData['class'] = $defaultClass;
                 }
+            }
+            if ($isBeforeJoining) {
+                $dayData['status'] = 'NA';
+                $dayData['status_reason'] = '-';
+                $dayData['code'] = 'NA';
+                $dayData['class'] = 'text-secondary';
             }
             
             $dailyData[] = $dayData;

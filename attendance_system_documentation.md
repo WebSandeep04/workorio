@@ -59,7 +59,10 @@ The `AttendanceReportService` evaluates the exact status of a day based on total
    - **Full Day Leave (L)**: Completely exempts the employee from attendance requirements.
    - **Half Day Leave (HD)**: Requires the employee to work the `Half Day Hours` to receive a Half Day status for their working session.
    - **Short Leave (SL)**: Provides a strict hour allowance (e.g., 2 hours). These hours are mathematically added to the employee's actually worked hours (`Effective Hours = Worked Hours + SL Allowance`). If `Effective Hours` >= `Full Day Hours`, they are marked as **Present (with SL)**.
-   - **Restricted Holiday (RH) / Unpaid Leave (LWP)**: Tracked specifically with warning badges.
+    - **Restricted Holiday (RH) / Unpaid Leave (LWP)**: Tracked specifically with warning badges.
+
+### Joining Date Logic
+- **Before Joining Date (NA)**: Any dates evaluated that fall before an employee's `date_of_joining` are explicitly forced to an `NA` status. These days are completely ignored by the system and do **not** increment the employee's total absentee counts.
 
 ### Holiday & Weekly Off Scenarios
 - **Holiday (H)** & **Weekly Off (S)**: Standard off days.
