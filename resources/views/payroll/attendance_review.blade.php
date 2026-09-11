@@ -119,6 +119,15 @@
     <ul class="pagination" id="paginationLinks"></ul>
   </div>
 </div>
+
+<!-- Custom Error Modal -->
+<div id="customErrorModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+  <div style="background: white; padding: 2rem; width: 400px; max-width: 90%; text-align: center; border-radius: 0;">
+    <h5 style="margin-top: 0; color: #dc3545; font-weight: 600;">Error</h5>
+    <p id="customErrorMessage" style="margin-bottom: 1.5rem; color: #333; font-size: 0.95rem;"></p>
+    <button type="button" onclick="$('#customErrorModal').hide()" style="background: #434AFA; color: white; border: none; padding: 0.5rem 1.5rem; font-weight: 500; cursor: pointer; border-radius: 0;">OK</button>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -283,9 +292,14 @@ $(function () {
               btn.html(originalHtml).prop('disabled', false);
               loadAttendance(1);
           },
-          error: function() {
+          error: function(xhr) {
               btn.html(originalHtml).prop('disabled', false);
-              alert('Failed to sync data.');
+              let errorMsg = 'Failed to sync data.';
+              if (xhr.responseJSON && xhr.responseJSON.message) {
+                  errorMsg = xhr.responseJSON.message;
+              }
+              $('#customErrorMessage').text(errorMsg);
+              $('#customErrorModal').css('display', 'flex');
               loadAttendance(1);
           }
       });

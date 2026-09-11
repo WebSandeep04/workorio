@@ -114,6 +114,21 @@ class MonthlyAttendanceReviewController extends Controller
             $endDate = Carbon::today();
         }
 
+        // Validate that all existing attendance records for the month are approved and locked
+        $pendingOrUnlockedCount = \App\Models\Attendance::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->where(function ($query) {
+                $query->where('is_approved', '!=', 1)
+                      ->orWhere('is_locked', 0);
+            })
+            ->count();
+
+        if ($pendingOrUnlockedCount > 0) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Cannot generate. Please ensure all daily attendances for the month are approved and locked.'
+            ], 422);
+        }
+
         // Get all user IDs who have attendance records in the selected month
         $userIdsWithAttendance = \App\Models\Attendance::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->pluck('user_id')
