@@ -463,6 +463,15 @@ return [
                     'items' => [
                         ['route' => 'subscription-status.index', 'title' => 'Subscription Status', 'icon' => 'bi bi-tag', 'permission' => 'setup.subscription_status', 'feature_flag' => 'is_subscription_setup_enabled'],
                     ]
+                ],
+                [
+                    'key' => 'log_setup',
+                    'title' => 'Log',
+                    'icon' => 'bi bi-journal-text',
+                    'roles' => ['admin'],
+                    'items' => [
+                        ['route' => 'posting-log.index', 'title' => 'Posting Log', 'icon' => 'bi bi-file-earmark-bar-graph', 'permission' => 'setup.posting_log', 'feature_flag' => 'is_master_setup_enabled'],
+                    ]
                 ]
             ]
         ]

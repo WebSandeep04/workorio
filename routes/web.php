@@ -1325,4 +1325,8 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('whatsapp-campaigns/{whatsapp_campaign}/send', [WhatsappCampaignController::class, 'sendCampaign'])->name('whatsapp-campaigns.send');
     Route::get('whatsapp-campaigns/{whatsapp_campaign}/report', [WhatsappCampaignController::class, 'getReport'])->name('whatsapp-campaigns.report');
     Route::get('whatsapp-campaigns/{whatsapp_campaign}/report-view', [WhatsappCampaignController::class, 'reportView'])->name('whatsapp-campaigns.report-view');
+
+    // Posting Log
+    Route::get('posting-log', [App\Http\Controllers\PostingLogController::class, 'index'])->name('posting-log.index');
+    Route::post('posting-log/fetch', [App\Http\Controllers\PostingLogController::class, 'fetch'])->name('posting-log.fetch');
 });
