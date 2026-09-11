@@ -44,6 +44,9 @@
                 <th class="text-end">Loan Deduction</th>
                 <th class="text-end">Total Deduction</th>
                 <th class="text-end">Salary</th>
+                <th class="text-center">Total Lates</th>
+                <th class="text-center">Exempted Lates</th>
+                <th class="text-center">Eligible Lates</th>
                 <th class="text-end">Penalty Days</th>
                 <th class="text-end">Penalty Amount</th>
                 <th class="text-end">Final Salary</th>
@@ -93,6 +96,9 @@
                     <td class="text-end">{{ $loanDeduction }}</td>
                     <td class="text-end">{{ $deductionAmount - $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated' }}</td>
+                    <td class="text-center">{{ $employeeTotalLates[$summary->employee_id] ?? 0 }}</td>
+                    <td class="text-center">{{ $employeeExemptedLates[$summary->employee_id] ?? 0 }}</td>
+                    <td class="text-center">{{ $employeeActualLates[$summary->employee_id] ?? 0 }}</td>
                     <td class="text-end">{{ $penaltyDays }}</td>
                     <td class="text-end">{{ $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated' }}</td>
@@ -100,13 +106,13 @@
             @endforeach
             @if($summaries->isNotEmpty())
                 <tr>
-                    <td colspan="{{ 20 + count($uniqueComponents) }}" class="text-end" style="font-weight: bold;">Grand Total:</td>
+                    <td colspan="{{ 23 + count($uniqueComponents) }}" class="text-end" style="font-weight: bold;">Grand Total:</td>
                     <td class="text-end nowrap" style="font-weight: bold;">{{ number_format($grandTotalPaidSalary, 0, '', '') }}</td>
                 </tr>
             @endif
             @if($summaries->isEmpty())
                 <tr>
-                    <td colspan="{{ 21 + count($uniqueComponents) }}">No data available for this month.</td>
+                    <td colspan="{{ 24 + count($uniqueComponents) }}">No data available for this month.</td>
                 </tr>
             @endif
         </tbody>

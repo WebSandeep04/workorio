@@ -131,13 +131,41 @@ class PayrollCalculationService
         // Calculate Late Penalty
         $penaltyDays = 0;
         $penaltyAmount = 0;
-        $employee = \App\Models\Employee::with('shiftHistory', 'shiftRelation')->find($employeeId);
+        $employee = \App\Models\Employee::with('shiftHistory', 'shiftRelation', 'user')->find($employeeId);
         $shift = $employee ? $employee->getShiftForDate(Carbon::create($summary->year, $summary->month)->endOfMonth()) : null;
         
+        $totalLateCount = $summary->late_count ?? 0;
+        $exemptedLateCount = 0;
+        $actualLateCount = $totalLateCount;
+
+        if ($employee && $totalLateCount > 0) {
+            $monthStart = Carbon::create($summary->year, $summary->month, 1)->format('Y-m-d');
+            $monthEnd = Carbon::create($summary->year, $summary->month)->endOfMonth()->format('Y-m-d');
+
+            $exemptions = \App\Models\PenaltyExemption::whereBetween('date', [$monthStart, $monthEnd])
+                ->where(function ($q) use ($employee) {
+                    $q->where(function($q1) use ($employee) {
+                        $q1->where('type', 'employee')->where('employee_id', $employee->id);
+                    })->orWhere(function($q2) use ($employee) {
+                        $q2->where('type', 'department')->where('department_id', $employee->department_id);
+                    })->orWhere(function($q3) use ($employee) {
+                        $q3->where('type', 'branch')->where('branch_id', $employee->branch_id);
+                    });
+                })->pluck('date');
+
+            if ($exemptions->isNotEmpty()) {
+                $exemptedLateCount = \App\Models\Attendance::where('user_id', $employee->user->id)
+                    ->whereIn('date', $exemptions)
+                    ->where('is_late', 1)
+                    ->count();
+            }
+
+            $actualLateCount = max(0, $totalLateCount - $exemptedLateCount);
+        }
+        
         if ($shift && $shift->penalty_eligible_days > 0 && $shift->penalty_deduction_days > 0) {
-            $lateCount = $summary->late_count ?? 0;
-            if ($lateCount >= $shift->penalty_eligible_days) {
-                $penaltyDays = floor($lateCount / $shift->penalty_eligible_days) * $shift->penalty_deduction_days;
+            if ($actualLateCount >= $shift->penalty_eligible_days) {
+                $penaltyDays = floor($actualLateCount / $shift->penalty_eligible_days) * $shift->penalty_deduction_days;
                 $perDaySalary = $grossSalary / 26;
                 $penaltyAmount = round($penaltyDays * $perDaySalary);
                 $totalDeductions += $penaltyAmount;
@@ -307,12 +335,14 @@ class PayrollCalculationService
         );
 
         // Save Penalty Detail
-        if ($penaltyAmount > 0) {
+        if ($totalLateCount > 0 || $penaltyAmount > 0) {
             \App\Models\PayrollPenalty::updateOrCreate(
                 ['payroll_id' => $payroll->id, 'employee_id' => $employeeId],
                 [
                     'payroll_detail_id' => $payrollDetail->id,
-                    'late_count' => $summary->late_count ?? 0,
+                    'total_late_count' => $totalLateCount,
+                    'exempted_late_count' => $exemptedLateCount,
+                    'late_count' => $actualLateCount,
                     'penalty_days' => $penaltyDays,
                     'penalty_amount' => $penaltyAmount
                 ]

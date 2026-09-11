@@ -197,6 +197,9 @@ $(document).ready(function() {
                         <th class="text-end" style="min-width: 150px;">Loan Deduction</th>
                         <th class="text-end" style="min-width: 150px;">Total Deduction</th>
                         <th class="text-end" style="min-width: 120px;">Salary</th>
+                        <th class="text-center" style="min-width: 120px;">Total Lates</th>
+                        <th class="text-center" style="min-width: 120px;">Exempted Lates</th>
+                        <th class="text-center" style="min-width: 120px;">Eligible Lates</th>
                         <th class="text-center" style="min-width: 100px;">Penalty Days</th>
                         <th class="text-end" style="min-width: 150px;">Penalty Amount</th>
                         <th class="text-end" style="min-width: 120px;">Final Salary</th>
@@ -238,6 +241,9 @@ $(document).ready(function() {
                             <td class="text-end text-danger">₹${row.loan_deduction}</td>
                             <td class="text-end text-danger">₹${row.deduction_amount}</td>
                             <td class="text-end ${salaryBeforeClass}">${salaryBeforeText}</td>
+                            <td class="text-center">${row.total_late_occurrences}</td>
+                            <td class="text-center text-success">${row.exempted_late_occurrences}</td>
+                            <td class="text-center text-danger">${row.penalty_eligible_lates}</td>
                             <td class="text-center text-danger">${row.penalty_days}</td>
                             <td class="text-end text-danger">₹${row.penalty_amount}</td>
                             <td class="text-end ${salaryClass}">${salaryText}</td>

@@ -191,6 +191,7 @@ return [
                     'items' => [
                         ['route' => 'payroll.attendance.review', 'title' => 'Attendance Review', 'icon' => 'bi bi-calendar-check', 'permission' => 'payroll.attendance'],
                         ['route' => 'payroll.process.index', 'title' => 'Process Payroll', 'icon' => 'bi bi-calculator', 'permission' => 'payroll.process'],
+                        ['route' => 'payroll.exemptions.index', 'title' => 'Exemptions', 'icon' => 'bi bi-shield-check', 'permission' => 'payroll.process'],
                     ],
                 ],
                 [

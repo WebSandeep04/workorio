@@ -213,6 +213,9 @@ class PayrollController extends Controller
         $employeeLopDeductions = [];
         $employeePenaltyAmounts = [];
         $employeePenaltyDays = [];
+        $employeeTotalLates = [];
+        $employeeExemptedLates = [];
+        $employeeActualLates = [];
 
         if ($payroll) {
             foreach ($payroll->details as $detail) {
@@ -225,6 +228,9 @@ class PayrollController extends Controller
                 $penaltyAmount = $detail->penalty_deduction_amount ?? 0;
                 $employeePenaltyAmounts[$detail->employee_id] = $penaltyAmount;
                 $employeePenaltyDays[$detail->employee_id] = $detail->penalty ? $detail->penalty->penalty_days : 0;
+                $employeeTotalLates[$detail->employee_id] = $detail->penalty ? $detail->penalty->total_late_count : 0;
+                $employeeExemptedLates[$detail->employee_id] = $detail->penalty ? $detail->penalty->exempted_late_count : 0;
+                $employeeActualLates[$detail->employee_id] = $detail->penalty ? $detail->penalty->late_count : 0;
                 $empComps = [];
                 foreach ($detail->components as $c) {
                     if ($c->salaryComponent) {
@@ -240,7 +246,7 @@ class PayrollController extends Controller
         $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
 
         // Attach paid salary to each summary
-        $data = $summaries->map(function ($summary) use ($paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyAmounts, $employeePenaltyDays, $uniqueComponents) {
+        $data = $summaries->map(function ($summary) use ($paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyAmounts, $employeePenaltyDays, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $uniqueComponents) {
             $paid = $paidSalaries[$summary->employee_id] ?? null;
             $comps = $employeeComponents[$summary->employee_id] ?? [];
             $deductionAmount = $employeeDeductions[$summary->employee_id] ?? 0;
@@ -249,6 +255,9 @@ class PayrollController extends Controller
             $lopDeduction = $employeeLopDeductions[$summary->employee_id] ?? 0;
             $penaltyAmount = $employeePenaltyAmounts[$summary->employee_id] ?? 0;
             $penaltyDays = $employeePenaltyDays[$summary->employee_id] ?? 0;
+            $totalLates = $employeeTotalLates[$summary->employee_id] ?? 0;
+            $exemptedLates = $employeeExemptedLates[$summary->employee_id] ?? 0;
+            $actualLates = $employeeActualLates[$summary->employee_id] ?? 0;
             
             // Map components to guarantee 0 for missing ones
             $normalizedComps = [];
@@ -282,6 +291,9 @@ class PayrollController extends Controller
                 'lop_deduction' => $lopDeduction,
                 'advance_deduction' => $advanceDeduction,
                 'loan_deduction' => $loanDeduction,
+                'total_late_occurrences' => $totalLates,
+                'exempted_late_occurrences' => $exemptedLates,
+                'penalty_eligible_lates' => $actualLates,
                 'penalty_days' => $penaltyDays,
                 'penalty_amount' => $penaltyAmount,
                 'deduction_amount' => $deductionAmount - $penaltyAmount, // Total Deduction before penalty
@@ -322,6 +334,9 @@ class PayrollController extends Controller
         $employeeLoanDeductions = [];
         $employeePenaltyDays = [];
         $employeePenaltyAmounts = [];
+        $employeeTotalLates = [];
+        $employeeExemptedLates = [];
+        $employeeActualLates = [];
         $uniqueComponents = collect();
 
         if ($payroll) {
@@ -335,6 +350,9 @@ class PayrollController extends Controller
                 $penaltyAmount = $detail->penalty_deduction_amount ?? 0;
                 $employeePenaltyAmounts[$detail->employee_id] = $penaltyAmount;
                 $employeePenaltyDays[$detail->employee_id] = $detail->penalty ? $detail->penalty->penalty_days : 0;
+                $employeeTotalLates[$detail->employee_id] = $detail->penalty ? $detail->penalty->total_late_count : 0;
+                $employeeExemptedLates[$detail->employee_id] = $detail->penalty ? $detail->penalty->exempted_late_count : 0;
+                $employeeActualLates[$detail->employee_id] = $detail->penalty ? $detail->penalty->late_count : 0;
                 $empComps = [];
                 foreach ($detail->components as $c) {
                     if ($c->salaryComponent) {
@@ -359,7 +377,7 @@ class PayrollController extends Controller
             "Expires"             => "0"
         );
 
-        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyDays, $employeePenaltyAmounts) {
+        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyDays, $employeePenaltyAmounts, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates) {
             $file = fopen('php://output', 'w');
             
             $grandTotalPaidSalary = 0;
@@ -371,7 +389,7 @@ class PayrollController extends Controller
                 [
                     'Total Working Days', 'Full Day', 'Half Day', 'Leave', 'Unpaid Leave', 
                     'Absent', 'Total Weekly Off', 'Total Holidays', 'Holiday Work', 'Sunday Work', 
-                    'Total Present', 'Deduction Days', 'Days deduction amount', 'Advance Deduction', 'Loan Deduction', 'Total Deduction', 'Salary', 'Penalty Days', 'Penalty Amount', 'Final Salary'
+                    'Total Present', 'Deduction Days', 'Days deduction amount', 'Advance Deduction', 'Loan Deduction', 'Total Deduction', 'Salary', 'Total Late Occurrences', 'Exempted Late Occurrences', 'Penalty-Eligible Lates', 'Penalty Days', 'Penalty Amount', 'Final Salary'
                 ]
             );
             fputcsv($file, $columns);
@@ -385,6 +403,9 @@ class PayrollController extends Controller
                 $lopDeduction = $employeeLopDeductions[$summary->employee_id] ?? 0;
                 $penaltyDays = $employeePenaltyDays[$summary->employee_id] ?? 0;
                 $penaltyAmount = $employeePenaltyAmounts[$summary->employee_id] ?? 0;
+                $totalLates = $employeeTotalLates[$summary->employee_id] ?? 0;
+                $exemptedLates = $employeeExemptedLates[$summary->employee_id] ?? 0;
+                $actualLates = $employeeActualLates[$summary->employee_id] ?? 0;
                 
                 $row = [
                     $summary->employee ? $summary->employee->employee_code : '-',
@@ -421,6 +442,9 @@ class PayrollController extends Controller
                     $loanDeduction,
                     $deductionAmount - $penaltyAmount,
                     $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated',
+                    $totalLates,
+                    $exemptedLates,
+                    $actualLates,
                     $penaltyDays,
                     $penaltyAmount,
                     $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated'
@@ -463,6 +487,9 @@ class PayrollController extends Controller
         $employeeLoanDeductions = [];
         $employeePenaltyDays = [];
         $employeePenaltyAmounts = [];
+        $employeeTotalLates = [];
+        $employeeExemptedLates = [];
+        $employeeActualLates = [];
         $uniqueComponents = collect();
 
         if ($payroll) {
@@ -472,6 +499,11 @@ class PayrollController extends Controller
                 $employeeAdvanceDeductions[$detail->employee_id] = $detail->advance_deduction_amount ?? 0;
                 $employeeLoanDeductions[$detail->employee_id] = $detail->loan_deduction_amount ?? 0;
                 $employeeLopDeductions[$detail->employee_id] = $detail->lop_deduction_amount ?? 0;
+                $employeePenaltyDays[$detail->employee_id] = $detail->penalty ? $detail->penalty->penalty_days : 0;
+                $employeePenaltyAmounts[$detail->employee_id] = $detail->penalty_deduction_amount ?? 0;
+                $employeeTotalLates[$detail->employee_id] = $detail->penalty ? $detail->penalty->total_late_count : 0;
+                $employeeExemptedLates[$detail->employee_id] = $detail->penalty ? $detail->penalty->exempted_late_count : 0;
+                $employeeActualLates[$detail->employee_id] = $detail->penalty ? $detail->penalty->late_count : 0;
                 $empComps = [];
                 foreach ($detail->components as $c) {
                     if ($c->salaryComponent) {
@@ -487,7 +519,7 @@ class PayrollController extends Controller
         $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
         $fileName = 'Payroll_Report_' . date('F', mktime(0, 0, 0, $month, 1)) . '_' . $year . '.pdf';
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePenaltyDays', 'employeePenaltyAmounts', 'month', 'year'))
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePenaltyDays', 'employeePenaltyAmounts', 'employeeTotalLates', 'employeeExemptedLates', 'employeeActualLates', 'month', 'year'))
                 ->setPaper('a4', 'landscape');
                 
         return $pdf->download($fileName);

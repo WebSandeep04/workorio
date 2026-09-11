@@ -1297,6 +1297,13 @@ Route::middleware(['auth.or.session'])->group(function () {
         Route::post('report/fetch', [App\Http\Controllers\Payroll\PayrollController::class, 'fetchReportData'])->name('report.fetch');
         Route::get('report/export', [App\Http\Controllers\Payroll\PayrollController::class, 'exportReport'])->name('report.export');
         Route::get('report/export-pdf', [App\Http\Controllers\Payroll\PayrollController::class, 'exportReportPdf'])->name('report.export-pdf');
+
+        Route::get('exemptions', [App\Http\Controllers\Payroll\PenaltyExemptionController::class, 'index'])->name('exemptions.index');
+        Route::post('exemptions/fetch', [App\Http\Controllers\Payroll\PenaltyExemptionController::class, 'fetch'])->name('exemptions.fetch');
+        Route::get('exemptions/departments', [App\Http\Controllers\Payroll\PenaltyExemptionController::class, 'getDepartments'])->name('exemptions.departments');
+        Route::get('exemptions/employees', [App\Http\Controllers\Payroll\PenaltyExemptionController::class, 'getEmployees'])->name('exemptions.employees');
+        Route::post('exemptions', [App\Http\Controllers\Payroll\PenaltyExemptionController::class, 'store'])->name('exemptions.store');
+        Route::delete('exemptions/{id}', [App\Http\Controllers\Payroll\PenaltyExemptionController::class, 'destroy'])->name('exemptions.destroy');
     });
 
     // WhatsApp Campaigns
