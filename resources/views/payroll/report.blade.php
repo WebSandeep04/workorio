@@ -171,7 +171,9 @@ $(document).ready(function() {
                     let cols = response.columns || [];
                     let headHtml = `<tr>
                         <th style="min-width: 120px;">Emp Code</th>
-                        <th style="min-width: 150px;">Employee Name</th>`;
+                        <th style="min-width: 150px;">Employee Name</th>
+                        <th style="min-width: 120px;">Branch</th>
+                        <th style="min-width: 120px;">Department</th>`;
                     
                     cols.forEach(c => {
                         headHtml += `<th class="text-end" style="min-width: 100px;">${c}</th>`;
@@ -194,8 +196,10 @@ $(document).ready(function() {
                         <th class="text-end" style="min-width: 150px;">Advance Deduction</th>
                         <th class="text-end" style="min-width: 150px;">Loan Deduction</th>
                         <th class="text-end" style="min-width: 150px;">Total Deduction</th>
-                        <th class="text-center" style="min-width: 120px;">Working Days</th>
-                        <th class="text-end" style="min-width: 120px;">Paid Salary</th>
+                        <th class="text-end" style="min-width: 120px;">Salary</th>
+                        <th class="text-center" style="min-width: 100px;">Penalty Days</th>
+                        <th class="text-end" style="min-width: 150px;">Penalty Amount</th>
+                        <th class="text-end" style="min-width: 120px;">Final Salary</th>
                     </tr>`;
                     thead.append(headHtml);
                     
@@ -203,10 +207,14 @@ $(document).ready(function() {
                     response.data.forEach(function(row) {
                         const salaryClass = row.paid_salary === 'Not Generated' ? 'text-muted' : 'fw-bold text-success';
                         const salaryText = row.paid_salary === 'Not Generated' ? 'Not Generated' : '₹' + row.paid_salary;
+                        const salaryBeforeClass = row.salary_before_penalty === 'Not Generated' ? 'text-muted' : 'fw-bold text-success';
+                        const salaryBeforeText = row.salary_before_penalty === 'Not Generated' ? 'Not Generated' : '₹' + row.salary_before_penalty;
                             
                         let tr = `<tr>
                             <td><span class="fw-medium">${row.employee_code || '-'}</span></td>
-                            <td>${row.employee_name}</td>`;
+                            <td>${row.employee_name}</td>
+                            <td>${row.branch_name}</td>
+                            <td>${row.department_name}</td>`;
                         
                         cols.forEach(c => {
                             let val = row.components[c] !== undefined ? row.components[c] : 0;
@@ -229,7 +237,9 @@ $(document).ready(function() {
                             <td class="text-end text-danger">₹${row.advance_deduction}</td>
                             <td class="text-end text-danger">₹${row.loan_deduction}</td>
                             <td class="text-end text-danger">₹${row.deduction_amount}</td>
-                            <td class="text-center fw-medium">${row.payable_days}</td>
+                            <td class="text-end ${salaryBeforeClass}">${salaryBeforeText}</td>
+                            <td class="text-center text-danger">${row.penalty_days}</td>
+                            <td class="text-end text-danger">₹${row.penalty_amount}</td>
                             <td class="text-end ${salaryClass}">${salaryText}</td>
                         </tr>`;
                         tbody.append(tr);

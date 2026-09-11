@@ -196,6 +196,16 @@
               </div>
           </div>
 
+          <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label-modern">Penalty Eligible Days</label>
+                <input type="number" class="form-control form-control-modern" id="penalty_eligible_days" name="penalty_eligible_days" min="0" placeholder="e.g. 3">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label-modern">Penalty Deduction Days</label>
+                <input type="number" step="0.5" class="form-control form-control-modern" id="penalty_deduction_days" name="penalty_deduction_days" min="0" placeholder="e.g. 0.5">
+              </div>
+          </div>
           <div class="row g-3 mb-2">
             <div class="col-md-6">
                 <label class="form-label-modern">Weekly Offs</label>
@@ -339,6 +349,8 @@ $(function() {
         $('#full_day_hr').val(row.full_day_hr);
         $('#half_day_hr').val(row.half_day_hr);
         $('#extended_hr').val(row.extended_hr);
+        $('#penalty_eligible_days').val(row.penalty_eligible_days || '');
+        $('#penalty_deduction_days').val(row.penalty_deduction_days || '');
         $('#halfday_leave_req_min').val(row.halfday_leave_req_min || 270);
         $('#enforce_time_restriction_on_overtime').val(row.enforce_time_restriction_on_overtime ? '1' : '0');
         

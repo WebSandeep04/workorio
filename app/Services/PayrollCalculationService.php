@@ -128,6 +128,22 @@ class PayrollCalculationService
             $totalDeductions += $deductionAmount;
         }
 
+        // Calculate Late Penalty
+        $penaltyDays = 0;
+        $penaltyAmount = 0;
+        $employee = \App\Models\Employee::with('shiftHistory', 'shiftRelation')->find($employeeId);
+        $shift = $employee ? $employee->getShiftForDate(Carbon::create($summary->year, $summary->month)->endOfMonth()) : null;
+        
+        if ($shift && $shift->penalty_eligible_days > 0 && $shift->penalty_deduction_days > 0) {
+            $lateCount = $summary->late_count ?? 0;
+            if ($lateCount >= $shift->penalty_eligible_days) {
+                $penaltyDays = floor($lateCount / $shift->penalty_eligible_days) * $shift->penalty_deduction_days;
+                $perDaySalary = $grossSalary / 26;
+                $penaltyAmount = round($penaltyDays * $perDaySalary);
+                $totalDeductions += $penaltyAmount;
+            }
+        }
+
         $preDeductionNetSalary = $totalEarnings - $totalDeductions;
         $advanceDeduction = 0;
         $calculatedAdvances = [];
@@ -285,9 +301,25 @@ class PayrollCalculationService
                 'lop_deduction_amount' => $deductionAmount,
                 'statutory_deduction_amount' => array_sum($statutoryDeductions),
                 'loan_deduction_amount' => $loanDeduction,
-                'advance_deduction_amount' => $advanceDeduction
+                'advance_deduction_amount' => $advanceDeduction,
+                'penalty_deduction_amount' => $penaltyAmount
             ]
         );
+
+        // Save Penalty Detail
+        if ($penaltyAmount > 0) {
+            \App\Models\PayrollPenalty::updateOrCreate(
+                ['payroll_id' => $payroll->id, 'employee_id' => $employeeId],
+                [
+                    'payroll_detail_id' => $payrollDetail->id,
+                    'late_count' => $summary->late_count ?? 0,
+                    'penalty_days' => $penaltyDays,
+                    'penalty_amount' => $penaltyAmount
+                ]
+            );
+        } else {
+            \App\Models\PayrollPenalty::where('payroll_id', $payroll->id)->where('employee_id', $employeeId)->delete();
+        }
 
         // Save Advance Deductions
         foreach ($calculatedAdvances as $calcAdv) {

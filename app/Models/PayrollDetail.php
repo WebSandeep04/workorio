@@ -12,4 +12,5 @@ class PayrollDetail extends Model
     public function payroll() { return $this->belongsTo(Payroll::class); }
     public function employee() { return $this->belongsTo(Employee::class); }
     public function components() { return $this->hasMany(PayrollComponentDetail::class); }
+    public function penalty() { return $this->hasOne(PayrollPenalty::class); }
 }

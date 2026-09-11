@@ -24,6 +24,8 @@
             <tr>
                 <th class="text-start nowrap">Emp Code</th>
                 <th class="text-start nowrap">Employee Name</th>
+                <th class="text-start nowrap">Branch</th>
+                <th class="text-start nowrap">Department</th>
                 @foreach($uniqueComponents as $comp)
                 <th class="text-end">{{ $comp }}</th>
                 @endforeach
@@ -41,7 +43,10 @@
                 <th class="text-end">Advance Deduction</th>
                 <th class="text-end">Loan Deduction</th>
                 <th class="text-end">Total Deduction</th>
-                <th class="text-end">Paid Salary</th>
+                <th class="text-end">Salary</th>
+                <th class="text-end">Penalty Days</th>
+                <th class="text-end">Penalty Amount</th>
+                <th class="text-end">Final Salary</th>
             </tr>
         </thead>
         <tbody>
@@ -54,6 +59,8 @@
                     $advanceDeduction = $employeeAdvanceDeductions[$summary->employee_id] ?? 0;
                     $loanDeduction = $employeeLoanDeductions[$summary->employee_id] ?? 0;
                     $lopDeduction = $employeeLopDeductions[$summary->employee_id] ?? 0;
+                    $penaltyDays = $employeePenaltyDays[$summary->employee_id] ?? 0;
+                    $penaltyAmount = $employeePenaltyAmounts[$summary->employee_id] ?? 0;
                     
                     $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
                     $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
@@ -64,6 +71,8 @@
                 <tr>
                     <td class="text-start nowrap">{{ $summary->employee ? $summary->employee->employee_code : '-' }}</td>
                     <td class="text-start nowrap">{{ $summary->employee ? $summary->employee->name : 'Unknown' }}</td>
+                    <td class="text-start nowrap">{{ $summary->employee && $summary->employee->branch ? $summary->employee->branch->name : '-' }}</td>
+                    <td class="text-start nowrap">{{ $summary->employee && $summary->employee->departmentRelation ? $summary->employee->departmentRelation->name : '-' }}</td>
                     
                     @foreach($uniqueComponents as $comp)
                         <td class="text-end">{{ isset($comps[$comp]) ? round($comps[$comp]) : 0 }}</td>
@@ -82,19 +91,22 @@
                     <td class="text-end">{{ $lopDeduction }}</td>
                     <td class="text-end">{{ $advanceDeduction }}</td>
                     <td class="text-end">{{ $loanDeduction }}</td>
-                    <td class="text-end">{{ $deductionAmount }}</td>
+                    <td class="text-end">{{ $deductionAmount - $penaltyAmount }}</td>
+                    <td class="text-end nowrap">{{ $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated' }}</td>
+                    <td class="text-end">{{ $penaltyDays }}</td>
+                    <td class="text-end">{{ $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated' }}</td>
                 </tr>
             @endforeach
             @if($summaries->isNotEmpty())
                 <tr>
-                    <td colspan="{{ 16 + count($uniqueComponents) }}" class="text-end" style="font-weight: bold;">Grand Total:</td>
+                    <td colspan="{{ 20 + count($uniqueComponents) }}" class="text-end" style="font-weight: bold;">Grand Total:</td>
                     <td class="text-end nowrap" style="font-weight: bold;">{{ number_format($grandTotalPaidSalary, 0, '', '') }}</td>
                 </tr>
             @endif
             @if($summaries->isEmpty())
                 <tr>
-                    <td colspan="{{ 17 + count($uniqueComponents) }}">No data available for this month.</td>
+                    <td colspan="{{ 21 + count($uniqueComponents) }}">No data available for this month.</td>
                 </tr>
             @endif
         </tbody>

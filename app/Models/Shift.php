@@ -24,6 +24,8 @@ class Shift extends Model
         'half_day_hr',
         'halfday_leave_req_min',
         'extended_hr',
+        'penalty_eligible_days',
+        'penalty_deduction_days',
     ];
 
     protected $casts = [
@@ -37,6 +39,8 @@ class Shift extends Model
         'full_day_hr' => 'decimal:2',
         'half_day_hr' => 'decimal:2',
         'extended_hr' => 'decimal:2',
+        'penalty_eligible_days' => 'integer',
+        'penalty_deduction_days' => 'decimal:2',
     ];
 
     public function getStartTimeAttribute($value)
