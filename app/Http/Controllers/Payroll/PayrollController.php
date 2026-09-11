@@ -62,10 +62,55 @@ class PayrollController extends Controller
 
     public function void($id)
     {
-        $payroll = Payroll::findOrFail($id);
+        $payroll = Payroll::with('details')->findOrFail($id);
         
         if ($payroll->status === 'Finalized') {
             return response()->json(['success' => false, 'message' => 'Cannot void a finalized payroll.'], 403);
+        }
+
+        // Rollback Loans
+        $loanInstallments = \App\Models\LoanInstallment::where('payroll_id', $payroll->id)->get();
+        foreach ($loanInstallments as $installment) {
+            $loan = $installment->loan;
+
+            if ($installment->is_system_generated) {
+                // If it was created purely by the system as an overflow, delete it
+                $installment->delete();
+                if ($loan) {
+                    $loan->decrement('total_installments');
+                }
+            } else {
+                // Revert status and amount
+                $updateData = [
+                    'status' => 'pending',
+                    'paid_on' => null,
+                    'payroll_id' => null,
+                    'skip_strategy' => null,
+                ];
+
+                if ($installment->original_amount !== null) {
+                    $updateData['amount'] = $installment->original_amount;
+                    $updateData['original_amount'] = null;
+                }
+
+                $installment->update($updateData);
+            }
+
+            // If loan was marked completed, revert it
+            if ($loan && $loan->status === 'completed') {
+                $loan->update(['status' => 'active']);
+            }
+        }
+
+        // Rollback Advances
+        $advanceDeductions = \App\Models\SalaryAdvanceDeduction::where('payroll_id', $payroll->id)->get();
+        foreach ($advanceDeductions as $deduction) {
+            $advance = $deduction->advance;
+            $deduction->delete();
+
+            if ($advance && $advance->status === 'completed' && $advance->remainingBalance() > 0) {
+                $advance->update(['status' => 'approved']);
+            }
         }
 
         // Delete all associated details

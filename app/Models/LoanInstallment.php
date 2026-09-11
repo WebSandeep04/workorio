@@ -13,6 +13,7 @@ class LoanInstallment extends Model
 
     protected $casts = [
         'paid_on' => 'date',
+        'is_system_generated' => 'boolean',
     ];
 
     public function loan()

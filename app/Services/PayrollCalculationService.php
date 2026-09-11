@@ -177,7 +177,11 @@ class PayrollCalculationService
             if ($preLoanNetSalary - $loanDeduction >= $installment->amount) {
                 // Full deduction
                 $loanDeduction += $installment->amount;
-                $installment->update(['status' => 'paid', 'paid_on' => now()]);
+                $installment->update([
+                    'status' => 'paid', 
+                    'paid_on' => now(),
+                    'payroll_id' => $payroll->id
+                ]);
             } else {
                 // Partial deduction handling
                 $availableForDeduction = max(0, $preLoanNetSalary - $loanDeduction);
@@ -186,9 +190,11 @@ class PayrollCalculationService
                     $remainingInstallmentAmount = $installment->amount - $availableForDeduction;
                     
                     $installment->update([
+                        'original_amount' => $installment->amount,
                         'amount' => $availableForDeduction,
                         'status' => 'paid',
-                        'paid_on' => now()
+                        'paid_on' => now(),
+                        'payroll_id' => $payroll->id
                     ]);
 
                     // Add remaining amount to next installment or create a new one
@@ -200,7 +206,9 @@ class PayrollCalculationService
 
                     if ($nextInstallment) {
                         $nextInstallment->update([
-                            'amount' => $nextInstallment->amount + $remainingInstallmentAmount
+                            'original_amount' => $nextInstallment->original_amount ?? $nextInstallment->amount,
+                            'amount' => $nextInstallment->amount + $remainingInstallmentAmount,
+                            'payroll_id' => $payroll->id
                         ]);
                     } else {
                         // Create a new installment for the remainder
@@ -212,6 +220,8 @@ class PayrollCalculationService
                             'due_month' => $newDueMonth,
                             'amount' => $remainingInstallmentAmount,
                             'status' => 'pending',
+                            'payroll_id' => $payroll->id,
+                            'is_system_generated' => true
                         ]);
                         $loan->increment('total_installments');
                     }
@@ -219,7 +229,8 @@ class PayrollCalculationService
                     // No salary left, skip entirely
                     $installment->update([
                         'status' => 'skipped',
-                        'skip_strategy' => 'add_to_next'
+                        'skip_strategy' => 'add_to_next',
+                        'payroll_id' => $payroll->id
                     ]);
 
                     $nextInstallment = \App\Models\LoanInstallment::where('loan_id', $installment->loan_id)
@@ -230,7 +241,9 @@ class PayrollCalculationService
 
                     if ($nextInstallment) {
                         $nextInstallment->update([
-                            'amount' => $nextInstallment->amount + $installment->amount
+                            'original_amount' => $nextInstallment->original_amount ?? $nextInstallment->amount,
+                            'amount' => $nextInstallment->amount + $installment->amount,
+                            'payroll_id' => $payroll->id
                         ]);
                     } else {
                         $loan = $installment->loan;
@@ -241,6 +254,8 @@ class PayrollCalculationService
                             'due_month' => $newDueMonth,
                             'amount' => $installment->amount,
                             'status' => 'pending',
+                            'payroll_id' => $payroll->id,
+                            'is_system_generated' => true
                         ]);
                         $loan->increment('total_installments');
                     }
