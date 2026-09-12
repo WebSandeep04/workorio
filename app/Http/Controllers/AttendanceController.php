@@ -1137,6 +1137,18 @@ class AttendanceController extends Controller
 
         if ($todayAttendance) {
             $stats['today_hours'] = $this->reportService->calculateTotalHours($todayAttendance->movements, null, $todayAttendance->date);
+            
+            // Get shift for today to calculate clamped shift hours
+            $employee = null;
+            if ($user instanceof \App\Models\User) {
+                $employee = $user->employee;
+            } elseif (isset($user->id)) {
+                 $realUser = \App\Models\User::find($user->id);
+                 if ($realUser) $employee = $realUser->employee;
+            }
+            
+            $shift = $employee ? $employee->getShiftForDate($todayAttendance->date) : null;
+            $stats['today_shift_hours'] = $this->reportService->calculateTotalHours($todayAttendance->movements, $shift, $todayAttendance->date);
         }
 
         // This month's attendance

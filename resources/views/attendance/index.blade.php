@@ -406,8 +406,8 @@
   <div class="stats-grid" id="attendanceStats">
     <div class="metric-card">
       <p>Today's Hours</p>
-      <h2 id="todayHours">0</h2>
-      <span>Tracked today</span>
+      <h2 id="todayShiftHours">0:00</h2>
+      <span id="todayActualHoursSubtitle" class="text-white d-block mt-1">Actual Hours: 0:00</span>
     </div>
     <div class="metric-card">
       <p>Month Hours</p>
@@ -937,7 +937,12 @@ function loadAttendanceStats() {
         method: 'GET',
         cache: false,
         success: function(response) {
-            document.getElementById('todayHours').textContent = formatHoursClock(response.today_hours);
+            if (response.today_shift_hours !== undefined) {
+                document.getElementById('todayShiftHours').textContent = formatHoursClock(response.today_shift_hours);
+            } else {
+                document.getElementById('todayShiftHours').textContent = formatHoursClock(response.today_hours);
+            }
+            document.getElementById('todayActualHoursSubtitle').textContent = "Actual Hours: " + formatHoursClock(response.today_hours);
             document.getElementById('monthHours').textContent = formatHoursClock(response.month_hours);
             document.getElementById('totalDays').textContent = formatInteger(response.total_days);
             document.getElementById('avgHours').textContent = formatHoursClock(response.avg_hours_per_day);
