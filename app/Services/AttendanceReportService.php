@@ -114,7 +114,34 @@ class AttendanceReportService
             return 0;
         }
         
-        return $firstPunchIn->diffInMinutes($lastPunchOut) / 60;
+        $grossMinutes = $firstPunchIn->diffInMinutes($lastPunchOut);
+        
+        $breakMinutes = 0;
+        $breakStart = null;
+        
+        $breakMovements = $movements->where('movement_type', 'break');
+        foreach ($breakMovements as $m) {
+            $time = Carbon::parse($m->time)->setTimezone('Asia/Kolkata');
+            if ($m->movement_action === 'start') {
+                if (!$breakStart) $breakStart = $time;
+            } elseif ($m->movement_action === 'end') {
+                if ($breakStart) {
+                    if ($breakStart->gte($firstPunchIn) && $time->lte($lastPunchOut)) {
+                        $breakMinutes += $breakStart->diffInMinutes($time);
+                    } elseif ($breakStart->gte($firstPunchIn) && $breakStart->lt($lastPunchOut) && $time->gt($lastPunchOut)) {
+                        $breakMinutes += $breakStart->diffInMinutes($lastPunchOut);
+                    }
+                    $breakStart = null;
+                }
+            }
+        }
+        
+        if ($breakStart && $breakStart->gte($firstPunchIn) && $breakStart->lt($lastPunchOut)) {
+            $breakMinutes += $breakStart->diffInMinutes($lastPunchOut);
+        }
+
+        $netMinutes = max(0, $grossMinutes - $breakMinutes);
+        return $netMinutes / 60;
     }
 
     /**
@@ -129,9 +156,9 @@ class AttendanceReportService
         
         foreach ($typeMovements as $m) {
             $time = Carbon::parse($m->time);
-            if ($m->movement_action === 'in') {
+            if ($m->movement_action === 'in' || $m->movement_action === 'start') {
                 if (!$inTime) $inTime = $time;
-            } elseif ($m->movement_action === 'out') {
+            } elseif ($m->movement_action === 'out' || $m->movement_action === 'end') {
                 if ($inTime) {
                     $totalMinutes += $inTime->diffInMinutes($time);
                     $inTime = null;
