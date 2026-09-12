@@ -21,6 +21,13 @@ use App\Services\AttendanceReportService;
 
 class AttendanceController extends Controller
 {
+    protected $reportService;
+
+    public function __construct(AttendanceReportService $reportService)
+    {
+        $this->reportService = $reportService;
+    }
+
     /**
      * Get current authenticated user
      */
