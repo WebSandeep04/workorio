@@ -90,12 +90,24 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">Salary & Attendance Summary</h5>
             <div>
-                <a href="#" id="exportPdfBtn" class="btn btn-sm btn-danger me-2">
-                    <i class="bi bi-file-earmark-pdf me-1"></i>Export PDF
-                </a>
-                <a href="#" id="exportBtn" class="btn btn-sm btn-success">
-                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
-                </a>
+                <div class="dropdown d-inline-block me-2">
+                    <button class="btn btn-sm btn-danger dropdown-toggle" type="button" id="exportPdfDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>Export PDF
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportPdfDropdown">
+                        <li><a class="dropdown-item exportPdfBtn" href="#" data-penalty="1">With Penalty</a></li>
+                        <li><a class="dropdown-item exportPdfBtn" href="#" data-penalty="0">Without Penalty</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-sm btn-success dropdown-toggle" type="button" id="exportExcelDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportExcelDropdown">
+                        <li><a class="dropdown-item exportBtn" href="#" data-penalty="1">With Penalty</a></li>
+                        <li><a class="dropdown-item exportBtn" href="#" data-penalty="0">Without Penalty</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="card-body p-0">
@@ -121,18 +133,20 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    $('#exportBtn').on('click', function(e) {
+    $('.exportBtn').on('click', function(e) {
         e.preventDefault();
         const month = $('#month').val();
         const year = $('#year').val();
-        window.location.href = "{{ route('payroll.report.export') }}?month=" + month + "&year=" + year;
+        const penalty = $(this).data('penalty');
+        window.location.href = "{{ route('payroll.report.export') }}?month=" + month + "&year=" + year + "&with_penalty=" + penalty;
     });
 
-    $('#exportPdfBtn').on('click', function(e) {
+    $('.exportPdfBtn').on('click', function(e) {
         e.preventDefault();
         const month = $('#month').val();
         const year = $('#year').val();
-        window.location.href = "{{ route('payroll.report.export-pdf') }}?month=" + month + "&year=" + year;
+        const penalty = $(this).data('penalty');
+        window.location.href = "{{ route('payroll.report.export-pdf') }}?month=" + month + "&year=" + year + "&with_penalty=" + penalty;
     });
 
     $('#generateBtn').on('click', function() {
@@ -197,9 +211,8 @@ $(document).ready(function() {
                         <th class="text-end" style="min-width: 150px;">Loan Deduction</th>
                         <th class="text-end" style="min-width: 150px;">Total Deduction</th>
                         <th class="text-end" style="min-width: 120px;">Salary</th>
-                        <th class="text-center" style="min-width: 120px;">Total Lates</th>
-                        <th class="text-center" style="min-width: 120px;">Exempted Lates</th>
                         <th class="text-center" style="min-width: 120px;">Eligible Lates</th>
+                        <th class="text-center" style="min-width: 120px;">Exempted Lates</th>
                         <th class="text-center" style="min-width: 100px;">Penalty Days</th>
                         <th class="text-end" style="min-width: 150px;">Penalty Amount</th>
                         <th class="text-end" style="min-width: 120px;">Final Salary</th>
@@ -241,9 +254,8 @@ $(document).ready(function() {
                             <td class="text-end text-danger">₹${row.loan_deduction}</td>
                             <td class="text-end text-danger">₹${row.deduction_amount}</td>
                             <td class="text-end ${salaryBeforeClass}">${salaryBeforeText}</td>
-                            <td class="text-center">${row.total_late_occurrences}</td>
-                            <td class="text-center text-success">${row.exempted_late_occurrences}</td>
                             <td class="text-center text-danger">${row.penalty_eligible_lates}</td>
+                            <td class="text-center text-success">${row.exempted_late_occurrences}</td>
                             <td class="text-center text-danger">${row.penalty_days}</td>
                             <td class="text-end text-danger">₹${row.penalty_amount}</td>
                             <td class="text-end ${salaryClass}">${salaryText}</td>

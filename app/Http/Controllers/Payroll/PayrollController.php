@@ -315,6 +315,7 @@ class PayrollController extends Controller
     {
         $month = $request->input('month');
         $year = $request->input('year');
+        $withPenalty = $request->input('with_penalty', 1) == 1;
 
         if (!$month || !$year) {
             return back()->with('error', 'Month and year are required');
@@ -377,20 +378,25 @@ class PayrollController extends Controller
             "Expires"             => "0"
         );
 
-        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyDays, $employeePenaltyAmounts, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates) {
+        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyDays, $employeePenaltyAmounts, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $withPenalty) {
             $file = fopen('php://output', 'w');
             
             $grandTotalPaidSalary = 0;
             
             // Header Row
+            $baseColumns = [
+                'Total Working Days', 'Full Day', 'Half Day', 'Leave', 'Unpaid Leave', 
+                'Absent', 'Total Weekly Off', 'Total Holidays', 'Holiday Work', 'Sunday Work', 
+                'Total Present', 'Deduction Days', 'Days deduction amount', 'Advance Deduction', 'Loan Deduction', 'Total Deduction', 'Salary'
+            ];
+            if ($withPenalty) {
+                $baseColumns = array_merge($baseColumns, ['Penalty-Eligible Lates', 'Exempted Late Occurrences', 'Penalty Days', 'Penalty Amount', 'Final Salary']);
+            }
+
             $columns = array_merge(
                 ['Employee Code', 'Employee Name', 'Branch', 'Department'],
                 $uniqueComponents,
-                [
-                    'Total Working Days', 'Full Day', 'Half Day', 'Leave', 'Unpaid Leave', 
-                    'Absent', 'Total Weekly Off', 'Total Holidays', 'Holiday Work', 'Sunday Work', 
-                    'Total Present', 'Deduction Days', 'Days deduction amount', 'Advance Deduction', 'Loan Deduction', 'Total Deduction', 'Salary', 'Total Late Occurrences', 'Exempted Late Occurrences', 'Penalty-Eligible Lates', 'Penalty Days', 'Penalty Amount', 'Final Salary'
-                ]
+                $baseColumns
             );
             fputcsv($file, $columns);
 
@@ -421,10 +427,10 @@ class PayrollController extends Controller
                 $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
                 
                 if ($paid !== null) {
-                    $grandTotalPaidSalary += (float)$paid;
+                    $grandTotalPaidSalary += (float)($withPenalty ? $paid : ($paid + $penaltyAmount));
                 }
 
-                $row = array_merge($row, [
+                $baseRow = [
                     $summary->total_working_days ?? 0,
                     $summary->total_present ?? 0,
                     $summary->total_halfday ?? 0,
@@ -441,15 +447,20 @@ class PayrollController extends Controller
                     $advanceDeduction,
                     $loanDeduction,
                     $deductionAmount - $penaltyAmount,
-                    $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated',
-                    $totalLates,
-                    $exemptedLates,
-                    $actualLates,
-                    $penaltyDays,
-                    $penaltyAmount,
-                    $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated'
-                ]);
+                    $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated'
+                ];
 
+                if ($withPenalty) {
+                    $baseRow = array_merge($baseRow, [
+                        $actualLates,
+                        $exemptedLates,
+                        $penaltyDays,
+                        $penaltyAmount,
+                        $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated'
+                    ]);
+                }
+
+                $row = array_merge($row, $baseRow);
                 fputcsv($file, $row);
             }
             
@@ -468,6 +479,7 @@ class PayrollController extends Controller
     {
         $month = $request->input('month');
         $year = $request->input('year');
+        $withPenalty = $request->input('with_penalty', 1) == 1;
 
         if (!$month || !$year) {
             return back()->with('error', 'Month and year are required');
@@ -519,8 +531,8 @@ class PayrollController extends Controller
         $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
         $fileName = 'Payroll_Report_' . date('F', mktime(0, 0, 0, $month, 1)) . '_' . $year . '.pdf';
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePenaltyDays', 'employeePenaltyAmounts', 'employeeTotalLates', 'employeeExemptedLates', 'employeeActualLates', 'month', 'year'))
-                ->setPaper('a4', 'landscape');
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePenaltyDays', 'employeePenaltyAmounts', 'employeeTotalLates', 'employeeExemptedLates', 'employeeActualLates', 'month', 'year', 'withPenalty'))
+                ->setPaper('a3', 'landscape');
                 
         return $pdf->download($fileName);
     }

@@ -24,7 +24,7 @@
         .data-table-card .modern-card-body { padding: 0; }
         .data-table-card .table-responsive { border-radius: 18px; border: none; box-shadow: none; padding: 0.5rem 0.75rem 1rem; overflow-x: auto; background: transparent; }
         .data-table-card .custom-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.85rem; background: transparent; table-layout: auto; min-width: 100%; }
-        .data-table-card .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; font-family: Montserrat; }
+        .data-table-card .custom-table thead th { background: #fff; color: #000; font-size: 0.65rem; letter-spacing: 0.08em; font-weight: 700; padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid #f1f3f5; position: sticky; top: 0; z-index: 5; font-family: Montserrat; }
         .data-table-card .custom-table tbody td { font-size: 0.85rem; padding: 0.65rem 0.75rem; color: #000; border-bottom: 1px solid #f4f4f6; text-align: left; background: transparent; font-family: Montserrat; }
         .data-table-card .custom-table tbody tr:hover { background: #f8f9ff; box-shadow: 0px 8px 18px rgba(124, 58, 237, 0.08); transform: translateY(-1px); }
         
@@ -144,9 +144,13 @@
 <script>
 $(document).ready(function() {
     let table = $('#exemptionsTable').DataTable({
-        processing: true,
+        processing: false,
         serverSide: false,
         dom: '<"top">rt<"bottom"p><"clear">',
+        language: {
+            loadingRecords: "",
+            processing: ""
+        },
         ajax: {
             url: "{{ route('payroll.exemptions.fetch') }}",
             type: "POST",

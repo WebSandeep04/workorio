@@ -4,11 +4,11 @@
     <meta charset="utf-8">
     <title>Payroll Report</title>
     <style>
-        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 9px; color: #333; margin: 0; padding: 0; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8px; color: #333; margin: 0; padding: 0; }
         h2 { text-align: center; color: #434AFA; margin-bottom: 5px; }
-        p.subtitle { text-align: center; margin-top: 0; color: #666; font-size: 11px; margin-bottom: 15px; }
+        p.subtitle { text-align: center; margin-top: 0; color: #666; font-size: 10px; margin-bottom: 15px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 4px; text-align: center; }
+        th, td { border: 1px solid #ddd; padding: 3px; text-align: center; }
         th { background-color: #f4f6f9; color: #333; font-weight: bold; }
         .text-start { text-align: left; }
         .text-end { text-align: right; }
@@ -44,12 +44,13 @@
                 <th class="text-end">Loan Deduction</th>
                 <th class="text-end">Total Deduction</th>
                 <th class="text-end">Salary</th>
-                <th class="text-center">Total Lates</th>
-                <th class="text-center">Exempted Lates</th>
+                @if(isset($withPenalty) && $withPenalty)
                 <th class="text-center">Eligible Lates</th>
+                <th class="text-center">Exempted Lates</th>
                 <th class="text-end">Penalty Days</th>
                 <th class="text-end">Penalty Amount</th>
                 <th class="text-end">Final Salary</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -68,7 +69,7 @@
                     $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
                     $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
                     if ($paid !== null) {
-                        $grandTotalPaidSalary += (float)$paid;
+                        $grandTotalPaidSalary += (float)((isset($withPenalty) && $withPenalty) ? $paid : ($paid + $penaltyAmount));
                     }
                 @endphp
                 <tr>
@@ -96,23 +97,24 @@
                     <td class="text-end">{{ $loanDeduction }}</td>
                     <td class="text-end">{{ $deductionAmount - $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated' }}</td>
-                    <td class="text-center">{{ $employeeTotalLates[$summary->employee_id] ?? 0 }}</td>
-                    <td class="text-center">{{ $employeeExemptedLates[$summary->employee_id] ?? 0 }}</td>
+                    @if(isset($withPenalty) && $withPenalty)
                     <td class="text-center">{{ $employeeActualLates[$summary->employee_id] ?? 0 }}</td>
+                    <td class="text-center">{{ $employeeExemptedLates[$summary->employee_id] ?? 0 }}</td>
                     <td class="text-end">{{ $penaltyDays }}</td>
                     <td class="text-end">{{ $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated' }}</td>
+                    @endif
                 </tr>
             @endforeach
             @if($summaries->isNotEmpty())
                 <tr>
-                    <td colspan="{{ 23 + count($uniqueComponents) }}" class="text-end" style="font-weight: bold;">Grand Total:</td>
+                    <td colspan="{{ ((isset($withPenalty) && $withPenalty) ? 22 : 17) + count($uniqueComponents) }}" class="text-end" style="font-weight: bold;">Grand Total:</td>
                     <td class="text-end nowrap" style="font-weight: bold;">{{ number_format($grandTotalPaidSalary, 0, '', '') }}</td>
                 </tr>
             @endif
             @if($summaries->isEmpty())
                 <tr>
-                    <td colspan="{{ 24 + count($uniqueComponents) }}">No data available for this month.</td>
+                    <td colspan="{{ ((isset($withPenalty) && $withPenalty) ? 23 : 18) + count($uniqueComponents) }}">No data available for this month.</td>
                 </tr>
             @endif
         </tbody>
