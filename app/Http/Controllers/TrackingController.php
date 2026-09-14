@@ -308,6 +308,7 @@ class TrackingController extends Controller
 
             $isWeeklyOff = false;
             $isHalfDayWorking = false;
+            $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
             if ($shift) {
                 if ($shift->week_offs && is_array($shift->week_offs)) {
                     $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
@@ -526,6 +527,7 @@ class TrackingController extends Controller
                 $dayName = \Carbon\Carbon::parse($dateStr)->format('l');
                 $isWeeklyOff = false;
                 $isHalfDayWorking = false;
+                $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
                 if ($shift) {
                     if ($shift->week_offs && is_array($shift->week_offs)) {
                         $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
@@ -689,6 +691,7 @@ class TrackingController extends Controller
             $dayName = $date->format('l');
             $isWeeklyOff = false;
             $isHalfDayWorking = false;
+            $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
             if ($shift) {
                 if ($shift->week_offs && is_array($shift->week_offs)) {
                     $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
@@ -855,7 +858,7 @@ class TrackingController extends Controller
             "Expires" => "0"
         ];
 
-        $callback = function() use ($startDate, $endDate, $attendances, $leavesDetails, $holidaysData, $holidays, $shift, $locationsByDate, $reportService) {
+        $callback = function() use ($startDate, $endDate, $attendances, $leavesDetails, $holidaysData, $holidays, $user, $locationsByDate, $reportService) {
             $file = fopen('php://output', 'w');
             
             fputcsv($file, ['Date', 'Day', 'Status', 'Total Hours', 'KM Travelled', 'Logged Points']);
@@ -874,6 +877,7 @@ class TrackingController extends Controller
 
                 $isWeeklyOff = false;
                 $isHalfDayWorking = false;
+                $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
                 if ($shift) {
                     if ($shift->week_offs && is_array($shift->week_offs)) {
                         $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
@@ -1094,6 +1098,7 @@ class TrackingController extends Controller
                     $dayName = \Carbon\Carbon::parse($dateStr)->format('l');
                     $isWeeklyOff = false;
                     $isHalfDayWorking = false;
+                    $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
                     if ($shift) {
                         if ($shift->week_offs && is_array($shift->week_offs)) {
                             $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
@@ -1251,6 +1256,7 @@ class TrackingController extends Controller
                 $dayName = $date->format('l');
                 $isWeeklyOff = false;
                 $isHalfDayWorking = false;
+                $shift = $user && $user->employee ? $user->employee->getShiftForDate($dateStr) : null;
                 if ($shift) {
                     if ($shift->week_offs && is_array($shift->week_offs)) {
                         $isWeeklyOff = in_array(date('w', strtotime($dayName)), $shift->week_offs);
