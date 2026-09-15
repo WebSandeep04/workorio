@@ -1,0 +1,210 @@
+﻿<!-- Create Task Modal -->
+<div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"> 
+                <h5 class="modal-title" id="createTaskModalLabel">Create New Task</h5>
+                <div class="subHeader">
+                    <div class="task-type-wrapper">
+                        <span class="task-type-title">Select opt...</span>
+
+                        <label class="task-type-option">
+                        <input type="radio" name="task_type" value="task" checked>
+                        Task
+                        </label>
+
+                        <label class="task-type-option">
+                        <input type="radio" name="task_type" value="qc">
+                        Qc
+                        </label>
+
+                        <label class="task-type-option">
+                        <input type="radio" name="task_type" value="cp">
+                        CP
+                        </label>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            </div>
+            <form id="taskForm">
+                <div class="modal-body form-compact">
+                    @csrf
+                    
+                    <!-- Recurring (Top, colorful) -->
+                    <div class="form-accent mb-2" id="recurrenceSection">
+                        <div class="chip-row">
+                            <div class="chip-title">Recurring</div>
+                            <label class="chip-toggle">
+                                Enable
+                                <input class="form-check-input" type="checkbox" id="is_recurring">
+                            </label>
+                        </div>
+                        <div id="recurrencePanel" class="mt-2" style="display:none;">
+                            <div class="row g-2">
+                                <div class="col-6 col-md-3">
+                                    <label class="form-label">Repeat</label>
+                                    <select id="recurrence_type" class="form-select form-select-sm">
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                        <option value="yearly">Yearly</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <label class="form-label">Every</label>
+                                    <input type="number" min="1" value="1" id="recurrence_interval" class="form-control form-control-sm" placeholder="Interval">
+                                </div>
+                                <div class="col-12 col-md-3">
+                                    <label class="form-label">End date</label>
+                                    <input type="date" id="recurrence_end_date" class="form-control form-control-sm">
+                                </div>
+                            </div>
+                            <div id="recurrence_weekly" class="mt-2" style="display:none;">
+                                <label class="form-label">On days</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="mon" id="dow_mon"><label class="form-check-label" for="dow_mon">Mon</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="tue" id="dow_tue"><label class="form-check-label" for="dow_tue">Tue</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="wed" id="dow_wed"><label class="form-check-label" for="dow_wed">Wed</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="thu" id="dow_thu"><label class="form-check-label" for="dow_thu">Thu</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="fri" id="dow_fri"><label class="form-check-label" for="dow_fri">Fri</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="sat" id="dow_sat"><label class="form-check-label" for="dow_sat">Sat</label></div>
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="sun" id="dow_sun"><label class="form-check-label" for="dow_sun">Sun</label></div>
+                                </div>
+                            </div>
+                            <div id="recurrence_monthly" class="mt-2" style="display:none;">
+                                <label class="form-label">On day of month</label>
+                                <input type="number" id="recurrence_day_of_month" class="form-control form-control-sm" min="1" max="31" placeholder="1-31">
+                            </div>
+                            <div id="recurrence_yearly" class="mt-2" style="display:none;">
+                                <label class="form-label">In months</label>
+                                <div class="row g-1">
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="1" id="m_1"><label class="form-check-label" for="m_1">Jan</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="2" id="m_2"><label class="form-check-label" for="m_2">Feb</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="3" id="m_3"><label class="form-check-label" for="m_3">Mar</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="4" id="m_4"><label class="form-check-label" for="m_4">Apr</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="5" id="m_5"><label class="form-check-label" for="m_5">May</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="6" id="m_6"><label class="form-check-label" for="m_6">Jun</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="7" id="m_7"><label class="form-check-label" for="m_7">Jul</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="8" id="m_8"><label class="form-check-label" for="m_8">Aug</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="9" id="m_9"><label class="form-check-label" for="m_9">Sep</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="10" id="m_10"><label class="form-check-label" for="m_10">Oct</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="11" id="m_11"><label class="form-check-label" for="m_11">Nov</label></div></div>
+                                    <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input" type="checkbox" value="12" id="m_12"><label class="form-check-label" for="m_12">Dec</label></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- Customer Select -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="customer_id" class="form-label" id="label_customer">Clients</label>
+                                <select name="customer_id" id="customer_id" class="form-select form-select-sm form-select-customer" required>
+                                    <option value="" class="select">Select Customer</option>
+                                </select>
+                            </div>
+                            <!-- Customer Project Select -->
+                             <div class="mb-3">
+                                <label for="customer_project_id" class="form-label">Project (Optional)</label>
+                                <select name="customer_project_id" id="customer_project_id" class="form-select form-select-sm">
+                                    <option value="">Select Project</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- User Select -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label" id="label_user">Assign To</label>
+                                <div id="assignUsersContainer" class="assign-users-grid" data-input-name="user_ids[]"></div>
+                                <small class="text-muted">Select one or more users to assign this task/QC.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task Name -->
+                    <div class="row">
+                        <div class="mb-3 col-md-5">
+                            <label for="task_name" class="form-label" id="label_task_name">Task Name</label>
+                            <input type="text" name="task_name" id="task_name" class="form-control form-control-sm" required placeholder="Enter task name...">
+                        </div>
+
+                        <div class="mb-3 col-md-3">
+                            <label for="estimated_efforts" class="form-label" id="label_estimated_efforts">Estimated Efforts</label>
+                            <input type="text" name="estimated_efforts" id="estimated_efforts" class="form-control form-control-sm" placeholder="e.g. 2h, 3 days...">
+                        </div>
+
+                        <div class="mb-3 col-md-4">
+                            <label for="due_date" class="form-label" id="label_due_date">Due Date</label>
+                            <input type="date" name="due_date" id="due_date" class="form-control form-control-sm">
+                        </div>
+                    </div>
+
+                    <div class = "row">
+                        <!-- Task Description -->
+                        <div class="mb-3 col-12 col-md-8">
+                            <label for="task" class="form-label" id="label_task_desc">Description</label>
+                            <textarea name="task" id="task" class="form-control form-control-sm" rows="4" required placeholder="Enter..."></textarea>
+                            
+                            <div class="row mt-3">
+                                <!-- Task Status Select -->
+                                <div class="mb-3 col-6">
+                                    <label for="task_status_id" class="form-label" id="label_task_status">Status</label>
+                                    <select name="task_status_id" id="task_status_id" class="form-select form-select-sm" required>
+                                        <option value="">Select Status</option>
+                                    </select>
+                                </div>
+
+                                <!-- Task Priority Select -->
+                                <div class="mb-3 col-6">
+                                    <label for="task_priority_id" class="form-label" id="label_task_priority">Priority</label>
+                                    <select name="task_priority_id" id="task_priority_id" class="form-select form-select-sm">
+                                        <option value="">Select Priority</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                            <!-- Image Upload with Add More -->
+                        <div class="mb-3 col-12 col-md-4">
+                            <div class="file-upload-box text-center p-4">
+
+                                <!-- Upload Icon -->
+                                <div class="upload-icon mb-3">
+                                <i class="bi bi-cloud-arrow-up" style ="color: #434AFA;"></i>
+                                </div>
+
+                                <!-- File Input -->
+                                <input
+                                type="file" name="images[]" id="task_images" class="d-none" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip" style= "background: #DfDfDf;"
+                                >
+
+                                <!-- Browse Button -->
+                                <button
+                                type="button"
+                                class="btn btn-sm btn-primary mb-2" style= "background: #434AFA;"
+                                onclick="document.getElementById('task_images').click()"
+                                >
+                                Browse Files
+                                </button>
+
+                                <!-- Helper Text -->
+                                <p style="color: black;" >Drop or Paste Here</p>
+
+                            </div>
+
+                            <!-- Preview -->
+                            <div id="imagePreview" class="mt-2 d-flex gap-2 flex-wrap"></div>
+                            <div id="selectedImagesList" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 modal-footer-custom">
+                    <button type="submit" class="btn btn-primary" style = "background: #434AFa;" id="createTaskSubmitBtn">
+                        Submit
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>

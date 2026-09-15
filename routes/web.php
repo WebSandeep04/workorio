@@ -836,6 +836,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Task & Work Management
     Route::get('/signal-task', [SignalTaskController::class, 'index'])->name('signal-task.index');
     Route::get('/signal-task/fetch', [SignalTaskController::class, 'fetch'])->name('signal-task.fetch');
+    Route::post('/signal-task/process-ai', [SignalTaskController::class, 'processAi'])->name('signal-task.process-ai');
     Route::get('/all-tasks', [TaskController::class, 'allTasks'])->name('all-tasks.index');
     Route::get('/all-tasks/fetch', [TaskController::class, 'fetchAllTasks'])->name('all-tasks.fetch');
 
