@@ -143,6 +143,7 @@ return [
                     'items' => [
                         ['route' => 'all-tasks.index', 'title' => 'All Tasks', 'icon' => 'bi bi-card-list', 'permission' => 'task.view'],
                         ['route' => 'task.index', 'title' => 'Task', 'tooltip' => 'Task assign by me', 'icon' => 'bi bi-list-task', 'permission' => 'task.my_created'],
+                        ['route' => 'signal-task.index', 'title' => 'Signal Task', 'tooltip' => 'Signal Whatsapp Messages', 'icon' => 'bi bi-chat-dots', 'permission' => 'task.view'],
                         ['route' => 'my-tasks.index', 'title' => 'My Tasks', 'tooltip' => 'Task assign to me', 'icon' => 'bi bi-person-check', 'permission' => 'task.my_tasks'],
                     ],
                 ],

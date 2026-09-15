@@ -90,6 +90,7 @@ use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
+use App\Http\Controllers\SignalTaskController;
 use App\Http\Controllers\TeamAnalyticsController;
 use App\Http\Controllers\TeamCallingController;
 use App\Http\Controllers\TeamLeadsController;
@@ -833,6 +834,8 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::delete('/task-status/{id}', [TaskStatusController::class, 'destroy'])->name('task-status.destroy');
 
     // Task & Work Management
+    Route::get('/signal-task', [SignalTaskController::class, 'index'])->name('signal-task.index');
+    Route::get('/signal-task/fetch', [SignalTaskController::class, 'fetch'])->name('signal-task.fetch');
     Route::get('/all-tasks', [TaskController::class, 'allTasks'])->name('all-tasks.index');
     Route::get('/all-tasks/fetch', [TaskController::class, 'fetchAllTasks'])->name('all-tasks.fetch');
 
