@@ -882,6 +882,238 @@
     background-color: #434AFA;
 }
 
+.chat-container {
+    display: flex;
+    height: 700px;
+    background: #f4f5f7;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.chat-sidebar {
+    width: 300px;
+    background: #fff;
+    border-right: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-sidebar-header {
+    padding: 15px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fff;
+}
+
+.chat-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.chat-list-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.chat-list-item:hover {
+    background: #f8f9fa;
+}
+
+.chat-list-item.active {
+    background: #e7f1ff;
+    border-left: 3px solid #434AFA;
+}
+
+.chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #d1d5db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    color: #fff;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.chat-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.chat-meta {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #efeae2;
+}
+
+.chat-main-header {
+    padding: 15px;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message-bubble {
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    max-width: 80%;
+    align-self: flex-start;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.message-sender {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #029688;
+    margin-bottom: 4px;
+}
+
+.message-text {
+    font-size: 0.9rem;
+    color: #111827;
+    margin-bottom: 15px;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.message-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.message-time {
+    font-size: 0.65rem;
+    color: #6b7280;
+}
+
+.btn-mark-task {
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.2s;
+}
+
+.btn-mark-task:hover {
+    background: #f3f4f6;
+}
+
+.btn-mark-task i.text-danger {
+    color: #ef4444 !important;
+}
+
+.ai-tasks-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    padding: 15px 0;
+}
+
+.ai-task-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-task-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.ai-task-desc {
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin-bottom: 15px;
+    flex: 1;
+    white-space: pre-wrap;
+}
+
+.ai-task-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 10px;
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        flex-direction: column;
+        height: auto;
+    }
+    .chat-sidebar {
+        width: 100%;
+        max-height: 250px;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .chat-main {
+        height: 500px;
+    }
+}
+
+/* Custom styles for active tabs and toggle buttons */
+.nav-tabs .nav-link.active {
+    background-color: #434AFA !important;
+    color: #fff !important;
+    border-color: #434AFA !important;
+}
+
+.btn-check:checked + .btn-outline-primary {
+    background-color: #434AFA !important;
+    color: #fff !important;
+    border-color: #434AFA !important;
+}
 </style>
 
 
@@ -889,68 +1121,7 @@
 
 @section('content')
   <div class="container-fluid px-2">
-    <!-- Summary Cards -->
-    <div class="summary-cards mt-2">
-      <div class="summary-card card-1">
-        <div class="summary-card-icon icon-sky">
-          <i class="bi bi-chat-dots text-white" style="font-size: 1.2rem;"></i>
-        </div>
-        <div class="summary-card-content">
-          <div class="summary-card-label">Total Messages</div>
-          <div class="summary-card-value" id="cardTotalMessages">0</div>
-        </div>
-      </div>
-      <div class="summary-card card-2">
-        <div class="summary-card-icon icon-emerald">
-          <i class="bi bi-robot text-white" style="font-size: 1.2rem;"></i>
-        </div>
-        <div class="summary-card-content">
-          <div class="summary-card-label">AI Tasks</div>
-          <div class="summary-card-value" id="cardAiTasks">0</div>
-        </div>
-      </div>
-      <div class="summary-card card-3">
-        <div class="summary-card-icon icon-amber">
-          <i class="bi bi-hourglass-split text-white" style="font-size: 1.2rem;"></i>
-        </div>
-        <div class="summary-card-content">
-          <div class="summary-card-label">Pending AI Tasks</div>
-          <div class="summary-card-value" id="cardPending">0</div>
-        </div>
-      </div>
-      <div class="summary-card card-4">
-        <div class="summary-card-icon icon-sunrise">
-          <i class="bi bi-check2-circle text-white" style="font-size: 1.2rem;"></i>
-        </div>
-        <div class="summary-card-content">
-          <div class="summary-card-label">Converted</div>
-          <div class="summary-card-value" id="cardConverted">0</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="table-search mb-2 mt-2 d-flex justify-content-between align-items-center">
-      <div class="d-flex w-100 me-3">
-        <div class="table-search-field w-100 me-3">
-          <i class="bi bi-search"></i>
-          <input type="text" id="searchInput" placeholder="Search..." />
-        </div>
-        <div id="statusFilterWrapper" style="display: none;">
-          <select id="statusFilter" class="form-select form-select-sm" style="border-radius: 6px; border-color: #e0e0e0; min-width: 140px; height: 100%;">
-            <option value="pending" selected>Pending</option>
-            <option value="converted">Converted</option>
-            <option value="all">All</option>
-          </select>
-        </div>
-      </div>
-      <div>
-        <button id="processAiBtn" class="table-search-btn text-nowrap">
-            <i class="fas fa-robot me-1"></i> Process AI Tasks
-        </button>
-      </div>
-    </div>
-
-    <ul class="nav nav-tabs mb-3" id="signalTabs" role="tablist">
+    <ul class="nav nav-tabs mb-3 mt-3" id="signalTabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button class="nav-link active" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages-pane" type="button" role="tab" aria-controls="messages-pane" aria-selected="true" style="color: #434afa; font-weight: bold;">Messages</button>
       </li>
@@ -961,49 +1132,68 @@
 
     <div class="tab-content" id="signalTabsContent">
       <div class="tab-pane fade show active" id="messages-pane" role="tabpanel" aria-labelledby="messages-tab" tabindex="0">
-          <div class="data-table-card">
-            <div class="table-responsive">
-              <table class="table custom-table" id="signalTaskTable">
-                <thead>
-                  <tr>
-                    <th>Sender</th>
-                    <th>Chat</th>
-                    <th>Message</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="signalTaskTableBody">
-                  <tr>
-                    <td colspan="5" class="text-center">
-                      <i class="bi bi-arrow-repeat spin"></i> Loading messages...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <div class="chat-container">
+            <div class="chat-sidebar">
+                <div class="chat-sidebar-header">
+                    <h6 class="mb-0">All numbers <br><small class="text-muted" style="font-size:10px;" id="connectedNumbersCount">0 number(s) connected</small></h6>
+                </div>
+                <div class="chat-list" id="chatList">
+                    <div class="text-center p-3"><i class="bi bi-arrow-repeat spin"></i> Loading chats...</div>
+                </div>
+            </div>
+            <div class="chat-main">
+                <div class="chat-main-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0" id="chatMainHeader">All messages</h6>
+                    <button id="processAiBtn" class="btn btn-sm text-white shadow-sm" style="background: #434AFA; border-radius: 4px; font-weight: 600;">
+                        <i class="fas fa-robot me-1"></i> Process AI Tasks
+                    </button>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="text-center p-3"><i class="bi bi-arrow-repeat spin"></i> Loading messages...</div>
+                </div>
             </div>
           </div>
       </div>
       <div class="tab-pane fade" id="ai-tasks-pane" role="tabpanel" aria-labelledby="ai-tasks-tab" tabindex="0">
-          <div class="data-table-card">
-            <div class="table-responsive">
-              <table class="table custom-table" id="aiTaskTable">
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="aiTaskTableBody">
-                  <tr>
-                    <td colspan="5" class="text-center">
-                      <i class="bi bi-arrow-repeat spin"></i> Loading AI tasks...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="btn-group" role="group">
+                  <input type="radio" class="btn-check" name="aiTaskView" id="viewTableBtn" value="table" autocomplete="off" checked>
+                  <label class="btn btn-outline-primary btn-sm" for="viewTableBtn" style="border-color:#434AFA; color:#434AFA;"><i class="bi bi-table"></i> Table</label>
+
+                  <input type="radio" class="btn-check" name="aiTaskView" id="viewCardBtn" value="card" autocomplete="off">
+                  <label class="btn btn-outline-primary btn-sm" for="viewCardBtn" style="border-color:#434AFA; color:#434AFA;"><i class="bi bi-grid"></i> Card</label>
+              </div>
+              <div>
+                  <select id="statusFilter" class="form-select form-select-sm" style="border-radius: 6px; border-color: #e0e0e0; min-width: 140px;">
+                      <option value="pending" selected>Pending</option>
+                      <option value="converted">Converted</option>
+                      <option value="all">All</option>
+                  </select>
+              </div>
+          </div>
+          
+          <div id="aiTaskTableView" class="data-table-card">
+              <div class="table-responsive">
+                  <table class="table custom-table" id="aiTaskTable">
+                      <thead>
+                          <tr>
+                              <th>Title</th>
+                              <th>Description</th>
+                              <th>Status</th>
+                              <th>Action</th>
+                          </tr>
+                      </thead>
+                      <tbody id="aiTaskTableBody">
+                          <tr>
+                              <td colspan="4" class="text-center"><i class="bi bi-arrow-repeat spin"></i> Loading AI tasks...</td>
+                          </tr>
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+
+          <div id="aiTaskCardView" class="ai-tasks-container" style="display: none;">
+              <div class="text-center p-4 text-muted w-100"><i class="bi bi-arrow-repeat spin"></i> Loading AI tasks...</div>
           </div>
       </div>
     </div>
@@ -1239,10 +1429,8 @@ $(document).ready(function() {
         currentTab = $(e.target).attr('id') === 'messages-tab' ? 'messages' : 'ai-tasks';
         if(currentTab === 'messages') {
             $('#processAiBtn').prop('disabled', false).show();
-            $('#statusFilterWrapper').hide();
         } else {
             $('#processAiBtn').prop('disabled', true).hide();
-            $('#statusFilterWrapper').show();
         }
         $('#searchInput').trigger('keyup'); // Re-trigger search for the active tab
     });
@@ -1320,75 +1508,179 @@ $(document).ready(function() {
 
     $('#statusFilter').on('change', function() {
         currentStatusFilter = $(this).val();
-        renderMessages(allMessages);
         renderAiTasks(allAiTasks);
     });
+    
+    $('input[name="aiTaskView"]').on('change', function() {
+        let view = $(this).val();
+        if (view === 'table') {
+            $('#aiTaskTableView').show();
+            $('#aiTaskCardView').hide();
+        } else {
+            $('#aiTaskTableView').hide();
+            $('#aiTaskCardView').show();
+            $('#aiTaskCardView').css('display', 'grid');
+        }
+    });
+    
+    let currentSelectedChat = 'All chats';
 
     function renderMessages(tasks) {
+        let chats = {};
+        let totalMessages = 0;
+        
+        let filteredTasks = tasks.filter(task => {
+            let status = task.status || 'pending';
+            if (task.ai_status === 'converted') {
+                status = 'converted';
+            }
+            if (currentStatusFilter !== 'all' && status !== currentStatusFilter) return false;
+            return true;
+        });
+        
+        filteredTasks.forEach(function(task) {
+            let chatName = task.chat || 'Unknown';
+            if (!chats[chatName]) {
+                chats[chatName] = { name: chatName, count: 0, messages: [] };
+            }
+            chats[chatName].count++;
+            chats[chatName].messages.push(task);
+            totalMessages++;
+        });
+
+        let sidebarHtml = `
+            <div class="chat-list-item ${currentSelectedChat === 'All chats' ? 'active' : ''}" onclick="selectChat('All chats')">
+                <div class="chat-avatar" style="background:#e8f0fe; color:#1a73e8;"><i class="bi bi-chat-fill"></i></div>
+                <div class="chat-info">
+                    <div class="chat-name">All chats</div>
+                    <div class="chat-meta">${totalMessages} messages</div>
+                </div>
+            </div>
+        `;
+        
+        for (let chatName in chats) {
+            sidebarHtml += `
+                <div class="chat-list-item ${currentSelectedChat === chatName ? 'active' : ''}" onclick="selectChat('${chatName.replace(/'/g, "\\'")}')">
+                    <div class="chat-avatar"><i class="bi bi-person-fill"></i></div>
+                    <div class="chat-info">
+                        <div class="chat-name">${chatName}</div>
+                        <div class="chat-meta">${chats[chatName].count} messages</div>
+                    </div>
+                </div>
+            `;
+        }
+        $('#chatList').html(sidebarHtml);
+        
+        let uniqueNumbers = Object.keys(chats).length;
+        $('#connectedNumbersCount').text(uniqueNumbers + ' number(s) connected');
+        
+        renderChatMessages(currentSelectedChat === 'All chats' ? filteredTasks : (chats[currentSelectedChat] ? chats[currentSelectedChat].messages : []));
+    }
+    
+    window.selectChat = function(chatName) {
+        currentSelectedChat = chatName;
+        renderMessages(allMessages);
+    };
+
+    function renderChatMessages(messagesToRender) {
         let html = '';
-        if(tasks.length > 0) {
-            tasks.forEach(function(task) {
+        $('#chatMainHeader').text(currentSelectedChat);
+        
+        if (messagesToRender.length === 0) {
+            html = '<div class="text-center p-4 text-muted w-100">No messages found.</div>';
+        } else {
+            messagesToRender.forEach(function(task) {
                 let status = task.status || 'pending';
                 if (task.ai_status === 'converted') {
                     status = 'converted';
                 }
                 
-                let badge = task.ai_task_id ? `<span class="badge bg-success ms-2" style="font-size:0.6rem;">AI Detected</span>` : '';
-                let displayTitle = task.ai_title ? task.ai_title : 'Manual Task';
-                let actionBtn = status === 'converted' ? '<span class="text-success" style="font-weight: 500; font-size: 0.8rem;"><i class="bi bi-check-circle"></i> Converted</span>' : `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="message" data-title="${task.ai_title || ''}" data-desc="${task.ai_description || task.message_text}">Convert to Task</button>`;
+                let badge = task.ai_task_id ? `<span class="badge bg-success ms-1" style="font-size:0.55rem; padding:0.2em 0.4em;">AI Detected</span>` : '';
+                let displayTitle = task.ai_title ? task.ai_title : '';
+                
+                let actionBtn = status === 'converted' ? 
+                    '<span class="text-success" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
+                    `<button class="btn-mark-task convert-task-btn" data-id="${task.id}" data-type="message" data-title="${task.ai_title || ''}" data-desc="${(task.ai_description || task.message_text).replace(/"/g, '&quot;')}">
+                        <i class="bi bi-play-fill text-danger" style="font-size:1.1rem;"></i> Mark as task
+                    </button>`;
                 
                 let fullMessage = task.message_text || 'N/A';
-                let shortMessage = fullMessage.length > 17 ? fullMessage.substring(0, 17) + '...' : fullMessage;
-                let messageHtml = `<a href="#" class="msg-text-link" data-full="${encodeURIComponent(fullMessage)}" style="font-size:0.85rem; text-decoration:none; color:#000;">${shortMessage}</a>`;
                 
                 html += `
+                    <div class="message-bubble">
+                        <div class="message-sender">${task.sender || 'Unknown Sender'} - ${task.chat || 'Unknown Chat'} ${badge}</div>
+                        ${displayTitle ? `<div style="font-weight:600; font-size:0.85rem; margin-bottom:4px;">${displayTitle}</div>` : ''}
+                        <div class="message-text">${fullMessage}</div>
+                        <div class="message-footer">
+                            <div class="message-time">${task.created_at || ''}</div>
+                            <div>${actionBtn}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        $('#chatMessages').html(html);
+    }
+
+    function renderAiTasks(tasks) {
+        let tableHtml = '';
+        let cardHtml = '';
+        
+        let filteredTasks = tasks.filter(task => {
+            let status = task.status || 'pending';
+            if (currentStatusFilter !== 'all' && status !== currentStatusFilter) return false;
+            return true;
+        });
+
+        if (filteredTasks.length === 0) {
+            tableHtml = '<tr><td colspan="4" class="text-center text-muted">No AI tasks found.</td></tr>';
+            cardHtml = '<div class="text-center p-4 text-muted w-100">No AI tasks found.</div>';
+        } else {
+            filteredTasks.forEach(function(task) {
+                let status = task.status || 'pending';
+                
+                let actionBtn = status === 'converted' ? 
+                    '<span class="text-success" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
+                    `<button class="btn-mark-task convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">
+                        <i class="bi bi-play-fill text-danger" style="font-size:1.1rem;"></i> Mark as task
+                    </button>`;
+                
+                let fullDesc = task.description || 'N/A';
+
+                cardHtml += `
+                    <div class="ai-task-card">
+                        <div class="ai-task-title">${task.title || 'N/A'}</div>
+                        <div class="ai-task-desc">${fullDesc}</div>
+                        <div class="ai-task-footer">
+                            <span class="badge ${status === 'converted' ? 'bg-success' : 'bg-secondary'}">${status}</span>
+                            ${actionBtn}
+                        </div>
+                    </div>
+                `;
+                
+                let shortDesc = fullDesc.length > 30 ? fullDesc.substring(0, 30) + '...' : fullDesc;
+                let descHtml = `<a href="#" class="msg-text-link" data-full="${encodeURIComponent(fullDesc)}" style="font-size:0.85rem; text-decoration:none; color:#000;">${shortDesc}</a>`;
+                let actionBtnTable = status === 'converted' ? 
+                    '<span class="text-success" style="font-weight: 500; font-size: 0.8rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
+                    `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">Convert to Task</button>`;
+
+                tableHtml += `
                     <tr>
-                        <td>${task.sender || 'N/A'}</td>
-                        <td>${task.chat || 'N/A'} ${badge}</td>
-                        <td>
-                            ${task.ai_task_id ? '<strong>' + displayTitle + '</strong><br>' : ''}
-                            ${messageHtml}
-                        </td>
-                        <td>${actionBtn}</td>
+                        <td>${task.title || 'N/A'}</td>
+                        <td>${descHtml}</td>
+                        <td>${status}</td>
+                        <td>${actionBtnTable}</td>
                     </tr>
                 `;
             });
         }
         
-        if ($.fn.DataTable.isDataTable('#signalTaskTable')) {
-            $('#signalTaskTable').DataTable().destroy();
-        }
-        $('#signalTaskTableBody').html(html);
-        initDataTable('#signalTaskTable');
-    }
-
-    function renderAiTasks(tasks) {
-        let html = '';
-        if(tasks.length > 0) {
-            tasks.forEach(function(task) {
-                let status = task.status || 'pending';
-                if (currentStatusFilter !== 'all' && status !== currentStatusFilter) return;
-                let actionBtn = status === 'converted' ? '<span class="text-success" style="font-weight: 500; font-size: 0.8rem;"><i class="bi bi-check-circle"></i> Converted</span>' : `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${task.description || ''}">Convert to Task</button>`;
-                
-                let fullDesc = task.description || 'N/A';
-                let shortDesc = fullDesc.length > 30 ? fullDesc.substring(0, 30) + '...' : fullDesc;
-                let descHtml = `<a href="#" class="msg-text-link" data-full="${encodeURIComponent(fullDesc)}" style="font-size:0.85rem; text-decoration:none; color:#000;">${shortDesc}</a>`;
-
-                html += `
-                    <tr>
-                        <td>${task.title || 'N/A'}</td>
-                        <td>${descHtml}</td>
-                        <td>${task.status || 'N/A'}</td>
-                        <td>${actionBtn}</td>
-                    </tr>
-                `;
-            });
-        }
+        $('#aiTaskCardView').html(cardHtml);
         
         if ($.fn.DataTable.isDataTable('#aiTaskTable')) {
             $('#aiTaskTable').DataTable().destroy();
         }
-        $('#aiTaskTableBody').html(html);
+        $('#aiTaskTableBody').html(tableHtml);
         initDataTable('#aiTaskTable');
     }
 
