@@ -304,7 +304,6 @@
     color: #000;
     font-size: 0.65rem;
     letter-spacing: 0.08em;
-    text-transform: uppercase;
     font-weight: 700;
     padding: 0.4rem 0.5rem;
     text-align: left;
@@ -341,6 +340,7 @@
     border-bottom: none;
   }
 
+  /* Pagination */
   .pagination .page-link {
     color: #434afa;
     border: 2px solid #e0e0e0;
@@ -353,8 +353,8 @@
   }
 
   .pagination .page-item.active .page-link {
-    background: #434AFA;
-    border-color: #434AFA;
+    background: #434afa;
+    border-color: #434afa;
     color: white;
     box-shadow: 0 2px 8px rgba(67, 74, 250, 0.3);
   }
@@ -363,6 +363,20 @@
     background: rgba(67, 74, 250, 0.15);
     border-color: #434afa;
     transform: translateY(-1px);
+  }
+
+  .dataTables_wrapper .dataTables_info {
+      font-size: 0.75rem;
+      color: #6b7280;
+  }
+
+  .btn-action-edit {
+    color: white;
+    background: #434AFA !important;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    border: none;
+    transition: all 0.2s ease;
   }
 
   .loading-state {
@@ -875,13 +889,62 @@
 
 @section('content')
   <div class="container-fluid px-2">
+    <!-- Summary Cards -->
+    <div class="summary-cards mt-2">
+      <div class="summary-card card-1">
+        <div class="summary-card-icon icon-sky">
+          <i class="bi bi-chat-dots text-white" style="font-size: 1.2rem;"></i>
+        </div>
+        <div class="summary-card-content">
+          <div class="summary-card-label">Total Messages</div>
+          <div class="summary-card-value" id="cardTotalMessages">0</div>
+        </div>
+      </div>
+      <div class="summary-card card-2">
+        <div class="summary-card-icon icon-emerald">
+          <i class="bi bi-robot text-white" style="font-size: 1.2rem;"></i>
+        </div>
+        <div class="summary-card-content">
+          <div class="summary-card-label">AI Tasks</div>
+          <div class="summary-card-value" id="cardAiTasks">0</div>
+        </div>
+      </div>
+      <div class="summary-card card-3">
+        <div class="summary-card-icon icon-amber">
+          <i class="bi bi-hourglass-split text-white" style="font-size: 1.2rem;"></i>
+        </div>
+        <div class="summary-card-content">
+          <div class="summary-card-label">Pending AI Tasks</div>
+          <div class="summary-card-value" id="cardPending">0</div>
+        </div>
+      </div>
+      <div class="summary-card card-4">
+        <div class="summary-card-icon icon-sunrise">
+          <i class="bi bi-check2-circle text-white" style="font-size: 1.2rem;"></i>
+        </div>
+        <div class="summary-card-content">
+          <div class="summary-card-label">Converted</div>
+          <div class="summary-card-value" id="cardConverted">0</div>
+        </div>
+      </div>
+    </div>
+
     <div class="table-search mb-2 mt-2 d-flex justify-content-between align-items-center">
-      <div class="table-search-field" style="max-width: 300px;">
-        <i class="bi bi-search"></i>
-        <input type="text" id="searchInput" placeholder="Search..." />
+      <div class="d-flex w-100 me-3">
+        <div class="table-search-field w-100 me-3">
+          <i class="bi bi-search"></i>
+          <input type="text" id="searchInput" placeholder="Search..." />
+        </div>
+        <div id="statusFilterWrapper" style="display: none;">
+          <select id="statusFilter" class="form-select form-select-sm" style="border-radius: 6px; border-color: #e0e0e0; min-width: 140px; height: 100%;">
+            <option value="pending" selected>Pending</option>
+            <option value="converted">Converted</option>
+            <option value="all">All</option>
+          </select>
+        </div>
       </div>
       <div>
-        <button id="processAiBtn" class="btn btn-primary" style="background-color: #434afa; border: none;">
+        <button id="processAiBtn" class="table-search-btn text-nowrap">
             <i class="fas fa-robot me-1"></i> Process AI Tasks
         </button>
       </div>
@@ -903,7 +966,6 @@
               <table class="table custom-table" id="signalTaskTable">
                 <thead>
                   <tr>
-                    <th>ID</th>
                     <th>Sender</th>
                     <th>Chat</th>
                     <th>Message</th>
@@ -927,7 +989,6 @@
               <table class="table custom-table" id="aiTaskTable">
                 <thead>
                   <tr>
-                    <th>ID</th>
                     <th>Title</th>
                     <th>Description</th>
                     <th>Status</th>
@@ -1162,6 +1223,8 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script>
 $(document).ready(function() {
     let allMessages = [];
@@ -1176,11 +1239,35 @@ $(document).ready(function() {
         currentTab = $(e.target).attr('id') === 'messages-tab' ? 'messages' : 'ai-tasks';
         if(currentTab === 'messages') {
             $('#processAiBtn').prop('disabled', false).show();
+            $('#statusFilterWrapper').hide();
         } else {
             $('#processAiBtn').prop('disabled', true).hide();
+            $('#statusFilterWrapper').show();
         }
         $('#searchInput').trigger('keyup'); // Re-trigger search for the active tab
     });
+
+    function updateSummaryCards() {
+        let totalMessages = allMessages.length;
+        let aiTasks = allAiTasks.length;
+        
+        let pending = 0;
+        let converted = 0;
+        
+        allAiTasks.forEach(task => {
+            if ((task.status || 'pending') === 'converted') converted++;
+            else pending++;
+        });
+
+        allMessages.forEach(msg => {
+            if (msg.status === 'converted') converted++;
+        });
+        
+        $('#cardTotalMessages').text(totalMessages);
+        $('#cardAiTasks').text(aiTasks);
+        $('#cardPending').text(pending);
+        $('#cardConverted').text(converted);
+    }
 
     function fetchSignalTasks() {
         $.ajax({
@@ -1189,6 +1276,7 @@ $(document).ready(function() {
             success: function(response) {
                 allMessages = response;
                 renderMessages(allMessages);
+                updateSummaryCards();
             },
             error: function(xhr) {
                 console.error("Error fetching messages", xhr);
@@ -1204,6 +1292,7 @@ $(document).ready(function() {
             success: function(response) {
                 allAiTasks = response;
                 renderAiTasks(allAiTasks);
+                updateSummaryCards();
             },
             error: function(xhr) {
                 console.error("Error fetching AI tasks", xhr);
@@ -1212,21 +1301,48 @@ $(document).ready(function() {
         });
     }
 
+    function initDataTable(tableId) {
+        if ($.fn.DataTable.isDataTable(tableId)) {
+            $(tableId).DataTable().destroy();
+        }
+        $(tableId).DataTable({
+            dom: '<"top">rt<"bottom d-flex justify-content-between align-items-center mt-3"ip><"clear">',
+            pageLength: 10,
+            ordering: false,
+            language: { 
+                emptyTable: "No records found.",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            }
+        });
+    }
+
+    let currentStatusFilter = 'pending';
+
+    $('#statusFilter').on('change', function() {
+        currentStatusFilter = $(this).val();
+        renderMessages(allMessages);
+        renderAiTasks(allAiTasks);
+    });
+
     function renderMessages(tasks) {
         let html = '';
         if(tasks.length > 0) {
             tasks.forEach(function(task) {
+                let status = task.status || 'pending';
+                if (task.ai_status === 'converted') {
+                    status = 'converted';
+                }
+                
                 let badge = task.ai_task_id ? `<span class="badge bg-success ms-2" style="font-size:0.6rem;">AI Detected</span>` : '';
                 let displayTitle = task.ai_title ? task.ai_title : 'Manual Task';
-                let actionBtn = `<button class="btn btn-sm btn-primary convert-task-btn" style="background:#434AFA;border:none;" data-id="${task.id}" data-title="${task.ai_title || ''}" data-desc="${task.ai_description || task.message_text}">Convert to Task</button>`;
+                let actionBtn = status === 'converted' ? '<span class="text-success" style="font-weight: 500; font-size: 0.8rem;"><i class="bi bi-check-circle"></i> Converted</span>' : `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="message" data-title="${task.ai_title || ''}" data-desc="${task.ai_description || task.message_text}">Convert to Task</button>`;
                 
                 let fullMessage = task.message_text || 'N/A';
                 let shortMessage = fullMessage.length > 17 ? fullMessage.substring(0, 17) + '...' : fullMessage;
-                let messageHtml = `<a href="#" class="msg-text-link text-muted" data-full="${encodeURIComponent(fullMessage)}" style="font-size:0.85rem; text-decoration:none;">${shortMessage}</a>`;
+                let messageHtml = `<a href="#" class="msg-text-link" data-full="${encodeURIComponent(fullMessage)}" style="font-size:0.85rem; text-decoration:none; color:#000;">${shortMessage}</a>`;
                 
                 html += `
                     <tr>
-                        <td>${task.id}</td>
                         <td>${task.sender || 'N/A'}</td>
                         <td>${task.chat || 'N/A'} ${badge}</td>
                         <td>
@@ -1237,25 +1353,29 @@ $(document).ready(function() {
                     </tr>
                 `;
             });
-        } else {
-            html = '<tr><td colspan="5" class="text-center">No messages found.</td></tr>';
+        }
+        
+        if ($.fn.DataTable.isDataTable('#signalTaskTable')) {
+            $('#signalTaskTable').DataTable().destroy();
         }
         $('#signalTaskTableBody').html(html);
+        initDataTable('#signalTaskTable');
     }
 
     function renderAiTasks(tasks) {
         let html = '';
         if(tasks.length > 0) {
             tasks.forEach(function(task) {
-                let actionBtn = `<button class="btn btn-sm btn-primary convert-task-btn" style="background:#434AFA;border:none;" data-id="${task.id}" data-title="${task.title || ''}" data-desc="${task.description || ''}">Convert to Task</button>`;
+                let status = task.status || 'pending';
+                if (currentStatusFilter !== 'all' && status !== currentStatusFilter) return;
+                let actionBtn = status === 'converted' ? '<span class="text-success" style="font-weight: 500; font-size: 0.8rem;"><i class="bi bi-check-circle"></i> Converted</span>' : `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${task.description || ''}">Convert to Task</button>`;
                 
                 let fullDesc = task.description || 'N/A';
-                let shortDesc = fullDesc.length > 17 ? fullDesc.substring(0, 17) + '...' : fullDesc;
-                let descHtml = `<a href="#" class="msg-text-link text-muted" data-full="${encodeURIComponent(fullDesc)}" style="font-size:0.85rem; text-decoration:none;">${shortDesc}</a>`;
-                
+                let shortDesc = fullDesc.length > 30 ? fullDesc.substring(0, 30) + '...' : fullDesc;
+                let descHtml = `<a href="#" class="msg-text-link" data-full="${encodeURIComponent(fullDesc)}" style="font-size:0.85rem; text-decoration:none; color:#000;">${shortDesc}</a>`;
+
                 html += `
                     <tr>
-                        <td>${task.id}</td>
                         <td>${task.title || 'N/A'}</td>
                         <td>${descHtml}</td>
                         <td>${task.status || 'N/A'}</td>
@@ -1263,10 +1383,13 @@ $(document).ready(function() {
                     </tr>
                 `;
             });
-        } else {
-            html = '<tr><td colspan="5" class="text-center">No AI tasks found.</td></tr>';
+        }
+        
+        if ($.fn.DataTable.isDataTable('#aiTaskTable')) {
+            $('#aiTaskTable').DataTable().destroy();
         }
         $('#aiTaskTableBody').html(html);
+        initDataTable('#aiTaskTable');
     }
 
     // Load initial dropdown data for the modal
@@ -1358,6 +1481,8 @@ $(document).ready(function() {
     $(document).on('click', '.convert-task-btn', function() {
         let title = $(this).data('title');
         let desc = $(this).data('desc');
+        let id = $(this).data('id');
+        let type = $(this).data('type');
         
         $('#taskForm')[0].reset();
         
@@ -1367,6 +1492,9 @@ $(document).ready(function() {
         if (desc) {
             $('#task').val(desc);
         }
+        
+        $('#taskForm').data('signal-id', id);
+        $('#taskForm').data('signal-type', type);
         
         $('#createTaskModal').modal('show');
     });
@@ -1420,27 +1548,15 @@ $(document).ready(function() {
 
     // Basic frontend search
     $('#searchInput').on('keyup', function() {
-        let value = $(this).val().toLowerCase();
-        
+        let value = $(this).val();
         if (currentTab === 'messages') {
-            let filtered = allMessages.filter(function(task) {
-                return (
-                    (task.sender && task.sender.toLowerCase().includes(value)) ||
-                    (task.sender_phone && task.sender_phone.toLowerCase().includes(value)) ||
-                    (task.chat && task.chat.toLowerCase().includes(value)) ||
-                    (task.message_text && task.message_text.toLowerCase().includes(value))
-                );
-            });
-            renderMessages(filtered);
+            if ($.fn.DataTable.isDataTable('#signalTaskTable')) {
+                $('#signalTaskTable').DataTable().search(value).draw();
+            }
         } else {
-            let filtered = allAiTasks.filter(function(task) {
-                return (
-                    (task.title && task.title.toLowerCase().includes(value)) ||
-                    (task.description && task.description.toLowerCase().includes(value)) ||
-                    (task.status && task.status.toLowerCase().includes(value))
-                );
-            });
-            renderAiTasks(filtered);
+            if ($.fn.DataTable.isDataTable('#aiTaskTable')) {
+                $('#aiTaskTable').DataTable().search(value).draw();
+            }
         }
     });
 
@@ -1463,6 +1579,92 @@ $(document).ready(function() {
             },
             error: function(xhr) {
                 alert('Error processing AI tasks. ' + (xhr.responseJSON?.message || ''));
+            },
+            complete: function() {
+                btn.html(originalText).prop('disabled', false);
+            }
+        });
+    });
+
+    // Handle form submission via AJAX
+    $('#taskForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const btn = $('#createTaskSubmitBtn');
+        const originalText = btn.html();
+        btn.html('<i class="fas fa-spinner fa-spin me-1"></i> Submitting...').prop('disabled', true);
+        
+        const formData = new FormData(this);
+        formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+        
+        // Add task_type from radio button
+        const taskType = $('input[name="task_type"]:checked').val();
+        formData.set('task_type', taskType || 'task');
+
+        // Recurrence fields
+        const isRecurring = $('#is_recurring').is(':checked');
+        formData.append('is_recurring', isRecurring ? 1 : 0);
+        if (isRecurring) {
+            formData.append('recurrence_type', $('#recurrence_type').val());
+            formData.append('recurrence_interval', $('#recurrence_interval').val() || 1);
+            const dows = [];
+            ['mon','tue','wed','thu','fri','sat','sun'].forEach(function(k){
+                if ($('#dow_'+k).is(':checked')) dows.push(k);
+            });
+            if (dows.length) { dows.forEach(v => formData.append('recurrence_days_of_week[]', v)); }
+            const dom = $('#recurrence_day_of_month').val();
+            if (dom) formData.append('recurrence_day_of_month', dom);
+            const months = [];
+            for (let i=1;i<=12;i++){ if ($('#m_'+i).is(':checked')) months.push(i); }
+            if (months.length) { months.forEach(v => formData.append('recurrence_months[]', v)); }
+            const endDate = $('#recurrence_end_date').val();
+            if (endDate) formData.append('recurrence_end_date', endDate);
+        }
+        
+        $.ajax({
+            url: "{{ route('task.store') }}",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                let signalId = $('#taskForm').data('signal-id');
+                let signalType = $('#taskForm').data('signal-type');
+                
+                function finishSuccess() {
+                    alert(response.message || 'Task created successfully!');
+                    $('#createTaskModal').modal('hide');
+                    $('#taskForm')[0].reset();
+                    $('#imagePreview').empty();
+                    $('#selectedImagesList').empty();
+                    fetchSignalTasks(); 
+                    fetchAiTasks(); 
+                }
+
+                if (signalId && (signalType === 'ai_task' || signalType === 'message')) {
+                    $.post("{{ route('signal-task.mark-converted') }}", {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        id: signalId,
+                        type: signalType
+                    }, function() {
+                        finishSuccess();
+                    }).fail(function() {
+                        finishSuccess();
+                    });
+                } else {
+                    finishSuccess();
+                }
+            },
+            error: function(xhr) {
+                let errMsg = 'Failed to create task.';
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    const firstError = Object.values(xhr.responseJSON.errors)[0];
+                    errMsg = firstError[0];
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errMsg = xhr.responseJSON.message;
+                }
+                alert(errMsg);
             },
             complete: function() {
                 btn.html(originalText).prop('disabled', false);

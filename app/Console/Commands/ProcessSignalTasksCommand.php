@@ -114,10 +114,14 @@ class ProcessSignalTasksCommand extends Command
             $decision = $result['decision'] ?? 'ignore';
 
             if ($decision === 'new_task') {
+                // Find original message text
+                $originalMessage = collect($newMessages)->firstWhere('id', $msgId);
+                $originalText = $originalMessage ? $originalMessage['text'] : '';
+
                 DB::table('signal_ai_tasks')->insert([
                     'message_id' => $msgId,
                     'title' => $result['summary'] ?? 'Detected Task',
-                    'description' => json_encode($result), // store full AI JSON context in description or handle properly
+                    'description' => $originalText,
                     'ai_assigned_to' => $result['assigned_to'] ?? null,
                     'ai_requested_by' => $result['requested_by'] ?? null,
                     'status' => 'pending',

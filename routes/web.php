@@ -838,6 +838,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/signal-task/fetch', [SignalTaskController::class, 'fetch'])->name('signal-task.fetch');
     Route::get('/signal-task/fetch-ai-tasks', [SignalTaskController::class, 'fetchAiTasks'])->name('signal-task.fetch-ai-tasks');
     Route::post('/signal-task/process-ai', [SignalTaskController::class, 'processAi'])->name('signal-task.process-ai');
+    Route::post('/signal-task/mark-converted', [SignalTaskController::class, 'markConverted'])->name('signal-task.mark-converted');
     Route::get('/all-tasks', [TaskController::class, 'allTasks'])->name('all-tasks.index');
     Route::get('/all-tasks/fetch', [TaskController::class, 'fetchAllTasks'])->name('all-tasks.fetch');
 

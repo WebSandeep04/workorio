@@ -62,4 +62,26 @@ class SignalTaskController extends Controller
             return response()->json(['error' => 'Error processing AI tasks', 'message' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Mark a signal task or AI task as converted
+     */
+    public function markConverted(Request $request)
+    {
+        try {
+            $id = $request->id;
+            $type = $request->type;
+            
+            if ($type === 'ai_task') {
+                DB::table('signal_ai_tasks')->where('id', $id)->update(['status' => 'converted']);
+            } else if ($type === 'message') {
+                DB::table('signal_whatsapp_msg')->where('id', $id)->update(['status' => 'converted']);
+            }
+            
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Error marking converted: ' . $e->getMessage());
+            return response()->json(['error' => 'Error marking converted', 'message' => $e->getMessage()], 500);
+        }
+    }
 }
