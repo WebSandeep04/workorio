@@ -118,7 +118,7 @@ EOT;
     /**
      * Call the OpenAI API to analyze the messages.
      */
-    public function detectTasks(array $messages, string $model = 'gpt-4o-mini'): array
+    public function detectTasks(array $messages, string $model = 'gpt-5-nano'): array
     {
         $apiKey = env('OPENAI_API_KEY');
         if (empty($apiKey)) {
@@ -137,6 +137,16 @@ EOT;
 
             if ($response->failed()) {
                 Log::error('OpenAI API Error', ['body' => $response->body()]);
+                \App\Models\AiApiLog::create([
+                    'endpoint' => 'chat/completions',
+                    'model' => $model,
+                    'prompt_tokens' => 0,
+                    'completion_tokens' => 0,
+                    'total_tokens' => 0,
+                    'payload' => $messages,
+                    'response' => $response->json() ?? ['body' => $response->body()],
+                    'error_message' => 'API Request Failed: ' . $response->status(),
+                ]);
                 return [];
             }
 
@@ -145,10 +155,31 @@ EOT;
 
             if (!$content) {
                 Log::error('OpenAI response had no content.');
+                \App\Models\AiApiLog::create([
+                    'endpoint' => 'chat/completions',
+                    'model' => $model,
+                    'prompt_tokens' => $data['usage']['prompt_tokens'] ?? 0,
+                    'completion_tokens' => $data['usage']['completion_tokens'] ?? 0,
+                    'total_tokens' => $data['usage']['total_tokens'] ?? 0,
+                    'payload' => $messages,
+                    'response' => $data,
+                    'error_message' => 'OpenAI response had no content.',
+                ]);
                 return [];
             }
 
             $parsed = json_decode($content, true);
+
+            \App\Models\AiApiLog::create([
+                'endpoint' => 'chat/completions',
+                'model' => $model,
+                'prompt_tokens' => $data['usage']['prompt_tokens'] ?? 0,
+                'completion_tokens' => $data['usage']['completion_tokens'] ?? 0,
+                'total_tokens' => $data['usage']['total_tokens'] ?? 0,
+                'payload' => $messages,
+                'response' => $parsed,
+                'error_message' => null,
+            ]);
 
             return [
                 'results' => isset($parsed['results']) && is_array($parsed['results']) ? $parsed['results'] : [],

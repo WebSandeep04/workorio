@@ -34,12 +34,28 @@ class SignalTaskController extends Controller
     }
 
     /**
+     * Fetch all AI tasks from signal_ai_tasks table
+     */
+    public function fetchAiTasks()
+    {
+        try {
+            $tasks = DB::table('signal_ai_tasks')
+                ->orderBy('id', 'desc')
+                ->get();
+            return response()->json($tasks);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching AI tasks: ' . $e->getMessage());
+            return response()->json(['error' => 'Error loading AI tasks', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Process AI tasks on demand
      */
     public function processAi()
     {
         try {
-            \Illuminate\Support\Facades\Artisan::call('process:signal-tasks');
+            \Illuminate\Support\Facades\Artisan::call('signal:process-ai-tasks');
             return response()->json(['success' => true, 'message' => 'AI processing completed successfully.']);
         } catch (\Exception $e) {
             \Log::error('Error processing AI tasks: ' . $e->getMessage());

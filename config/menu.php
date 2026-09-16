@@ -475,6 +475,7 @@ return [
                     'roles' => ['admin'],
                     'items' => [
                         ['route' => 'posting-log.index', 'title' => 'Posting Log', 'icon' => 'bi bi-file-earmark-bar-graph', 'permission' => 'setup.posting_log', 'feature_flag' => 'is_master_setup_enabled'],
+                        ['route' => 'ai-task-log.index', 'title' => 'AI Task Log', 'icon' => 'bi bi-robot', 'permission' => 'setup.posting_log', 'feature_flag' => 'is_master_setup_enabled'],
                     ]
                 ]
             ]

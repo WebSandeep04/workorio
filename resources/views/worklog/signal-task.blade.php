@@ -875,40 +875,77 @@
 
 @section('content')
   <div class="container-fluid px-2">
-    <div class="table-search mb-2 mt-2 d-flex justify-content-between">
+    <div class="table-search mb-2 mt-2 d-flex justify-content-between align-items-center">
       <div class="table-search-field" style="max-width: 300px;">
         <i class="bi bi-search"></i>
-        <input type="text" id="searchInput" placeholder="Search tasks..." />
+        <input type="text" id="searchInput" placeholder="Search..." />
       </div>
       <div>
-        <button id="processAiBtn" class="btn btn-primary" style="background-color: #10b981; border: none;">
+        <button id="processAiBtn" class="btn btn-primary" style="background-color: #434afa; border: none;">
             <i class="fas fa-robot me-1"></i> Process AI Tasks
         </button>
       </div>
     </div>
 
-  <div class="data-table-card">
-    <div class="table-responsive">
-      <table class="table custom-table" id="signalTaskTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Sender</th>
-            <th>Chat</th>
-            <th>Message</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="signalTaskTableBody">
-          <tr>
-            <td colspan="5" class="text-center">
-              <i class="bi bi-arrow-repeat spin"></i> Loading tasks...
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <ul class="nav nav-tabs mb-3" id="signalTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages-pane" type="button" role="tab" aria-controls="messages-pane" aria-selected="true" style="color: #434afa; font-weight: bold;">Messages</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="ai-tasks-tab" data-bs-toggle="tab" data-bs-target="#ai-tasks-pane" type="button" role="tab" aria-controls="ai-tasks-pane" aria-selected="false" style="color: #434afa; font-weight: bold;">AI Tasks</button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="signalTabsContent">
+      <div class="tab-pane fade show active" id="messages-pane" role="tabpanel" aria-labelledby="messages-tab" tabindex="0">
+          <div class="data-table-card">
+            <div class="table-responsive">
+              <table class="table custom-table" id="signalTaskTable">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Sender</th>
+                    <th>Chat</th>
+                    <th>Message</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="signalTaskTableBody">
+                  <tr>
+                    <td colspan="5" class="text-center">
+                      <i class="bi bi-arrow-repeat spin"></i> Loading messages...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+      </div>
+      <div class="tab-pane fade" id="ai-tasks-pane" role="tabpanel" aria-labelledby="ai-tasks-tab" tabindex="0">
+          <div class="data-table-card">
+            <div class="table-responsive">
+              <table class="table custom-table" id="aiTaskTable">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="aiTaskTableBody">
+                  <tr>
+                    <td colspan="5" class="text-center">
+                      <i class="bi bi-arrow-repeat spin"></i> Loading AI tasks...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+      </div>
     </div>
-  </div>
 </div>
 
 <!-- Create Task Modal -->
@@ -1127,26 +1164,55 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    let allTasks = [];
+    let allMessages = [];
+    let allAiTasks = [];
+    let currentTab = 'messages'; // 'messages' or 'ai-tasks'
 
     fetchSignalTasks();
+    fetchAiTasks();
+
+    // Tab change listener to enable/disable Process AI button
+    $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+        currentTab = $(e.target).attr('id') === 'messages-tab' ? 'messages' : 'ai-tasks';
+        if(currentTab === 'messages') {
+            $('#processAiBtn').prop('disabled', false).show();
+        } else {
+            $('#processAiBtn').prop('disabled', true).hide();
+        }
+        $('#searchInput').trigger('keyup'); // Re-trigger search for the active tab
+    });
 
     function fetchSignalTasks() {
         $.ajax({
             url: "{{ route('signal-task.fetch') }}",
             type: "GET",
             success: function(response) {
-                allTasks = response;
-                renderTasks(allTasks);
+                allMessages = response;
+                renderMessages(allMessages);
             },
             error: function(xhr) {
-                console.error("Error fetching tasks", xhr);
-                $('#signalTaskTableBody').html('<tr><td colspan="5" class="text-center text-danger">Failed to load tasks.</td></tr>');
+                console.error("Error fetching messages", xhr);
+                $('#signalTaskTableBody').html('<tr><td colspan="5" class="text-center text-danger">Failed to load messages.</td></tr>');
             }
         });
     }
 
-    function renderTasks(tasks) {
+    function fetchAiTasks() {
+        $.ajax({
+            url: "{{ route('signal-task.fetch-ai-tasks') }}",
+            type: "GET",
+            success: function(response) {
+                allAiTasks = response;
+                renderAiTasks(allAiTasks);
+            },
+            error: function(xhr) {
+                console.error("Error fetching AI tasks", xhr);
+                $('#aiTaskTableBody').html('<tr><td colspan="5" class="text-center text-danger">Failed to load AI tasks.</td></tr>');
+            }
+        });
+    }
+
+    function renderMessages(tasks) {
         let html = '';
         if(tasks.length > 0) {
             tasks.forEach(function(task) {
@@ -1172,9 +1238,35 @@ $(document).ready(function() {
                 `;
             });
         } else {
-            html = '<tr><td colspan="5" class="text-center">No tasks found.</td></tr>';
+            html = '<tr><td colspan="5" class="text-center">No messages found.</td></tr>';
         }
         $('#signalTaskTableBody').html(html);
+    }
+
+    function renderAiTasks(tasks) {
+        let html = '';
+        if(tasks.length > 0) {
+            tasks.forEach(function(task) {
+                let actionBtn = `<button class="btn btn-sm btn-primary convert-task-btn" style="background:#434AFA;border:none;" data-id="${task.id}" data-title="${task.title || ''}" data-desc="${task.description || ''}">Convert to Task</button>`;
+                
+                let fullDesc = task.description || 'N/A';
+                let shortDesc = fullDesc.length > 17 ? fullDesc.substring(0, 17) + '...' : fullDesc;
+                let descHtml = `<a href="#" class="msg-text-link text-muted" data-full="${encodeURIComponent(fullDesc)}" style="font-size:0.85rem; text-decoration:none;">${shortDesc}</a>`;
+                
+                html += `
+                    <tr>
+                        <td>${task.id}</td>
+                        <td>${task.title || 'N/A'}</td>
+                        <td>${descHtml}</td>
+                        <td>${task.status || 'N/A'}</td>
+                        <td>${actionBtn}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            html = '<tr><td colspan="5" class="text-center">No AI tasks found.</td></tr>';
+        }
+        $('#aiTaskTableBody').html(html);
     }
 
     // Load initial dropdown data for the modal
@@ -1329,15 +1421,27 @@ $(document).ready(function() {
     // Basic frontend search
     $('#searchInput').on('keyup', function() {
         let value = $(this).val().toLowerCase();
-        let filtered = allTasks.filter(function(task) {
-            return (
-                (task.sender && task.sender.toLowerCase().includes(value)) ||
-                (task.sender_phone && task.sender_phone.toLowerCase().includes(value)) ||
-                (task.chat && task.chat.toLowerCase().includes(value)) ||
-                (task.message_text && task.message_text.toLowerCase().includes(value))
-            );
-        });
-        renderTasks(filtered);
+        
+        if (currentTab === 'messages') {
+            let filtered = allMessages.filter(function(task) {
+                return (
+                    (task.sender && task.sender.toLowerCase().includes(value)) ||
+                    (task.sender_phone && task.sender_phone.toLowerCase().includes(value)) ||
+                    (task.chat && task.chat.toLowerCase().includes(value)) ||
+                    (task.message_text && task.message_text.toLowerCase().includes(value))
+                );
+            });
+            renderMessages(filtered);
+        } else {
+            let filtered = allAiTasks.filter(function(task) {
+                return (
+                    (task.title && task.title.toLowerCase().includes(value)) ||
+                    (task.description && task.description.toLowerCase().includes(value)) ||
+                    (task.status && task.status.toLowerCase().includes(value))
+                );
+            });
+            renderAiTasks(filtered);
+        }
     });
 
     // Process AI tasks on demand
@@ -1349,10 +1453,12 @@ $(document).ready(function() {
         $.ajax({
             url: "{{ route('signal-task.process-ai') }}",
             type: 'POST',
+            data: { _token: "{{ csrf_token() }}" },
             success: function(response) {
                 if(response.success) {
                     alert('AI Processing completed successfully!');
-                    fetchTasks(); // reload table
+                    fetchSignalTasks(); // reload messages table
+                    fetchAiTasks(); // reload AI tasks table
                 }
             },
             error: function(xhr) {

@@ -836,6 +836,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Task & Work Management
     Route::get('/signal-task', [SignalTaskController::class, 'index'])->name('signal-task.index');
     Route::get('/signal-task/fetch', [SignalTaskController::class, 'fetch'])->name('signal-task.fetch');
+    Route::get('/signal-task/fetch-ai-tasks', [SignalTaskController::class, 'fetchAiTasks'])->name('signal-task.fetch-ai-tasks');
     Route::post('/signal-task/process-ai', [SignalTaskController::class, 'processAi'])->name('signal-task.process-ai');
     Route::get('/all-tasks', [TaskController::class, 'allTasks'])->name('all-tasks.index');
     Route::get('/all-tasks/fetch', [TaskController::class, 'fetchAllTasks'])->name('all-tasks.fetch');
@@ -1340,4 +1341,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Posting Log
     Route::get('posting-log', [App\Http\Controllers\PostingLogController::class, 'index'])->name('posting-log.index');
     Route::post('posting-log/fetch', [App\Http\Controllers\PostingLogController::class, 'fetch'])->name('posting-log.fetch');
+
+    Route::get('ai-task-log', [App\Http\Controllers\AiTaskLogController::class, 'index'])->name('ai-task-log.index');
+    Route::post('ai-task-log/fetch', [App\Http\Controllers\AiTaskLogController::class, 'fetch'])->name('ai-task-log.fetch');
 });
