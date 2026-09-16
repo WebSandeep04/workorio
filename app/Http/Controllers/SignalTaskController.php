@@ -84,4 +84,62 @@ class SignalTaskController extends Controller
             return response()->json(['error' => 'Error marking converted', 'message' => $e->getMessage()], 500);
         }
     }
+    /**
+     * Store an immediate task directly
+     */
+    public function storeImmediateTask(Request $request)
+    {
+        try {
+            DB::table('immediate_tasks')->insert([
+                'title' => $request->title,
+                'description' => $request->description,
+                'status' => 'pending',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+            
+            // Mark the original message/ai_task as converted as well
+            if ($request->type === 'ai_task' && $request->id) {
+                DB::table('signal_ai_tasks')->where('id', $request->id)->update(['status' => 'converted']);
+            } else if ($request->type === 'message' && $request->id) {
+                DB::table('signal_whatsapp_msg')->where('id', $request->id)->update(['status' => 'converted']);
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Error storing immediate task: ' . $e->getMessage());
+            return response()->json(['error' => 'Error storing immediate task', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Fetch immediate tasks
+     */
+    public function fetchImmediateTasks()
+    {
+        try {
+            $tasks = DB::table('immediate_tasks')->orderBy('id', 'desc')->get();
+            return response()->json($tasks);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching immediate tasks: ' . $e->getMessage());
+            return response()->json(['error' => 'Error fetching immediate tasks', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Mark an immediate task as done
+     */
+    public function markImmediateTaskDone(Request $request)
+    {
+        try {
+            DB::table('immediate_tasks')->where('id', $request->id)->update([
+                'status' => 'done',
+                'updated_at' => now()
+            ]);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Error marking immediate task done: ' . $e->getMessage());
+            return response()->json(['error' => 'Error updating immediate task', 'message' => $e->getMessage()], 500);
+        }
+    }
 }

@@ -1128,6 +1128,9 @@
       <li class="nav-item" role="presentation">
         <button class="nav-link" id="ai-tasks-tab" data-bs-toggle="tab" data-bs-target="#ai-tasks-pane" type="button" role="tab" aria-controls="ai-tasks-pane" aria-selected="false" style="color: #434afa; font-weight: bold;">AI Tasks</button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="immediate-tasks-tab" data-bs-toggle="tab" data-bs-target="#immediate-tasks-pane" type="button" role="tab" aria-controls="immediate-tasks-pane" aria-selected="false" style="color: #434afa; font-weight: bold;">Immediate Tasks</button>
+      </li>
     </ul>
 
     <div class="tab-content" id="signalTabsContent">
@@ -1194,6 +1197,38 @@
 
           <div id="aiTaskCardView" class="ai-tasks-container" style="display: none;">
               <div class="text-center p-4 text-muted w-100"><i class="bi bi-arrow-repeat spin"></i> Loading AI tasks...</div>
+          </div>
+      </div>
+      
+      <div class="tab-pane fade" id="immediate-tasks-pane" role="tabpanel" aria-labelledby="immediate-tasks-tab" tabindex="0">
+          <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+              <h5 class="mb-0" style="color:#434AFA; font-weight:bold; font-size:1.1rem;"></h5>
+              <div>
+                  <select id="immediateStatusFilter" class="form-select form-select-sm" style="border-radius: 6px; border-color: #e0e0e0; min-width: 140px; display:inline-block;">
+                      <option value="pending" selected>Pending</option>
+                      <option value="done">Done</option>
+                      <option value="all">All</option>
+                  </select>
+              </div>
+          </div>
+          <div class="data-table-card">
+              <div class="table-responsive">
+                  <table class="table custom-table" id="immediateTaskTable">
+                      <thead>
+                          <tr>
+                              <th>Title</th>
+                              <th>Description</th>
+                              <th>Status</th>
+                              <th>Action</th>
+                          </tr>
+                      </thead>
+                      <tbody id="immediateTaskTableBody">
+                          <tr>
+                              <td colspan="4" class="text-center"><i class="bi bi-arrow-repeat spin"></i> Loading immediate tasks...</td>
+                          </tr>
+                      </tbody>
+                  </table>
+              </div>
           </div>
       </div>
     </div>
@@ -1416,22 +1451,49 @@
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script>
+    // Fallback for toastr using Swal if toastr is not defined
+    if (typeof toastr === 'undefined') {
+        window.toastr = {
+            success: function(msg) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: msg, showConfirmButton: false, timer: 3000 });
+                } else {
+                    alert(msg);
+                }
+            },
+            error: function(msg) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: msg, showConfirmButton: false, timer: 3000 });
+                } else {
+                    alert(msg);
+                }
+            }
+        };
+    }
+
 $(document).ready(function() {
     let allMessages = [];
     let allAiTasks = [];
-    let currentTab = 'messages'; // 'messages' or 'ai-tasks'
+    let allImmediateTasks = [];
+    let currentTab = 'messages'; // 'messages' or 'ai-tasks' or 'immediate-tasks'
+    let currentImmediateStatusFilter = 'pending';
 
     fetchSignalTasks();
     fetchAiTasks();
 
     // Tab change listener to enable/disable Process AI button
     $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-        currentTab = $(e.target).attr('id') === 'messages-tab' ? 'messages' : 'ai-tasks';
+        currentTab = $(e.target).attr('id') === 'messages-tab' ? 'messages' : ($(e.target).attr('id') === 'ai-tasks-tab' ? 'ai-tasks' : 'immediate-tasks');
         if(currentTab === 'messages') {
             $('#processAiBtn').prop('disabled', false).show();
         } else {
             $('#processAiBtn').prop('disabled', true).hide();
         }
+        
+        if (currentTab === 'immediate-tasks') {
+            loadImmediateTasks();
+        }
+        
         $('#searchInput').trigger('keyup'); // Re-trigger search for the active tab
     });
 
@@ -1529,14 +1591,7 @@ $(document).ready(function() {
         let chats = {};
         let totalMessages = 0;
         
-        let filteredTasks = tasks.filter(task => {
-            let status = task.status || 'pending';
-            if (task.ai_status === 'converted') {
-                status = 'converted';
-            }
-            if (currentStatusFilter !== 'all' && status !== currentStatusFilter) return false;
-            return true;
-        });
+        let filteredTasks = tasks; // We don't filter out converted messages in the Messages tab anymore
         
         filteredTasks.forEach(function(task) {
             let chatName = task.chat || 'Unknown';
@@ -1589,30 +1644,39 @@ $(document).ready(function() {
         if (messagesToRender.length === 0) {
             html = '<div class="text-center p-4 text-muted w-100">No messages found.</div>';
         } else {
-            messagesToRender.forEach(function(task) {
-                let status = task.status || 'pending';
-                if (task.ai_status === 'converted') {
+            messagesToRender.forEach(function(msg) {
+                let status = msg.status || 'pending';
+                if (msg.ai_status === 'converted') {
                     status = 'converted';
                 }
                 
-                let badge = task.ai_task_id ? `<span class="badge bg-success ms-1" style="font-size:0.55rem; padding:0.2em 0.4em;">AI Detected</span>` : '';
-                let displayTitle = task.ai_title ? task.ai_title : '';
+                let badge = msg.ai_task_id ? `<span class="badge bg-success ms-1" style="font-size:0.55rem; padding:0.2em 0.4em;">AI Detected</span>` : '';
+                let displayTitle = msg.ai_title ? msg.ai_title : '';
                 
-                let actionBtn = status === 'converted' ? 
-                    '<span class="text-success" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
-                    `<button class="btn-mark-task convert-task-btn" data-id="${task.id}" data-type="message" data-title="${task.ai_title || ''}" data-desc="${(task.ai_description || task.message_text).replace(/"/g, '&quot;')}">
-                        <i class="bi bi-play-fill text-danger" style="font-size:1.1rem;"></i> Mark as task
-                    </button>`;
+                let title = msg.ai_title || msg.message_text || '';
+                let fullText = msg.ai_description || msg.message_text || '';
+                if (!title || title === 'null' || title === 'undefined' || title === 'N/A' || title.trim() === '') {
+                    title = fullText;
+                }
+                if (!fullText || fullText === 'null' || fullText === 'undefined' || fullText === 'N/A' || fullText.trim() === '') {
+                    fullText = title;
+                }
                 
-                let fullMessage = task.message_text || 'N/A';
+                let actionBtn = msg.status === 'converted' ? 
+                '<span class="text-success" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
+                `<button class="btn-mark-task convert-task-btn" data-id="${msg.id}" data-type="message" data-title="${title}" data-desc="${fullText.replace(/"/g, '&quot;')}">
+                    <i class="bi bi-play-fill text-danger" style="font-size:1.1rem;"></i> Mark as task
+                </button>`;
+                
+                let fullMessage = msg.message_text || 'N/A';
                 
                 html += `
                     <div class="message-bubble">
-                        <div class="message-sender">${task.sender || 'Unknown Sender'} - ${task.chat || 'Unknown Chat'} ${badge}</div>
+                        <div class="message-sender">${msg.sender || 'Unknown Sender'} - ${msg.chat || 'Unknown Chat'} ${badge}</div>
                         ${displayTitle ? `<div style="font-weight:600; font-size:0.85rem; margin-bottom:4px;">${displayTitle}</div>` : ''}
                         <div class="message-text">${fullMessage}</div>
                         <div class="message-footer">
-                            <div class="message-time">${task.created_at || ''}</div>
+                            <div class="message-time">${msg.created_at || ''}</div>
                             <div>${actionBtn}</div>
                         </div>
                     </div>
@@ -1633,7 +1697,6 @@ $(document).ready(function() {
         });
 
         if (filteredTasks.length === 0) {
-            tableHtml = '<tr><td colspan="4" class="text-center text-muted">No AI tasks found.</td></tr>';
             cardHtml = '<div class="text-center p-4 text-muted w-100">No AI tasks found.</div>';
         } else {
             filteredTasks.forEach(function(task) {
@@ -1664,9 +1727,12 @@ $(document).ready(function() {
                     '<span class="text-success" style="font-weight: 500; font-size: 0.8rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
                     `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">Convert to Task</button>`;
 
+                let displayTitle = task.title || 'N/A';
+                if (displayTitle.length > 20) displayTitle = displayTitle.substring(0, 20) + '...';
+
                 tableHtml += `
                     <tr>
-                        <td>${task.title || 'N/A'}</td>
+                        <td title="${task.title || ''}">${displayTitle}</td>
                         <td>${descHtml}</td>
                         <td>${status}</td>
                         <td>${actionBtnTable}</td>
@@ -1769,27 +1835,206 @@ $(document).ready(function() {
 
     loadModalDropdowns();
 
-    // Open modal on click
-    $(document).on('click', '.convert-task-btn', function() {
-        let title = $(this).data('title');
-        let desc = $(this).data('desc');
+    // Open modal on click (intercepted for immediate task)
+    $(document).on('click', '.convert-task-btn', function(e) {
+        e.preventDefault();
+        
         let id = $(this).data('id');
         let type = $(this).data('type');
+        let title = $(this).data('title');
+        let desc = $(this).data('desc');
         
-        $('#taskForm')[0].reset();
-        
-        if (title) {
-            $('#task_name').val(title);
+        // If found nothing at the time of saving make description same as title and vice versa
+        if (!title || title === 'null' || title === 'undefined' || title === 'N/A' || title.trim() === '') {
+            title = desc;
         }
-        if (desc) {
-            $('#task').val(desc);
+        if (!desc || desc === 'null' || desc === 'undefined' || desc === 'N/A' || desc.trim() === '') {
+            desc = title;
         }
-        
-        $('#taskForm').data('signal-id', id);
-        $('#taskForm').data('signal-type', type);
-        
-        $('#createTaskModal').modal('show');
+
+        Swal.fire({
+            title: 'Convert Task',
+            text: "Do you want to create an Immediate Task or a Regular Task?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#434AFA',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Immediate Task',
+            cancelButtonText: 'Regular Task'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Immediate Task logic
+                $.ajax({
+                    url: '{{ route("signal-task.store-immediate") }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        id: id,
+                        type: type,
+                        title: title,
+                        description: desc
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success('Immediate task created successfully!');
+                            // Refresh data depending on active tab
+                            if (currentTab === 'messages') {
+                                fetchSignalTasks();
+                            } else if (currentTab === 'ai-tasks') {
+                                fetchAiTasks();
+                            }
+                            loadImmediateTasks();
+                        } else {
+                            toastr.error('Failed to create immediate task.');
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error('Error creating immediate task.');
+                        console.error(xhr);
+                    }
+                });
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                // Regular Task logic (old behavior)
+                $('#taskForm')[0].reset();
+                
+                if (title) {
+                    $('#task_name').val(title);
+                }
+                if (desc) {
+                    $('#task').val(desc);
+                }
+                
+                $('#taskForm').data('signal-id', id);
+                $('#taskForm').data('signal-type', type);
+                
+                $('#createTaskModal').modal('show');
+            }
+        });
     });
+
+    // Handle immediate task "Mark as Done"
+    $(document).on('click', '.mark-immediate-done-btn', function(e) {
+        e.preventDefault();
+        let $btn = $(this);
+        let id = $btn.data('id');
+        let $row = $btn.closest('tr');
+        
+        $.ajax({
+            url: '{{ route("signal-task.mark-immediate-done") }}',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                id: id
+            },
+            success: function(response) {
+                if(response.success) {
+                    toastr.success('Task marked as done!');
+                    
+                    let doneBadge = '<span class="badge bg-success">Done</span>';
+                    
+                    // Update task in global array
+                    let taskIndex = allImmediateTasks.findIndex(t => t.id == id);
+                    if (taskIndex !== -1) {
+                        allImmediateTasks[taskIndex].status = 'done';
+                    }
+                    
+                    if (currentImmediateStatusFilter === 'pending') {
+                        // Remove row from DataTable
+                        if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
+                            $('#immediateTaskTable').DataTable().row($row).remove().draw(false);
+                        } else {
+                            $row.remove();
+                        }
+                    } else {
+                        // Update DOM directly
+                        $row.find('td:eq(2)').html(doneBadge);
+                        $row.find('td:eq(3)').html('');
+                        
+                        // Update DataTable data if initialized so it persists on paginate/search
+                        if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
+                            let dt = $('#immediateTaskTable').DataTable();
+                            dt.cell($row, 2).data(doneBadge);
+                            dt.cell($row, 3).data('');
+                        }
+                    }
+                } else {
+                    toastr.error('Failed to update task.');
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Error updating task.');
+                console.error(xhr);
+            }
+        });
+    });
+
+    $('#immediateStatusFilter').on('change', function() {
+        currentImmediateStatusFilter = $(this).val();
+        renderImmediateTasks(allImmediateTasks);
+    });
+
+    // Load Immediate Tasks
+    function loadImmediateTasks() {
+        $.ajax({
+            url: '{{ route("signal-task.fetch-immediate") }}',
+            type: 'GET',
+            success: function(tasks) {
+                allImmediateTasks = tasks;
+                renderImmediateTasks(allImmediateTasks);
+            },
+            error: function(xhr) {
+                console.error("Error fetching immediate tasks:", xhr);
+                if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
+                    $('#immediateTaskTable').DataTable().destroy();
+                }
+                $('#immediateTaskTableBody').html('');
+                initDataTable('#immediateTaskTable');
+                toastr.error('Failed to load immediate tasks.');
+            }
+        });
+    }
+
+    function renderImmediateTasks(tasks) {
+        let html = '';
+        let filteredTasks = tasks;
+        
+        if (currentImmediateStatusFilter !== 'all') {
+            filteredTasks = tasks.filter(t => (t.status || 'pending') === currentImmediateStatusFilter);
+        }
+
+        if (filteredTasks && filteredTasks.length > 0) {
+            filteredTasks.forEach(task => {
+                let statusBadge = task.status === 'done' ? 
+                    '<span class="badge bg-success">Done</span>' : 
+                    '<span class="badge bg-warning text-dark">Pending</span>';
+                    
+                let actionBtn = task.status === 'done' ? 
+                    '' :
+                    `<button class="btn btn-sm btn-outline-success mark-immediate-done-btn" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}"><i class="bi bi-check2"></i></button>`;
+                    
+                let displayTitle = task.title || 'N/A';
+                if (displayTitle.length > 20) displayTitle = displayTitle.substring(0, 20) + '...';
+                
+                let displayDesc = task.description || 'N/A';
+                if (displayDesc.length > 20) displayDesc = displayDesc.substring(0, 20) + '...';
+                    
+                html += `
+                    <tr>
+                        <td title="${task.title || ''}">${displayTitle}</td>
+                        <td title="${task.description || ''}">${displayDesc}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actionBtn}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
+            $('#immediateTaskTable').DataTable().destroy();
+        }
+        $('#immediateTaskTableBody').html(html);
+        initDataTable('#immediateTaskTable');
+    }
 
     // Recurrence UI logic
     $('#is_recurring').on('change', function(){

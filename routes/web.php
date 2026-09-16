@@ -839,6 +839,9 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/signal-task/fetch-ai-tasks', [SignalTaskController::class, 'fetchAiTasks'])->name('signal-task.fetch-ai-tasks');
     Route::post('/signal-task/process-ai', [SignalTaskController::class, 'processAi'])->name('signal-task.process-ai');
     Route::post('/signal-task/mark-converted', [SignalTaskController::class, 'markConverted'])->name('signal-task.mark-converted');
+    Route::post('/signal-task/immediate-task', [SignalTaskController::class, 'storeImmediateTask'])->name('signal-task.store-immediate');
+    Route::get('/signal-task/immediate-tasks', [SignalTaskController::class, 'fetchImmediateTasks'])->name('signal-task.fetch-immediate');
+    Route::post('/signal-task/immediate-task/mark-done', [SignalTaskController::class, 'markImmediateTaskDone'])->name('signal-task.mark-immediate-done');
     Route::get('/all-tasks', [TaskController::class, 'allTasks'])->name('all-tasks.index');
     Route::get('/all-tasks/fetch', [TaskController::class, 'fetchAllTasks'])->name('all-tasks.fetch');
 
