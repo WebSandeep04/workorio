@@ -144,3 +144,50 @@ Schedule::command('sales:send-admin-follow-up-report', ['--alert=13'])
 Schedule::call(function () {
     \Illuminate\Support\Facades\Log::info('Test cron job executed at: ' . now());
 })->everyMinute()->description('Test cron job that runs every minute');
+
+// --- AI Task Scheduler Logic ---
+if (\Illuminate\Support\Facades\Schema::hasTable('ai_scheduler_configs')) {
+    $config = \App\Models\AiSchedulerConfig::first();
+    
+    if ($config) {
+        $allDays = [0, 1, 2, 3, 4, 5, 6];
+        $offDays = $config->week_offs ?? [];
+        $workingDays = array_diff($allDays, $offDays);
+
+        if (!empty($workingDays)) {
+            // Daytime Operations (Office Hours)
+            Schedule::command("ai:fetch-tasks --lookback={$config->office_day_lookback}")
+                ->cron("*/{$config->office_day_frequency} * * * *")
+                ->between($config->office_start_time, $config->office_end_time)
+                ->days($workingDays)
+                ->timezone('Asia/Kolkata');
+
+            // Off-Day / Outside Office Hours Operations (On working days)
+            Schedule::command("ai:fetch-tasks --lookback={$config->off_day_lookback}")
+                ->cron("*/{$config->off_day_frequency} * * * *")
+                ->unlessBetween($config->office_start_time, $config->office_end_time)
+                ->days($workingDays)
+                ->timezone('Asia/Kolkata');
+        }
+
+        // Full Off-Days (Weekends/Off days)
+        if (!empty($offDays)) {
+            Schedule::command("ai:fetch-tasks --lookback={$config->off_day_lookback}")
+                ->cron("*/{$config->off_day_frequency} * * * *")
+                ->days($offDays)
+                ->timezone('Asia/Kolkata');
+        }
+    }
+}
+
+if (\Illuminate\Support\Facades\Schema::hasTable('ai_scheduler_fixed_passes')) {
+    $passes = \App\Models\AiSchedulerFixedPass::where('is_active', true)->get();
+    foreach ($passes as $pass) {
+        $time = substr($pass->run_at, 0, 5); // Extract HH:mm
+        Schedule::command("ai:fetch-tasks --lookback={$pass->lookback_minutes}")
+            ->dailyAt($time)
+            ->timezone('Asia/Kolkata')
+            ->description($pass->name);
+    }
+}
+// --------------------------------

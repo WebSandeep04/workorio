@@ -394,6 +394,7 @@ return [
                         ['route' => 'task-status.index', 'title' => 'Task Status', 'icon' => 'bi bi-tag', 'permission' => 'setup.task_status', 'feature_flag' => 'is_task_setup_enabled'],
                         ['route' => 'common-events.index', 'title' => 'Common Events', 'icon' => 'bi bi-collection', 'feature_flag' => 'is_calendar_setup_enabled', 'permission' => 'setup.calendar_common_events'],
                         ['route' => 'module', 'title' => 'Module', 'icon' => 'bi bi-puzzle', 'permission' => 'setup.project_modules', 'feature_flag' => 'is_projects_setup_enabled'],
+                        ['route' => 'ai-scheduler.setup', 'title' => 'AI Scheduler Setup', 'icon' => 'bi bi-robot', 'permission' => 'setup.project_modules', 'feature_flag' => 'is_master_setup_enabled'],
                     ]
                 ],
                 [

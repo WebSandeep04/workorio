@@ -70,6 +70,7 @@ use App\Http\Controllers\ProjectsController;
 use App\Http\Controllers\ProspectusController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\QuotationSetupController;
+use App\Http\Controllers\AiSchedulerSetupController;
 use App\Http\Controllers\RemarkController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoleMasterController;
@@ -480,6 +481,13 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/quotation/setup/fetch', [QuotationSetupController::class, 'fetch'])->name('quotation.setup.fetch');
     Route::post('/quotation/setup/store', [QuotationSetupController::class, 'store'])->name('quotation.setup.store');
     Route::get('/quotation/setup/get', [QuotationSetupController::class, 'getSettings'])->name('quotation.setup.get');
+
+    Route::get('/ai-scheduler/setup', [AiSchedulerSetupController::class, 'index'])->name('ai-scheduler.setup');
+    Route::get('/ai-scheduler/setup/fetch', [AiSchedulerSetupController::class, 'fetchConfig'])->name('ai-scheduler.setup.fetch');
+    Route::post('/ai-scheduler/setup/store', [AiSchedulerSetupController::class, 'storeConfig'])->name('ai-scheduler.setup.store');
+    Route::post('/ai-scheduler/setup/pass', [AiSchedulerSetupController::class, 'storePass'])->name('ai-scheduler.setup.pass.store');
+    Route::put('/ai-scheduler/setup/pass/{id}', [AiSchedulerSetupController::class, 'updatePass'])->name('ai-scheduler.setup.pass.update');
+    Route::delete('/ai-scheduler/setup/pass/{id}', [AiSchedulerSetupController::class, 'destroyPass'])->name('ai-scheduler.setup.pass.destroy');
 
     Route::get('/reports/worklog', [WorklogReportController::class, 'index'])->name('reports.worklog');
     Route::get('/reports/worklog/fetch', [WorklogReportController::class, 'fetchWorklogs'])->name('reports.worklog.fetch');
