@@ -107,6 +107,64 @@ class TaskApiController extends Controller
     }
 
     /**
+     * Fetch all tasks and immediate tasks for the TV app
+     */
+    public function tvTasks(): \Illuminate\Http\JsonResponse
+    {
+        try {
+            // 1. Fetch regular tasks (excluding done tasks, like all-tasks)
+            $tasks = \App\Models\Task::with($this->includeAssignedUsers([
+                    'user',
+                    'customer',
+                    'creator',
+                    'status',
+                    'priority',
+                    'remarks.user',
+                    'customerProject',
+                    'workflowTask.successorDependencies.type',
+                ]))
+                ->where(function ($q) {
+                    $q->whereNull('is_done')
+                      ->orWhere('is_done', false)
+                      ->orWhere('is_done', 0);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $this->loadImagesIfTableExists($tasks);
+            $tasks = $this->filterCriticalPathVisibility($tasks);
+
+            // 2. Fetch immediate tasks
+            $immediateTasks = \Illuminate\Support\Facades\DB::table('immediate_tasks')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($task) {
+                    return [
+                        'id' => 'immediate_' . $task->id,
+                        'task_name' => $task->title,
+                        'task' => $task->description,
+                        'status' => [
+                            'name' => ucfirst($task->status ?? 'pending')
+                        ],
+                        'priority' => [
+                            'name' => 'High'
+                        ],
+                        'due_date' => null,
+                        'created_at' => $task->created_at,
+                        'is_immediate' => true,
+                    ];
+                });
+
+            // 3. Merge them
+            $allTasks = collect($tasks->toArray())->concat($immediateTasks);
+
+            return response()->json(['success' => true, 'tasks' => $allTasks->values()]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Show task details
      */
     public function show($id): JsonResponse

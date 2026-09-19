@@ -120,20 +120,6 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/tracking/report/monthly', [TrackingReportApiController::class, 'getMonthlySummaryReport']);
     Route::get('/tracking/report/date-wise', [TrackingReportApiController::class, 'getDateWiseReport']);
 
-    // Task Routes
-    Route::get('/tasks/form-data', [TaskApiController::class, 'getFormData']);
-    Route::get('/tasks/created', [TaskApiController::class, 'createdTasks']);
-    Route::get('/tasks/assigned', [TaskApiController::class, 'myTasks']);
-    Route::post('/tasks', [TaskApiController::class, 'store']);
-    Route::get('/tasks/{id}', [TaskApiController::class, 'show']);
-    Route::post('/tasks/{id}', [TaskApiController::class, 'update']); // Use POST for multipart updates
-    Route::delete('/tasks/{id}', [TaskApiController::class, 'destroy']);
-    
-    // Task Actions
-    Route::post('/tasks/{id}/status', [TaskApiController::class, 'updateStatus']);
-    Route::post('/tasks/{id}/toggle-done', [TaskApiController::class, 'toggleDone']);
-    Route::post('/tasks/{id}/remarks', [TaskApiController::class, 'addRemark']);
-    Route::delete('/tasks/{id}/images/{imageId}', [TaskApiController::class, 'deleteImage']);
 
     // Business Card Routes
     Route::get('/business-cards', [\App\Http\Controllers\Api\BusinessCardController::class, 'index']);
@@ -316,16 +302,17 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/tracking/report/date-wise', [TrackingReportApiController::class, 'getDateWiseReport']);
 
     // Task Routes
+    Route::get('/tasks/tv', [TaskApiController::class, 'tvTasks']);
     Route::get('/tasks/form-data', [TaskApiController::class, 'getFormData']);
     Route::get('/tasks/created', [TaskApiController::class, 'createdTasks']);
     Route::get('/tasks/assigned', [TaskApiController::class, 'myTasks']);
     Route::post('/tasks', [TaskApiController::class, 'store']);
+    // Immediate Tasks
+    Route::get('/tasks/immediate', [SignalTaskController::class, 'fetchImmediateTasks']);
+
     Route::get('/tasks/{id}', [TaskApiController::class, 'show']);
     Route::post('/tasks/{id}', [TaskApiController::class, 'update']); // Use POST for multipart updates
     Route::delete('/tasks/{id}', [TaskApiController::class, 'destroy']);
-    
-    // Immediate Tasks
-    Route::get('/tasks/immediate', [SignalTaskController::class, 'fetchImmediateTasks']);
 
     // Task Actions
     Route::post('/tasks/{id}/status', [TaskApiController::class, 'updateStatus']);
