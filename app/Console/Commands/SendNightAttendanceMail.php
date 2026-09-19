@@ -163,7 +163,6 @@ class SendNightAttendanceMail extends Command
                     'total_hours' => $this->formatHoursMinutes($todayRow['hours']),
                     'late_reason' => $todayRow['late_reason'],
                     'late_by' => $todayRow['late_by'],
-                    'grace_balance' => $todayRow['grace_balance'],
                     'status_reason' => $todayRow['status_reason']
                 ];
                 
@@ -186,7 +185,6 @@ class SendNightAttendanceMail extends Command
                             'total_hours' => $this->formatHoursMinutes($day['hours']),
                             'late_reason' => $day['late_reason'],
                             'late_by' => $day['late_by'],
-                            'grace_balance' => $day['grace_balance'],
                             'status_reason' => $day['status_reason']
                         ];
                     }
@@ -240,71 +238,7 @@ class SendNightAttendanceMail extends Command
         }
     }
 
-    private function formatAttendanceDay($user, $attendance, $date)
-    {
-        $movements = $attendance->movements;
-        
-        $firstMovement = $movements->first();
-        $mode = $firstMovement ? ($firstMovement->mode ?? '-') : '-';
-        $place = $firstMovement ? ($firstMovement->place ?? '-') : '-';
 
-        // Get late reason from first 'in' (office or field)
-        $firstIn = $movements->first(function ($m) {
-            return in_array($m->movement_type, ['office', 'field']) && $m->movement_action === 'in';
-        });
-        $desc = $firstIn->description ?? null;
-        $lateReason = '-';
-        if (!empty($desc)) {
-            $prefix = "Late punch-in: ";
-            if (stripos($desc, $prefix) === 0) {
-                $lateReason = trim(substr($desc, strlen($prefix)));
-            } else {
-                $lateReason = trim($desc);
-            }
-        }
-
-        // Calculate 'office' hours and bounds
-        $officeMovements = $movements->filter(function($m) { return $m->movement_type === 'office'; });
-        
-        $firstOfficeIn = $officeMovements->filter(function($m) { return $m->movement_action === 'in'; })->first();
-        $lastOfficeOut = $officeMovements->filter(function($m) { return $m->movement_action === 'out'; })->last();
-        
-        $punchInIST = 'Not Marked';
-        if ($firstOfficeIn) {
-            $punchInIST = Carbon::parse($firstOfficeIn->time, 'UTC')->setTimezone('Asia/Kolkata')->format('h:i A');
-        }
-
-        $punchOutIST = 'Not Marked';
-        if ($lastOfficeOut) {
-            $punchOutIST = Carbon::parse($lastOfficeOut->time, 'UTC')->setTimezone('Asia/Kolkata')->format('h:i A');
-        }
-
-        $officeMinutes = 0;
-        if ($firstOfficeIn) {
-            $start = Carbon::parse($firstOfficeIn->time, 'UTC');
-            // If they haven't punched out yet, the PHP script logic treated it as 0. 
-            // So we'll mirror that: must have both punch In and Out.
-            if ($lastOfficeOut) {
-                $end = Carbon::parse($lastOfficeOut->time, 'UTC');
-                if ($end->greaterThan($start)) {
-                    $officeMinutes = $start->diffInMinutes($end);
-                }
-            }
-        }
-
-        return [
-            'date' => Carbon::parse($date)->format('M j, Y'),
-            'user_name' => $user->name,
-            'status' => 'present',
-            'punch_in' => $punchInIST,
-            'punch_out' => $punchOutIST,
-            'mode' => $mode,
-            'place' => $place,
-            'total_hours' => $this->formatHoursMinutes($officeMinutes / 60),
-            'raw_office_minutes' => $officeMinutes,
-            'late_reason' => $lateReason
-        ];
-    }
 
     private function formatHoursMinutes($decimalHours) {
         if ($decimalHours <= 0) {

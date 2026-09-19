@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SubscriptionApiController;
 use App\Http\Controllers\Api\AttendanceReportApiController;
 use App\Http\Controllers\Api\WorklogReportApiController;
 use App\Http\Controllers\Api\TrackingReportApiController;
+use App\Http\Controllers\SignalTaskController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -323,6 +324,9 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/tasks/{id}', [TaskApiController::class, 'update']); // Use POST for multipart updates
     Route::delete('/tasks/{id}', [TaskApiController::class, 'destroy']);
     
+    // Immediate Tasks
+    Route::get('/tasks/immediate', [SignalTaskController::class, 'fetchImmediateTasks']);
+
     // Task Actions
     Route::post('/tasks/{id}/status', [TaskApiController::class, 'updateStatus']);
     Route::post('/tasks/{id}/toggle-done', [TaskApiController::class, 'toggleDone']);
