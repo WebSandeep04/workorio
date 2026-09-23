@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Attendance;
+use App\Models\EmployeeLocation;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Google\Auth\Credentials\ServiceAccountCredentials;
@@ -17,7 +18,7 @@ class SendPunchOutReminders extends Command
     public function handle()
     {
         // Get attendances for today that haven't received all 4 reminders
-        $attendances = Attendance::with(['user', 'movements', 'user.employeeShift.shift'])
+        $attendances = Attendance::with(['user.employee.places', 'movements', 'user.employeeShift.shift'])
             ->whereDate('date', today())
             ->where('punch_out_reminders_sent', '<', 4)
             ->whereHas('movements', function($q) {
@@ -75,12 +76,64 @@ class SendPunchOutReminders extends Command
                 }
 
                 if ($shouldSend) {
+                    // Check if employee is in allowed radius
+                    $employee = $user->employee;
+                    if ($employee && $employee->is_place_allowed) {
+                        $allowedPlaces = $employee->places;
+                        if ($allowedPlaces->count() > 0) {
+                            // Get most recent location for today
+                            $recentLocation = EmployeeLocation::where('employee_id', $employee->id)
+                                ->whereDate('tracked_at', today())
+                                ->orderBy('tracked_at', 'desc')
+                                ->first();
+
+                            if ($recentLocation && $recentLocation->latitude && $recentLocation->longitude) {
+                                $isWithinRange = false;
+                                $userLat = (float) $recentLocation->latitude;
+                                $userLong = (float) $recentLocation->longitude;
+
+                                foreach ($allowedPlaces as $place) {
+                                    $distance = $this->haversineGreatCircleDistance(
+                                        $userLat, $userLong, 
+                                        $place->latitude, $place->longitude
+                                    );
+
+                                    if ($distance <= $place->radius) {
+                                        $isWithinRange = true;
+                                        break;
+                                    }
+                                }
+
+                                if ($isWithinRange) {
+                                    $shouldSend = false; // Do not send if they are inside allowed place
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if ($shouldSend) {
                     $this->sendFcm($apiUrl, $accessToken, $user->fcm_token);
                     $attendance->increment('punch_out_reminders_sent');
                     $this->info("Sent reminder #".($remindersSent + 1)." to user {$user->id}");
                 }
             }
         }
+    }
+
+    private function haversineGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000)
+    {
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+        return $angle * $earthRadius;
     }
 
     private function sendFcm($apiUrl, $accessToken, $token)
