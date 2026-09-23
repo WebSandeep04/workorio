@@ -446,6 +446,7 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/projects/{id}/worklogs', [\App\Http\Controllers\Api\ProjectApiController::class, 'fetchWorklogs']);
     Route::post('/projects/remarks', [\App\Http\Controllers\Api\ProjectApiController::class, 'storeRemark']);
     Route::get('/task/project/{projectId}', [\App\Http\Controllers\Api\ProjectApiController::class, 'fetchTasks']);
+    Route::post('/user/fcm-token', [\App\Http\Controllers\Api\UserApiController::class, 'updateFcmToken']);
 });
 
 
