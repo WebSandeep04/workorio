@@ -25,6 +25,7 @@ class Attendance extends Model
         'is_late',
         'status_reason',
         'is_overridden',
+        'punch_out_reminders_sent',
     ];
 
     protected $casts = [
@@ -52,3 +53,4 @@ class Attendance extends Model
         return $this->belongsTo(Tenant::class);
     }
 }
+

@@ -191,3 +191,8 @@ if (\Illuminate\Support\Facades\Schema::hasTable('ai_scheduler_fixed_passes')) {
     }
 }
 // --------------------------------
+
+Schedule::command('attendance:send-punch-out-reminders')
+    ->everyMinute()
+    ->timezone('Asia/Kolkata')
+    ->description('Send FCM reminders to employees who forgot to punch out');
