@@ -114,7 +114,10 @@ class AttendanceReportApiController extends Controller
         }
 
         $request->validate([
-            'month' => 'required|date_format:Y-m'
+            'month' => 'required|date_format:Y-m',
+            'branch_id' => 'nullable|integer',
+            'department_id' => 'nullable|integer',
+            'status' => 'nullable|string'
         ]);
 
         try {
@@ -122,7 +125,7 @@ class AttendanceReportApiController extends Controller
                 return response()->json(['success' => false, 'message' => 'Cannot generate report for future months.'], 422);
             }
 
-            $data = $this->_fetchMonthlyReportData($request->month);
+            $data = $this->_fetchMonthlyReportData($request->month, $request->branch_id, $request->department_id, $request->status);
             
             return response()->json([
                 'success' => true,
@@ -143,7 +146,10 @@ class AttendanceReportApiController extends Controller
         }
 
         $request->validate([
-            'date' => 'required|date_format:Y-m-d'
+            'date' => 'required|date_format:Y-m-d',
+            'branch_id' => 'nullable|integer',
+            'department_id' => 'nullable|integer',
+            'status' => 'nullable|string'
         ]);
 
         try {
@@ -151,7 +157,7 @@ class AttendanceReportApiController extends Controller
                 return response()->json(['success' => false, 'message' => 'Cannot generate report for future dates.'], 422);
             }
 
-            $data = $this->_fetchDateReportData($request->date);
+            $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id, $request->status);
             unset($data['carbonDate']);
 
             return response()->json([
@@ -238,7 +244,7 @@ class AttendanceReportApiController extends Controller
         ];
     }
 
-    private function _fetchMonthlyReportData($month)
+    private function _fetchMonthlyReportData($month, $branchId = null, $departmentId = null, $statusId = null)
     {
         $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
@@ -260,16 +266,32 @@ class AttendanceReportApiController extends Controller
             ->unique()
             ->toArray();
 
-        $users = \App\Models\User::with(['employee.shiftHistory.shift'])
+        $query = \App\Models\User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
             ->where(function($query) use ($userIdsWithAttendance) {
                 $query->whereHas('employee', function($q) {
                     $q->where('status', 'active');
                 })->orWhereIn('id', $userIdsWithAttendance);
-            })
-            ->orderBy('name')
-            ->get();
+            });
+
+        if ($branchId) {
+            $query->whereHas('employee', function($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            });
+        }
+        if ($departmentId) {
+            $query->whereHas('employee', function($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+        if ($statusId) {
+            $query->whereHas('employee', function($q) use ($statusId) {
+                $q->where('status', $statusId);
+            });
+        }
+
+        $users = $query->orderBy('name')->get();
 
         $allAttendances = \App\Models\Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
@@ -356,7 +378,7 @@ class AttendanceReportApiController extends Controller
         ];
     }
 
-    private function _fetchDateReportData($date)
+    private function _fetchDateReportData($date, $branchId = null, $departmentId = null, $statusId = null)
     {
         $dateObj = \Carbon\Carbon::parse($date);
         $dateStr = $dateObj->format('Y-m-d');
@@ -366,16 +388,32 @@ class AttendanceReportApiController extends Controller
             ->unique()
             ->toArray();
 
-        $users = \App\Models\User::with(['employee.shiftHistory.shift'])
+        $query = \App\Models\User::with(['employee.shiftHistory.shift'])
             ->where('role_id', '!=', 1)
             ->where('is_attendance', 1)
             ->where(function($query) use ($userIdsWithAttendance) {
                 $query->whereHas('employee', function($q) {
                     $q->where('status', 'active');
                 })->orWhereIn('id', $userIdsWithAttendance);
-            })
-            ->orderBy('name')
-            ->get();
+            });
+
+        if ($branchId) {
+            $query->whereHas('employee', function($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            });
+        }
+        if ($departmentId) {
+            $query->whereHas('employee', function($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+        if ($statusId) {
+            $query->whereHas('employee', function($q) use ($statusId) {
+                $q->where('status', $statusId);
+            });
+        }
+
+        $users = $query->orderBy('name')->get();
 
         $attendances = \App\Models\Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');

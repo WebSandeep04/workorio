@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\SubscriptionApiController;
 use App\Http\Controllers\Api\AttendanceReportApiController;
 use App\Http\Controllers\Api\WorklogReportApiController;
 use App\Http\Controllers\Api\TrackingReportApiController;
+use App\Http\Controllers\Api\PayrollReportApiController;
+use App\Http\Controllers\Api\WhatsappCampaignReportApiController;
 use App\Http\Controllers\SignalTaskController;
 
 Route::get('/user', function (Request $request) {
@@ -119,6 +121,13 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::get('/tracking/report/user-wise', [TrackingReportApiController::class, 'getUserWiseReport']);
     Route::get('/tracking/report/monthly', [TrackingReportApiController::class, 'getMonthlySummaryReport']);
     Route::get('/tracking/report/date-wise', [TrackingReportApiController::class, 'getDateWiseReport']);
+
+    // Payroll Reports API Group
+    Route::get('/payroll/report', [PayrollReportApiController::class, 'fetchReportData']);
+
+    // WhatsApp Campaigns Report API Group
+    Route::get('/whatsapp-campaigns/report', [WhatsappCampaignReportApiController::class, 'index']);
+    Route::get('/whatsapp-campaigns/report/{id}', [WhatsappCampaignReportApiController::class, 'show']);
 
 
     // Business Card Routes
@@ -456,3 +465,5 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
 
 use App\Http\Controllers\WhatsappWebhookController;
 Route::post('msg91/whatsapp-webhook', [WhatsappWebhookController::class, 'handle']);
+
+Route::get('/tracking/report/user-wise', [App\Http\Controllers\Api\TrackingReportApiController::class, 'getUserWiseReport'])->middleware(['tenant.db']);

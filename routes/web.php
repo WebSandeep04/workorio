@@ -1362,3 +1362,5 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('ai-task-log', [App\Http\Controllers\AiTaskLogController::class, 'index'])->name('ai-task-log.index');
     Route::post('ai-task-log/fetch', [App\Http\Controllers\AiTaskLogController::class, 'fetch'])->name('ai-task-log.fetch');
 });
+
+

@@ -32,7 +32,7 @@ class TrackingReportApiController extends Controller
                 'success' => true,
                 'users' => $users
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) { return response()->json(["success" => false, "message" => $e->getMessage(), "line" => $e->getLine(), "file" => $e->getFile()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load tracking list: ' . $e->getMessage()
@@ -113,7 +113,10 @@ class TrackingReportApiController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'month' => 'required|date_format:Y-m'
+            'month' => 'required|date_format:Y-m',
+            'branch_id' => 'nullable|integer',
+            'department_id' => 'nullable|integer',
+            'status' => 'nullable|string'
         ]);
 
         try {
@@ -126,6 +129,11 @@ class TrackingReportApiController extends Controller
             $user = User::with(['employee.shiftHistory.shift'])->find($userId);
             if (!$user) {
                 return response()->json(['success' => false, 'message' => 'Target profile missing.'], 404);
+            }
+
+            $shift = null;
+            if ($user->employee && $user->employee->shiftHistory->isNotEmpty()) {
+                $shift = $user->employee->shiftHistory->first()->shift ?? null;
             }
 
             
@@ -294,7 +302,7 @@ class TrackingReportApiController extends Controller
                 ],
                 'data' => $dailyData
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) { return response()->json(["success" => false, "message" => $e->getMessage(), "line" => $e->getLine(), "file" => $e->getFile()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Audit failure: ' . $e->getMessage()
@@ -308,7 +316,10 @@ class TrackingReportApiController extends Controller
     public function getMonthlySummaryReport(Request $request)
     {
         $request->validate([
-            'month' => 'required|date_format:Y-m'
+            'month' => 'required|date_format:Y-m',
+            'branch_id' => 'nullable|integer',
+            'department_id' => 'nullable|integer',
+            'status' => 'nullable|string'
         ]);
 
         try {
@@ -330,14 +341,34 @@ class TrackingReportApiController extends Controller
                 $curr->addDay();
             }
 
-            $users = User::with(['employee.shiftHistory.shift'])
+            $branchId = $request->branch_id;
+            $departmentId = $request->department_id;
+            $statusId = $request->status;
+
+            $query = User::with(['employee.shiftHistory.shift'])
                 ->where('role_id', '!=', 1)
                 ->whereHas('employee', function ($query) {
                     $query->where('status', 'active')
                           ->where('is_tracking', 1);
-                })
-                ->orderBy('name')
-                ->get();
+                });
+
+            if ($branchId) {
+                $query->whereHas('employee', function($q) use ($branchId) {
+                    $q->where('branch_id', $branchId);
+                });
+            }
+            if ($departmentId) {
+                $query->whereHas('employee', function($q) use ($departmentId) {
+                    $q->where('department_id', $departmentId);
+                });
+            }
+            if ($statusId) {
+                $query->whereHas('employee', function($q) use ($statusId) {
+                    $q->where('status', $statusId);
+                });
+            }
+
+            $users = $query->orderBy('name')->get();
 
             $userIds = $users->pluck('id')->toArray();
             $employeeIds = $users->pluck('employee_id')->filter()->toArray();
@@ -534,7 +565,7 @@ class TrackingReportApiController extends Controller
                 ],
                 'data' => $reportData
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) { return response()->json(["success" => false, "message" => $e->getMessage(), "line" => $e->getLine(), "file" => $e->getFile()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Monthly build failure: ' . $e->getMessage()
@@ -548,21 +579,44 @@ class TrackingReportApiController extends Controller
     public function getDateWiseReport(Request $request)
     {
         $request->validate([
-            'date' => 'required|date_format:Y-m-d'
+            'date' => 'required|date_format:Y-m-d',
+            'branch_id' => 'nullable|integer',
+            'department_id' => 'nullable|integer',
+            'status' => 'nullable|string'
         ]);
 
         try {
             $dateStr = $request->date;
             $date = Carbon::parse($dateStr);
 
-            $users = User::with(['employee.shiftHistory.shift'])
+            $branchId = $request->branch_id;
+            $departmentId = $request->department_id;
+            $statusId = $request->status;
+
+            $query = User::with(['employee.shiftHistory.shift'])
                 ->where('role_id', '!=', 1)
                 ->whereHas('employee', function ($query) {
                     $query->where('status', 'active')
                           ->where('is_tracking', 1);
-                })
-                ->orderBy('name')
-                ->get();
+                });
+
+            if ($branchId) {
+                $query->whereHas('employee', function($q) use ($branchId) {
+                    $q->where('branch_id', $branchId);
+                });
+            }
+            if ($departmentId) {
+                $query->whereHas('employee', function($q) use ($departmentId) {
+                    $q->where('department_id', $departmentId);
+                });
+            }
+            if ($statusId) {
+                $query->whereHas('employee', function($q) use ($statusId) {
+                    $q->where('status', $statusId);
+                });
+            }
+
+            $users = $query->orderBy('name')->get();
 
             $userIds = $users->pluck('id')->toArray();
             $employeeIds = $users->pluck('employee_id')->filter()->toArray();
@@ -613,6 +667,10 @@ class TrackingReportApiController extends Controller
                     else $leaveType = 'L';
                 }
 
+                $shift = null;
+                if ($user->employee && $user->employee->shiftHistory->isNotEmpty()) {
+                    $shift = $user->employee->shiftHistory->first()->shift ?? null;
+                }
                 
                 $dayName = $date->format('l');
                 $isWeeklyOff = false;
@@ -696,7 +754,7 @@ class TrackingReportApiController extends Controller
                 ],
                 'data' => $reportData
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) { return response()->json(["success" => false, "message" => $e->getMessage(), "line" => $e->getLine(), "file" => $e->getFile()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Daily audit failure: ' . $e->getMessage()

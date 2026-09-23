@@ -105,6 +105,9 @@ class WorklogReportApiController extends Controller
             if ($request->filled('user_id')) {
                 $query->where('user_id', $request->user_id);
             }
+            if ($request->filled('service_id')) {
+                $query->where('service_id', $request->service_id);
+            }
 
             $worklogs = $query->get();
 
@@ -195,6 +198,9 @@ class WorklogReportApiController extends Controller
             }
             if ($request->filled('customer_project_id')) {
                 $query->where('customer_project_id', $request->customer_project_id);
+            }
+            if ($request->filled('service_id')) {
+                $query->where('service_id', $request->service_id);
             }
 
             $worklogs = $query->get();
