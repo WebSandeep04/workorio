@@ -74,6 +74,7 @@ use App\Http\Controllers\AiSchedulerSetupController;
 use App\Http\Controllers\RemarkController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoleMasterController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SalesAnalyticsController;
 use App\Http\Controllers\SalesBusinessTypeController;
 use App\Http\Controllers\SalesCityController;
@@ -576,6 +577,10 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/role-master/{role}/edit', [RoleMasterController::class, 'edit'])->name('role-master.edit');
     Route::put('/role-master/{role}', [RoleMasterController::class, 'update'])->name('role-master.update');
     Route::delete('/role-master/{role}', [RoleMasterController::class, 'destroy'])->name('role-master.destroy');
+
+    // Notifications (Software Setup)
+    Route::get('/software-setup/notifications', [NotificationController::class, 'index'])->name('software-setup.notifications.index');
+    Route::post('/software-setup/notifications/send', [NotificationController::class, 'send'])->name('software-setup.notifications.send');
 
     // All Data (Admin)
     Route::get('/alldata', [AllDataController::class, 'index'])->name('alldata');

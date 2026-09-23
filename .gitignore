@@ -23,3 +23,5 @@ yarn-error.log
 *.apk
 /storage/framework/
 /storage/logs/
+
+storage/app/firebase_credentials.json
