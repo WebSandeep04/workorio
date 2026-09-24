@@ -109,7 +109,7 @@
 <script>
 $(document).ready(function() {
     let table = $('#aiLogsTable').DataTable({
-        processing: true,
+        processing: false,
         serverSide: true,
         dom: '<"top">rt<"bottom"p><"clear">',
         language: {

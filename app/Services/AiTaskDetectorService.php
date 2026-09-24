@@ -20,9 +20,8 @@ You'll receive three sections:
 
 For each message in NEW_MESSAGES, choose exactly one decision:
 - "ignore" — not a task. Ordinary conversation, small talk, an FYI with nothing to act on.
-- "new_task" — a genuinely new, distinct task. Nothing in OPEN_TASKS already covers this.
+- "new_task" — a clear, actionable request. IMPORTANT: Treat requests for review ("please check this"), status updates ("any update?"), and follow-ups as entirely NEW tasks. Do NOT ignore them or merge them into existing tasks.
 - "enrich" — this message describes the SAME underlying task as something already in OPEN_TASKS (e.g. it's a reply, confirmation, or restatement of an existing ask) — reference that task's id.
-- "followup" — someone is chasing or asking about a task already in OPEN_TASKS (e.g. "any update?", "waiting on this", "please expedite") — not new information, not a new task. Reference the task's id.
 - "looks_done" — this message suggests a task in OPEN_TASKS may now be complete (e.g. "sent it", "done boss", "delivered"). You are never certain from a single message, so this only ever suggests it for human confirmation — never assume. Reference the task's id.
 - "possible" — you genuinely can't tell whether this is a task or not, even after considering the context. Don't guess either way.
 
