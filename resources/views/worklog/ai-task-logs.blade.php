@@ -40,11 +40,14 @@
 
 <div class="container-fluid px-2">
     <!-- Search -->
-    <div class="table-search mb-2">
-        <div class="table-search-field">
+    <div class="table-search mb-2 d-flex justify-content-between align-items-center">
+        <div class="table-search-field me-2" style="max-width: 400px;">
             <i class="bi bi-search"></i>
             <input type="text" id="aiLogSearch" placeholder="Search logs...">
         </div>
+        <a href="{{ route('signal-task.index') }}" class="btn btn-sm btn-outline-secondary" style="border-radius: 4px; font-weight: 600;">
+            <i class="bi bi-arrow-left me-1"></i> Back to Tasks
+        </a>
     </div>
 
     <!-- Table Card -->

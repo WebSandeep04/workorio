@@ -193,56 +193,87 @@ EOT;
     }
 
     /**
-     * Process pending messages and save AI tasks
+     * Get distinct chats that have pending messages
      */
-    public function processPendingMessages($logger = null): bool
+    public function getPendingChats(): array
     {
-        if ($logger) $logger->info('Starting AI Task Detection...');
+        return \Illuminate\Support\Facades\DB::table('signal_whatsapp_msg')
+            ->where('is_ai_processed', false)
+            ->distinct()
+            ->pluck('chat')
+            ->toArray();
+    }
 
-        // 1. Fetch NEW unprocessed messages
-        $newMessagesRaw = \Illuminate\Support\Facades\DB::table('signal_whatsapp_msg')
+    /**
+     * Process pending messages for a single chat
+     */
+    public function processPendingMessagesForChat($chatName, $logger = null): bool
+    {
+        $chatLogName = $chatName ?? 'Direct Messages';
+        if ($logger) $logger->info("Processing chat: {$chatLogName}");
+
+        // 1. Fetch NEW unprocessed messages for THIS chat
+        $queryNew = \Illuminate\Support\Facades\DB::table('signal_whatsapp_msg')
             ->where('is_ai_processed', false)
             ->orderBy('id', 'asc')
-            ->limit(50) // process in batches
-            ->get();
-
-        if ($newMessagesRaw->isEmpty()) {
-            if ($logger) $logger->info('No new messages to process.');
-            return true;
+            ->limit(50); // process in batches per chat
+        
+        if ($chatName === null) {
+            $queryNew->whereNull('chat');
+        } else {
+            $queryNew->where('chat', $chatName);
         }
+        
+        $newMessagesRaw = $queryNew->get();
+
+        if ($newMessagesRaw->isEmpty()) return true;
 
         $newMessagesIds = $newMessagesRaw->pluck('id')->toArray();
         $newMessages = $newMessagesRaw->map(function ($m) {
             return [
                 'id' => $m->id,
-                'sender' => $m->sender,
-                'created_at' => $m->created_at,
+                'from' => $m->sender,
+                'time' => $m->created_at,
                 'text' => $m->message_text,
             ];
         })->toArray();
 
-        // 2. Fetch CONTEXT messages (e.g., last 20 processed messages)
-        $contextMessagesRaw = \Illuminate\Support\Facades\DB::table('signal_whatsapp_msg')
+        // 2. Fetch CONTEXT messages for THIS chat
+        $queryContext = \Illuminate\Support\Facades\DB::table('signal_whatsapp_msg')
             ->where('is_ai_processed', true)
             ->orderBy('id', 'desc')
-            ->limit(20)
-            ->get()
-            ->reverse()
-            ->values();
+            ->limit(20);
+            
+        if ($chatName === null) {
+            $queryContext->whereNull('chat');
+        } else {
+            $queryContext->where('chat', $chatName);
+        }
+            
+        $contextMessagesRaw = $queryContext->get()->reverse()->values();
 
         $contextMessages = $contextMessagesRaw->map(function ($m) {
             return [
                 'id' => $m->id,
-                'sender' => $m->sender,
-                'created_at' => $m->created_at,
+                'from' => $m->sender,
+                'time' => $m->created_at,
                 'text' => $m->message_text,
             ];
         })->toArray();
 
-        // 3. Fetch OPEN_TASKS (currently pending AI tasks)
-        $openTasksRaw = \Illuminate\Support\Facades\DB::table('signal_ai_tasks')
-            ->where('status', 'pending')
-            ->get();
+        // 3. Fetch OPEN_TASKS for THIS chat
+        $queryTasks = \Illuminate\Support\Facades\DB::table('signal_ai_tasks')
+            ->join('signal_whatsapp_msg', 'signal_ai_tasks.message_id', '=', 'signal_whatsapp_msg.id')
+            ->where('signal_ai_tasks.status', 'pending')
+            ->select('signal_ai_tasks.*');
+            
+        if ($chatName === null) {
+            $queryTasks->whereNull('signal_whatsapp_msg.chat');
+        } else {
+            $queryTasks->where('signal_whatsapp_msg.chat', $chatName);
+        }
+            
+        $openTasksRaw = $queryTasks->get();
             
         $openTasks = $openTasksRaw->map(function ($t) {
             return [
@@ -258,16 +289,16 @@ EOT;
 
         $messages = $this->buildPrompt($contextMessages, $newMessages, $openTasks, null, $staffDirectory, $clientDirectory);
 
-        if ($logger) $logger->info('Sending prompt to OpenAI...');
+        if ($logger) $logger->info("Sending prompt to OpenAI for chat {$chatLogName}...");
         
         $response = $this->detectTasks($messages);
 
         if (empty($response['results'])) {
-            if ($logger) $logger->warn('No results returned from AI or error occurred.');
+            if ($logger) $logger->warn("No results returned from AI or error occurred for chat {$chatLogName}.");
             return false;
         }
 
-        if ($logger) $logger->info('Received ' . count($response['results']) . ' decisions.');
+        if ($logger) $logger->info("Received " . count($response['results']) . " decisions for chat {$chatLogName}.");
 
         foreach ($response['results'] as $result) {
             $msgId = $result['message_id'] ?? null;
@@ -287,15 +318,51 @@ EOT;
                     'created_at' => \Carbon\Carbon::now(),
                     'updated_at' => \Carbon\Carbon::now(),
                 ]);
-                if ($logger) $logger->info("Created new AI task for message {$msgId}");
+                if ($logger) $logger->info("Created new AI task for message {$msgId} in chat {$chatLogName}");
             } elseif (in_array($decision, ['enrich', 'followup', 'looks_done'])) {
                 if ($logger) $logger->info("Action {$decision} for message {$msgId} referencing task {$result['task_id_ref']}");
+                
+                if (isset($result['task_id_ref']) && ($decision === 'enrich' || $decision === 'followup')) {
+                    $updateData = [];
+                    if (!empty($result['summary'])) $updateData['title'] = $result['summary'];
+                    if (!empty($result['assigned_to'])) $updateData['ai_assigned_to'] = $result['assigned_to'];
+                    if (!empty($result['requested_by'])) $updateData['ai_requested_by'] = $result['requested_by'];
+                    
+                    if (!empty($updateData)) {
+                        $updateData['updated_at'] = \Carbon\Carbon::now();
+                        \Illuminate\Support\Facades\DB::table('signal_ai_tasks')
+                            ->where('id', $result['task_id_ref'])
+                            ->update($updateData);
+                        if ($logger) $logger->info("Updated AI task {$result['task_id_ref']} with new info from {$decision}.");
+                    }
+                }
             }
         }
 
         \Illuminate\Support\Facades\DB::table('signal_whatsapp_msg')
             ->whereIn('id', $newMessagesIds)
             ->update(['is_ai_processed' => true]);
+            
+        return true;
+    }
+
+    /**
+     * Process pending messages and save AI tasks (All chats)
+     */
+    public function processPendingMessages($logger = null): bool
+    {
+        if ($logger) $logger->info('Starting AI Task Detection...');
+
+        $chatsToProcess = $this->getPendingChats();
+
+        if (empty($chatsToProcess)) {
+            if ($logger) $logger->info('No new messages to process.');
+            return true;
+        }
+
+        foreach ($chatsToProcess as $chatName) {
+            $this->processPendingMessagesForChat($chatName, $logger);
+        }
 
         if ($logger) $logger->info('Processing complete.');
         return true;

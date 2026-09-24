@@ -1147,9 +1147,14 @@
             <div class="chat-main">
                 <div class="chat-main-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0" id="chatMainHeader">All messages</h6>
-                    <button id="processAiBtn" class="btn btn-sm text-white shadow-sm" style="background: #434AFA; border-radius: 4px; font-weight: 600;">
-                        <i class="fas fa-robot me-1"></i> Process AI Tasks
-                    </button>
+                    <div>
+                        <a href="{{ route('ai-task-log.index') }}" class="btn btn-sm btn-outline-secondary shadow-sm me-2" style="border-radius: 4px; font-weight: 600;">
+                            <i class="bi bi-journal-text me-1"></i> Logs
+                        </a>
+                        <button id="processAiBtn" class="btn btn-sm text-white shadow-sm" style="background: #434AFA; border-radius: 4px; font-weight: 600;">
+                            <i class="fas fa-robot me-1"></i> Process AI Tasks
+                        </button>
+                    </div>
                 </div>
                 <div class="chat-messages" id="chatMessages">
                     <div class="text-center p-3"><i class="bi bi-arrow-repeat spin"></i> Loading messages...</div>
@@ -1182,13 +1187,17 @@
                           <tr>
                               <th>Title</th>
                               <th>Description</th>
+                              <th>Chat</th>
+                              <th>Assigned To</th>
+                              <th>Requested By</th>
+                              <th>Created At</th>
                               <th>Status</th>
                               <th>Action</th>
                           </tr>
                       </thead>
                       <tbody id="aiTaskTableBody">
                           <tr>
-                              <td colspan="4" class="text-center"><i class="bi bi-arrow-repeat spin"></i> Loading AI tasks...</td>
+                              <td colspan="8" class="text-center"><i class="bi bi-arrow-repeat spin"></i> Loading AI tasks...</td>
                           </tr>
                       </tbody>
                   </table>
@@ -1546,7 +1555,7 @@ $(document).ready(function() {
             },
             error: function(xhr) {
                 console.error("Error fetching AI tasks", xhr);
-                $('#aiTaskTableBody').html('<tr><td colspan="5" class="text-center text-danger">Failed to load AI tasks.</td></tr>');
+                $('#aiTaskTableBody').html('<tr><td colspan="8" class="text-center text-danger">Failed to load AI tasks.</td></tr>');
             }
         });
     }
@@ -1709,11 +1718,23 @@ $(document).ready(function() {
                     </button>`;
                 
                 let fullDesc = task.description || 'N/A';
+                
+                let chatName = task.chat_name || 'N/A';
+                let assignedTo = task.ai_assigned_to || 'Unassigned';
+                let requestedBy = task.ai_requested_by || task.sender || 'Unknown';
+                let createdAt = task.created_at ? new Date(task.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
+
+                let cardTitleHtml = `<a href="#" class="ai-task-detail-link" data-id="${task.id}" style="text-decoration:none; color:#000;" title="View Details">${task.title || 'N/A'} <i class="bi bi-info-circle ms-1 text-muted" style="font-size:0.8rem;"></i></a>`;
 
                 cardHtml += `
                     <div class="ai-task-card">
-                        <div class="ai-task-title">${task.title || 'N/A'}</div>
-                        <div class="ai-task-desc">${fullDesc}</div>
+                        <div class="ai-task-title">${cardTitleHtml}</div>
+                        <div class="ai-task-desc" style="word-break: break-word;">${fullDesc}</div>
+                        <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 10px;">
+                            <div><strong>Chat:</strong> ${chatName}</div>
+                            <div><strong>Assigned To:</strong> ${assignedTo}</div>
+                            <div><strong>Requested By:</strong> ${requestedBy}</div>
+                        </div>
                         <div class="ai-task-footer">
                             <span class="badge ${status === 'converted' ? 'bg-success' : 'bg-secondary'}">${status}</span>
                             ${actionBtn}
@@ -1722,18 +1743,24 @@ $(document).ready(function() {
                 `;
                 
                 let shortDesc = fullDesc.length > 30 ? fullDesc.substring(0, 30) + '...' : fullDesc;
-                let descHtml = `<a href="#" class="msg-text-link" data-full="${encodeURIComponent(fullDesc)}" style="font-size:0.85rem; text-decoration:none; color:#000;">${shortDesc}</a>`;
+                let descHtml = `<a href="#" class="ai-task-detail-link" data-id="${task.id}" style="font-size:0.85rem; text-decoration:none; color:#000;">${shortDesc}</a>`;
                 let actionBtnTable = status === 'converted' ? 
                     '<span class="text-success" style="font-weight: 500; font-size: 0.8rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
                     `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">Convert to Task</button>`;
 
                 let displayTitle = task.title || 'N/A';
                 if (displayTitle.length > 20) displayTitle = displayTitle.substring(0, 20) + '...';
+                
+                let tableTitleHtml = `<a href="#" class="ai-task-detail-link" data-id="${task.id}" style="font-weight:500; text-decoration:none; color:#000;" title="View Details">${displayTitle}</a>`;
 
                 tableHtml += `
                     <tr>
-                        <td title="${task.title || ''}">${displayTitle}</td>
+                        <td title="${task.title || ''}">${tableTitleHtml}</td>
                         <td>${descHtml}</td>
+                        <td>${chatName}</td>
+                        <td>${assignedTo}</td>
+                        <td>${requestedBy}</td>
+                        <td>${createdAt}</td>
                         <td>${status}</td>
                         <td>${actionBtnTable}</td>
                     </tr>
@@ -2083,6 +2110,66 @@ $(document).ready(function() {
         modal.show();
     }
 
+    $(document).on('click', '.ai-task-detail-link', function(e){
+        e.preventDefault();
+        const taskId = $(this).data('id');
+        const task = allAiTasks.find(t => t.id == taskId);
+        if(task) {
+            showAiTaskDetailModal(task);
+        }
+    });
+
+    function showAiTaskDetailModal(task) {
+        let modalEl = document.getElementById('aiTaskDetailModal');
+        if (!modalEl) {
+            const html = `
+            <div class="modal fade" id="aiTaskDetailModal" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">AI Task Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr><th style="width: 25%">Title</th><td id="detailTitle"></td></tr>
+                            <tr><th>Chat</th><td id="detailChat"></td></tr>
+                            <tr><th>Assigned To</th><td id="detailAssigned"></td></tr>
+                            <tr><th>Requested By</th><td id="detailRequested"></td></tr>
+                            <tr><th>Created At</th><td id="detailCreated"></td></tr>
+                            <tr><th>Status</th><td id="detailStatus"></td></tr>
+                            <tr><th>Description</th><td><pre id="detailDesc" class="mb-0" style="white-space: pre-wrap; word-break: break-word; font-family:inherit;"></pre></td></tr>
+                        </tbody>
+                    </table>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', html);
+            modalEl = document.getElementById('aiTaskDetailModal');
+        }
+        
+        let chatName = task.chat_name || 'N/A';
+        let assignedTo = task.ai_assigned_to || 'Unassigned';
+        let requestedBy = task.ai_requested_by || task.sender || 'Unknown';
+        let createdAt = task.created_at ? new Date(task.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
+
+        $('#detailTitle').text(task.title || 'N/A');
+        $('#detailChat').text(chatName);
+        $('#detailAssigned').text(assignedTo);
+        $('#detailRequested').text(requestedBy);
+        $('#detailCreated').text(createdAt);
+        $('#detailStatus').html(`<span class="badge ${task.status === 'converted' ? 'bg-success' : 'bg-secondary'}">${task.status || 'pending'}</span>`);
+        $('#detailDesc').text(task.description || 'N/A');
+        
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
     // Basic frontend search
     $('#searchInput').on('keyup', function() {
         let value = $(this).val();
@@ -2101,23 +2188,68 @@ $(document).ready(function() {
     $('#processAiBtn').on('click', function() {
         const btn = $(this);
         const originalText = btn.html();
-        btn.html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...').prop('disabled', true);
+        btn.html('<i class="fas fa-spinner fa-spin me-1"></i> Starting...').prop('disabled', true);
         
         $.ajax({
-            url: "{{ route('signal-task.process-ai') }}",
+            url: "{{ route('signal-task.process-ai-start') }}",
             type: 'POST',
             data: { _token: "{{ csrf_token() }}" },
             success: function(response) {
                 if(response.success) {
-                    alert('AI Processing completed successfully!');
-                    fetchSignalTasks(); // reload messages table
-                    fetchAiTasks(); // reload AI tasks table
+                    const chats = response.chats;
+                    if (!chats || chats.length === 0) {
+                        alert('No new messages to process.');
+                        btn.html(originalText).prop('disabled', false);
+                        return;
+                    }
+                    
+                    let currentIndex = 0;
+                    const totalChats = chats.length;
+                    
+                    const processNextChat = function() {
+                        if (currentIndex >= totalChats) {
+                            btn.html(`<i class="fas fa-spinner fa-spin me-1"></i> Processing... 100%`);
+                            setTimeout(() => {
+                                alert('AI Processing completed successfully!');
+                                fetchSignalTasks();
+                                fetchAiTasks();
+                                btn.html(originalText).prop('disabled', false);
+                            }, 500);
+                            return;
+                        }
+                        
+                        let progress = Math.round((currentIndex / totalChats) * 100);
+                        btn.html(`<i class="fas fa-spinner fa-spin me-1"></i> Processing... ${progress}%`);
+                        
+                        $.ajax({
+                            url: "{{ route('signal-task.process-ai-chat') }}",
+                            type: 'POST',
+                            data: { 
+                                _token: "{{ csrf_token() }}",
+                                chat: chats[currentIndex]
+                            },
+                            success: function() {
+                                fetchAiTasks(); // refresh table dynamically
+                                fetchSignalTasks(); // refresh signal table dynamically
+                                currentIndex++;
+                                processNextChat();
+                            },
+                            error: function(xhr) {
+                                console.error('Error processing chat:', chats[currentIndex], xhr);
+                                currentIndex++;
+                                processNextChat();
+                            }
+                        });
+                    };
+                    
+                    processNextChat();
+                } else {
+                    alert('Error starting AI tasks.');
+                    btn.html(originalText).prop('disabled', false);
                 }
             },
             error: function(xhr) {
-                alert('Error processing AI tasks. ' + (xhr.responseJSON?.message || ''));
-            },
-            complete: function() {
+                alert('Error starting AI tasks. ' + (xhr.responseJSON?.message || ''));
                 btn.html(originalText).prop('disabled', false);
             }
         });

@@ -40,7 +40,9 @@ class SignalTaskController extends Controller
     {
         try {
             $tasks = DB::table('signal_ai_tasks')
-                ->orderBy('id', 'desc')
+                ->leftJoin('signal_whatsapp_msg', 'signal_ai_tasks.message_id', '=', 'signal_whatsapp_msg.id')
+                ->select('signal_ai_tasks.*', 'signal_whatsapp_msg.chat as chat_name', 'signal_whatsapp_msg.sender')
+                ->orderBy('signal_ai_tasks.id', 'desc')
                 ->get();
             return response()->json($tasks);
         } catch (\Exception $e) {
@@ -60,6 +62,35 @@ class SignalTaskController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error processing AI tasks: ' . $e->getMessage());
             return response()->json(['error' => 'Error processing AI tasks', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Start processing AI tasks (returns chats to process)
+     */
+    public function processAiStart(\App\Services\AiTaskDetectorService $aiService)
+    {
+        try {
+            $chats = $aiService->getPendingChats();
+            return response()->json(['success' => true, 'chats' => $chats]);
+        } catch (\Exception $e) {
+            \Log::error('Error starting AI processing: ' . $e->getMessage());
+            return response()->json(['error' => 'Error starting AI processing', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Process AI tasks for a single chat
+     */
+    public function processAiChat(Request $request, \App\Services\AiTaskDetectorService $aiService)
+    {
+        try {
+            $chat = $request->input('chat'); // Can be null
+            $aiService->processPendingMessagesForChat($chat);
+            return response()->json(['success' => true, 'message' => 'Chat processed successfully.']);
+        } catch (\Exception $e) {
+            \Log::error('Error processing AI tasks for chat: ' . $e->getMessage());
+            return response()->json(['error' => 'Error processing chat', 'message' => $e->getMessage()], 500);
         }
     }
 
