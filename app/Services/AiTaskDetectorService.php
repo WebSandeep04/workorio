@@ -191,4 +191,113 @@ EOT;
             return [];
         }
     }
+
+    /**
+     * Process pending messages and save AI tasks
+     */
+    public function processPendingMessages($logger = null): bool
+    {
+        if ($logger) $logger->info('Starting AI Task Detection...');
+
+        // 1. Fetch NEW unprocessed messages
+        $newMessagesRaw = \Illuminate\Support\Facades\DB::table('signal_whatsapp_msg')
+            ->where('is_ai_processed', false)
+            ->orderBy('id', 'asc')
+            ->limit(50) // process in batches
+            ->get();
+
+        if ($newMessagesRaw->isEmpty()) {
+            if ($logger) $logger->info('No new messages to process.');
+            return true;
+        }
+
+        $newMessagesIds = $newMessagesRaw->pluck('id')->toArray();
+        $newMessages = $newMessagesRaw->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'sender' => $m->sender,
+                'created_at' => $m->created_at,
+                'text' => $m->message_text,
+            ];
+        })->toArray();
+
+        // 2. Fetch CONTEXT messages (e.g., last 20 processed messages)
+        $contextMessagesRaw = \Illuminate\Support\Facades\DB::table('signal_whatsapp_msg')
+            ->where('is_ai_processed', true)
+            ->orderBy('id', 'desc')
+            ->limit(20)
+            ->get()
+            ->reverse()
+            ->values();
+
+        $contextMessages = $contextMessagesRaw->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'sender' => $m->sender,
+                'created_at' => $m->created_at,
+                'text' => $m->message_text,
+            ];
+        })->toArray();
+
+        // 3. Fetch OPEN_TASKS (currently pending AI tasks)
+        $openTasksRaw = \Illuminate\Support\Facades\DB::table('signal_ai_tasks')
+            ->where('status', 'pending')
+            ->get();
+            
+        $openTasks = $openTasksRaw->map(function ($t) {
+            return [
+                'id' => $t->id,
+                'text' => $t->title . ' - ' . $t->description,
+                'assignee' => $t->ai_assigned_to,
+                'created_at' => $t->created_at,
+            ];
+        })->toArray();
+
+        $staffDirectory = [];
+        $clientDirectory = [];
+
+        $messages = $this->buildPrompt($contextMessages, $newMessages, $openTasks, null, $staffDirectory, $clientDirectory);
+
+        if ($logger) $logger->info('Sending prompt to OpenAI...');
+        
+        $response = $this->detectTasks($messages);
+
+        if (empty($response['results'])) {
+            if ($logger) $logger->warn('No results returned from AI or error occurred.');
+            return false;
+        }
+
+        if ($logger) $logger->info('Received ' . count($response['results']) . ' decisions.');
+
+        foreach ($response['results'] as $result) {
+            $msgId = $result['message_id'] ?? null;
+            $decision = $result['decision'] ?? 'ignore';
+
+            if ($decision === 'new_task') {
+                $originalMessage = collect($newMessages)->firstWhere('id', $msgId);
+                $originalText = $originalMessage ? $originalMessage['text'] : '';
+
+                \Illuminate\Support\Facades\DB::table('signal_ai_tasks')->insert([
+                    'message_id' => $msgId,
+                    'title' => $result['summary'] ?? 'Detected Task',
+                    'description' => $originalText,
+                    'ai_assigned_to' => $result['assigned_to'] ?? null,
+                    'ai_requested_by' => $result['requested_by'] ?? null,
+                    'status' => 'pending',
+                    'created_at' => \Carbon\Carbon::now(),
+                    'updated_at' => \Carbon\Carbon::now(),
+                ]);
+                if ($logger) $logger->info("Created new AI task for message {$msgId}");
+            } elseif (in_array($decision, ['enrich', 'followup', 'looks_done'])) {
+                if ($logger) $logger->info("Action {$decision} for message {$msgId} referencing task {$result['task_id_ref']}");
+            }
+        }
+
+        \Illuminate\Support\Facades\DB::table('signal_whatsapp_msg')
+            ->whereIn('id', $newMessagesIds)
+            ->update(['is_ai_processed' => true]);
+
+        if ($logger) $logger->info('Processing complete.');
+        return true;
+    }
 }

@@ -41,23 +41,15 @@ class FetchAiTasksCommand extends Command
         Log::info("FetchAiTasksCommand started", ['start_time' => $startTime->toDateTimeString(), 'end_time' => $endTime->toDateTimeString()]);
 
         try {
-            $response = Http::timeout(30)->get('http://localhost:8000/signal-task', [
-                'start_time' => $startTime->toISOString(),
-                'end_time' => $endTime->toISOString(),
-            ]);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                $this->info('Successfully fetched tasks. Count: ' . (is_array($data) ? count($data) : 'Unknown'));
-                Log::info("FetchAiTasksCommand success", ['data' => $data]);
-                // Here you would process the $data and save it to the DB if required.
-                // Depending on the exact response structure of http://localhost:8000/signal-task
-            } else {
-                $this->error("Failed to fetch tasks. Status: " . $response->status());
-                Log::error("FetchAiTasksCommand failed", ['status' => $response->status(), 'body' => $response->body()]);
-            }
+            $this->info('Triggering AI Task Detection...');
+            
+            $aiService = app(\App\Services\AiTaskDetectorService::class);
+            $aiService->processPendingMessages($this);
+            
+            $this->info('Successfully processed tasks.');
+            Log::info("FetchAiTasksCommand success");
         } catch (\Exception $e) {
-            $this->error("Error connecting to signal server: " . $e->getMessage());
+            $this->error("Error processing AI tasks: " . $e->getMessage());
             Log::error("FetchAiTasksCommand exception", ['error' => $e->getMessage()]);
         }
 

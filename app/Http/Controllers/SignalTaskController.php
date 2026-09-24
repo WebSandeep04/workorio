@@ -52,10 +52,10 @@ class SignalTaskController extends Controller
     /**
      * Process AI tasks on demand
      */
-    public function processAi()
+    public function processAi(\App\Services\AiTaskDetectorService $aiService)
     {
         try {
-            \Illuminate\Support\Facades\Artisan::call('signal:process-ai-tasks');
+            $aiService->processPendingMessages();
             return response()->json(['success' => true, 'message' => 'AI processing completed successfully.']);
         } catch (\Exception $e) {
             \Log::error('Error processing AI tasks: ' . $e->getMessage());
