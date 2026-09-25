@@ -14,7 +14,7 @@ class FetchAiTasksCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ai:fetch-tasks {--lookback= : Lookback window in minutes}';
+    protected $signature = 'ai:fetch-tasks';
 
     /**
      * The console command description.
@@ -28,31 +28,82 @@ class FetchAiTasksCommand extends Command
      */
     public function handle()
     {
-        $lookbackMinutes = $this->option('lookback');
-        if (!$lookbackMinutes) {
-            $this->error('Lookback option is required.');
-            return 1;
+        Log::info("FetchAiTasksCommand started at " . Carbon::now('Asia/Kolkata')->toDateTimeString());
+
+        $tenants = \App\Models\Tenant::on('mysql')->get();
+
+        foreach ($tenants as $tenant) {
+            try {
+                \App\Services\TenantDatabaseService::setDefaultConnection($tenant->id);
+                
+                if (!\Illuminate\Support\Facades\Schema::hasTable('ai_scheduler_configs')) {
+                    continue; // Skip if tables don't exist yet for this tenant
+                }
+
+                $config = \App\Models\AiSchedulerConfig::first();
+                $lookbackMinutes = $this->determineLookbackAndIfShouldRun($config);
+
+                if ($lookbackMinutes !== false) {
+                    $this->info("Running for tenant {$tenant->tenant_name} with lookback {$lookbackMinutes}");
+                    Log::info("FetchAiTasksCommand running for tenant {$tenant->tenant_name} with lookback {$lookbackMinutes}");
+
+                    $aiService = app(\App\Services\AiTaskDetectorService::class);
+                    $aiService->processPendingMessages($this);
+                }
+
+            } catch (\Exception $e) {
+                $this->error("Error processing tenant {$tenant->tenant_name}: " . $e->getMessage());
+                Log::error("FetchAiTasksCommand exception for tenant {$tenant->tenant_name}", ['error' => $e->getMessage()]);
+            } finally {
+                \Illuminate\Support\Facades\DB::setDefaultConnection('mysql');
+            }
         }
 
-        $endTime = Carbon::now('Asia/Kolkata');
-        $startTime = $endTime->copy()->subMinutes((int)$lookbackMinutes);
-
-        $this->info("Fetching AI Tasks from {$startTime->toDateTimeString()} to {$endTime->toDateTimeString()} (IST)");
-        Log::info("FetchAiTasksCommand started", ['start_time' => $startTime->toDateTimeString(), 'end_time' => $endTime->toDateTimeString()]);
-
-        try {
-            $this->info('Triggering AI Task Detection...');
-            
-            $aiService = app(\App\Services\AiTaskDetectorService::class);
-            $aiService->processPendingMessages($this);
-            
-            $this->info('Successfully processed tasks.');
-            Log::info("FetchAiTasksCommand success");
-        } catch (\Exception $e) {
-            $this->error("Error processing AI tasks: " . $e->getMessage());
-            Log::error("FetchAiTasksCommand exception", ['error' => $e->getMessage()]);
-        }
-
+        Log::info("FetchAiTasksCommand finished");
         return 0;
+    }
+
+    private function determineLookbackAndIfShouldRun($config) 
+    {
+        if (!$config) return false;
+
+        $now = Carbon::now('Asia/Kolkata');
+        $currentHi = $now->format('H:i');
+        $currentMinute = (int) $now->format('i');
+
+        // Check fixed passes first
+        if (\Illuminate\Support\Facades\Schema::hasTable('ai_scheduler_fixed_passes')) {
+            $passes = \App\Models\AiSchedulerFixedPass::where('is_active', true)->get();
+            foreach ($passes as $pass) {
+                if (substr($pass->run_at, 0, 5) === $currentHi) {
+                    return $pass->lookback_minutes;
+                }
+            }
+        }
+
+        $allDays = [0, 1, 2, 3, 4, 5, 6]; // 0 is Sunday
+        $offDays = is_array($config->week_offs) ? $config->week_offs : json_decode($config->week_offs, true) ?? [];
+        $workingDays = array_diff($allDays, $offDays);
+        
+        $currentDay = $now->dayOfWeek;
+        $currentTime = $now->format('H:i:s');
+        
+        $isWorkingDay = in_array($currentDay, $workingDays);
+        $isOfficeHours = $currentTime >= $config->office_start_time && $currentTime <= $config->office_end_time;
+
+        if ($isWorkingDay && $isOfficeHours) {
+            $freq = (int) $config->office_day_frequency;
+            if ($freq > 0 && $currentMinute % $freq === 0) {
+                return $config->office_day_lookback;
+            }
+        } else {
+            // Off hours or Off day
+            $freq = (int) $config->off_day_frequency;
+            if ($freq > 0 && $currentMinute % $freq === 0) {
+                return $config->off_day_lookback;
+            }
+        }
+
+        return false;
     }
 }
