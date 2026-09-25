@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('whatsapp_campaigns', function (Blueprint $table) {
             $table->string('request_id')->nullable()->after('status');
         });
@@ -25,6 +29,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('whatsapp_campaign_members', function (Blueprint $table) {
             $table->dropColumn('error_message');
         });

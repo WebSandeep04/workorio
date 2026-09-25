@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('employees', function (Blueprint $table) {
             $table->boolean('is_field_attendance_enable')->default(false)->after('is_tracking');
         });
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('employees', function (Blueprint $table) {
             $table->dropColumn('is_field_attendance_enable');
         });

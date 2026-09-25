@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('employment_types', function (Blueprint $table) {
             $table->decimal('max_advance_percentage', 5, 2)->default(0)->after('max_loan_percentage');
         });
@@ -15,6 +19,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('employment_types', function (Blueprint $table) {
             $table->dropColumn('max_advance_percentage');
         });

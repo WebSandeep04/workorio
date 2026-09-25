@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('attendance', function (Blueprint $table) {
             $table->integer('punch_out_reminders_sent')->default(0)->after('is_overridden');
         });
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('attendance', function (Blueprint $table) {
             $table->dropColumn('punch_out_reminders_sent');
         });

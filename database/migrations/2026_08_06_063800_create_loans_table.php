@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::create('loans', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('employee_id');
@@ -30,6 +34,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::dropIfExists('loans');
     }
 };

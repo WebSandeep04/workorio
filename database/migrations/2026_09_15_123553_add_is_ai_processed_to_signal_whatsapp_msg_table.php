@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('signal_whatsapp_msg', function (Blueprint $table) {
             $table->boolean('is_ai_processed')->default(false)->after('message_text');
         });
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('signal_whatsapp_msg', function (Blueprint $table) {
             $table->dropColumn('is_ai_processed');
         });

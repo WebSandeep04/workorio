@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::create('penalty_exemptions', function (Blueprint $table) {
             $table->id();
             $table->enum('type', ['branch', 'department', 'employee']);
@@ -32,6 +36,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::dropIfExists('penalty_exemptions');
     }
 };

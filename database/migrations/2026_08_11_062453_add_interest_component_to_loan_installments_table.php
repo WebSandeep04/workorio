@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('loan_installments', function (Blueprint $table) {
             $table->decimal('principal_component', 10, 2)->default(0)->after('amount');
             $table->decimal('interest_component', 10, 2)->default(0)->after('principal_component');
@@ -22,6 +26,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('loan_installments', function (Blueprint $table) {
             $table->dropColumn(['principal_component', 'interest_component']);
         });

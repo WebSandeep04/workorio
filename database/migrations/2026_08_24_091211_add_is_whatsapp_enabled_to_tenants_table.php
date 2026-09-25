@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if NOT running on master database
+        if (Schema::getConnection()->getName() !== 'mysql') {
+            return;
+        }
         Schema::table('tenants', function (Blueprint $table) {
             $table->boolean('is_whatsapp_enabled')->default(true)->after('is_sales_enabled');
         });
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if NOT running on master database
+        if (Schema::getConnection()->getName() !== 'mysql') {
+            return;
+        }
         Schema::table('tenants', function (Blueprint $table) {
             $table->dropColumn('is_whatsapp_enabled');
         });

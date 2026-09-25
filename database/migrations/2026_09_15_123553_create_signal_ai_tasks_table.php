@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::create('signal_ai_tasks', function (Blueprint $table) {
             $table->id();
             $table->integer('message_id')->nullable(); // referencing signal_whatsapp_msg.id which is INT
@@ -28,6 +32,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::dropIfExists('signal_ai_tasks');
     }
 };

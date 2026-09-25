@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         $employees = DB::table('employees')->whereNotNull('shift_id')->get();
         $now = now();
         $inserts = [];
@@ -39,6 +43,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         DB::table('employee_shifts')->where('effective_from', '2000-01-01')->delete();
     }
 };

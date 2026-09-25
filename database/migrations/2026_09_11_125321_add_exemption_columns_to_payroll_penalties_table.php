@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('payroll_penalties', function (Blueprint $table) {
             $table->integer('total_late_count')->default(0)->after('employee_id');
             $table->integer('exempted_late_count')->default(0)->after('total_late_count');
@@ -22,6 +26,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('payroll_penalties', function (Blueprint $table) {
             $table->dropColumn(['total_late_count', 'exempted_late_count']);
         });

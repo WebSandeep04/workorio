@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('monthly_attendance_summaries', function (Blueprint $table) {
             $table->decimal('total_weekly_offs_worked', 5, 2)->default(0)->change();
             $table->decimal('total_holidays_worked', 5, 2)->default(0)->change();
@@ -22,6 +26,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('monthly_attendance_summaries', function (Blueprint $table) {
             $table->integer('total_weekly_offs_worked')->default(0)->change();
             $table->integer('total_holidays_worked')->default(0)->change();

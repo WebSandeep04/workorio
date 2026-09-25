@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('shifts', function (Blueprint $table) {
             $table->dropColumn([
                 'min_per_month_late_allow',
@@ -26,6 +30,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('shifts', function (Blueprint $table) {
             $table->integer('min_per_month_late_allow')->default(0)->nullable();
             $table->boolean('is_grace_punish')->default(0);

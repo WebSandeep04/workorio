@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('shifts', function (Blueprint $table) {
             $table->integer('halfday_leave_req_min')->default(270)->after('half_day_hr')->comment('Required minutes to complete halfday when halfday leave is applied');
         });
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('shifts', function (Blueprint $table) {
             //
         });

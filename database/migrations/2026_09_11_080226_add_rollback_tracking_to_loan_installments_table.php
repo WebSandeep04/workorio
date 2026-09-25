@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('loan_installments', function (Blueprint $table) {
             $table->unsignedBigInteger('payroll_id')->nullable()->after('status');
             $table->decimal('original_amount', 12, 2)->nullable()->after('amount');
@@ -25,6 +29,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
         Schema::table('loan_installments', function (Blueprint $table) {
             $table->dropForeign(['payroll_id']);
             $table->dropColumn(['payroll_id', 'original_amount', 'is_system_generated']);
