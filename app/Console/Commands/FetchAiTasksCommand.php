@@ -28,8 +28,6 @@ class FetchAiTasksCommand extends Command
      */
     public function handle()
     {
-        Log::info("FetchAiTasksCommand started at " . Carbon::now('Asia/Kolkata')->toDateTimeString());
-
         $tenants = \App\Models\Tenant::on('mysql')->get();
 
         foreach ($tenants as $tenant) {
@@ -45,7 +43,6 @@ class FetchAiTasksCommand extends Command
 
                 if ($lookbackMinutes !== false) {
                     $this->info("Running for tenant {$tenant->tenant_name} with lookback {$lookbackMinutes}");
-                    Log::info("FetchAiTasksCommand running for tenant {$tenant->tenant_name} with lookback {$lookbackMinutes}");
 
                     $aiService = app(\App\Services\AiTaskDetectorService::class);
                     $aiService->processPendingMessages($this);
@@ -53,13 +50,11 @@ class FetchAiTasksCommand extends Command
 
             } catch (\Exception $e) {
                 $this->error("Error processing tenant {$tenant->tenant_name}: " . $e->getMessage());
-                Log::error("FetchAiTasksCommand exception for tenant {$tenant->tenant_name}", ['error' => $e->getMessage()]);
             } finally {
                 \Illuminate\Support\Facades\DB::setDefaultConnection('mysql');
             }
         }
 
-        Log::info("FetchAiTasksCommand finished");
         return 0;
     }
 

@@ -832,11 +832,20 @@ class TaskController extends Controller
             return;
         }
 
+        $existingUserIds = $task->assignedUsers()->pluck('users.id')->toArray();
+
         $payload = collect($userIds)
             ->mapWithKeys(fn ($id) => [$id => ['assigned_by' => $assignedBy]])
             ->toArray();
 
         $task->assignedUsers()->sync($payload);
+
+        $newlyAssignedIds = array_diff($userIds, $existingUserIds);
+
+        if (!empty($newlyAssignedIds)) {
+            $connectionName = \Illuminate\Support\Facades\DB::getDefaultConnection();
+            dispatch(new \App\Jobs\SendTaskAssignedNotification($task, $newlyAssignedIds, $assignedBy, $connectionName));
+        }
     }
 
     protected function includeAssignedUsers(array $relations = []): array
