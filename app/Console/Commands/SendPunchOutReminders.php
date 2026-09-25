@@ -5,10 +5,14 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Attendance;
 use App\Models\EmployeeLocation;
+use App\Models\Tenant;
+use App\Services\TenantDatabaseService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use Carbon\Carbon;
+use Exception;
 
 class SendPunchOutReminders extends Command
 {
@@ -17,23 +21,49 @@ class SendPunchOutReminders extends Command
 
     public function handle()
     {
-        // Get attendances for today that haven't received all 4 reminders
-        $attendances = Attendance::with(['user.employee.places', 'movements', 'user.employeeShift.shift'])
-            ->whereDate('date', today())
-            ->where('punch_out_reminders_sent', '<', 4)
-            ->whereHas('movements', function($q) {
-                $q->where('movement_type', 'punch_in');
-            })
-            ->whereDoesntHave('movements', function($q) {
-                $q->where('movement_type', 'punch_out');
-            })
-            ->get();
+        $this->info('Starting punch-out reminder generation...');
 
-        $credentialsPath = storage_path('app/firebase_credentials.json');
-        
-        if (!file_exists($credentialsPath) || $attendances->isEmpty()) {
-            return;
+        $tenants = Tenant::on('mysql')->get();
+
+        if ($tenants->isEmpty()) {
+            $this->info("No tenants found.");
+            return 0;
         }
+
+        $this->info("Found {$tenants->count()} tenants. Processing...");
+
+        foreach ($tenants as $tenant) {
+            $this->processTenant($tenant);
+        }
+
+        $this->info('Punch-out reminder generation completed for all tenants.');
+        return 0;
+    }
+
+    private function processTenant(Tenant $tenant)
+    {
+        $this->line("Processing Tenant: {$tenant->tenant_name} (ID: {$tenant->id})");
+
+        try {
+            TenantDatabaseService::setDefaultConnection($tenant->id);
+            
+            // Get attendances for today that haven't received all 4 reminders
+            $attendances = Attendance::with(['user.employee.places', 'movements', 'user.employeeShift.shift'])
+                ->whereDate('date', today())
+                ->where('punch_out_reminders_sent', '<', 4)
+                ->whereHas('movements', function($q) {
+                    $q->where('movement_type', 'punch_in');
+                })
+                ->whereDoesntHave('movements', function($q) {
+                    $q->where('movement_type', 'punch_out');
+                })
+                ->get();
+
+            $credentialsPath = storage_path('app/firebase_credentials.json');
+            
+            if (!file_exists($credentialsPath) || $attendances->isEmpty()) {
+                return;
+            }
 
         $credentialsJson = json_decode(file_get_contents($credentialsPath), true);
         $projectId = $credentialsJson['project_id'] ?? null;
@@ -112,12 +142,17 @@ class SendPunchOutReminders extends Command
                     }
                 }
 
-                if ($shouldSend) {
-                    $this->sendFcm($apiUrl, $accessToken, $user->fcm_token);
-                    $attendance->increment('punch_out_reminders_sent');
-                    $this->info("Sent reminder #".($remindersSent + 1)." to user {$user->id}");
+                    if ($shouldSend) {
+                        $this->sendFcm($apiUrl, $accessToken, $user->fcm_token);
+                        $attendance->increment('punch_out_reminders_sent');
+                        $this->info("Sent reminder #".($remindersSent + 1)." to user {$user->id} in tenant {$tenant->tenant_name}");
+                    }
                 }
             }
+        } catch (Exception $e) {
+            $this->error("Failed to process tenant {$tenant->tenant_name}: " . $e->getMessage());
+        } finally {
+            DB::setDefaultConnection('mysql');
         }
     }
 
