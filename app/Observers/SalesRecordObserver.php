@@ -30,6 +30,31 @@ class SalesRecordObserver
             ]);
         }
 
+        // --- FCM Notification Logic ---
+        $creatorId = $this->getCurrentUserId();
+        $assignedToId = $salesRecord->user_id;
+
+        // Fetch users who should receive mail/notification
+        $salesUserIds = \App\Models\User::whereHas('employee', function ($q) {
+                $q->where('status', 'active');
+            })
+            ->where('is_sales', 1)
+            ->where('is_new_lead_add_mail', 1)
+            ->pluck('id')
+            ->toArray();
+
+        $notifyUserIds = $salesUserIds;
+        if ($creatorId) $notifyUserIds[] = $creatorId;
+        if ($assignedToId) $notifyUserIds[] = $assignedToId;
+
+        $notifyUserIds = array_unique(array_filter($notifyUserIds));
+
+        if (!empty($notifyUserIds)) {
+            $connectionName = \Illuminate\Support\Facades\DB::getDefaultConnection();
+            dispatch(new \App\Jobs\SendLeadFCMNotification($salesRecord->id, $notifyUserIds, 'created', $connectionName));
+        }
+        // ------------------------------
+
         // Check if this is a Close_win status and convert to customer
         if ($this->prospectToCustomerService->shouldConvertToCustomer($salesRecord)) {
             $this->prospectToCustomerService->convertProspectToCustomer($salesRecord);
@@ -43,13 +68,31 @@ class SalesRecordObserver
     {
         // Log assignment changes
         if ($salesRecord->wasChanged('user_id')) {
+            $oldUserId = $salesRecord->getOriginal('user_id');
+            $newUserId = $salesRecord->user_id;
+            $assignedBy = $this->getCurrentUserId();
+
             \App\Models\LeadAssignmentLog::create([
                 'sales_record_id' => $salesRecord->id,
-                'from_user_id' => $salesRecord->getOriginal('user_id'),
-                'to_user_id' => $salesRecord->user_id,
-                'assigned_by' => $this->getCurrentUserId(),
+                'from_user_id' => $oldUserId,
+                'to_user_id' => $newUserId,
+                'assigned_by' => $assignedBy,
                 'remark' => 'Lead reassigned/transferred',
             ]);
+
+            // --- FCM Notification Logic ---
+            $notifyUserIds = [];
+            if ($assignedBy) $notifyUserIds[] = $assignedBy;
+            if ($newUserId) $notifyUserIds[] = $newUserId;
+            if ($oldUserId) $notifyUserIds[] = $oldUserId;
+
+            $notifyUserIds = array_unique(array_filter($notifyUserIds));
+
+            if (!empty($notifyUserIds)) {
+                $connectionName = \Illuminate\Support\Facades\DB::getDefaultConnection();
+                dispatch(new \App\Jobs\SendLeadFCMNotification($salesRecord->id, $notifyUserIds, 'reassigned', $connectionName));
+            }
+            // ------------------------------
         }
 
         // Check if status was changed to Close_win
