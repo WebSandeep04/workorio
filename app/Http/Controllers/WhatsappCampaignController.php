@@ -392,6 +392,16 @@ class WhatsappCampaignController extends Controller
                     $value = $member->name ?? 'Customer';
                 } elseif ($field === 'phone_number') {
                     $value = $member->phone_number ?? '';
+                } elseif ($field === 'company_name') {
+                    $source = $member->source;
+                    if ($source) {
+                        if ($source instanceof \App\Models\SalesRecord) $value = $source->leads_name;
+                        elseif ($source instanceof \App\Models\Prospectus) $value = $source->prospectus_name;
+                        elseif ($source instanceof \App\Models\Calling) $value = $source->company_name;
+                        elseif ($source instanceof \App\Models\Customer) $value = $source->company_name;
+                        elseif ($source instanceof \App\Models\BusinessCardScan) $value = $source->company_name;
+                    }
+                    if (empty($value)) $value = 'Company';
                 }
                 
                 $components->{$variable} = [

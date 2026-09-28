@@ -379,6 +379,7 @@
                     let mapValue = mappings && mappings[variable] ? mappings[variable] : '';
                     let isName = mapValue === 'name' ? 'selected' : '';
                     let isPhone = mapValue === 'phone_number' ? 'selected' : '';
+                    let isCompany = mapValue === 'company_name' ? 'selected' : '';
                     html += `
                         <div class="mb-3">
                             <label class="form-label fw-bold">${variable}</label>
@@ -386,6 +387,7 @@
                                 <option value="">-- Map to field --</option>
                                 <option value="name" ${isName}>Name</option>
                                 <option value="phone_number" ${isPhone}>Phone Number</option>
+                                <option value="company_name" ${isCompany}>Company Name</option>
                             </select>
                         </div>
                     `;

@@ -187,6 +187,8 @@ class Msg91TemplateController extends Controller
                 $value = 'Test';
                 if ($field === 'phone_number') {
                     $value = $phone;
+                } elseif ($field === 'company_name') {
+                    $value = 'Test Company';
                 }
                 $components->{$variable} = [
                     "type" => "text",
