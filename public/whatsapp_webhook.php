@@ -53,6 +53,9 @@ if ($raw === false || $raw === '') {
     exit;
 }
 
+// Log the incoming payload
+file_put_contents(__DIR__ . '/webhook_log.txt', date('Y-m-d H:i:s') . "\n" . $raw . "\n\n", FILE_APPEND);
+
 $payload = json_decode($raw, true);
 if ($payload === null && json_last_error() !== JSON_ERROR_NONE) {
     echo json_encode(['status' => 'ignored', 'message' => 'invalid_json']);
@@ -73,30 +76,65 @@ $receiver = $payload['integratedNumber'] ?? $payload['receiver'] ?? $payload['to
 $messageText = $payload['text'] ?? null;
 $messageArray = $payload['message'] ?? null;
 
+// Parse "messages" if it exists as a JSON string (MSG91 format)
+$messagesJson = $payload['messages'] ?? null;
+if ($messagesJson && is_string($messagesJson)) {
+    $decodedMessages = json_decode($messagesJson, true);
+    if (is_array($decodedMessages) && !empty($decodedMessages)) {
+        $messageArray = $decodedMessages[0];
+    }
+}
+
 // Handle nested data format if present
 if (!$sender && isset($payload['data']) && is_array($payload['data'])) {
     $data = $payload['data'];
     $sender = $data['customerNumber'] ?? $data['sender'] ?? null;
     $receiver = $data['integratedNumber'] ?? $data['receiver'] ?? null;
     $messageText = $data['text'] ?? null;
-    $messageArray = $data['message'] ?? null;
+    if (isset($data['messages']) && is_string($data['messages'])) {
+         $dec = json_decode($data['messages'], true);
+         if (is_array($dec) && !empty($dec)) {
+             $messageArray = $dec[0];
+         }
+    } else {
+         $messageArray = $data['message'] ?? null;
+    }
+}
+
+// Handle Button/Interactive clicks
+$messageType = $payload['contentType'] ?? $payload['messageType'] ?? 'text';
+if ($messageType === 'button' || $messageType === 'interactive' || $messageType === 'listReply') {
+    if (isset($payload['button']) && is_string($payload['button'])) {
+        $btnData = json_decode($payload['button'], true);
+        if ($btnData && isset($btnData['text'])) {
+            $messageText = $btnData['text'];
+        }
+    } elseif (isset($payload['interactive']) && is_string($payload['interactive'])) {
+        $intData = json_decode($payload['interactive'], true);
+        if ($intData && isset($intData['list_reply']['title'])) {
+            $messageText = $intData['list_reply']['title'];
+        } elseif ($intData && isset($intData['button_reply']['title'])) {
+            $messageText = $intData['button_reply']['title'];
+        }
+    }
 }
 
 // If no sender or no message content, ignore
-if (!$sender || (!$messageText && !$messageArray)) {
+if (!$sender || (empty($messageText) && empty($messageArray))) {
     echo json_encode(['status' => 'ignored', 'message' => 'missing_sender_or_message']);
     exit;
 }
 
-$messageType = $payload['contentType'] ?? $payload['messageType'] ?? 'text';
 $mediaUrl = $payload['url'] ?? null;
 $msg91MessageId = $payload['uuid'] ?? $payload['message_id'] ?? $payload['id'] ?? null;
 
 // Parse older complex array format if needed
-if (!$messageText && is_array($messageArray)) {
+if (empty($messageText) && is_array($messageArray)) {
     $msgType = $messageArray['type'] ?? 'text';
     if ($msgType === 'text') {
         $messageText = $messageArray['text']['body'] ?? ($messageArray['text'] ?? '');
+    } elseif ($msgType === 'button') {
+        $messageText = $messageArray['button']['text'] ?? $messageArray['button']['payload'] ?? 'Button Clicked';
     } elseif (in_array($msgType, ['image', 'document', 'audio', 'video'])) {
         $mediaUrl = $messageArray['media_url'] ?? ($messageArray[$msgType]['link'] ?? null);
         $messageText = $messageArray['caption'] ?? null;
