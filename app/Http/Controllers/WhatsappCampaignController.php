@@ -44,7 +44,8 @@ class WhatsappCampaignController extends Controller
     {
         $whatsapp_campaign = WhatsappCampaign::findOrFail($id);
         $whatsapp_campaign->load('members');
-        return view('whatsapp_campaigns.show', compact('whatsapp_campaign'));
+        $callingCampaigns = \App\Models\CallingCampaign::orderBy('name')->get();
+        return view('whatsapp_campaigns.show', compact('whatsapp_campaign', 'callingCampaigns'));
     }
 
     public function getSourceData(Request $request)
@@ -92,6 +93,11 @@ class WhatsappCampaignController extends Controller
                           ->orWhere('phone', 'like', "%{$search}%");
                     });
                 }
+                if ($request->filled('calling_campaign_id')) {
+                    $query->whereHas('campaigns', function($q) use ($request) {
+                        $q->where('calling_campaigns.id', $request->calling_campaign_id);
+                    });
+                }
                 $data = $query->paginate(50);
                 break;
             case 'BusinessCardScan':
@@ -136,7 +142,13 @@ class WhatsappCampaignController extends Controller
                     $records = Customer::whereNotNull('phone')->get(['id', 'name', 'phone']);
                     break;
                 case 'Calling':
-                    $records = Calling::whereNotNull('phone')->get(['id', 'contact_person as name', 'phone']);
+                    $query = Calling::whereNotNull('phone')->select(['id', 'contact_person as name', 'phone']);
+                    if ($request->filled('calling_campaign_id')) {
+                        $query->whereHas('campaigns', function($q) use ($request) {
+                            $q->where('calling_campaigns.id', $request->calling_campaign_id);
+                        });
+                    }
+                    $records = $query->get();
                     break;
                 case 'BusinessCardScan':
                     $records = BusinessCardScan::whereNotNull('phone_primary')->get(['id', 'name', 'phone_primary as phone']);

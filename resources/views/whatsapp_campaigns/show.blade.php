@@ -87,6 +87,15 @@
                                 <option value="BusinessCardScan">Contact Mgmt (Business Cards)</option>
                             </select>
                         </div>
+                        <div class="col-md-4" id="calling_campaign_container" style="display: none;">
+                            <label class="form-label">Calling Campaign Filter</label>
+                            <select class="form-select" id="calling_campaign_id" name="calling_campaign_id">
+                                <option value="">-- All Calling Campaigns --</option>
+                                @foreach($callingCampaigns as $camp)
+                                    <option value="{{ $camp->id }}">{{ $camp->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="col-md-4" id="source_search_container" style="display: none;">
                             <label class="form-label">Search</label>
                             <input type="text" class="form-control" id="source_search" placeholder="Search name or phone...">
@@ -190,19 +199,30 @@
         let tbody = document.querySelector('#source_table tbody');
         let paginationControls = document.getElementById('pagination_controls');
         
+        let callingCampaignContainer = document.getElementById('calling_campaign_container');
+        
         if (!sourceType) {
             container.style.display = 'none';
             searchContainer.style.display = 'none';
+            callingCampaignContainer.style.display = 'none';
             return;
         }
 
         searchContainer.style.display = 'block';
+        if (sourceType === 'Calling') {
+            callingCampaignContainer.style.display = 'block';
+        } else {
+            callingCampaignContainer.style.display = 'none';
+        }
+
         tbody.innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
         container.style.display = 'block';
         paginationControls.style.setProperty('display', 'none', 'important');
         document.getElementById('select_all').checked = false;
 
-        fetch(`{{ route('whatsapp-campaigns.source-data') }}?source_type=${sourceType}&search=${encodeURIComponent(search)}&page=${page}`)
+        let callingCampaignId = document.getElementById('calling_campaign_id').value;
+
+        fetch(`{{ route('whatsapp-campaigns.source-data') }}?source_type=${sourceType}&search=${encodeURIComponent(search)}&calling_campaign_id=${callingCampaignId}&page=${page}`)
             .then(response => response.json())
             .then(response => {
                 let data = response.data; // Laravel pagination wraps items in 'data'
@@ -245,6 +265,12 @@
         selectedMembers.clear();
         document.getElementById('select_all').checked = false;
         document.getElementById('source_search').value = '';
+        document.getElementById('calling_campaign_id').value = '';
+        fetchSourceData(currentPage);
+    });
+
+    document.getElementById('calling_campaign_id').addEventListener('change', function() {
+        currentPage = 1;
         fetchSourceData(currentPage);
     });
 
@@ -319,6 +345,7 @@
             let formData = {
                 _token: '{{ csrf_token() }}',
                 source_type: $('#source_type').val(),
+                calling_campaign_id: $('#calling_campaign_id').val(),
                 member_ids: Array.from(selectedMembers)
             };
             
@@ -366,6 +393,7 @@
                 data: {
                     _token: '{{ csrf_token() }}',
                     source_type: sourceType,
+                    calling_campaign_id: $('#calling_campaign_id').val(),
                     select_all: 1
                 },
                 success: function(response) {
