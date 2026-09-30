@@ -239,6 +239,11 @@ class AttendanceReportApiController extends Controller
                 'name' => $user->name,
                 'designation' => $user->employee->designation->name ?? 'N/A'
             ],
+            'month' => [
+                'display' => $startDate->format('F Y'),
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d')
+            ],
             'daily_breakdown' => $dailyData,
             'summary' => $summary
         ];
@@ -467,7 +472,16 @@ class AttendanceReportApiController extends Controller
                 'total_present' => collect($reportData)->whereIn('code', ['P', 'P2', 'W/O-W', 'H/W'])->count(),
                 'total_absent' => collect($reportData)->where('code', 'A')->count(),
                 'total_leaves' => collect($reportData)->whereIn('code', ['L', 'HD', 'SL', 'RH', 'LWP'])->count(),
-                'total_na' => collect($reportData)->where('code', 'NA')->count()
+                'total_na' => collect($reportData)->where('code', 'NA')->count(),
+                
+                'total_users' => count($users),
+                'present' => collect($reportData)->whereIn('code', ['P', 'P2'])->count(),
+                'halfday' => collect($reportData)->where('code', 'HD')->count(),
+                'absent' => collect($reportData)->where('code', 'A')->count(),
+                'leave' => collect($reportData)->whereIn('code', ['L', 'SL', 'RH'])->count(),
+                'unpaid_leave' => collect($reportData)->where('code', 'LWP')->count(),
+                'holiday_working' => collect($reportData)->where('code', 'H/W')->count(),
+                'sunday_working' => collect($reportData)->where('code', 'W/O-W')->count()
             ],
             'data' => $reportData
         ];
