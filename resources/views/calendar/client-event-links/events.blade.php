@@ -14,6 +14,7 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <div class="d-flex align-items-center gap-2">
+                    <input type="month" id="monthFilter" class="form-control form-control-sm" value="{{ date('Y-m') }}">
                     <button class="btn btn-sm btn-primary" id="saveLinks"><i class="bi bi-save"></i> Save Links</button>
                     <a class="btn btn-sm btn-outline-secondary" href="{{ route('calendar-client-event.links') }}"><i class="bi bi-arrow-left"></i> Back</a>
                 </div>
@@ -69,19 +70,20 @@
     let existingCommon = {};
 
     function load(){
+        const month = $('#monthFilter').val();
         $.when(
-            $.get(`/calendar/client-event-links/${clientId}/events`),
-            $.get(`/calendar/client-event-links/${clientId}/common-events`)
+            $.get(`/calendar/client-event-links/${clientId}/events`, { month: month }),
+            $.get(`/calendar/client-event-links/${clientId}/common-events`, { month: month })
         ).done(function(evRes, comRes){
             const resp = evRes[0];
             $('#clientName').text(resp.client?.name || '');
-            linked = resp.linked_event_ids || [];
+            linked = (resp.linked_event_ids || []).map(String);
             const rows = resp.events || [];
             let html = '';
             if (rows.length === 0) html = '<tr><td colspan="3" class="text-muted">No events found</td></tr>';
             else {
                 html = rows.map(function(r){
-                    const checked = linked.includes(r.id) ? 'checked' : '';
+                    const checked = linked.includes(String(r.id)) ? 'checked' : '';
                     return `<tr>
                         <td class="text-center"><input type="checkbox" class="evchk" value="${r.id}" ${checked}></td>
                         <td class="text-nowrap">${r.event_date || ''}</td>
@@ -133,6 +135,7 @@
         $('.evchk').prop('checked', checked);
         updateSelectedCount();
     });
+    $('#monthFilter').on('change', load);
     $(document).on('change', '.evchk', updateSelectedCount);
     function updateSelectedCount(){
         const n = $('.evchk:checked').length;
@@ -140,12 +143,14 @@
     }
     $('#saveLinks').on('click', function(){
         const selected = $('.evchk:checked').map(function(){ return $(this).val(); }).get();
+        const month = $('#monthFilter').val();
         $.ajax({
             url: `/calendar/client-event-links/${clientId}/save`,
             method: 'POST',
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
-                event_ids: selected
+                event_ids: selected,
+                month: month
             }
         }).done(function(resp){
             if (resp && resp.success) {
@@ -186,12 +191,14 @@
             const dates = $(`.ce-dates[data-id=${id}] input.ce-date`).map(function(){ return $(this).val(); }).get().filter(Boolean);
             if (dates.length > 0) items.push({ common_event_id: id, dates });
         });
+        const month = $('#monthFilter').val();
         $.ajax({
             url: `/calendar/client-event-links/${clientId}/common-events/save`,
             method: 'POST',
             data: {
                 _token: $('meta[name="csrf-token"]').attr('content'),
-                items: items
+                items: items,
+                month: month
             }
         }).done(function(resp){
             if (resp && resp.success) { showToast('Common events saved'); load(); }

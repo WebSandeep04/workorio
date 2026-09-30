@@ -26,17 +26,19 @@ class ClientEventLinkController extends Controller
         return view('calendar.client-event-links.events', ['clientId' => (int)$clientId]);
     }
 
-    public function fetchEvents($clientId)
+    public function fetchEvents(Request $request, $clientId)
     {
         $client = Schema::hasTable('calendar_clients')
             ? DB::table('calendar_clients')->where('id', (int)$clientId)->first(['id','name'])
             : null;
 
-        $startOfMonth = now()->startOfMonth()->format('Y-m-d');
+        $monthParam = $request->get('month', now()->format('Y-m'));
+        $startOfMonth = \Carbon\Carbon::parse($monthParam . '-01')->startOfMonth()->format('Y-m-d');
+        $endOfMonth = \Carbon\Carbon::parse($monthParam . '-01')->endOfMonth()->format('Y-m-d');
 
         $events = Schema::hasTable('calendar_events')
             ? DB::table('calendar_events')
-                ->where('event_date', '>=', $startOfMonth)
+                ->whereBetween('event_date', [$startOfMonth, $endOfMonth])
                 ->orderBy('event_date', 'asc') // Changed to asc for better upcoming view
                 ->get(['id','name','event_date'])
             : collect();
@@ -61,6 +63,7 @@ class ClientEventLinkController extends Controller
         $validated = $request->validate([
             'event_ids' => 'nullable|array',
             'event_ids.*' => 'integer|exists:calendar_events,id',
+            'month' => 'required|date_format:Y-m',
         ]);
 
         if (!Schema::hasTable('calendar_event_client')) {
@@ -86,31 +89,12 @@ class ClientEventLinkController extends Controller
         // 3. Keep "past" links untouched.
         // 4. Replace "future" links with the new list from frontend.
         
-        $cutoff = now()->startOfMonth()->format('Y-m-d');
-        
-        // 1. Get all event IDs for this client that are "future" (>= cutoff)
-        // actually, we need to join with calendar_events to know the date
-        $futureLinkedIds = DB::table('calendar_event_client')
-            ->join('calendar_events', 'calendar_event_client.event_id', '=', 'calendar_events.id')
-            ->where('calendar_event_client.client_id', $clientId)
-            ->where('calendar_events.event_date', '>=', $cutoff)
-            ->pluck('calendar_event_client.event_id')
-            ->toArray();
-            
-        // Delete existing *future* links for this client
-        // We need raw delete with join or whereIn
-         DB::table('calendar_event_client')
-            ->whereIn('event_id', $futureLinkedIds)
-            ->where('client_id', $clientId)
-            ->delete();
-
-         // (Alternative: Delete where event_id is in the list of events we displayed? 
-         //  The displayed list was "all events >= cutoff".
-         //  So we should delete links for any event >= cutoff.
-         //  Then insert the new selection.)
+        $monthParam = $validated['month'];
+        $startOfMonth = \Carbon\Carbon::parse($monthParam . '-01')->startOfMonth()->format('Y-m-d');
+        $endOfMonth = \Carbon\Carbon::parse($monthParam . '-01')->endOfMonth()->format('Y-m-d');
          
          $displayedEventIds = DB::table('calendar_events')
-            ->where('event_date', '>=', $cutoff)
+            ->whereBetween('event_date', [$startOfMonth, $endOfMonth])
             ->pluck('id')
             ->toArray();
             
@@ -139,7 +123,7 @@ class ClientEventLinkController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function fetchCommonEvents($clientId)
+    public function fetchCommonEvents(Request $request, $clientId)
     {
         $client = Schema::hasTable('calendar_clients')
             ? DB::table('calendar_clients')->where('id', (int)$clientId)->first(['id','name'])
@@ -149,13 +133,15 @@ class ClientEventLinkController extends Controller
             ? DB::table('common_events')->where('is_active', 1)->orderBy('name')->get(['id','name','alert_before_days'])
             : collect();
 
-        $startOfMonth = now()->startOfMonth()->format('Y-m-d');
+        $monthParam = $request->get('month', now()->format('Y-m'));
+        $startOfMonth = \Carbon\Carbon::parse($monthParam . '-01')->startOfMonth()->format('Y-m-d');
+        $endOfMonth = \Carbon\Carbon::parse($monthParam . '-01')->endOfMonth()->format('Y-m-d');
 
         $existing = [];
         if (Schema::hasTable('calendar_client_common_events')) {
             $rows = DB::table('calendar_client_common_events')
                 ->where('client_id', (int)$clientId)
-                ->where('event_date', '>=', $startOfMonth) // Filter applied here
+                ->whereBetween('event_date', [$startOfMonth, $endOfMonth]) // Filter applied here
                 ->get(['common_event_id','event_date']);
             foreach ($rows as $r) {
                 $existing[$r->common_event_id] = $existing[$r->common_event_id] ?? [];
@@ -177,21 +163,22 @@ class ClientEventLinkController extends Controller
             'items.*.common_event_id' => 'required|integer|exists:common_events,id',
             'items.*.dates' => 'required|array',
             'items.*.dates.*' => 'date',
+            'month' => 'required|date_format:Y-m',
         ]);
 
         if (!Schema::hasTable('calendar_client_common_events')) {
             return response()->json(['success' => false, 'message' => 'Table missing'], 500);
         }
 
-        $clientId = (int)$clientId;
-        // Clear existing rows for provided common_event_ids only, to allow partial updates
-        $commonIds = array_map(function($it){ return (int)$it['common_event_id']; }, $validated['items'] ?? []);
-        if (!empty($commonIds)) {
-            DB::table('calendar_client_common_events')
-                ->where('client_id', $clientId)
-                ->whereIn('common_event_id', $commonIds)
-                ->delete();
-        }
+        $monthParam = $validated['month'];
+        $startOfMonth = \Carbon\Carbon::parse($monthParam . '-01')->startOfMonth()->format('Y-m-d');
+        $endOfMonth = \Carbon\Carbon::parse($monthParam . '-01')->endOfMonth()->format('Y-m-d');
+
+        // Delete existing common events strictly for the targeted month
+        DB::table('calendar_client_common_events')
+            ->where('client_id', $clientId)
+            ->whereBetween('event_date', [$startOfMonth, $endOfMonth])
+            ->delete();
 
         $rows = [];
         foreach (($validated['items'] ?? []) as $it) {
