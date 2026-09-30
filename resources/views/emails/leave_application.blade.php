@@ -25,7 +25,7 @@
                 </tr>
                 <tr>
                     <td style="padding: 8px 0; color: #6b7280; width: 40%;"><strong>Leave Type</strong></td>
-                    <td style="padding: 8px 0; color: #111827;">{{ $leaveRequest->leaveType ? $leaveRequest->leaveType->name : ($leaveRequest->is_rh ? 'Restricted Holiday' : ($leaveRequest->is_sl ? 'Short Leave' : 'N/A')) }}</td>
+                    <td style="padding: 8px 0; color: #111827;">{{ $leaveRequest->leaveType ? ($leaveRequest->leaveType->name === 'Holiday Working' ? 'Compensatory Leave' : $leaveRequest->leaveType->name) : ($leaveRequest->is_rh ? 'Restricted Holiday' : ($leaveRequest->is_sl ? 'Short Leave' : 'N/A')) }}</td>
                 </tr>
                 <tr>
                     <td style="padding: 8px 0; color: #6b7280;"><strong>Duration</strong></td>
@@ -35,6 +35,14 @@
                     <td style="padding: 8px 0; color: #6b7280;"><strong>Total Days</strong></td>
                     <td style="padding: 8px 0; color: #111827;">{{ $leaveRequest->total_days }} day(s)</td>
                 </tr>
+                @if($leaveRequest->is_half_day)
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280;"><strong>Half Day Period</strong></td>
+                    <td style="padding: 8px 0; color: #111827;">
+                        {{ $leaveRequest->half_day_period == 'pre_lunch' ? 'First Half (Pre-Lunch)' : 'Second Half (Post-Lunch)' }}
+                    </td>
+                </tr>
+                @endif
                 @if($leaveRequest->reason)
                 <tr>
                     <td style="padding: 8px 0; color: #6b7280;"><strong>Reason</strong></td>
