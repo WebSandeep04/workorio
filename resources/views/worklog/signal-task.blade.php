@@ -1175,6 +1175,8 @@
                   <select id="statusFilter" class="form-select form-select-sm" style="border-radius: 6px; border-color: #e0e0e0; min-width: 140px;">
                       <option value="pending" selected>Pending</option>
                       <option value="converted">Converted</option>
+                      <option value="done">Done</option>
+                      <option value="junk">Junk</option>
                       <option value="all">All</option>
                   </select>
               </div>
@@ -1216,6 +1218,7 @@
                   <select id="immediateStatusFilter" class="form-select form-select-sm" style="border-radius: 6px; border-color: #e0e0e0; min-width: 140px; display:inline-block;">
                       <option value="pending" selected>Pending</option>
                       <option value="done">Done</option>
+                      <option value="junk">Junk</option>
                       <option value="all">All</option>
                   </select>
               </div>
@@ -1713,9 +1716,13 @@ $(document).ready(function() {
                 
                 let actionBtn = status === 'converted' ? 
                     '<span class="text-success" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
+                    (status === 'done' ? '<span class="text-success" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-check-circle"></i> Done</span>' :
+                    (status === 'junk' ? '<span class="text-danger" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-x-circle"></i> Junk</span>' :
                     `<button class="btn-mark-task convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">
                         <i class="bi bi-play-fill text-danger" style="font-size:1.1rem;"></i> Mark as task
-                    </button>`;
+                    </button>
+                    <button class="btn btn-sm btn-success mark-ai-done-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Done"><i class="bi bi-check2"></i></button>
+                    <button class="btn btn-sm btn-danger mark-ai-junk-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Junk"><i class="bi bi-trash"></i></button>`));
                 
                 let fullDesc = task.description || 'N/A';
                 
@@ -1736,7 +1743,7 @@ $(document).ready(function() {
                             <div><strong>Requested By:</strong> ${requestedBy}</div>
                         </div>
                         <div class="ai-task-footer">
-                            <span class="badge ${status === 'converted' ? 'bg-success' : 'bg-secondary'}">${status}</span>
+                            <span class="badge ${status === 'converted' || status === 'done' ? 'bg-success' : (status === 'junk' ? 'bg-danger' : 'bg-secondary')}">${status}</span>
                             ${actionBtn}
                         </div>
                     </div>
@@ -1746,7 +1753,11 @@ $(document).ready(function() {
                 let descHtml = `<a href="#" class="ai-task-detail-link" data-id="${task.id}" style="font-size:0.85rem; text-decoration:none; color:#000;">${shortDesc}</a>`;
                 let actionBtnTable = status === 'converted' ? 
                     '<span class="text-success" style="font-weight: 500; font-size: 0.8rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
-                    `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">Convert to Task</button>`;
+                    (status === 'done' ? '<span class="badge bg-success">Done</span>' :
+                    (status === 'junk' ? '<span class="badge bg-danger">Junk</span>' :
+                    `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">Convert to Task</button>
+                    <button class="btn btn-sm btn-success mark-ai-done-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Done"><i class="bi bi-check2"></i></button>
+                    <button class="btn btn-sm btn-danger mark-ai-junk-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Junk"><i class="bi bi-trash"></i></button>`));
 
                 let displayTitle = task.title || 'N/A';
                 if (displayTitle.length > 20) displayTitle = displayTitle.substring(0, 20) + '...';
@@ -1995,6 +2006,163 @@ $(document).ready(function() {
         });
     });
 
+    // Handle AI task "Mark as Done"
+    $(document).on('click', '.mark-ai-done-btn', function(e) {
+        e.preventDefault();
+        let $btn = $(this);
+        let id = $btn.data('id');
+        let $row = $btn.closest('tr');
+        let $card = $btn.closest('.ai-task-card');
+        
+        $.ajax({
+            url: '{{ route("signal-task.mark-ai-done") }}',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                id: id
+            },
+            success: function(response) {
+                if(response.success) {
+                    toastr.success('AI Task marked as done!');
+                    
+                    // Update task in global array
+                    let taskIndex = allAiTasks.findIndex(t => t.id == id);
+                    if (taskIndex !== -1) {
+                        allAiTasks[taskIndex].status = 'done';
+                    }
+                    
+                    if (currentStatusFilter === 'pending') {
+                        // Remove from view
+                        if ($row.length) {
+                            if ($.fn.DataTable.isDataTable('#aiTaskTable')) {
+                                $('#aiTaskTable').DataTable().row($row).remove().draw(false);
+                            } else {
+                                $row.remove();
+                            }
+                        }
+                        if ($card.length) {
+                            $card.remove();
+                        }
+                    } else {
+                        // Re-render to show done state
+                        renderAiTasks(allAiTasks);
+                    }
+                } else {
+                    toastr.error('Failed to update task.');
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Error updating task.');
+                console.error(xhr);
+            }
+        });
+    });
+
+    // Handle AI task "Mark as Junk"
+    $(document).on('click', '.mark-ai-junk-btn', function(e) {
+        e.preventDefault();
+        let $btn = $(this);
+        let id = $btn.data('id');
+        let $row = $btn.closest('tr');
+        let $card = $btn.closest('.ai-task-card');
+        
+        if(!confirm('Are you sure you want to mark this task as junk?')) return;
+
+        $.ajax({
+            url: '{{ route("signal-task.mark-ai-junk") }}',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                id: id
+            },
+            success: function(response) {
+                if(response.success) {
+                    toastr.success('AI Task marked as junk!');
+                    
+                    let taskIndex = allAiTasks.findIndex(t => t.id == id);
+                    if (taskIndex !== -1) {
+                        allAiTasks[taskIndex].status = 'junk';
+                    }
+                    
+                    if (currentStatusFilter === 'pending') {
+                        if ($row.length) {
+                            if ($.fn.DataTable.isDataTable('#aiTaskTable')) {
+                                $('#aiTaskTable').DataTable().row($row).remove().draw(false);
+                            } else {
+                                $row.remove();
+                            }
+                        }
+                        if ($card.length) {
+                            $card.remove();
+                        }
+                    } else {
+                        renderAiTasks(allAiTasks);
+                    }
+                } else {
+                    toastr.error('Failed to update task.');
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Error updating task.');
+                console.error(xhr);
+            }
+        });
+    });
+
+    // Handle immediate task "Mark as Junk"
+    $(document).on('click', '.mark-immediate-junk-btn', function(e) {
+        e.preventDefault();
+        let $btn = $(this);
+        let id = $btn.data('id');
+        let $row = $btn.closest('tr');
+        
+        if(!confirm('Are you sure you want to mark this task as junk?')) return;
+
+        $.ajax({
+            url: '{{ route("signal-task.mark-immediate-junk") }}',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                id: id
+            },
+            success: function(response) {
+                if(response.success) {
+                    toastr.success('Task marked as junk!');
+                    
+                    let junkBadge = '<span class="badge bg-danger">Junk</span>';
+                    
+                    let taskIndex = allImmediateTasks.findIndex(t => t.id == id);
+                    if (taskIndex !== -1) {
+                        allImmediateTasks[taskIndex].status = 'junk';
+                    }
+                    
+                    if (currentImmediateStatusFilter === 'pending') {
+                        if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
+                            $('#immediateTaskTable').DataTable().row($row).remove().draw(false);
+                        } else {
+                            $row.remove();
+                        }
+                    } else {
+                        $row.find('td:eq(2)').html(junkBadge);
+                        $row.find('td:eq(3)').html('');
+                        
+                        if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
+                            let dt = $('#immediateTaskTable').DataTable();
+                            dt.cell($row, 2).data(junkBadge);
+                            dt.cell($row, 3).data('');
+                        }
+                    }
+                } else {
+                    toastr.error('Failed to update task.');
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Error updating task.');
+                console.error(xhr);
+            }
+        });
+    });
+
     $('#immediateStatusFilter').on('change', function() {
         currentImmediateStatusFilter = $(this).val();
         renderImmediateTasks(allImmediateTasks);
@@ -2031,13 +2199,19 @@ $(document).ready(function() {
 
         if (filteredTasks && filteredTasks.length > 0) {
             filteredTasks.forEach(task => {
-                let statusBadge = task.status === 'done' ? 
-                    '<span class="badge bg-success">Done</span>' : 
-                    '<span class="badge bg-warning text-dark">Pending</span>';
+                let statusBadge = '';
+                if (task.status === 'done') {
+                    statusBadge = '<span class="badge bg-success">Done</span>';
+                } else if (task.status === 'junk') {
+                    statusBadge = '<span class="badge bg-danger">Junk</span>';
+                } else {
+                    statusBadge = '<span class="badge bg-warning text-dark">Pending</span>';
+                }
                     
-                let actionBtn = task.status === 'done' ? 
+                let actionBtn = task.status === 'done' || task.status === 'junk' ? 
                     '' :
-                    `<button class="btn btn-sm btn-outline-success mark-immediate-done-btn" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}"><i class="bi bi-check2"></i></button>`;
+                    `<button class="btn btn-sm btn-success mark-immediate-done-btn" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Done"><i class="bi bi-check2"></i></button>
+                    <button class="btn btn-sm btn-danger mark-immediate-junk-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Junk"><i class="bi bi-trash"></i></button>`;
                     
                 let displayTitle = task.title || 'N/A';
                 if (displayTitle.length > 20) displayTitle = displayTitle.substring(0, 20) + '...';

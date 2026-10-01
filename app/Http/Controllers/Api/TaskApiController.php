@@ -136,6 +136,10 @@ class TaskApiController extends Controller
 
             // 2. Fetch immediate tasks
             $immediateTasks = \Illuminate\Support\Facades\DB::table('immediate_tasks')
+                ->where(function ($q) {
+                    $q->whereNotIn('status', ['done', 'junk'])
+                      ->orWhereNull('status');
+                })
                 ->orderBy('id', 'desc')
                 ->get()
                 ->map(function ($task) {
@@ -150,13 +154,43 @@ class TaskApiController extends Controller
                             'name' => 'High'
                         ],
                         'due_date' => null,
-                        'created_at' => $task->created_at,
+                        'created_at' => $task->created_at ?? $task->msg_created_at ?? now()->toIso8601String(),
                         'is_immediate' => true,
                     ];
                 });
 
-            // 3. Merge them
-            $allTasks = collect($tasks->toArray())->concat($immediateTasks);
+            // 3. Fetch AI tasks
+            $aiTasks = \Illuminate\Support\Facades\DB::table('signal_ai_tasks')
+                ->leftJoin('signal_whatsapp_msg', 'signal_ai_tasks.message_id', '=', 'signal_whatsapp_msg.id')
+                ->where(function ($q) {
+                    $q->whereNull('signal_ai_tasks.status')
+                      ->orWhereNotIn('signal_ai_tasks.status', ['converted', 'done', 'junk']);
+                })
+                ->select('signal_ai_tasks.*', 'signal_whatsapp_msg.chat as chat_name', 'signal_whatsapp_msg.sender', 'signal_whatsapp_msg.created_at as msg_created_at')
+                ->orderBy('signal_ai_tasks.id', 'desc')
+                ->get()
+                ->map(function ($task) {
+                    return [
+                        'id' => 'ai_' . ($task->id ?? rand()),
+                        'task_name' => $task->title ?? 'AI Task',
+                        'task' => $task->description ?? '',
+                        'status' => [
+                            'name' => ucfirst($task->status ?? 'pending')
+                        ],
+                        'priority' => [
+                            'name' => 'Normal'
+                        ],
+                        'due_date' => null,
+                        'created_at' => $task->created_at ?? $task->msg_created_at ?? now()->toIso8601String(),
+                        'is_ai' => true,
+                        'customer' => ['name' => $task->chat_name ?? 'N/A'],
+                        'user' => ['name' => $task->sender ?? 'Unassigned']
+                    ];
+                });
+
+            // 4. Merge them
+            \Illuminate\Support\Facades\Log::info('AI Tasks fetched: ' . $aiTasks->count());
+            $allTasks = collect($tasks->toArray())->concat($immediateTasks)->concat($aiTasks)->sortByDesc('created_at');
 
             return response()->json(['success' => true, 'tasks' => $allTasks->values()]);
         } catch (\Exception $e) {
@@ -609,3 +643,12 @@ class TaskApiController extends Controller
         return !in_array($statusName, ['pending', 'waiting', 'not started', 'planning', 'planned', 'todo', 'to do'], true);
     }
 }
+
+
+
+
+
+
+
+
+

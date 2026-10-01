@@ -173,4 +173,55 @@ class SignalTaskController extends Controller
             return response()->json(['error' => 'Error updating immediate task', 'message' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Mark an immediate task as junk
+     */
+    public function markImmediateTaskJunk(Request $request)
+    {
+        try {
+            DB::table('immediate_tasks')->where('id', $request->id)->update([
+                'status' => 'junk',
+                'updated_at' => now()
+            ]);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Error marking immediate task junk: ' . $e->getMessage());
+            return response()->json(['error' => 'Error updating immediate task', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Mark an AI task as done
+     */
+    public function markAiTaskDone(Request $request)
+    {
+        try {
+            DB::table('signal_ai_tasks')->where('id', $request->id)->update([
+                'status' => 'done',
+                'updated_at' => now()
+            ]);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Error marking AI task done: ' . $e->getMessage());
+            return response()->json(['error' => 'Error updating AI task', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Mark an AI task as junk
+     */
+    public function markAiTaskJunk(Request $request)
+    {
+        try {
+            DB::table('signal_ai_tasks')->where('id', $request->id)->update([
+                'status' => 'junk',
+                'updated_at' => now()
+            ]);
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Error marking AI task junk: ' . $e->getMessage());
+            return response()->json(['error' => 'Error updating AI task', 'message' => $e->getMessage()], 500);
+        }
+    }
 }
