@@ -28,6 +28,7 @@
                     <button class="btn btn-sm btn-primary flex-fill active" id="filter_all" onclick="setFilter('all')">All (<span id="count_all">0</span>)</button>
                     <button class="btn btn-sm btn-outline-primary flex-fill" id="filter_unread" onclick="setFilter('unread')">Unread (<span id="count_unread">0</span>)</button>
                     <button class="btn btn-sm btn-outline-primary flex-fill" id="filter_read" onclick="setFilter('read')">Read (<span id="count_read">0</span>)</button>
+                    <button class="btn btn-sm btn-outline-primary flex-fill" id="filter_converted" onclick="setFilter('converted')">Converted (<span id="count_converted">0</span>)</button>
                 </div>
             </div>
             
@@ -59,6 +60,11 @@
                         <h6 class="mb-0 fw-bold" id="chat_header_name" style="font-size: 1.05rem;">-</h6>
                         <small class="text-muted" id="modalSenderNumber" style="font-size: 0.8rem;">-</small> <!-- Kept ID for JS compatibility -->
                     </div>
+                </div>
+                <div>
+                    <button class="btn btn-sm" style="background-color: #434afa; color: white; display: none;" onclick="openLeadModalWithData()" id="btnConvertToLead">
+                        <i class="bi bi-person-plus-fill"></i> Convert to Lead
+                    </button>
                 </div>
             </div>
             
@@ -94,6 +100,8 @@
         </div>
     </div>
 </div>
+
+@include('partials.add-lead-modal')
 @endsection
 @push('scripts')
 <script>
@@ -105,6 +113,20 @@
     $(document).ready(function() {
         loadMessages();
     });
+
+    function openLeadModalWithData() {
+        let name = $('#chat_header_name').text();
+        let number = $('#modalSenderNumber').text();
+        
+        if (name && name !== '-' && name !== number) {
+            $('#add_lead_contactPerson').val(name);
+        } else {
+            $('#add_lead_contactPerson').val('');
+        }
+        $('#add_lead_contactNumber').val(number);
+        
+        $('#addLeadModal').modal('show');
+    }
 
     let currentFilter = 'all';
 
@@ -164,14 +186,19 @@
     function renderContactList() {
         let unreadCount = 0;
         let readCount = 0;
+        let convertedCount = 0;
 
         let html = '';
         if (uniqueMessages.length === 0) {
             html = '<div class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No chats found.</div>';
         } else {
             uniqueMessages.forEach(msg => {
-                if (msg.unread_count > 0) unreadCount++;
-                else readCount++;
+                if (msg.is_lead) {
+                    convertedCount++;
+                } else {
+                    if (msg.unread_count > 0) unreadCount++;
+                    else readCount++;
+                }
 
                 let senderName = msg.sender_name || msg.sender_number;
                 let text = msg.message_text ? msg.message_text : (msg.media_url ? 'Media message' : 'No text');
@@ -190,8 +217,10 @@
                 let unreadBadge = msg.unread_count > 0 ? `<span class="badge bg-success rounded-pill ms-2" style="font-size: 0.7rem;">${msg.unread_count}</span>` : '';
                 let fwClass = msg.unread_count > 0 ? 'fw-bold' : '';
                 
+                let convertedBadge = msg.is_lead ? '<span class="badge bg-info rounded-pill ms-2" style="font-size: 0.7rem;">Converted</span>' : '';
+                
                 html += `
-                    <div class="contact-item p-3 border-bottom" data-unread="${msg.unread_count > 0 ? 'true' : 'false'}" onclick="viewChatHistory('${msg.sender_number}', '${msg.sender_name || ''}')" style="cursor: pointer; transition: background 0.2s;" data-number="${msg.sender_number}">
+                    <div class="contact-item p-3 border-bottom" data-unread="${msg.unread_count > 0 ? 'true' : 'false'}" data-converted="${msg.is_lead ? 'true' : 'false'}" onclick="viewChatHistory('${msg.sender_number}', '${msg.sender_name || ''}')" style="cursor: pointer; transition: background 0.2s;" data-number="${msg.sender_number}">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <h6 class="mb-0 text-truncate text-dark ${fwClass}" style="max-width: 70%; font-size: 0.95rem;">${senderName}</h6>
                             <div class="text-end">
@@ -199,10 +228,13 @@
                             </div>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="text-muted text-truncate ${fwClass}" style="font-size: 0.85rem; max-width: 80%;">
+                            <div class="text-muted text-truncate ${fwClass}" style="font-size: 0.85rem; max-width: 70%;">
                                 ${mediaIcon}${text}
                             </div>
-                            ${unreadBadge}
+                            <div>
+                                ${unreadBadge}
+                                ${convertedBadge}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -210,10 +242,12 @@
         }
         $('#contacts_list').html(html);
 
-        $('#count_all').text(uniqueMessages.length);
+        let activeCount = uniqueMessages.length - convertedCount;
+        $('#count_all').text(activeCount);
         $('#count_unread').text(unreadCount);
         $('#count_read').text(readCount);
-        $('#total_numbers_count').text(uniqueMessages.length);
+        $('#count_converted').text(convertedCount);
+        $('#total_numbers_count').text(activeCount);
         
         // Re-apply filter
         filterContacts();
@@ -232,7 +266,7 @@
 
     function setFilter(filterType) {
         currentFilter = filterType;
-        $('#filter_all, #filter_read, #filter_unread').removeClass('active btn-primary').addClass('btn-outline-primary');
+        $('#filter_all, #filter_read, #filter_unread, #filter_converted').removeClass('active btn-primary').addClass('btn-outline-primary');
         $(`#filter_${filterType}`).removeClass('btn-outline-primary').addClass('active btn-primary');
         filterContacts();
     }
@@ -242,12 +276,15 @@
         $('.contact-item').each(function() {
             let text = $(this).text().toLowerCase();
             let isUnread = $(this).data('unread') === true;
+            let isConverted = $(this).data('converted') === true;
 
             let matchQuery = text.indexOf(query) > -1;
             let matchFilter = true;
             
+            if (currentFilter !== 'converted' && isConverted) matchFilter = false;
             if (currentFilter === 'unread' && !isUnread) matchFilter = false;
             if (currentFilter === 'read' && isUnread) matchFilter = false;
+            if (currentFilter === 'converted' && !isConverted) matchFilter = false;
 
             if (matchQuery && matchFilter) {
                 $(this).show();
@@ -264,6 +301,13 @@
         // Update header
         $('#modalSenderNumber').text(senderNumber);
         $('#chat_header_name').text(senderName || senderNumber);
+        
+        let msgObj = uniqueMessages.find(m => m.sender_number === senderNumber);
+        if (msgObj && msgObj.is_lead) {
+            $('#btnConvertToLead').hide();
+        } else {
+            $('#btnConvertToLead').show();
+        }
         
         // Style active contact in list
         $('.contact-item').removeClass('active-chat').css({'background-color': 'transparent', 'border-left': 'none'});

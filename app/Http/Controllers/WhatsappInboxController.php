@@ -130,4 +130,12 @@ class WhatsappInboxController extends Controller
             ->update(['is_read' => 1]);
         return response()->json(['success' => true]);
     }
+
+    public function markAsLead(Request $request)
+    {
+        $sender = $request->input('sender_number');
+        WhatsappInbox::where('sender_number', $sender)
+            ->update(['is_lead' => 1]);
+        return response()->json(['success' => true]);
+    }
 }

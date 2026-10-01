@@ -18,6 +18,7 @@ class WhatsappInbox extends Model
         'message_type',
         'msg91_message_id',
         'is_read',
-        'received_at'
+        'received_at',
+        'is_lead'
     ];
 }
