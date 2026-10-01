@@ -375,8 +375,11 @@ class AttendanceApprovalController extends Controller
 
                     // Approve the record
                     $attendance->is_approved = 1;
-                    $attendance->save();
                 }
+                
+                // Auto lock the record when posted
+                $attendance->is_locked = 1;
+                $attendance->save();
 
                 // Grant 1 credit if it's a Weekly Off or Holiday and they are present
                 // (Already credited records are skipped inside this method)

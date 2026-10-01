@@ -44,11 +44,11 @@ Schedule::command('subscriptions:generate-recurring')
     ->timezone('Asia/Kolkata')
     ->description('Generate new billing cycles for recurring subscriptions across all tenants');
 
-Schedule::command('attendance:lock-past')
-    ->daily()
-    ->at('01:00')
-    ->timezone('Asia/Kolkata')
-    ->description('Automatically lock all past attendance records');
+// Schedule::command('attendance:lock-past')
+//     ->daily()
+//     ->at('01:00')
+//     ->timezone('Asia/Kolkata')
+//     ->description('Automatically lock all past attendance records');
 
 Schedule::command('leave:process-lapse')
     ->daily()
