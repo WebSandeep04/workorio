@@ -53,6 +53,7 @@
             @if(!isset($hide_status) || !$hide_status)
             <th>Status</th>
             @endif
+            <th>Punch In Location</th>
             <th>First In</th>
             <th>Last Out</th>
             <th>Total (H:MM)</th>
@@ -73,6 +74,24 @@
                         return $h . ':' . str_pad($m, 2, '0', STR_PAD_LEFT);
                     }
                 }
+                if (!function_exists('getPunchInLocation')) {
+                    function getPunchInLocation($movements) {
+                        if (empty($movements)) return '-';
+                        foreach ($movements as $m) {
+                            if (($m['type'] === 'Office' || $m['type'] === 'Field') && $m['action'] === 'In') {
+                                $str = '';
+                                if (!empty($m['latitude']) && !empty($m['longitude'])) {
+                                    $str .= $m['latitude'] . ', ' . $m['longitude'];
+                                }
+                                if (!empty($m['place'])) {
+                                    $str .= ($str ? '<br>' : '') . $m['place'];
+                                }
+                                return $str ?: '-';
+                            }
+                        }
+                        return '-';
+                    }
+                }
             @endphp
             @foreach($data['data'] as $d)
                 <tr style="{{ ($d['status'] == 'holiday' || $d['status'] == 'sunday') ? ($d['hours'] > 0 ? 'background-color: #f0fff4;' : 'background-color: #f8f9fa;') : ($d['status'] == 'absent' ? 'background-color: #fff5f5;' : '') }}">
@@ -80,6 +99,7 @@
                     @if(!isset($hide_status) || !$hide_status)
                     <td>{{ $d['status'] === 'unpaid leave' || $d['status'] === 'lwp' ? 'LWP' : ucwords($d['status']) }} {{ $d['holiday_name'] ? "({$d['holiday_name']})" : '' }}</td>
                     @endif
+                    <td>{!! getPunchInLocation($d['movements']) !!}</td>
                     <td>{{ $d['first_in'] }}</td>
                     <td>{{ $d['last_out'] }}</td>
                     <td>{{ formatH($d['hours']) }}</td>
