@@ -81,7 +81,8 @@
                             if (($m['type'] === 'Office' || $m['type'] === 'Field') && $m['action'] === 'In') {
                                 $str = '';
                                 if (!empty($m['latitude']) && !empty($m['longitude'])) {
-                                    $str .= $m['latitude'] . ', ' . $m['longitude'];
+                                    $link = "https://www.google.com/maps/search/?api=1&query={$m['latitude']},{$m['longitude']}";
+                                    $str .= '<a href="' . $link . '" target="_blank">' . $m['latitude'] . ', ' . $m['longitude'] . '</a>';
                                 }
                                 if (!empty($m['place'])) {
                                     $str .= ($str ? '<br>' : '') . $m['place'];
