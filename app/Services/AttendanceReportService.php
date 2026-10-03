@@ -574,7 +574,8 @@ class AttendanceReportService
                         'action' => ucfirst($movement->movement_action),
                         'description' => $movement->description,
                         'latitude' => $movement->latitude,
-                        'longitude' => $movement->longitude
+                        'longitude' => $movement->longitude,
+                        'place' => $movement->place
                     ];
                 })->toArray();
                 

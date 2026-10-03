@@ -746,6 +746,7 @@
                             <thead>
                                 <tr>
                                     <th>User</th>
+                                    <th>Punch In Location</th>
                                     <th>First In</th>
                                     <th>Last Out</th>
                                     <th>Total Hours</th>
@@ -1421,6 +1422,7 @@ function loadTodayReport() {
                             ${d.user.name} 
                             ${d.is_wfh ? '<span class="badge bg-secondary text-white ms-1" style="font-size: 0.6rem; vertical-align: middle;">WFH</span>' : ''}
                         </td>
+                        <td>${getPunchInLocationStr(d.movements)}</td>
                         <td class="font-monospace">${d.first_in}</td>
                         <td class="font-monospace">${d.last_out}</td>
                         <td class="fw-bold">${hoursClock(d.hours)}</td>
@@ -1437,7 +1439,7 @@ function loadTodayReport() {
                     tbody.appendChild(tr);
                     
                     const trDet = document.createElement('tr');
-                    trDet.innerHTML = `<td colspan="11" class="p-0 border-0">
+                    trDet.innerHTML = `<td colspan="12" class="p-0 border-0">
                         <div id="today-mov-${idx}" class="collapse bg-light border-bottom">
                             ${renderMovements(d.movements)}
                         </div>
@@ -1445,7 +1447,7 @@ function loadTodayReport() {
                     tbody.appendChild(trDet);
                 });
             } else {
-                 tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-muted">No data found for today.</td></tr>';
+                 tbody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted">No data found for today.</td></tr>';
             }
         },
         error: function(xhr){
@@ -1457,6 +1459,21 @@ function loadTodayReport() {
             console.error(xhr.responseText);
         }
     });
+}
+
+function getPunchInLocationStr(movements) {
+    if(!movements || !movements.length) return '-';
+    const first = movements.find(m => (m.type === 'Office' || m.type === 'Field') && m.action === 'In');
+    if (!first) return '-';
+    
+    let str = '';
+    if (first.latitude && first.longitude) {
+        str += `<a href="https://www.google.com/maps/search/?api=1&query=${first.latitude},${first.longitude}" target="_blank" class="text-decoration-none text-primary" style="font-size:0.8rem;"><i class="bi bi-geo-alt-fill text-danger me-1"></i>${first.latitude}, ${first.longitude}</a>`;
+    }
+    if (first.place) {
+        str += (str ? '<br>' : '') + `<small class="text-muted" style="font-size:0.75rem;">${first.place}</small>`;
+    }
+    return str || '-';
 }
 </script>
 @endsection
