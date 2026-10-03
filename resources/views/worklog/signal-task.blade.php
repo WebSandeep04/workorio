@@ -1121,15 +1121,12 @@
 
 @section('content')
   <div class="container-fluid px-2">
-    <ul class="nav nav-tabs mb-3 mt-3" id="signalTabs" role="tablist">
+    <ul class="nav nav-tabs mb-2 mt-2" id="signalTabs" role="tablist">
       <li class="nav-item" role="presentation">
         <button class="nav-link active" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages-pane" type="button" role="tab" aria-controls="messages-pane" aria-selected="true" style="color: #434afa; font-weight: bold;">Messages</button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="ai-tasks-tab" data-bs-toggle="tab" data-bs-target="#ai-tasks-pane" type="button" role="tab" aria-controls="ai-tasks-pane" aria-selected="false" style="color: #434afa; font-weight: bold;">AI Tasks</button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="immediate-tasks-tab" data-bs-toggle="tab" data-bs-target="#immediate-tasks-pane" type="button" role="tab" aria-controls="immediate-tasks-pane" aria-selected="false" style="color: #434afa; font-weight: bold;">Immediate Tasks</button>
+        <button class="nav-link" id="ai-tasks-tab" data-bs-toggle="tab" data-bs-target="#ai-tasks-pane" type="button" role="tab" aria-controls="ai-tasks-pane" aria-selected="false" style="color: #434afa; font-weight: bold;">Tasks</button>
       </li>
     </ul>
 
@@ -1163,21 +1160,26 @@
           </div>
       </div>
       <div class="tab-pane fade" id="ai-tasks-pane" role="tabpanel" aria-labelledby="ai-tasks-tab" tabindex="0">
-          <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2 mt-1">
               <div class="btn-group" role="group">
                   <input type="radio" class="btn-check" name="aiTaskView" id="viewTableBtn" value="table" autocomplete="off" checked>
-                  <label class="btn btn-outline-primary btn-sm" for="viewTableBtn" style="border-color:#434AFA; color:#434AFA;"><i class="bi bi-table"></i> Table</label>
+                  <label class="btn btn-outline-primary btn-sm px-3" for="viewTableBtn" style="border-color:#434AFA; color:#434AFA;" title="Table View"><i class="bi bi-table"></i></label>
 
                   <input type="radio" class="btn-check" name="aiTaskView" id="viewCardBtn" value="card" autocomplete="off">
-                  <label class="btn btn-outline-primary btn-sm" for="viewCardBtn" style="border-color:#434AFA; color:#434AFA;"><i class="bi bi-grid"></i> Card</label>
+                  <label class="btn btn-outline-primary btn-sm px-3" for="viewCardBtn" style="border-color:#434AFA; color:#434AFA;" title="Card View"><i class="bi bi-grid"></i></label>
               </div>
-              <div>
+              <div class="d-flex align-items-center gap-2">
                   <select id="statusFilter" class="form-select form-select-sm" style="border-radius: 6px; border-color: #e0e0e0; min-width: 140px;">
                       <option value="pending" selected>Pending</option>
                       <option value="converted">Converted</option>
                       <option value="done">Done</option>
                       <option value="junk">Junk</option>
                       <option value="all">All</option>
+                  </select>
+                  <select id="typeFilter" class="form-select form-select-sm" style="border-radius: 6px; border-color: #e0e0e0; min-width: 140px;">
+                      <option value="all" selected>All Types</option>
+                      <option value="ai">AI</option>
+                      <option value="immediate">Immediate</option>
                   </select>
               </div>
           </div>
@@ -1208,39 +1210,6 @@
 
           <div id="aiTaskCardView" class="ai-tasks-container" style="display: none;">
               <div class="text-center p-4 text-muted w-100"><i class="bi bi-arrow-repeat spin"></i> Loading AI tasks...</div>
-          </div>
-      </div>
-      
-      <div class="tab-pane fade" id="immediate-tasks-pane" role="tabpanel" aria-labelledby="immediate-tasks-tab" tabindex="0">
-          <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
-              <h5 class="mb-0" style="color:#434AFA; font-weight:bold; font-size:1.1rem;"></h5>
-              <div>
-                  <select id="immediateStatusFilter" class="form-select form-select-sm" style="border-radius: 6px; border-color: #e0e0e0; min-width: 140px; display:inline-block;">
-                      <option value="pending" selected>Pending</option>
-                      <option value="done">Done</option>
-                      <option value="junk">Junk</option>
-                      <option value="all">All</option>
-                  </select>
-              </div>
-          </div>
-          <div class="data-table-card">
-              <div class="table-responsive">
-                  <table class="table custom-table" id="immediateTaskTable">
-                      <thead>
-                          <tr>
-                              <th>Title</th>
-                              <th>Description</th>
-                              <th>Status</th>
-                              <th>Action</th>
-                          </tr>
-                      </thead>
-                      <tbody id="immediateTaskTableBody">
-                          <tr>
-                              <td colspan="4" class="text-center"><i class="bi bi-arrow-repeat spin"></i> Loading immediate tasks...</td>
-                          </tr>
-                      </tbody>
-                  </table>
-              </div>
           </div>
       </div>
     </div>
@@ -1495,15 +1464,11 @@ $(document).ready(function() {
 
     // Tab change listener to enable/disable Process AI button
     $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-        currentTab = $(e.target).attr('id') === 'messages-tab' ? 'messages' : ($(e.target).attr('id') === 'ai-tasks-tab' ? 'ai-tasks' : 'immediate-tasks');
+        currentTab = $(e.target).attr('id') === 'messages-tab' ? 'messages' : 'ai-tasks';
         if(currentTab === 'messages') {
             $('#processAiBtn').prop('disabled', false).show();
         } else {
             $('#processAiBtn').prop('disabled', true).hide();
-        }
-        
-        if (currentTab === 'immediate-tasks') {
-            loadImmediateTasks();
         }
         
         $('#searchInput').trigger('keyup'); // Re-trigger search for the active tab
@@ -1579,9 +1544,15 @@ $(document).ready(function() {
     }
 
     let currentStatusFilter = 'pending';
+    let currentTypeFilter = 'all';
 
     $('#statusFilter').on('change', function() {
         currentStatusFilter = $(this).val();
+        renderAiTasks(allAiTasks);
+    });
+
+    $('#typeFilter').on('change', function() {
+        currentTypeFilter = $(this).val();
         renderAiTasks(allAiTasks);
     });
     
@@ -1705,6 +1676,7 @@ $(document).ready(function() {
         let filteredTasks = tasks.filter(task => {
             let status = task.status || 'pending';
             if (currentStatusFilter !== 'all' && status !== currentStatusFilter) return false;
+            if (currentTypeFilter !== 'all' && task.task_type !== currentTypeFilter) return false;
             return true;
         });
 
@@ -1714,15 +1686,29 @@ $(document).ready(function() {
             filteredTasks.forEach(function(task) {
                 let status = task.status || 'pending';
                 
-                let actionBtn = status === 'converted' ? 
-                    '<span class="text-success" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
-                    (status === 'done' ? '<span class="text-success" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-check-circle"></i> Done</span>' :
-                    (status === 'junk' ? '<span class="text-danger" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-x-circle"></i> Junk</span>' :
-                    `<button class="btn-mark-task convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">
-                        <i class="bi bi-play-fill text-danger" style="font-size:1.1rem;"></i> Mark as task
-                    </button>
-                    <button class="btn btn-sm btn-success mark-ai-done-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Done"><i class="bi bi-check2"></i></button>
-                    <button class="btn btn-sm btn-danger mark-ai-junk-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Junk"><i class="bi bi-trash"></i></button>`));
+                let typeBadge = task.task_type === 'ai' 
+                    ? '<span class="badge bg-info text-dark me-2">AI</span>' 
+                    : '<span class="badge bg-warning text-dark me-2">I</span>';
+                
+                let actionBtn = '';
+                if (status === 'converted') {
+                    actionBtn = '<span class="text-success" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-check-circle"></i> Converted</span>';
+                } else if (status === 'done') {
+                    actionBtn = '<span class="text-success" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-check-circle"></i> Done</span>';
+                } else if (status === 'junk') {
+                    actionBtn = '<span class="text-danger" style="font-weight: 500; font-size: 0.75rem;"><i class="bi bi-x-circle"></i> Junk</span>';
+                } else {
+                    if (task.task_type === 'ai') {
+                        actionBtn = `<button class="btn-mark-task convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">
+                            <i class="bi bi-play-fill text-danger" style="font-size:1.1rem;"></i> Mark as task
+                        </button>
+                        <button class="btn btn-sm btn-success mark-ai-done-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Done"><i class="bi bi-check2"></i></button>
+                        <button class="btn btn-sm btn-danger mark-ai-junk-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Junk"><i class="bi bi-trash"></i></button>`;
+                    } else {
+                        actionBtn = `<button class="btn btn-sm btn-success mark-immediate-done-btn" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Done"><i class="bi bi-check2"></i></button>
+                        <button class="btn btn-sm btn-danger mark-immediate-junk-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Junk"><i class="bi bi-trash"></i></button>`;
+                    }
+                }
                 
                 let fullDesc = task.description || 'N/A';
                 
@@ -1731,7 +1717,10 @@ $(document).ready(function() {
                 let requestedBy = task.ai_requested_by || task.sender || 'Unknown';
                 let createdAt = task.created_at ? new Date(task.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
 
-                let cardTitleHtml = `<a href="#" class="ai-task-detail-link" data-id="${task.id}" style="text-decoration:none; color:#000;" title="View Details">${task.title || 'N/A'} <i class="bi bi-info-circle ms-1 text-muted" style="font-size:0.8rem;"></i></a>`;
+                let displayTitle = task.title || 'N/A';
+                if (displayTitle.length > 20) displayTitle = displayTitle.substring(0, 20) + '...';
+
+                let cardTitleHtml = `${typeBadge} <a href="#" class="ai-task-detail-link" data-id="${task.id}" style="text-decoration:none; color:#000;" title="View Details">${displayTitle}</a>`;
 
                 cardHtml += `
                     <div class="ai-task-card">
@@ -1751,18 +1740,26 @@ $(document).ready(function() {
                 
                 let shortDesc = fullDesc.length > 30 ? fullDesc.substring(0, 30) + '...' : fullDesc;
                 let descHtml = `<a href="#" class="ai-task-detail-link" data-id="${task.id}" style="font-size:0.85rem; text-decoration:none; color:#000;">${shortDesc}</a>`;
-                let actionBtnTable = status === 'converted' ? 
-                    '<span class="text-success" style="font-weight: 500; font-size: 0.8rem;"><i class="bi bi-check-circle"></i> Converted</span>' : 
-                    (status === 'done' ? '<span class="badge bg-success">Done</span>' :
-                    (status === 'junk' ? '<span class="badge bg-danger">Junk</span>' :
-                    `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">Convert to Task</button>
-                    <button class="btn btn-sm btn-success mark-ai-done-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Done"><i class="bi bi-check2"></i></button>
-                    <button class="btn btn-sm btn-danger mark-ai-junk-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Junk"><i class="bi bi-trash"></i></button>`));
-
-                let displayTitle = task.title || 'N/A';
-                if (displayTitle.length > 20) displayTitle = displayTitle.substring(0, 20) + '...';
                 
-                let tableTitleHtml = `<a href="#" class="ai-task-detail-link" data-id="${task.id}" style="font-weight:500; text-decoration:none; color:#000;" title="View Details">${displayTitle}</a>`;
+                let actionBtnTable = '';
+                if (status === 'converted') {
+                    actionBtnTable = '<span class="text-success" style="font-weight: 500; font-size: 0.8rem;"><i class="bi bi-check-circle"></i> Converted</span>';
+                } else if (status === 'done') {
+                    actionBtnTable = '<span class="badge bg-success">Done</span>';
+                } else if (status === 'junk') {
+                    actionBtnTable = '<span class="badge bg-danger">Junk</span>';
+                } else {
+                    if (task.task_type === 'ai') {
+                        actionBtnTable = `<button class="btn-action-edit convert-task-btn" data-id="${task.id}" data-type="ai_task" data-title="${task.title || ''}" data-desc="${(task.description || '').replace(/"/g, '&quot;')}">Convert to Task</button>
+                        <button class="btn btn-sm btn-success mark-ai-done-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Done"><i class="bi bi-check2"></i></button>
+                        <button class="btn btn-sm btn-danger mark-ai-junk-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Junk"><i class="bi bi-trash"></i></button>`;
+                    } else {
+                        actionBtnTable = `<button class="btn btn-sm btn-success mark-immediate-done-btn" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Done"><i class="bi bi-check2"></i></button>
+                        <button class="btn btn-sm btn-danger mark-immediate-junk-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Junk"><i class="bi bi-trash"></i></button>`;
+                    }
+                }
+                
+                let tableTitleHtml = `${typeBadge} <a href="#" class="ai-task-detail-link" data-id="${task.id}" style="font-weight:500; text-decoration:none; color:#000;" title="View Details">${displayTitle}</a>`;
 
                 tableHtml += `
                     <tr>
@@ -1921,7 +1918,6 @@ $(document).ready(function() {
                             } else if (currentTab === 'ai-tasks') {
                                 fetchAiTasks();
                             }
-                            loadImmediateTasks();
                         } else {
                             toastr.error('Failed to create immediate task.');
                         }
@@ -1950,61 +1946,7 @@ $(document).ready(function() {
         });
     });
 
-    // Handle immediate task "Mark as Done"
-    $(document).on('click', '.mark-immediate-done-btn', function(e) {
-        e.preventDefault();
-        let $btn = $(this);
-        let id = $btn.data('id');
-        let $row = $btn.closest('tr');
-        
-        $.ajax({
-            url: '{{ route("signal-task.mark-immediate-done") }}',
-            type: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                id: id
-            },
-            success: function(response) {
-                if(response.success) {
-                    toastr.success('Task marked as done!');
-                    
-                    let doneBadge = '<span class="badge bg-success">Done</span>';
-                    
-                    // Update task in global array
-                    let taskIndex = allImmediateTasks.findIndex(t => t.id == id);
-                    if (taskIndex !== -1) {
-                        allImmediateTasks[taskIndex].status = 'done';
-                    }
-                    
-                    if (currentImmediateStatusFilter === 'pending') {
-                        // Remove row from DataTable
-                        if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
-                            $('#immediateTaskTable').DataTable().row($row).remove().draw(false);
-                        } else {
-                            $row.remove();
-                        }
-                    } else {
-                        // Update DOM directly
-                        $row.find('td:eq(2)').html(doneBadge);
-                        $row.find('td:eq(3)').html('');
-                        
-                        // Update DataTable data if initialized so it persists on paginate/search
-                        if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
-                            let dt = $('#immediateTaskTable').DataTable();
-                            dt.cell($row, 2).data(doneBadge);
-                            dt.cell($row, 3).data('');
-                        }
-                    }
-                } else {
-                    toastr.error('Failed to update task.');
-                }
-            },
-            error: function(xhr) {
-                toastr.error('Error updating task.');
-                console.error(xhr);
-            }
-        });
-    });
+
 
     // Handle AI task "Mark as Done"
     $(document).on('click', '.mark-ai-done-btn', function(e) {
@@ -2109,12 +2051,58 @@ $(document).ready(function() {
         });
     });
 
+    // Handle immediate task "Mark as Done"
+    $(document).on('click', '.mark-immediate-done-btn', function(e) {
+        e.preventDefault();
+        let $btn = $(this);
+        let id = $btn.data('id');
+        let $row = $btn.closest('tr');
+        let $card = $btn.closest('.ai-task-card');
+        
+        $.ajax({
+            url: '{{ route("signal-task.mark-immediate-done") }}',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                id: id
+            },
+            success: function(response) {
+                if(response.success) {
+                    toastr.success('Immediate Task marked as done!');
+                    
+                    let taskIndex = allAiTasks.findIndex(t => t.id == id && t.task_type === 'immediate');
+                    if (taskIndex !== -1) {
+                        allAiTasks[taskIndex].status = 'done';
+                    }
+                    
+                    if (currentStatusFilter === 'pending') {
+                        if ($row.length && $.fn.DataTable.isDataTable('#aiTaskTable')) {
+                            $('#aiTaskTable').DataTable().row($row).remove().draw(false);
+                        }
+                        if ($card.length) {
+                            $card.remove();
+                        }
+                    } else {
+                        renderAiTasks(allAiTasks);
+                    }
+                } else {
+                    toastr.error('Failed to update task.');
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Error updating task.');
+                console.error(xhr);
+            }
+        });
+    });
+
     // Handle immediate task "Mark as Junk"
     $(document).on('click', '.mark-immediate-junk-btn', function(e) {
         e.preventDefault();
         let $btn = $(this);
         let id = $btn.data('id');
         let $row = $btn.closest('tr');
+        let $card = $btn.closest('.ai-task-card');
         
         if(!confirm('Are you sure you want to mark this task as junk?')) return;
 
@@ -2129,28 +2117,20 @@ $(document).ready(function() {
                 if(response.success) {
                     toastr.success('Task marked as junk!');
                     
-                    let junkBadge = '<span class="badge bg-danger">Junk</span>';
-                    
-                    let taskIndex = allImmediateTasks.findIndex(t => t.id == id);
+                    let taskIndex = allAiTasks.findIndex(t => t.id == id && t.task_type === 'immediate');
                     if (taskIndex !== -1) {
-                        allImmediateTasks[taskIndex].status = 'junk';
+                        allAiTasks[taskIndex].status = 'junk';
                     }
                     
-                    if (currentImmediateStatusFilter === 'pending') {
-                        if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
-                            $('#immediateTaskTable').DataTable().row($row).remove().draw(false);
-                        } else {
-                            $row.remove();
+                    if (currentStatusFilter === 'pending') {
+                        if ($row.length && $.fn.DataTable.isDataTable('#aiTaskTable')) {
+                            $('#aiTaskTable').DataTable().row($row).remove().draw(false);
+                        }
+                        if ($card.length) {
+                            $card.remove();
                         }
                     } else {
-                        $row.find('td:eq(2)').html(junkBadge);
-                        $row.find('td:eq(3)').html('');
-                        
-                        if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
-                            let dt = $('#immediateTaskTable').DataTable();
-                            dt.cell($row, 2).data(junkBadge);
-                            dt.cell($row, 3).data('');
-                        }
+                        renderAiTasks(allAiTasks);
                     }
                 } else {
                     toastr.error('Failed to update task.');
@@ -2163,79 +2143,7 @@ $(document).ready(function() {
         });
     });
 
-    $('#immediateStatusFilter').on('change', function() {
-        currentImmediateStatusFilter = $(this).val();
-        renderImmediateTasks(allImmediateTasks);
-    });
 
-    // Load Immediate Tasks
-    function loadImmediateTasks() {
-        $.ajax({
-            url: '{{ route("signal-task.fetch-immediate") }}',
-            type: 'GET',
-            success: function(tasks) {
-                allImmediateTasks = tasks;
-                renderImmediateTasks(allImmediateTasks);
-            },
-            error: function(xhr) {
-                console.error("Error fetching immediate tasks:", xhr);
-                if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
-                    $('#immediateTaskTable').DataTable().destroy();
-                }
-                $('#immediateTaskTableBody').html('');
-                initDataTable('#immediateTaskTable');
-                toastr.error('Failed to load immediate tasks.');
-            }
-        });
-    }
-
-    function renderImmediateTasks(tasks) {
-        let html = '';
-        let filteredTasks = tasks;
-        
-        if (currentImmediateStatusFilter !== 'all') {
-            filteredTasks = tasks.filter(t => (t.status || 'pending') === currentImmediateStatusFilter);
-        }
-
-        if (filteredTasks && filteredTasks.length > 0) {
-            filteredTasks.forEach(task => {
-                let statusBadge = '';
-                if (task.status === 'done') {
-                    statusBadge = '<span class="badge bg-success">Done</span>';
-                } else if (task.status === 'junk') {
-                    statusBadge = '<span class="badge bg-danger">Junk</span>';
-                } else {
-                    statusBadge = '<span class="badge bg-warning text-dark">Pending</span>';
-                }
-                    
-                let actionBtn = task.status === 'done' || task.status === 'junk' ? 
-                    '' :
-                    `<button class="btn btn-sm btn-success mark-immediate-done-btn" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Done"><i class="bi bi-check2"></i></button>
-                    <button class="btn btn-sm btn-danger mark-immediate-junk-btn ms-1" style="border-radius:12px; padding:2px 8px; font-size:0.75rem;" data-id="${task.id}" title="Mark as Junk"><i class="bi bi-trash"></i></button>`;
-                    
-                let displayTitle = task.title || 'N/A';
-                if (displayTitle.length > 20) displayTitle = displayTitle.substring(0, 20) + '...';
-                
-                let displayDesc = task.description || 'N/A';
-                if (displayDesc.length > 20) displayDesc = displayDesc.substring(0, 20) + '...';
-                    
-                html += `
-                    <tr>
-                        <td title="${task.title || ''}">${displayTitle}</td>
-                        <td title="${task.description || ''}">${displayDesc}</td>
-                        <td>${statusBadge}</td>
-                        <td>${actionBtn}</td>
-                    </tr>
-                `;
-            });
-        }
-        
-        if ($.fn.DataTable.isDataTable('#immediateTaskTable')) {
-            $('#immediateTaskTable').DataTable().destroy();
-        }
-        $('#immediateTaskTableBody').html(html);
-        initDataTable('#immediateTaskTable');
-    }
 
     // Recurrence UI logic
     $('#is_recurring').on('change', function(){

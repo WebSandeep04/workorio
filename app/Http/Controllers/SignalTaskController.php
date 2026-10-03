@@ -39,14 +39,29 @@ class SignalTaskController extends Controller
     public function fetchAiTasks()
     {
         try {
-            $tasks = DB::table('signal_ai_tasks')
+            $aiTasks = DB::table('signal_ai_tasks')
                 ->leftJoin('signal_whatsapp_msg', 'signal_ai_tasks.message_id', '=', 'signal_whatsapp_msg.id')
                 ->select('signal_ai_tasks.*', 'signal_whatsapp_msg.chat as chat_name', 'signal_whatsapp_msg.sender')
-                ->orderBy('signal_ai_tasks.id', 'desc')
-                ->get();
+                ->get()
+                ->map(function ($task) {
+                    $task->task_type = 'ai';
+                    return $task;
+                });
+
+            $immediateTasks = DB::table('immediate_tasks')
+                ->get()
+                ->map(function ($task) {
+                    $task->task_type = 'immediate';
+                    $task->chat_name = 'N/A';
+                    $task->sender = 'N/A';
+                    return $task;
+                });
+
+            $tasks = collect($aiTasks)->concat($immediateTasks)->sortByDesc('created_at')->values();
+
             return response()->json($tasks);
         } catch (\Exception $e) {
-            \Log::error('Error fetching AI tasks: ' . $e->getMessage());
+            \Log::error('Error fetching combined AI tasks: ' . $e->getMessage());
             return response()->json(['error' => 'Error loading AI tasks', 'message' => $e->getMessage()], 500);
         }
     }
