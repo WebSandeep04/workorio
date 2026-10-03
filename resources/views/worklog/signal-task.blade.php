@@ -1179,7 +1179,7 @@
                   <select id="typeFilter" class="form-select form-select-sm" style="border-radius: 6px; border-color: #e0e0e0; min-width: 140px;">
                       <option value="all" selected>All Types</option>
                       <option value="ai">AI</option>
-                      <option value="immediate">Immediate</option>
+                      <option value="immediate">Manual</option>
                   </select>
               </div>
           </div>
@@ -1688,7 +1688,7 @@ $(document).ready(function() {
                 
                 let typeBadge = task.task_type === 'ai' 
                     ? '<span class="badge bg-info text-dark me-2">AI</span>' 
-                    : '<span class="badge bg-warning text-dark me-2">I</span>';
+                    : '<span class="badge bg-warning text-dark me-2">Manual</span>';
                 
                 let actionBtn = '';
                 if (status === 'converted') {
@@ -1887,63 +1887,20 @@ $(document).ready(function() {
             desc = title;
         }
 
-        Swal.fire({
-            title: 'Convert Task',
-            text: "Do you want to create an Immediate Task or a Regular Task?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#434AFA',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Immediate Task',
-            cancelButtonText: 'Regular Task'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Immediate Task logic
-                $.ajax({
-                    url: '{{ route("signal-task.store-immediate") }}',
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        id: id,
-                        type: type,
-                        title: title,
-                        description: desc
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            toastr.success('Immediate task created successfully!');
-                            // Refresh data depending on active tab
-                            if (currentTab === 'messages') {
-                                fetchSignalTasks();
-                            } else if (currentTab === 'ai-tasks') {
-                                fetchAiTasks();
-                            }
-                        } else {
-                            toastr.error('Failed to create immediate task.');
-                        }
-                    },
-                    error: function(xhr) {
-                        toastr.error('Error creating immediate task.');
-                        console.error(xhr);
-                    }
-                });
-            } else if (result.dismiss === Swal.DismissReason.cancel) {
-                // Regular Task logic (old behavior)
-                $('#taskForm')[0].reset();
-                
-                if (title) {
-                    $('#task_name').val(title);
-                }
-                if (desc) {
-                    $('#task').val(desc);
-                }
-                
-                $('#taskForm').data('signal-id', id);
-                $('#taskForm').data('signal-type', type);
-                
-                $('#createTaskModal').modal('show');
-            }
-        });
+        // Regular Task logic
+        $('#taskForm')[0].reset();
+        
+        if (title) {
+            $('#task_name').val(title);
+        }
+        if (desc) {
+            $('#task').val(desc);
+        }
+        
+        $('#taskForm').data('signal-id', id);
+        $('#taskForm').data('signal-type', type);
+        
+        $('#createTaskModal').modal('show');
     });
 
 
@@ -2068,7 +2025,7 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if(response.success) {
-                    toastr.success('Immediate Task marked as done!');
+                    toastr.success('Manual Task marked as done!');
                     
                     let taskIndex = allAiTasks.findIndex(t => t.id == id && t.task_type === 'immediate');
                     if (taskIndex !== -1) {
