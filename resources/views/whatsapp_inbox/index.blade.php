@@ -61,7 +61,10 @@
                         <small class="text-muted" id="modalSenderNumber" style="font-size: 0.8rem;">-</small> <!-- Kept ID for JS compatibility -->
                     </div>
                 </div>
-                <div>
+                <div class="d-flex">
+                    <button class="btn btn-sm me-2" style="background-color: #434afa; color: white; display: none;" id="btnMarkAsRead" onclick="markChatAsRead()">
+                        <i class="bi bi-check2-all"></i> Mark as Read
+                    </button>
                     <button class="btn btn-sm" style="background-color: #434afa; color: white; display: none;" onclick="openLeadModalWithData()" id="btnConvertToLead">
                         <i class="bi bi-person-plus-fill"></i> Convert to Lead
                     </button>
@@ -314,39 +317,12 @@
         let activeEl = $(`.contact-item[data-number="${senderNumber}"]`);
         activeEl.addClass('active-chat').css({'background-color': '#f0f2f5', 'border-left': '4px solid #434afa'});
         
-        // Mark as read in backend if there are unread messages
+        // Show or hide "Mark as Read" button
         if (activeEl.data('unread') === true) {
-            $.ajax({
-                url: `{{ route('whatsapp-inbox.read') }}`,
-                type: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    sender_number: senderNumber
-                },
-                success: function(res) {
-                    if (res.success) {
-                        let msgObj = uniqueMessages.find(m => m.sender_number === senderNumber);
-                        if (msgObj) msgObj.unread_count = 0;
-                        
-                        // Update DOM elements instead of full render
-                        activeEl.data('unread', false);
-                        activeEl.find('.bg-success').remove(); // remove badge
-                        activeEl.find('h6').removeClass('fw-bold');
-                        activeEl.find('.text-muted.text-truncate').removeClass('fw-bold');
-                        
-                        // Update counts
-                        let unreadCount = parseInt($('#count_unread').text()) - 1;
-                        let readCount = parseInt($('#count_read').text()) + 1;
-                        $('#count_unread').text(Math.max(0, unreadCount));
-                        $('#count_read').text(readCount);
-                        
-                        // Refresh filter visibility if needed
-                        filterContacts();
-                    }
-                }
-            });
+            $('#btnMarkAsRead').show();
+        } else {
+            $('#btnMarkAsRead').hide();
         }
-
         $('#replyMessage').val('');
         clearReplyFile();
         
@@ -432,6 +408,53 @@
         setTimeout(() => {
             $('#chatHistoryBody').scrollTop($('#chatHistoryBody')[0].scrollHeight);
         }, 100);
+    }
+
+    function markChatAsRead() {
+        const senderNumber = $('#modalSenderNumber').text();
+        if (!senderNumber || senderNumber === '-') return;
+        
+        const activeEl = $(`.contact-item[data-number="${senderNumber}"]`);
+        if (activeEl.length === 0 || activeEl.data('unread') === false) return;
+        
+        let $btn = $('#btnMarkAsRead');
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Marking...');
+
+        $.ajax({
+            url: `{{ route('whatsapp-inbox.read') }}`,
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                sender_number: senderNumber
+            },
+            success: function(res) {
+                if (res.success) {
+                    let msgObj = uniqueMessages.find(m => m.sender_number === senderNumber);
+                    if (msgObj) msgObj.unread_count = 0;
+                    
+                    // Update DOM elements instead of full render
+                    activeEl.data('unread', false);
+                    activeEl.find('.bg-success').remove(); // remove badge
+                    activeEl.find('h6').removeClass('fw-bold');
+                    activeEl.find('.text-muted.text-truncate').removeClass('fw-bold');
+                    
+                    // Update counts
+                    let unreadCount = parseInt($('#count_unread').text()) - 1;
+                    let readCount = parseInt($('#count_read').text()) + 1;
+                    $('#count_unread').text(Math.max(0, unreadCount));
+                    $('#count_read').text(readCount);
+                    
+                    // Hide button
+                    $btn.hide();
+                    
+                    // Refresh filter visibility if needed
+                    filterContacts();
+                }
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="bi bi-check2-all"></i> Mark as Read');
+            }
+        });
     }
 
     function clearReplyFile() {
