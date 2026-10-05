@@ -303,8 +303,23 @@
                     </select>
                 </div>
                 <div class="filter-group">
+                    <label class="filter-label">Filter</label>
+                    <select id="user_filter_type" class="form-select-custom" onchange="toggleFilterType('user')">
+                        <option value="month">Month</option>
+                        <option value="range">Date Range</option>
+                    </select>
+                </div>
+                <div class="filter-group user-month-group">
                     <label class="filter-label">Month</label>
                     <input type="month" id="month" class="form-control-custom" value="{{ now()->format('Y-m') }}">
+                </div>
+                <div class="filter-group user-range-group" style="display:none;">
+                    <label class="filter-label">From</label>
+                    <input type="date" id="user_from_date" class="form-control-custom">
+                </div>
+                <div class="filter-group user-range-group" style="display:none;">
+                    <label class="filter-label">To</label>
+                    <input type="date" id="user_to_date" class="form-control-custom">
                 </div>
                 <button type="button" id="loadReport" class="btn-load">
                     <i class="bi bi-play-circle me-1"></i> Load Report
@@ -471,8 +486,23 @@
                     </select>
                 </div>
                 <div class="filter-group">
+                    <label class="filter-label">Filter</label>
+                    <select id="monthly_filter_type" class="form-select-custom" onchange="toggleFilterType('monthly')">
+                        <option value="month">Month</option>
+                        <option value="range">Date Range</option>
+                    </select>
+                </div>
+                <div class="filter-group monthly-month-group">
                     <label class="filter-label">Month</label>
                     <input type="month" id="monthly_month" class="form-control-custom" value="{{ now()->format('Y-m') }}">
+                </div>
+                <div class="filter-group monthly-range-group" style="display:none;">
+                    <label class="filter-label">From</label>
+                    <input type="date" id="monthly_from_date" class="form-control-custom">
+                </div>
+                <div class="filter-group monthly-range-group" style="display:none;">
+                    <label class="filter-label">To</label>
+                    <input type="date" id="monthly_to_date" class="form-control-custom">
                 </div>
                 <button type="button" id="loadMonthlyReport" class="btn-load">
                     <i class="bi bi-play-circle me-1"></i> Load Summary
@@ -543,8 +573,23 @@
                     </select>
                 </div>
                 <div class="filter-group">
+                    <label class="filter-label">Filter</label>
+                    <select id="date_filter_type" class="form-select-custom" onchange="toggleFilterType('date')">
+                        <option value="date">Single Date</option>
+                        <option value="range">Date Range</option>
+                    </select>
+                </div>
+                <div class="filter-group date-date-group">
                     <label class="filter-label" style="width: 100px;">Select Date</label>
                     <input type="date" id="report_date" class="form-control-custom" value="{{ now()->format('Y-m-d') }}">
+                </div>
+                <div class="filter-group date-range-group" style="display:none;">
+                    <label class="filter-label">From</label>
+                    <input type="date" id="date_from_date" class="form-control-custom">
+                </div>
+                <div class="filter-group date-range-group" style="display:none;">
+                    <label class="filter-label">To</label>
+                    <input type="date" id="date_to_date" class="form-control-custom">
                 </div>
                 <button type="button" id="loadDateReport" class="btn-load">
                     <i class="bi bi-play-circle me-1"></i> Load Report
@@ -636,6 +681,7 @@
                         <table class="table custom-table" id="dateTable">
                             <thead>
                                 <tr>
+                                    <th>Date</th>
                                     <th>User</th>
                                     <th>Status</th>
                                     <th>Status Reason</th>
@@ -817,6 +863,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+function toggleFilterType(tab) {
+    const type = document.getElementById(tab + '_filter_type').value;
+    if (type === 'range') {
+        document.querySelectorAll('.' + tab + '-month-group, .' + tab + '-date-group').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.' + tab + '-range-group').forEach(el => el.style.display = 'block');
+    } else {
+        document.querySelectorAll('.' + tab + '-month-group, .' + tab + '-date-group').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('.' + tab + '-range-group').forEach(el => el.style.display = 'none');
+    }
+}
+
 function filterUsers() {
     const branchId = document.getElementById('user_branch_id').value;
     const deptId = document.getElementById('user_department_id').value;
@@ -850,75 +907,130 @@ function filterUsers() {
 }
 
 function exportMonthlyReport() {
+    const type = document.getElementById('monthly_filter_type').value;
     const month = document.getElementById('monthly_month').value;
+    const fromDate = document.getElementById('monthly_from_date').value;
+    const toDate = document.getElementById('monthly_to_date').value;
+    
     const branchId = document.getElementById('monthly_branch_id').value;
     const deptId = document.getElementById('monthly_department_id').value;
     const statusId = document.getElementById('monthly_status').value;
-    if(!month) return;
     
-    if (isFutureMonth(month)) {
+    if (type === 'month' && !month) return;
+    if (type === 'range' && (!fromDate || !toDate)) return;
+    
+    if (type === 'month' && isFutureMonth(month)) {
         showToast('Cannot generate report for future months.', 'error');
         return;
     }
-    window.location.href = `/attendance/export-monthly-report?month=${month}&branch_id=${branchId}&department_id=${deptId}&status=${statusId}`;
+    
+    let url = `/attendance/export-monthly-report?branch_id=${branchId}&department_id=${deptId}&status=${statusId}`;
+    if (type === 'month') {
+        url += `&month=${month}`;
+    } else {
+        url += `&from_date=${fromDate}&to_date=${toDate}`;
+    }
+    window.location.href = url;
 }
 
 function exportMonthlyReportPdf() {
+    const type = document.getElementById('monthly_filter_type').value;
     const month = document.getElementById('monthly_month').value;
+    const fromDate = document.getElementById('monthly_from_date').value;
+    const toDate = document.getElementById('monthly_to_date').value;
+    
     const branchId = document.getElementById('monthly_branch_id').value;
     const deptId = document.getElementById('monthly_department_id').value;
     const statusId = document.getElementById('monthly_status').value;
-    if(!month) return;
     
-    if (isFutureMonth(month)) {
+    if (type === 'month' && !month) return;
+    if (type === 'range' && (!fromDate || !toDate)) return;
+    
+    if (type === 'month' && isFutureMonth(month)) {
         showToast('Cannot generate report for future months.', 'error');
         return;
     }
-    window.location.href = `/attendance/export-monthly-report-pdf?month=${month}&branch_id=${branchId}&department_id=${deptId}&status=${statusId}`;
+    
+    let url = `/attendance/export-monthly-report-pdf?branch_id=${branchId}&department_id=${deptId}&status=${statusId}`;
+    if (type === 'month') {
+        url += `&month=${month}`;
+    } else {
+        url += `&from_date=${fromDate}&to_date=${toDate}`;
+    }
+    window.location.href = url;
 }
 
 function exportUserReportPdf() {
     const userId = document.getElementById('user_id').value;
+    const type = document.getElementById('user_filter_type').value;
     const month = document.getElementById('month').value;
+    const fromDate = document.getElementById('user_from_date').value;
+    const toDate = document.getElementById('user_to_date').value;
     
-    if(!userId || !month) return;
+    if(!userId) return;
+    if(type === 'month' && !month) return;
+    if(type === 'range' && (!fromDate || !toDate)) return;
     
-    if (isFutureMonth(month)) {
+    if (type === 'month' && isFutureMonth(month)) {
         showToast('Cannot generate report for future months.', 'error');
         return;
     }
-    window.location.href = `/attendance/export-user-report-pdf?user_id=${userId}&month=${month}`;
+    
+    let url = `/attendance/export-user-report-pdf?user_id=${userId}`;
+    if (type === 'month') {
+        url += `&month=${month}`;
+    } else {
+        url += `&from_date=${fromDate}&to_date=${toDate}`;
+    }
+    window.location.href = url;
 }
 
 function exportDateReportPdf() {
+    const type = document.getElementById('date_filter_type').value;
     const date = document.getElementById('report_date').value;
+    const fromDate = document.getElementById('date_from_date').value;
+    const toDate = document.getElementById('date_to_date').value;
+    
     const branchId = document.getElementById('date_branch_id').value;
     const deptId = document.getElementById('date_department_id').value;
     const statusId = document.getElementById('date_status').value;
     
-    if(!date) return;
+    if (type === 'date' && !date) return;
+    if (type === 'range' && (!fromDate || !toDate)) return;
     
     const now = new Date();
     const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     
-    if (date > today) {
+    if (type === 'date' && date > today) {
         showToast('Cannot generate report for future dates.', 'error');
         return;
     }
     
-    window.location.href = `/attendance/export-date-report-pdf?date=${date}&branch_id=${branchId}&department_id=${deptId}&status=${statusId}`;
+    let url = `/attendance/export-date-report-pdf?branch_id=${branchId}&department_id=${deptId}&status=${statusId}`;
+    if (type === 'date') {
+        url += `&date=${date}`;
+    } else {
+        url += `&from_date=${fromDate}&to_date=${toDate}`;
+    }
+    window.location.href = url;
 }
 
 function loadReport(){
     const userId = document.getElementById('user_id').value;
+    const type = document.getElementById('user_filter_type').value;
     const month = document.getElementById('month').value;
+    const fromDate = document.getElementById('user_from_date').value;
+    const toDate = document.getElementById('user_to_date').value;
+    
     const tbody = document.querySelector('#dailyTable tbody');
     const tableCard = document.getElementById('dailyTableCard');
     const summaryDiv = document.getElementById('reportSummary');
     
-    if(!userId || !month) return;
+    if(!userId) return;
+    if(type === 'month' && !month) return;
+    if(type === 'range' && (!fromDate || !toDate)) return;
 
-    if (isFutureMonth(month)) {
+    if (type === 'month' && isFutureMonth(month)) {
         showToast('Cannot generate report for future months.', 'error');
         return;
     }
@@ -928,10 +1040,18 @@ function loadReport(){
     tableCard.style.display = 'block';
     tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading report...</td></tr>';
     
+    let dataPayload = { user_id: userId, _token: '{{ csrf_token() }}' };
+    if (type === 'month') {
+        dataPayload.month = month;
+    } else {
+        dataPayload.from_date = fromDate;
+        dataPayload.to_date = toDate;
+    }
+    
     $.ajax({
         url: '/attendance/report-data',
         method: 'POST',
-        data: { user_id: userId, month: month, _token: '{{ csrf_token() }}' },
+        data: dataPayload,
         success: function(res){
             const s = res.summary;
             document.getElementById('sumWorkingDays').textContent = s.total_working_days;
@@ -1013,7 +1133,11 @@ function loadReport(){
     });
 }
 function loadMonthlySummary(){
+    const type = document.getElementById('monthly_filter_type').value;
     const month = document.getElementById('monthly_month').value;
+    const fromDate = document.getElementById('monthly_from_date').value;
+    const toDate = document.getElementById('monthly_to_date').value;
+    
     const thead = document.querySelector('#monthlyTable thead');
     const tbody = document.querySelector('#monthlyTable tbody');
     const tableCard = document.getElementById('monthlyTableCard');
@@ -1022,9 +1146,10 @@ function loadMonthlySummary(){
     const deptId = document.getElementById('monthly_department_id').value;
     const statusId = document.getElementById('monthly_status').value;
     
-    if(!month) return;
+    if(type === 'month' && !month) return;
+    if(type === 'range' && (!fromDate || !toDate)) return;
 
-    if (isFutureMonth(month)) {
+    if (type === 'month' && isFutureMonth(month)) {
         showToast('Cannot generate report for future months.', 'error');
         return;
     }
@@ -1034,10 +1159,18 @@ function loadMonthlySummary(){
     // Show loading state
     tbody.innerHTML = '<tr><td colspan="35" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading summary matrix...</td></tr>';
     
+    let dataPayload = { branch_id: branchId, department_id: deptId, status: statusId, _token: '{{ csrf_token() }}' };
+    if (type === 'month') {
+        dataPayload.month = month;
+    } else {
+        dataPayload.from_date = fromDate;
+        dataPayload.to_date = toDate;
+    }
+    
     $.ajax({
         url: '/attendance/monthly-report-data',
         method: 'POST',
-        data: { month: month, branch_id: branchId, department_id: deptId, status: statusId, _token: '{{ csrf_token() }}' },
+        data: dataPayload,
         success: function(res){
             // 1. Build Header
             let headerRow = '<tr><th class="sticky-col" style="min-width:150px; background:#fff; left:0; z-index:10; border-right:2px solid #f1f3f5;">User</th>';
@@ -1257,7 +1390,11 @@ function showToast(message, type = 'success') {
     }, 4000);
 }
 function loadDateReport() {
+    const type = document.getElementById('date_filter_type').value;
     const date = document.getElementById('report_date').value;
+    const fromDate = document.getElementById('date_from_date').value;
+    const toDate = document.getElementById('date_to_date').value;
+    
     const tbody = document.querySelector('#dateTable tbody');
     const tableCard = document.getElementById('dateTableCard');
     const summaryDiv = document.getElementById('dateReportSummary');
@@ -1266,24 +1403,33 @@ function loadDateReport() {
     const deptId = document.getElementById('date_department_id').value;
     const statusId = document.getElementById('date_status').value;
     
-    if(!date) return;
+    if(type === 'date' && !date) return;
+    if(type === 'range' && (!fromDate || !toDate)) return;
 
     const now = new Date();
     const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     
-    if (date > today) {
+    if (type === 'date' && date > today) {
         showToast('Cannot generate report for future dates.', 'error');
         return;
     }
 
     summaryDiv.style.display = 'none';
     tableCard.style.display = 'block';
-    tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading day summary matrix...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="14" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading day summary matrix...</td></tr>';
+    
+    let dataPayload = { branch_id: branchId, department_id: deptId, status: statusId, _token: '{{ csrf_token() }}' };
+    if (type === 'date') {
+        dataPayload.date = date;
+    } else {
+        dataPayload.from_date = fromDate;
+        dataPayload.to_date = toDate;
+    }
     
     $.ajax({
         url: '/attendance/date-report-data',
         method: 'POST',
-        data: { date: date, branch_id: branchId, department_id: deptId, status: statusId, _token: '{{ csrf_token() }}' },
+        data: dataPayload,
         success: function(res){
             const s = res.summary;
             document.getElementById('dateSumUsers').textContent = s.total_users;
@@ -1311,6 +1457,7 @@ function loadDateReport() {
                     }
 
                     tr.innerHTML = `
+                        <td class="fw-bold text-dark">${d.date}</td>
                         <td class="fw-bold text-dark">
                             ${d.user.name} 
                             ${d.is_wfh ? '<span class="badge bg-secondary text-white ms-1" style="font-size: 0.6rem; vertical-align: middle;">WFH</span>' : ''}
@@ -1333,7 +1480,7 @@ function loadDateReport() {
                     tbody.appendChild(tr);
                     
                     const trDet = document.createElement('tr');
-                    trDet.innerHTML = `<td colspan="13" class="p-0 border-0">
+                    trDet.innerHTML = `<td colspan="14" class="p-0 border-0">
                         <div id="date-mov-${idx}" class="collapse bg-light border-bottom">
                             ${renderMovements(d.movements)}
                         </div>
@@ -1341,7 +1488,7 @@ function loadDateReport() {
                     tbody.appendChild(trDet);
                 });
             } else {
-                 tbody.innerHTML = '<tr><td colspan="13" class="text-center py-4 text-muted">No data found for this date.</td></tr>';
+                 tbody.innerHTML = '<tr><td colspan="14" class="text-center py-4 text-muted">No data found for this date.</td></tr>';
             }
         },
         error: function(xhr){

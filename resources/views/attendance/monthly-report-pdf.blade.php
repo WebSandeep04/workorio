@@ -51,7 +51,7 @@
 
 <div class="header">
     <h2>Monthly Attendance Report</h2>
-    <p>Month: {{ Carbon\Carbon::createFromFormat('Y-m', $month)->format('F Y') }}</p>
+    <p>Period: {{ $data['month']['display'] ?? '' }}</p>
 </div>
 
 <table>
@@ -114,7 +114,7 @@
                                 elseif($dayStat['code'] === 'H/W' || $dayStat['code'] === 'S/W') $textClass = 'text-info';
                             @endphp
                             <td class="date-col {{ $cellClass }} {{ $textClass }}">
-                                <strong>{{ $dayStat['code'] }}</strong>
+                                <strong>{!! $dayStat['code'] !!}</strong>
                             </td>
                         @endforeach
                     @endif

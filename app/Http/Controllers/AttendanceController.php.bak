@@ -1221,15 +1221,10 @@ class AttendanceController extends Controller
         return view('attendance.report', compact('users', 'branches'));
     }
 
-    private function _fetchUserReportData($userId, $month = null, $fromDate = null, $toDate = null)
+    private function _fetchUserReportData($userId, $month)
     {
-        if ($fromDate && $toDate) {
-            $startDate = \Carbon\Carbon::parse($fromDate)->startOfDay();
-            $endDate = \Carbon\Carbon::parse($toDate)->endOfDay();
-        } else {
-            $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
-            $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
-        }
+        $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
 
         $user = \App\Models\User::with(['employee.shiftHistory.shift'])->find($userId);
         if (!$user || !$user->is_attendance) {
@@ -1293,7 +1288,7 @@ class AttendanceController extends Controller
                 'designation' => $user->employee->designation->name ?? 'N/A'
             ],
             'month' => [
-                'display' => ($fromDate && $toDate) ? $startDate->format('M j, Y') . ' - ' . $endDate->format('M j, Y') : $startDate->format('F Y'),
+                'display' => $startDate->format('F Y'),
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date' => $endDate->format('Y-m-d')
             ],
@@ -1306,73 +1301,44 @@ class AttendanceController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'month' => 'nullable|date_format:Y-m',
-            'from_date' => 'nullable|date',
-            'to_date' => 'nullable|date',
+            'month' => 'required|date_format:Y-m'
         ]);
 
-        if ($request->from_date && $request->to_date) {
-            if (Carbon::parse($request->from_date)->startOfDay()->isFuture() || Carbon::parse($request->to_date)->startOfDay()->isFuture()) {
-                return response()->json([
-                    'message' => 'Cannot generate report for future dates.'
-                ], 422);
-            }
-        } elseif ($request->month) {
-            if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
-                return response()->json([
-                    'message' => 'Cannot generate report for future months.'
-                ], 422);
-            }
-        } else {
-            return response()->json(['message' => 'Month or Date Range is required.'], 422);
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return response()->json([
+                'message' => 'Cannot generate report for future months.'
+            ], 422);
         }
 
-        $data = $this->_fetchUserReportData($request->user_id, $request->month, $request->from_date, $request->to_date);
+        $data = $this->_fetchUserReportData($request->user_id, $request->month);
         return response()->json($data);
     }
 
     public function getMonthlyReportData(Request $request): JsonResponse
     {
         $request->validate([
-            'month' => 'nullable|date_format:Y-m',
-            'from_date' => 'nullable|date',
-            'to_date' => 'nullable|date',
+            'month' => 'required|date_format:Y-m',
             'branch_id' => 'nullable|exists:branches,id',
             'department_id' => 'nullable|exists:departments,id'
         ]);
 
-        if ($request->from_date && $request->to_date) {
-            if (Carbon::parse($request->from_date)->startOfDay()->isFuture() || Carbon::parse($request->to_date)->startOfDay()->isFuture()) {
-                return response()->json([
-                    'message' => 'Cannot generate report for future dates.'
-                ], 422);
-            }
-        } elseif ($request->month) {
-            if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
-                return response()->json([
-                    'message' => 'Cannot generate report for future months.'
-                ], 422);
-            }
-        } else {
-            return response()->json(['message' => 'Month or Date Range is required.'], 422);
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return response()->json([
+                'message' => 'Cannot generate report for future months.'
+            ], 422);
         }
 
-        $data = $this->_fetchMonthlyReportData($request->month, $request->branch_id, $request->department_id, $request->status, $request->from_date, $request->to_date);
+        $data = $this->_fetchMonthlyReportData($request->month, $request->branch_id, $request->department_id, $request->status);
 
         return response()->json($data);
     }
 
-    private function _fetchDateReportData($date = null, $branchId = null, $departmentId = null, $statusId = null, $fromDate = null, $toDate = null)
+    private function _fetchDateReportData($date, $branchId = null, $departmentId = null, $statusId = null)
     {
-        if ($fromDate && $toDate) {
-            $startDateObj = \Carbon\Carbon::parse($fromDate)->startOfDay();
-            $endDateObj = \Carbon\Carbon::parse($toDate)->startOfDay();
-        } else {
-            $startDateObj = \Carbon\Carbon::parse($date)->startOfDay();
-            $endDateObj = $startDateObj->copy();
-        }
+        $dateObj = \Carbon\Carbon::parse($date);
+        $dateStr = $dateObj->format('Y-m-d');
 
-        $userIdsWithAttendance = \App\Models\Attendance::whereBetween('date', [$startDateObj->format('Y-m-d'), $endDateObj->format('Y-m-d')])
+        $userIdsWithAttendance = \App\Models\Attendance::where('date', $dateStr)
             ->pluck('user_id')
             ->unique()
             ->toArray();
@@ -1399,73 +1365,50 @@ class AttendanceController extends Controller
         $attendances = \App\Models\Attendance::with(['movements' => function($query) {
                 $query->orderBy('time');
             }])
-            ->whereBetween('date', [$startDateObj->format('Y-m-d'), $endDateObj->format('Y-m-d')])
+            ->where('date', $dateStr)
             ->get()
             ->groupBy('user_id');
 
-        $holidaysData = \App\Models\Holiday::whereBetween('holiday_date', [$startDateObj->format('Y-m-d'), $endDateObj->format('Y-m-d')])
-            ->get()
-            ->keyBy(function($holiday) {
-                return $holiday->holiday_date->format('Y-m-d');
-            });
+        $holidaysData = \App\Models\Holiday::where('holiday_date', $dateStr)->get()->keyBy(function($holiday) {
+            return $holiday->holiday_date->format('Y-m-d');
+        });
         $holidays = $holidaysData->keys()->toArray();
 
         $leavesRaw = \App\Models\LeaveRequest::with('leaveType')->where('status', 'approved')
-            ->where(function($query) use ($startDateObj, $endDateObj) {
-                $query->whereBetween('start_date', [$startDateObj->format('Y-m-d'), $endDateObj->format('Y-m-d')])
-                      ->orWhere(function($q) use ($startDateObj, $endDateObj) {
-                          $q->where('start_date', '<=', $startDateObj->format('Y-m-d'))
-                            ->where('end_date', '>=', $endDateObj->format('Y-m-d'));
-                      })
-                      ->orWhereBetween('end_date', [$startDateObj->format('Y-m-d'), $endDateObj->format('Y-m-d')]);
+            ->where(function($query) use ($dateStr) {
+                $query->where('start_date', '<=', $dateStr)
+                      ->where('end_date', '>=', $dateStr);
             })->get();
 
         $userLeaves = [];
         foreach ($leavesRaw as $leave) {
-            $lStart = \Carbon\Carbon::parse($leave->start_date)->max($startDateObj);
-            $lEnd = \Carbon\Carbon::parse($leave->end_date)->min($endDateObj);
-            
             $lType = 'L';
             if ($leave->is_half_day) $lType = 'HD';
             elseif ($leave->is_sl) $lType = 'SL';
             elseif ($leave->is_rh) $lType = 'RH';
             elseif ($leave->leaveType && !$leave->leaveType->is_paid) $lType = 'LWP';
-            
-            $currL = $lStart->copy();
-            while ($currL->lte($lEnd)) {
-                $userLeaves[$leave->user_id][$currL->format('Y-m-d')] = $lType;
-                $currL->addDay();
-            }
+            $userLeaves[$leave->user_id] = $lType;
         }
 
         $reportData = [];
         foreach ($users as $user) {
             $userAttendance = $attendances->get($user->id, collect());
-            $leaveArr = $userLeaves[$user->id] ?? [];
             
-            $dailyData = $this->reportService->generateDailyBreakdown($userAttendance, $startDateObj, $endDateObj, $holidays, $leaveArr, $holidaysData, $user);
+            $leaveArr = isset($userLeaves[$user->id]) ? [$dateStr => $userLeaves[$user->id]] : [];
             
-            foreach ($dailyData as $dayData) {
-                $dayData['user'] = [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'designation' => $user->employee->designation->name ?? 'N/A'
-                ];
-                $reportData[] = $dayData;
-            }
+            $dailyData = $this->reportService->generateDailyBreakdown($userAttendance, $dateObj, $dateObj, $holidays, $leaveArr, $holidaysData, $user);
+            $dayData = $dailyData[0];
+            
+            $dayData['user'] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'designation' => $user->employee->designation->name ?? 'N/A'
+            ];
+            $reportData[] = $dayData;
         }
-        
-        usort($reportData, function($a, $b) {
-            if ($a['date'] === $b['date']) {
-                return strcmp($a['user']['name'], $b['user']['name']);
-            }
-            return strcmp($a['date'], $b['date']);
-        });
-
-        $dateDisplay = $fromDate && $toDate ? $startDateObj->format('M j, Y') . ' - ' . $endDateObj->format('M j, Y') : $startDateObj->format('M j, Y');
 
         return [
-            'date' => $dateDisplay,
+            'date' => $dateObj->format('M j, Y'),
             'summary' => [
                 'total_working' => count($users),
                 'total_present' => collect($reportData)->whereIn('code', ['P', 'P2', 'W/O-W', 'H/W'])->count(),
@@ -1489,30 +1432,18 @@ class AttendanceController extends Controller
     public function getDateReportData(Request $request): JsonResponse
     {
         $request->validate([
-            'date' => 'nullable|date',
-            'from_date' => 'nullable|date',
-            'to_date' => 'nullable|date',
+            'date' => 'required|date',
             'branch_id' => 'nullable|exists:branches,id',
             'department_id' => 'nullable|exists:departments,id'
         ]);
 
-        if ($request->from_date && $request->to_date) {
-            if (Carbon::parse($request->from_date)->startOfDay()->gt(Carbon::today()) || Carbon::parse($request->to_date)->startOfDay()->gt(Carbon::today())) {
-                return response()->json([
-                    'message' => 'Cannot generate report for future dates.'
-                ], 422);
-            }
-        } elseif ($request->date) {
-            if (Carbon::parse($request->date)->startOfDay()->gt(Carbon::today())) {
-                return response()->json([
-                    'message' => 'Cannot generate report for future dates.'
-                ], 422);
-            }
-        } else {
-            return response()->json(['message' => 'Date or Date Range is required.'], 422);
+        if (Carbon::parse($request->date)->startOfDay()->gt(Carbon::today())) {
+            return response()->json([
+                'message' => 'Cannot generate report for future dates.'
+            ], 422);
         }
 
-        $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id, $request->status, $request->from_date, $request->to_date);
+        $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id, $request->status);
         unset($data['carbonDate']);
 
         return response()->json($data);
@@ -1521,30 +1452,19 @@ class AttendanceController extends Controller
     public function exportMonthlyReport(Request $request)
     {
         $request->validate([
-            'month' => 'nullable|date_format:Y-m',
-            'from_date' => 'nullable|date',
-            'to_date' => 'nullable|date',
+            'month' => 'required|date_format:Y-m',
             'branch_id' => 'nullable|exists:branches,id',
             'department_id' => 'nullable|exists:departments,id'
         ]);
 
-        if ($request->from_date && $request->to_date) {
-            if (Carbon::parse($request->from_date)->startOfDay()->isFuture() || Carbon::parse($request->to_date)->startOfDay()->isFuture()) {
-                return back()->with('error', 'Cannot generate report for future dates.');
-            }
-        } elseif ($request->month) {
-            if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
-                return back()->with('error', 'Cannot generate report for future months.');
-            }
-        } else {
-            return back()->with('error', 'Month or Date Range is required.');
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return back()->with('error', 'Cannot generate report for future months.');
         }
 
         $month = $request->month;
-        $data = $this->_fetchMonthlyReportData($month, $request->branch_id, $request->department_id, $request->status, $request->from_date, $request->to_date);
+        $data = $this->_fetchMonthlyReportData($month, $request->branch_id, $request->department_id, $request->status);
         
-        $filenameSuffix = $request->from_date && $request->to_date ? "{$request->from_date}_to_{$request->to_date}" : $month;
-        $filename = "attendance_report_{$filenameSuffix}.csv";
+        $filename = "attendance_report_{$month}.csv";
         
         $headers = [
             "Content-type" => "text/csv",
@@ -1572,7 +1492,7 @@ class AttendanceController extends Controller
                 // Daily statuses
                 if (isset($item['daily_statuses'])) {
                     foreach ($item['daily_statuses'] as $status) {
-                        $row[] = strip_tags($status['code']);
+                        $row[] = $status['code'];
                     }
                 }
                 
@@ -1603,107 +1523,69 @@ class AttendanceController extends Controller
     public function exportMonthlyReportPdf(Request $request)
     {
         $request->validate([
-            'month' => 'nullable|date_format:Y-m',
-            'from_date' => 'nullable|date',
-            'to_date' => 'nullable|date',
+            'month' => 'required|date_format:Y-m',
             'branch_id' => 'nullable|exists:branches,id',
             'department_id' => 'nullable|exists:departments,id'
         ]);
 
-        if ($request->from_date && $request->to_date) {
-            if (Carbon::parse($request->from_date)->startOfDay()->isFuture() || Carbon::parse($request->to_date)->startOfDay()->isFuture()) {
-                return back()->with('error', 'Cannot generate report for future dates.');
-            }
-        } elseif ($request->month) {
-            if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
-                return back()->with('error', 'Cannot generate report for future months.');
-            }
-        } else {
-            return back()->with('error', 'Month or Date Range is required.');
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return back()->with('error', 'Cannot generate report for future months.');
         }
 
         $month = $request->month;
-        $data = $this->_fetchMonthlyReportData($month, $request->branch_id, $request->department_id, $request->status, $request->from_date, $request->to_date);
+        $data = $this->_fetchMonthlyReportData($month, $request->branch_id, $request->department_id, $request->status);
         
-        $filenameSuffix = $request->from_date && $request->to_date ? "{$request->from_date}_to_{$request->to_date}" : $month;
         $pdf = Pdf::loadView('attendance.monthly-report-pdf', compact('data', 'month'))
                 ->setPaper('a2', 'landscape');
                 
-        return $pdf->download("attendance_report_{$filenameSuffix}.pdf");
+        return $pdf->download("attendance_report_{$month}.pdf");
     }
 
     public function exportUserReportPdf(Request $request)
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'month' => 'nullable|date_format:Y-m',
-            'from_date' => 'nullable|date',
-            'to_date' => 'nullable|date',
+            'month' => 'required|date_format:Y-m'
         ]);
 
-        if ($request->from_date && $request->to_date) {
-            if (Carbon::parse($request->from_date)->startOfDay()->isFuture() || Carbon::parse($request->to_date)->startOfDay()->isFuture()) {
-                return back()->with('error', 'Cannot generate report for future dates.');
-            }
-        } elseif ($request->month) {
-            if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
-                return back()->with('error', 'Cannot generate report for future months.');
-            }
-        } else {
-            return back()->with('error', 'Month or Date Range is required.');
+        if (Carbon::createFromFormat('Y-m', $request->month)->startOfMonth()->isFuture()) {
+            return back()->with('error', 'Cannot generate report for future months.');
         }
 
-        $data = $this->_fetchUserReportData($request->user_id, $request->month, $request->from_date, $request->to_date);
+        $data = $this->_fetchUserReportData($request->user_id, $request->month);
         
         $pdf = Pdf::loadView('attendance.user-report-pdf', compact('data'))
                 ->setPaper('a4', 'landscape');
                 
-        $filenameSuffix = $request->from_date && $request->to_date ? "{$request->from_date}_to_{$request->to_date}" : $request->month;
-        return $pdf->download("user_attendance_report_{$filenameSuffix}.pdf");
+        return $pdf->download("user_attendance_report_{$request->month}.pdf");
     }
 
     public function exportDateReportPdf(Request $request)
     {
         $request->validate([
-            'date' => 'nullable|date',
-            'from_date' => 'nullable|date',
-            'to_date' => 'nullable|date',
+            'date' => 'required|date',
             'branch_id' => 'nullable|exists:branches,id',
             'department_id' => 'nullable|exists:departments,id'
         ]);
 
-        if ($request->from_date && $request->to_date) {
-            if (Carbon::parse($request->from_date)->startOfDay()->isFuture() || Carbon::parse($request->to_date)->startOfDay()->isFuture()) {
-                return back()->with('error', 'Cannot generate report for future dates.');
-            }
-        } elseif ($request->date) {
-            if (Carbon::parse($request->date)->isFuture()) {
-                return back()->with('error', 'Cannot generate report for future dates.');
-            }
-        } else {
-            return back()->with('error', 'Date or Date Range is required.');
+        if (Carbon::parse($request->date)->isFuture()) {
+            return back()->with('error', 'Cannot generate report for future dates.');
         }
 
-        $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id, $request->status, $request->from_date, $request->to_date);
+        $data = $this->_fetchDateReportData($request->date, $request->branch_id, $request->department_id, $request->status);
         
         $hide_status = $request->has('hide_status');
 
         $pdf = Pdf::loadView('attendance.date-report-pdf', compact('data', 'hide_status'))
                 ->setPaper('a4', 'landscape');
                 
-        $filenameSuffix = $request->from_date && $request->to_date ? "{$request->from_date}_to_{$request->to_date}" : $request->date;
-        return $pdf->download("date_attendance_report_{$filenameSuffix}.pdf");
+        return $pdf->download("date_attendance_report_{$request->date}.pdf");
     }
 
-    private function _fetchMonthlyReportData($month = null, $branchId = null, $departmentId = null, $statusId = null, $fromDate = null, $toDate = null)
+    private function _fetchMonthlyReportData($month, $branchId = null, $departmentId = null, $statusId = null)
     {
-        if ($fromDate && $toDate) {
-            $startDate = \Carbon\Carbon::parse($fromDate)->startOfDay();
-            $endDate = \Carbon\Carbon::parse($toDate)->endOfDay();
-        } else {
-            $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
-            $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
-        }
+        $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
 
         $dates = [];
         $curr = $startDate->copy();
@@ -1817,7 +1699,7 @@ class AttendanceController extends Controller
         
         return [
             'month' => [
-                'display' => ($fromDate && $toDate) ? $startDate->format('M j, Y') . ' - ' . $endDate->format('M j, Y') : $startDate->format('F Y'),
+                'display' => $startDate->format('F Y'),
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date' => $endDate->format('Y-m-d'),
                 'dates' => $dates
