@@ -246,11 +246,11 @@
         $('#contacts_list').html(html);
 
         let activeCount = uniqueMessages.length - convertedCount;
-        $('#count_all').text(activeCount);
+        $('#count_all').text(unreadCount);
         $('#count_unread').text(unreadCount);
         $('#count_read').text(readCount);
         $('#count_converted').text(convertedCount);
-        $('#total_numbers_count').text(activeCount);
+        $('#total_numbers_count').text(unreadCount);
         
         // Re-apply filter
         filterContacts();
@@ -288,6 +288,7 @@
             if (currentFilter === 'unread' && !isUnread) matchFilter = false;
             if (currentFilter === 'read' && isUnread) matchFilter = false;
             if (currentFilter === 'converted' && !isConverted) matchFilter = false;
+            if (currentFilter === 'all' && !isUnread) matchFilter = false;
 
             if (matchQuery && matchFilter) {
                 $(this).show();
