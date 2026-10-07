@@ -143,31 +143,61 @@
             success: function(response) {
                 allMessages = response.data;
                 
-                // Only show incoming messages in the main table
-                let incomingMessages = allMessages.filter(msg => !['reply', 'image_reply', 'document_reply'].includes(msg.message_type));
-
-                if (incomingMessages.length === 0) {
-                    $('#messages_container').html('<tr><td colspan="5" class="text-center py-4 text-muted">No incoming messages found.</td></tr>');
+                // We still want to calculate unread counts properly based on incoming messages
+                if (allMessages.length === 0) {
+                    $('#messages_container').html('<tr><td colspan="5" class="text-center py-4 text-muted">No messages found.</td></tr>');
                     $('#pagination_container').hide();
                 } else {
-                    // Group messages by sender_number
+                    // Group messages by contact number (sender_number for incoming, receiver_number for outgoing)
                     let groupedMessages = {};
-                    incomingMessages.forEach(msg => {
-                        if (!groupedMessages[msg.sender_number]) {
-                            groupedMessages[msg.sender_number] = msg;
-                            groupedMessages[msg.sender_number].unread_count = 0;
+                    allMessages.forEach(msg => {
+                        let isReply = ['reply', 'image_reply', 'document_reply'].includes(msg.message_type);
+                        let contactNumber = isReply ? msg.receiver_number : msg.sender_number;
+                        
+                        if (!contactNumber) return;
+
+                        if (!groupedMessages[contactNumber]) {
+                            // Initialize
+                            groupedMessages[contactNumber] = {...msg};
+                            groupedMessages[contactNumber].contact_number = contactNumber;
+                            groupedMessages[contactNumber].unread_count = 0;
+                            
+                            // If it's the first message we see and it's incoming unread, count it
+                            if (!isReply && msg.is_read == 0) {
+                                groupedMessages[contactNumber].unread_count = 1;
+                            }
                         } else {
-                            let existingDate = new Date(groupedMessages[msg.sender_number].received_at);
+                            // Update unread count for incoming messages
+                            if (!isReply && msg.is_read == 0) {
+                                groupedMessages[contactNumber].unread_count++;
+                            }
+                            
+                            // Retain name and is_lead from incoming messages (replies often don't have sender_name set to the contact's name)
+                            let currentName = groupedMessages[contactNumber].sender_name;
+                            let newName = msg.sender_name;
+                            let bestName = newName && !isReply ? newName : (currentName ? currentName : newName);
+                            let isLead = groupedMessages[contactNumber].is_lead || msg.is_lead;
+
+                            let existingDate = new Date(groupedMessages[contactNumber].received_at);
                             let newDate = new Date(msg.received_at);
+
                             if (newDate > existingDate) {
-                                let oldUnread = groupedMessages[msg.sender_number].unread_count;
-                                groupedMessages[msg.sender_number] = msg;
-                                groupedMessages[msg.sender_number].unread_count = oldUnread;
+                                let oldUnread = groupedMessages[contactNumber].unread_count;
+                                groupedMessages[contactNumber] = {...msg};
+                                groupedMessages[contactNumber].contact_number = contactNumber;
+                                groupedMessages[contactNumber].unread_count = oldUnread;
+                                groupedMessages[contactNumber].sender_name = bestName;
+                                groupedMessages[contactNumber].is_lead = isLead;
+                            } else {
+                                groupedMessages[contactNumber].sender_name = bestName;
+                                groupedMessages[contactNumber].is_lead = isLead;
                             }
                         }
-                        if (msg.is_read == 0) {
-                            groupedMessages[msg.sender_number].unread_count++;
-                        }
+                    });
+
+                    // Ensure sender_number is set correctly so viewChatHistory works as expected
+                    Object.values(groupedMessages).forEach(msg => {
+                        msg.sender_number = msg.contact_number;
                     });
 
                     uniqueMessages = Object.values(groupedMessages);
@@ -216,7 +246,12 @@
                 // Truncate text
                 if(text.length > 35) text = text.substring(0, 35) + '...';
                 
-                let mediaIcon = msg.message_type !== 'text' ? '<i class="bi bi-image me-1"></i> ' : '';
+                let isMedia = msg.media_url || ['image', 'document', 'image_reply', 'document_reply'].includes(msg.message_type);
+                let mediaIcon = isMedia ? '<i class="bi bi-image me-1"></i> ' : '';
+                
+                let isReply = ['reply', 'image_reply', 'document_reply'].includes(msg.message_type);
+                let senderIndicator = isReply ? '<i class="bi bi-check2-all text-primary me-1" style="font-size: 1.1em;"></i>' : '';
+
                 let unreadBadge = msg.unread_count > 0 ? `<span class="badge bg-success rounded-pill ms-2" style="font-size: 0.7rem;">${msg.unread_count}</span>` : '';
                 let fwClass = msg.unread_count > 0 ? 'fw-bold' : '';
                 
@@ -231,8 +266,8 @@
                             </div>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="text-muted text-truncate ${fwClass}" style="font-size: 0.85rem; max-width: 70%;">
-                                ${mediaIcon}${text}
+                            <div class="text-muted text-truncate d-flex align-items-center ${fwClass}" style="font-size: 0.85rem; max-width: 70%;">
+                                ${senderIndicator}${mediaIcon}${text}
                             </div>
                             <div>
                                 ${unreadBadge}
