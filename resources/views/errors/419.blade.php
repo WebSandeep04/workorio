@@ -133,6 +133,9 @@
 <body>
 
     <div class="card">
+        <div style="margin-bottom: 25px;">
+            <img src="/img/logoblack.png" alt="Workorio Logo" style="height: 45px;">
+        </div>
         <h1>419</h1>
         <h2>Session expired</h2>
         <p class="subtitle">Your session has expired. Please refresh and log in again.</p>

@@ -43,6 +43,14 @@
   .badge-modern-success { background: #10B981; color: white; padding: 0.35em 0.65em; border-radius: 4px; font-weight: 500; }
   .badge-modern-secondary { background: #6B7280; color: white; padding: 0.35em 0.65em; border-radius: 4px; font-weight: 500; }
   .badge-modern-warning { background: #F59E0B; color: white; padding: 0.35em 0.65em; border-radius: 4px; font-weight: 500; }
+  
+  @media (max-width: 768px) {
+      .table-search { flex-wrap: wrap; gap: 0.5rem; }
+      .table-search-field { flex: 1 1 100%; }
+      .filter-dropdown { flex: 1 1 calc(50% - 0.25rem); width: auto; }
+      .table-search .ms-auto { flex: 1 1 100%; margin-left: 0 !important; display: flex; }
+      .table-search .ms-auto .table-search-btn { flex: 1 1 100%; justify-content: center; }
+  }
 </style>
 @endpush
 
@@ -100,9 +108,11 @@
           </thead>
           <tbody id="attendanceTableBody">
             <tr>
-              <td colspan="17" class="loading-state">
-                <i class="bi bi-arrow-repeat spin"></i>
-                <p class="mt-2 mb-0">Loading attendance summaries...</p>
+              <td colspan="17" class="loading-state" style="padding: 0; border: none;">
+                <div style="position: sticky; left: 0; width: 100%; padding: 2rem 1rem;">
+                  <i class="bi bi-arrow-repeat spin"></i>
+                  <p class="mt-2 mb-0">Loading attendance summaries...</p>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -181,9 +191,11 @@ $(function () {
     
     $('#attendanceTableBody').html(`
       <tr>
-        <td colspan="17" class="loading-state">
-          <i class="bi bi-arrow-repeat spin"></i>
-          <p class="mt-2 mb-0">Loading attendance summaries...</p>
+        <td colspan="17" class="loading-state" style="padding: 0; border: none;">
+          <div style="position: sticky; left: 0; width: 100%; padding: 2rem 1rem;">
+            <i class="bi bi-arrow-repeat spin"></i>
+            <p class="mt-2 mb-0">Loading attendance summaries...</p>
+          </div>
         </td>
       </tr>
     `);
@@ -196,10 +208,12 @@ $(function () {
         if (!data.data || data.data.length === 0) {
           $('#attendanceTableBody').html(`
             <tr>
-              <td colspan="17" class="empty-state">
-                <i class="bi bi-calendar-x"></i>
-                <h5>No Attendance Records Found</h5>
-                <p>No monthly summaries available for the selected period.</p>
+              <td colspan="17" class="empty-state" style="padding: 0; border: none;">
+                <div style="position: sticky; left: 0; width: 100%; padding: 2rem 1rem;">
+                  <i class="bi bi-calendar-x"></i>
+                  <h5>No Attendance Records Found</h5>
+                  <p>No monthly summaries available for the selected period.</p>
+                </div>
               </td>
             </tr>
           `);
@@ -247,8 +261,10 @@ $(function () {
       error: function() {
         $('#attendanceTableBody').html(`
           <tr>
-            <td colspan="17" class="text-danger text-center py-4">
-              <i class="bi bi-exclamation-triangle"></i> Failed to load attendance.
+            <td colspan="17" class="text-danger text-center" style="padding: 0; border: none;">
+              <div style="position: sticky; left: 0; width: 100%; padding: 2rem 1rem;">
+                <i class="bi bi-exclamation-triangle"></i> Failed to load attendance.
+              </div>
             </td>
           </tr>
         `);
