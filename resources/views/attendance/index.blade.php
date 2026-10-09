@@ -455,10 +455,7 @@
       @endphp
       @if(!$isTrackingEnabled)
       <div class="action-buttons justify-content-around d-flex flex-wrap gap-3 align-items-center">
-          <div class="form-check form-switch mb-0" style="padding-left: 2.5em;">
-            <input class="form-check-input" type="checkbox" id="is_wfh_toggle" style="cursor: pointer; width: 2.5em; height: 1.25em;">
-            <label class="form-check-label fw-bold ms-2" for="is_wfh_toggle" style="cursor: pointer; color: #2d3748;">Work From Home</label>
-          </div>
+
 
           <!-- Office Actions -->
             <div class="control-actions d-grid gap-3">
@@ -672,8 +669,7 @@ function performPunchIn(type) {
             movement_type: type,
             _token: '{{ csrf_token() }}',
             latitude: lat,
-            longitude: long,
-            work_from_home: $('#is_wfh_toggle').is(':checked') ? 1 : 0
+            longitude: long
         };
 
         $.ajax({
@@ -1452,7 +1448,6 @@ function handleLateReasonSave(e) {
                 late_reason: finalReason,
                 latitude: lat,
                 longitude: long,
-                work_from_home: $('#is_wfh_toggle').is(':checked') ? 1 : 0,
                 _token: '{{ csrf_token() }}'
             },
             success: function(resp) {
