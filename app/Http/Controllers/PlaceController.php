@@ -26,6 +26,7 @@ class PlaceController extends Controller
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'radius' => 'required|integer|min:0',
+            'is_wfh_allowed' => 'nullable|boolean',
         ]);
 
         DB::table('places')->insert([
@@ -33,6 +34,7 @@ class PlaceController extends Controller
             'latitude' => $validated['latitude'],
             'longitude' => $validated['longitude'],
             'radius' => $validated['radius'],
+            'is_wfh_allowed' => $request->boolean('is_wfh_allowed') ? 1 : 0,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -47,6 +49,7 @@ class PlaceController extends Controller
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'radius' => 'required|integer|min:0',
+            'is_wfh_allowed' => 'nullable|boolean',
         ]);
 
         DB::table('places')->where('id', $placeId)->update([
@@ -54,6 +57,7 @@ class PlaceController extends Controller
             'latitude' => $validated['latitude'],
             'longitude' => $validated['longitude'],
             'radius' => $validated['radius'],
+            'is_wfh_allowed' => $request->boolean('is_wfh_allowed') ? 1 : 0,
             'updated_at' => now(),
         ]);
 

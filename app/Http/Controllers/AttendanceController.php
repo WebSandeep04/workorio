@@ -260,6 +260,7 @@ class AttendanceController extends Controller
                             if ($distance <= $place->radius) {
                                 $isWithinRange = true;
                                 $detectedPlaceName = $place->placename;
+                                $detectedPlaceWfh = $place->is_wfh_allowed;
                                 break;
                             }
                         }
@@ -369,7 +370,7 @@ class AttendanceController extends Controller
             $attendance = Attendance::create([
                 'user_id' => $user->id,
                 'date' => $today,
-                'is_wfh' => $request->boolean('work_from_home') ? 1 : 0,
+                'is_wfh' => $detectedPlaceWfh ?? false,
                 'is_emergency' => $request->boolean('emergency_attendance') ? 1 : 0,
                 'late_minutes' => $lateMinutesToRecord ?? 0,
             ]);

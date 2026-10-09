@@ -362,12 +362,13 @@
               <th>Latitude</th>
               <th>Longitude</th>
               <th>Radius (m)</th>
+              <th>WFH Allowed</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td colspan="5" class="loading-state">
+              <td colspan="6" class="loading-state">
                 <i class="bi bi-arrow-repeat spin"></i>
                 <p class="mt-2 mb-0">Loading places...</p>
               </td>
@@ -419,6 +420,10 @@
             <label for="radius" class="form-label-modern">Radius (meters) <span class="text-danger">*</span></label>
             <input type="number" min="0" class="form-control form-control-modern" id="radius" name="radius" required placeholder="e.g. 50">
           </div>
+          <div class="mb-2 form-check mt-3">
+            <input type="checkbox" class="form-check-input" id="is_wfh_allowed" name="is_wfh_allowed" value="1">
+            <label class="form-check-label form-label-modern d-inline-block m-0" for="is_wfh_allowed">WFH Allowed?</label>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn-modern btn-modern-primary w-100 justify-content-center" style="background: #434AFA; color: white;">
@@ -463,6 +468,10 @@
           <div class="mb-2">
             <label for="edit_radius" class="form-label-modern">Radius (meters) <span class="text-danger">*</span></label>
             <input type="number" min="0" class="form-control form-control-modern" id="edit_radius" required>
+          </div>
+          <div class="mb-2 form-check mt-3">
+            <input type="checkbox" class="form-check-input" id="edit_is_wfh_allowed" value="1">
+            <label class="form-check-label form-label-modern d-inline-block m-0" for="edit_is_wfh_allowed">WFH Allowed?</label>
           </div>
         </div>
         <div class="modal-footer">
@@ -580,7 +589,7 @@ $(function () {
       if (!data || data.length === 0) {
         $('#placesTable tbody').html(`
           <tr>
-            <td colspan="5" class="empty-state">
+            <td colspan="6" class="empty-state">
               <i class="bi bi-inbox"></i>
               <h5>No Places Found</h5>
               <p>Get started by creating your first place.</p>
@@ -601,6 +610,9 @@ $(function () {
             <td>${p.longitude || '-'}</td>
             <td>${p.radius}</td>
             <td>
+              ${p.is_wfh_allowed ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>'}
+            </td>
+            <td>
               <div class="d-flex gap-2 justify-content-center">
                 <button class="btn-action btn-action-edit editBtn" 
                     data-id="${p.id}" 
@@ -608,6 +620,7 @@ $(function () {
                     data-latitude="${p.latitude}"
                     data-longitude="${p.longitude}"
                     data-radius="${p.radius}"
+                    data-is-wfh-allowed="${p.is_wfh_allowed}"
                     title="Edit">
                   <i class="bi bi-pencil"></i>
                 </button>
@@ -630,7 +643,7 @@ $(function () {
     }).fail(function () {
       $('#placesTable tbody').html(`
         <tr>
-          <td colspan="5" class="text-danger text-center py-4">
+          <td colspan="6" class="text-danger text-center py-4">
             <i class="bi bi-exclamation-triangle"></i>
             <p class="mt-2 mb-0">Failed to load places. Please try again.</p>
           </td>
@@ -670,6 +683,7 @@ $(function () {
       latitude: $('#latitude').val(),
       longitude: $('#longitude').val(),
       radius: $('#radius').val(),
+      is_wfh_allowed: $('#is_wfh_allowed').is(':checked') ? 1 : 0,
       _token: '{{ csrf_token() }}'
     }, function () {
       $('#createPlaceModal').modal('hide');
@@ -690,6 +704,7 @@ $(function () {
     $('#edit_latitude').val($(this).data('latitude'));
     $('#edit_longitude').val($(this).data('longitude'));
     $('#edit_radius').val($(this).data('radius'));
+    $('#edit_is_wfh_allowed').prop('checked', $(this).data('is-wfh-allowed') == 1);
     $('#editPlaceModal').modal('show');
   });
 
@@ -708,6 +723,7 @@ $(function () {
         latitude: $('#edit_latitude').val(),
         longitude: $('#edit_longitude').val(),
         radius: $('#edit_radius').val(),
+        is_wfh_allowed: $('#edit_is_wfh_allowed').is(':checked') ? 1 : 0,
         _token: '{{ csrf_token() }}'
       },
       success: function () {

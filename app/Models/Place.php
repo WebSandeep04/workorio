@@ -14,6 +14,7 @@ class Place extends Model
         'latitude',
         'longitude',
         'radius',
+        'is_wfh_allowed',
     ];
 
     public function employees()
