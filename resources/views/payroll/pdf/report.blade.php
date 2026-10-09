@@ -45,8 +45,9 @@
                 <th class="text-end">Total Deduction</th>
                 <th class="text-end">Salary</th>
                 @if(isset($withPenalty) && $withPenalty)
-                <th class="text-center">Eligible Lates</th>
+                <th class="text-center">Total Lates</th>
                 <th class="text-center">Exempted Lates</th>
+                <th class="text-center">Eligible Lates</th>
                 <th class="text-end">Penalty Days</th>
                 <th class="text-end">Penalty Amount</th>
                 <th class="text-end">Final Salary</th>
@@ -60,7 +61,7 @@
                     'working_days' => 0, 'total_present' => 0, 'full_day' => 0, 'half_day' => 0,
                     'leave' => 0, 'unpaid_leave' => 0, 'absent' => 0, 'weekly_offs' => 0, 'holidays' => 0,
                     'deduction_days' => 0, 'lop_deduction' => 0, 'advance_deduction' => 0, 'loan_deduction' => 0,
-                    'total_deduction' => 0, 'salary' => 0, 'eligible_lates' => 0, 'exempted_lates' => 0,
+                    'total_deduction' => 0, 'salary' => 0, 'total_lates' => 0, 'exempted_lates' => 0, 'eligible_lates' => 0,
                     'penalty_days' => 0, 'penalty_amount' => 0, 'final_salary' => 0
                 ];
                 $compTotals = [];
@@ -78,6 +79,7 @@
                     $lopDeduction = $employeeLopDeductions[$summary->employee_id] ?? 0;
                     $penaltyDays = $employeePenaltyDays[$summary->employee_id] ?? 0;
                     $penaltyAmount = $employeePenaltyAmounts[$summary->employee_id] ?? 0;
+                    $totalLates = $employeeTotalLates[$summary->employee_id] ?? 0;
                     
                     $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
                     $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
@@ -102,8 +104,9 @@
                     if ($paid !== null) {
                         $colTotals['salary'] += ($paid + $penaltyAmount);
                         if (isset($withPenalty) && $withPenalty) {
-                            $colTotals['eligible_lates'] += $employeeActualLates[$summary->employee_id] ?? 0;
+                            $colTotals['total_lates'] += $totalLates;
                             $colTotals['exempted_lates'] += $employeeExemptedLates[$summary->employee_id] ?? 0;
+                            $colTotals['eligible_lates'] += $employeeActualLates[$summary->employee_id] ?? 0;
                             $colTotals['penalty_days'] += $penaltyDays;
                             $colTotals['penalty_amount'] += $penaltyAmount;
                             $colTotals['final_salary'] += $paid;
@@ -140,8 +143,9 @@
                     <td class="text-end">{{ $deductionAmount - $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated' }}</td>
                     @if(isset($withPenalty) && $withPenalty)
-                    <td class="text-center">{{ $employeeActualLates[$summary->employee_id] ?? 0 }}</td>
+                    <td class="text-center">{{ $totalLates }}</td>
                     <td class="text-center">{{ $employeeExemptedLates[$summary->employee_id] ?? 0 }}</td>
+                    <td class="text-center">{{ $employeeActualLates[$summary->employee_id] ?? 0 }}</td>
                     <td class="text-end">{{ $penaltyDays }}</td>
                     <td class="text-end">{{ $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated' }}</td>
@@ -170,8 +174,9 @@
                     <td class="text-end">{{ $colTotals['total_deduction'] }}</td>
                     <td class="text-end nowrap">{{ number_format($colTotals['salary'], 0, '', '') }}</td>
                     @if(isset($withPenalty) && $withPenalty)
-                    <td class="text-center">{{ $colTotals['eligible_lates'] }}</td>
+                    <td class="text-center">{{ $colTotals['total_lates'] }}</td>
                     <td class="text-center">{{ $colTotals['exempted_lates'] }}</td>
+                    <td class="text-center">{{ $colTotals['eligible_lates'] }}</td>
                     <td class="text-end">{{ $colTotals['penalty_days'] }}</td>
                     <td class="text-end">{{ $colTotals['penalty_amount'] }}</td>
                     <td class="text-end nowrap">{{ number_format($colTotals['final_salary'], 0, '', '') }}</td>

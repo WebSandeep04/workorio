@@ -391,7 +391,7 @@ class PayrollController extends Controller
                 'Total Present', 'Deduction Days', 'Days deduction amount', 'Advance Deduction', 'Loan Deduction', 'Total Deduction', 'Salary'
             ];
             if ($withPenalty) {
-                $baseColumns = array_merge($baseColumns, ['Penalty-Eligible Lates', 'Exempted Late Occurrences', 'Penalty Days', 'Penalty Amount', 'Final Salary']);
+                $baseColumns = array_merge($baseColumns, ['Total Lates', 'Exempted Late Occurrences', 'Penalty-Eligible Lates', 'Penalty Days', 'Penalty Amount', 'Final Salary']);
             }
 
             $columns = array_merge(
@@ -458,8 +458,9 @@ class PayrollController extends Controller
                 }
                 $colIdx++;
                 if ($withPenalty) {
-                    $colTotals[$colIdx++] += $actualLates;
+                    $colTotals[$colIdx++] += $totalLates;
                     $colTotals[$colIdx++] += $exemptedLates;
+                    $colTotals[$colIdx++] += $actualLates;
                     $colTotals[$colIdx++] += $penaltyDays;
                     $colTotals[$colIdx++] += $penaltyAmount;
                     if ($paid !== null) {
@@ -489,8 +490,9 @@ class PayrollController extends Controller
 
                 if ($withPenalty) {
                     $baseRow = array_merge($baseRow, [
-                        $actualLates,
+                        $totalLates,
                         $exemptedLates,
+                        $actualLates,
                         $penaltyDays,
                         $penaltyAmount,
                         $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated'
