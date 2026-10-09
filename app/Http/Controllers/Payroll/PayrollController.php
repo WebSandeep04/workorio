@@ -382,6 +382,7 @@ class PayrollController extends Controller
             $file = fopen('php://output', 'w');
             
             $grandTotalPaidSalary = 0;
+            $colTotals = array_fill(0, count($uniqueComponents) + 22, 0); // Enough for all columns
             
             // Header Row
             $baseColumns = [
@@ -429,6 +430,42 @@ class PayrollController extends Controller
                 if ($paid !== null) {
                     $grandTotalPaidSalary += (float)($withPenalty ? $paid : ($paid + $penaltyAmount));
                 }
+                
+                // Track colTotals here...
+                $colIdx = 4; // Starts after Employee Code, Name, Branch, Dept
+                foreach ($uniqueComponents as $uc) {
+                    $colTotals[$colIdx] += isset($comps[$uc]) ? round($comps[$uc]) : 0;
+                    $colIdx++;
+                }
+                $colTotals[$colIdx++] += $summary->total_working_days ?? 0;
+                $colTotals[$colIdx++] += $summary->total_present ?? 0;
+                $colTotals[$colIdx++] += $summary->total_halfday ?? 0;
+                $colTotals[$colIdx++] += $summary->days_on_leave ?? 0;
+                $colTotals[$colIdx++] += $summary->total_unpaid_leaves ?? 0;
+                $colTotals[$colIdx++] += $summary->days_absent ?? 0;
+                $colTotals[$colIdx++] += $summary->total_weekly_offs ?? 0;
+                $colTotals[$colIdx++] += $summary->total_holidays ?? 0;
+                $colTotals[$colIdx++] += $summary->total_holidays_worked ?? 0;
+                $colTotals[$colIdx++] += $summary->total_weekly_offs_worked ?? 0;
+                $colTotals[$colIdx++] += $summary->total_present_combined ?? 0;
+                $colTotals[$colIdx++] += $deductionDays;
+                $colTotals[$colIdx++] += $lopDeduction;
+                $colTotals[$colIdx++] += $advanceDeduction;
+                $colTotals[$colIdx++] += $loanDeduction;
+                $colTotals[$colIdx++] += ($deductionAmount - $penaltyAmount);
+                if ($paid !== null) {
+                    $colTotals[$colIdx] += ($paid + $penaltyAmount);
+                }
+                $colIdx++;
+                if ($withPenalty) {
+                    $colTotals[$colIdx++] += $actualLates;
+                    $colTotals[$colIdx++] += $exemptedLates;
+                    $colTotals[$colIdx++] += $penaltyDays;
+                    $colTotals[$colIdx++] += $penaltyAmount;
+                    if ($paid !== null) {
+                        $colTotals[$colIdx] += $paid;
+                    }
+                }
 
                 $baseRow = [
                     $summary->total_working_days ?? 0,
@@ -465,9 +502,18 @@ class PayrollController extends Controller
             }
             
             $totalRow = array_fill(0, count($columns), '');
-            $totalRow[count($columns) - 2] = 'Grand Total:';
-            $totalRow[count($columns) - 1] = number_format($grandTotalPaidSalary, 0, '', '');
+            $totalRow[3] = 'Total:';
+            $tIdx = 4;
+            foreach ($uniqueComponents as $uc) {
+                $totalRow[$tIdx] = $colTotals[$tIdx]; $tIdx++;
+            }
+            $numCols = count($columns) - 4 - count($uniqueComponents);
+            for ($i = 0; $i < $numCols; $i++) {
+                $totalRow[$tIdx] = $colTotals[$tIdx] ?? 0;
+                $tIdx++;
+            }
             fputcsv($file, $totalRow);
+
             
             fclose($file);
         };

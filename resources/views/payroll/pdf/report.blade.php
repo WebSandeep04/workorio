@@ -54,7 +54,20 @@
             </tr>
         </thead>
         <tbody>
-            @php $grandTotalPaidSalary = 0; @endphp
+            @php 
+                $grandTotalPaidSalary = 0; 
+                $colTotals = [
+                    'working_days' => 0, 'total_present' => 0, 'full_day' => 0, 'half_day' => 0,
+                    'leave' => 0, 'unpaid_leave' => 0, 'absent' => 0, 'weekly_offs' => 0, 'holidays' => 0,
+                    'deduction_days' => 0, 'lop_deduction' => 0, 'advance_deduction' => 0, 'loan_deduction' => 0,
+                    'total_deduction' => 0, 'salary' => 0, 'eligible_lates' => 0, 'exempted_lates' => 0,
+                    'penalty_days' => 0, 'penalty_amount' => 0, 'final_salary' => 0
+                ];
+                $compTotals = [];
+                foreach($uniqueComponents as $comp) {
+                    $compTotals[$comp] = 0;
+                }
+            @endphp
             @foreach($summaries as $summary)
                 @php
                     $paid = $paidSalaries[$summary->employee_id] ?? null;
@@ -71,6 +84,31 @@
                     if ($paid !== null) {
                         $grandTotalPaidSalary += (float)((isset($withPenalty) && $withPenalty) ? $paid : ($paid + $penaltyAmount));
                     }
+                    
+                    $colTotals['working_days'] += $summary->total_working_days ?? 0;
+                    $colTotals['total_present'] += $summary->total_present_combined ?? 0;
+                    $colTotals['full_day'] += $summary->total_present ?? 0;
+                    $colTotals['half_day'] += $summary->total_halfday ?? 0;
+                    $colTotals['leave'] += $summary->days_on_leave ?? 0;
+                    $colTotals['unpaid_leave'] += $summary->total_unpaid_leaves ?? 0;
+                    $colTotals['absent'] += $summary->days_absent ?? 0;
+                    $colTotals['weekly_offs'] += $summary->total_weekly_offs ?? 0;
+                    $colTotals['holidays'] += $summary->total_holidays ?? 0;
+                    $colTotals['deduction_days'] += $deductionDays;
+                    $colTotals['lop_deduction'] += $lopDeduction;
+                    $colTotals['advance_deduction'] += $advanceDeduction;
+                    $colTotals['loan_deduction'] += $loanDeduction;
+                    $colTotals['total_deduction'] += ($deductionAmount - $penaltyAmount);
+                    if ($paid !== null) {
+                        $colTotals['salary'] += ($paid + $penaltyAmount);
+                        if (isset($withPenalty) && $withPenalty) {
+                            $colTotals['eligible_lates'] += $employeeActualLates[$summary->employee_id] ?? 0;
+                            $colTotals['exempted_lates'] += $employeeExemptedLates[$summary->employee_id] ?? 0;
+                            $colTotals['penalty_days'] += $penaltyDays;
+                            $colTotals['penalty_amount'] += $penaltyAmount;
+                            $colTotals['final_salary'] += $paid;
+                        }
+                    }
                 @endphp
                 <tr>
                     <td class="text-start nowrap">{{ $summary->employee ? $summary->employee->employee_code : '-' }}</td>
@@ -79,7 +117,11 @@
                     <td class="text-start nowrap">{{ $summary->employee && $summary->employee->departmentRelation ? $summary->employee->departmentRelation->name : '-' }}</td>
                     
                     @foreach($uniqueComponents as $comp)
-                        <td class="text-end">{{ isset($comps[$comp]) ? round($comps[$comp]) : 0 }}</td>
+                        @php
+                            $cVal = isset($comps[$comp]) ? round($comps[$comp]) : 0;
+                            $compTotals[$comp] += $cVal;
+                        @endphp
+                        <td class="text-end">{{ $cVal }}</td>
                     @endforeach
                     
                     <td>{{ $summary->total_working_days ?? 0 }}</td>
@@ -107,10 +149,35 @@
                 </tr>
             @endforeach
             @if($summaries->isNotEmpty())
-                <tr>
-                    <td colspan="{{ ((isset($withPenalty) && $withPenalty) ? 22 : 17) + count($uniqueComponents) }}" class="text-end" style="font-weight: bold;">Grand Total:</td>
-                    <td class="text-end nowrap" style="font-weight: bold;">{{ number_format($grandTotalPaidSalary, 0, '', '') }}</td>
+                <tr style="font-weight: bold; background-color: #f4f6f9;">
+                    <td colspan="4" class="text-end">Total:</td>
+                    @foreach($uniqueComponents as $comp)
+                        <td class="text-end">{{ $compTotals[$comp] }}</td>
+                    @endforeach
+                    <td>{{ $colTotals['working_days'] }}</td>
+                    <td>{{ $colTotals['total_present'] }}</td>
+                    <td>{{ $colTotals['full_day'] }}</td>
+                    <td>{{ $colTotals['half_day'] }}</td>
+                    <td>{{ $colTotals['leave'] }}</td>
+                    <td>{{ $colTotals['unpaid_leave'] }}</td>
+                    <td>{{ $colTotals['absent'] }}</td>
+                    <td>{{ $colTotals['weekly_offs'] }}</td>
+                    <td>{{ $colTotals['holidays'] }}</td>
+                    <td>{{ $colTotals['deduction_days'] }}</td>
+                    <td class="text-end">{{ $colTotals['lop_deduction'] }}</td>
+                    <td class="text-end">{{ $colTotals['advance_deduction'] }}</td>
+                    <td class="text-end">{{ $colTotals['loan_deduction'] }}</td>
+                    <td class="text-end">{{ $colTotals['total_deduction'] }}</td>
+                    <td class="text-end nowrap">{{ number_format($colTotals['salary'], 0, '', '') }}</td>
+                    @if(isset($withPenalty) && $withPenalty)
+                    <td class="text-center">{{ $colTotals['eligible_lates'] }}</td>
+                    <td class="text-center">{{ $colTotals['exempted_lates'] }}</td>
+                    <td class="text-end">{{ $colTotals['penalty_days'] }}</td>
+                    <td class="text-end">{{ $colTotals['penalty_amount'] }}</td>
+                    <td class="text-end nowrap">{{ number_format($colTotals['final_salary'], 0, '', '') }}</td>
+                    @endif
                 </tr>
+
             @endif
             @if($summaries->isEmpty())
                 <tr>
