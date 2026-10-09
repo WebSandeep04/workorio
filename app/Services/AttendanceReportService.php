@@ -372,6 +372,7 @@ class AttendanceReportService
         $totalSundaysWorked = 0;
         $totalHolidaysWorked = 0;
         $totalLateMinutes = 0;
+        $lateCount = 0;
         
         // Use the single source of truth mapper!
         $dailyBreakdown = $this->generateDailyBreakdown($attendances, $startDate, $endDate, $holidays, $leaves, $holidaysData, $user);
@@ -396,6 +397,9 @@ class AttendanceReportService
             $totalCycles['field'] += $dayData['cycles']['field'] ?? 0;
             $totalCycles['break'] += $dayData['cycles']['break'] ?? 0;
             $totalLateMinutes += (int) ($dayData['late_minutes'] ?? 0);
+            if (($dayData['late_minutes'] ?? 0) > 0) {
+                $lateCount++;
+            }
             
             if (in_array($code, ['P', 'P (SL)'])) {
                 $presentDays++;
@@ -464,7 +468,8 @@ class AttendanceReportService
             'total_field_hours' => $totalFieldHours,
             'total_break_time' => $totalBreakTime,
             'total_cycles' => $totalCycles,
-            'total_late_minutes' => $totalLateMinutes
+            'total_late_minutes' => $totalLateMinutes,
+            'late_count' => $lateCount
         ];
     }
 
