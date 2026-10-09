@@ -534,6 +534,16 @@
     .table-search-field {
         width: 100%;
     }
+    
+    .pagination {
+        flex-wrap: wrap;
+        row-gap: 5px;
+        justify-content: center;
+    }
+    
+    .data-table-card .table-responsive {
+        padding: 0.25rem 0.25rem 0.5rem;
+    }
   }
 </style>
 @endpush
