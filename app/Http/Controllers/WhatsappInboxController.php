@@ -17,8 +17,8 @@ class WhatsappInboxController extends Controller
 
     public function fetch(Request $request)
     {
-        $messages = WhatsappInbox::orderBy('received_at', 'desc')->paginate(20);
-        return response()->json($messages);
+        $messages = WhatsappInbox::orderBy('received_at', 'desc')->limit(500)->get();
+        return response()->json(['data' => $messages]);
     }
 
     public function reply(Request $request)
