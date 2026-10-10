@@ -4,6 +4,54 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/whatsapp.css') }}">
+<style>
+    /* Mobile Responsive Logic ONLY - Desktop remains untouched */
+    @media (max-width: 767.98px) {
+        #chatPanel {
+            display: none !important;
+            width: 100% !important;
+        }
+
+        #chatPanel.active-mobile {
+            display: flex !important;
+        }
+
+        #contactListPanel {
+            width: 100% !important;
+        }
+        
+        #contactListPanel.hide-mobile {
+            display: none !important;
+        }
+
+        .btn-back-mobile {
+            display: block !important;
+        }
+
+        .filter-btn-container {
+            overflow-x: auto;
+            flex-wrap: nowrap !important;
+            padding-bottom: 5px;
+        }
+        
+        .filter-btn-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .filter-btn-container .btn {
+            flex: 0 0 auto !important;
+            border-radius: 50px !important;
+        }
+    }
+
+    .btn-back-mobile {
+        display: none;
+        background: transparent;
+        border: none;
+        color: #0d6efd;
+        margin-right: 10px;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -13,7 +61,7 @@
     <div class="row flex-grow-1 overflow-hidden shadow-sm" style="background: white; border-radius: 8px; border: 1px solid #e2e5ec; margin: 0;">
         
         <!-- Left Panel: Contacts List -->
-        <div class="col-md-4 col-lg-3 border-end p-0 d-flex flex-column h-100">
+        <div class="col-md-4 col-lg-3 border-end p-0 d-flex flex-column h-100" id="contactListPanel">
             <!-- Header/Search -->
             <div class="p-3 border-bottom" style="background-color: #f8f9fa;">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -24,7 +72,7 @@
                     <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" id="search_inbox" class="form-control border-start-0 ps-0" placeholder="Search contacts..." onkeyup="filterContacts()">
                 </div>
-                <div class="d-flex gap-1" style="font-size: 0.8rem;">
+                <div class="d-flex gap-1 filter-btn-container" style="font-size: 0.8rem;">
                     <button class="btn btn-sm btn-primary flex-fill active" id="filter_all" onclick="setFilter('all')">All (<span id="count_all">0</span>)</button>
                     <button class="btn btn-sm btn-outline-primary flex-fill" id="filter_unread" onclick="setFilter('unread')">Unread (<span id="count_unread">0</span>)</button>
                     <button class="btn btn-sm btn-outline-primary flex-fill" id="filter_read" onclick="setFilter('read')">Read (<span id="count_read">0</span>)</button>
@@ -39,7 +87,7 @@
         </div>
 
         <!-- Right Panel: Active Chat -->
-        <div class="col-md-8 col-lg-9 p-0 d-flex flex-column h-100 position-relative">
+        <div class="col-md-8 col-lg-9 p-0 d-flex flex-column h-100 position-relative" id="chatPanel">
             
             <!-- Default Empty State -->
             <div id="chat_empty_state" class="d-flex flex-column justify-content-center align-items-center h-100 w-100 bg-light" style="position: absolute; top: 0; left: 0; z-index: 10;">
@@ -51,22 +99,25 @@
             </div>
             
             <!-- Chat Header -->
-            <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="background-color: #f8f9fa;">
+            <div class="p-2 px-3 border-bottom d-flex justify-content-between align-items-center" style="background-color: #f8f9fa; min-height: 60px;">
                 <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3" style="width: 45px; height: 45px; background-color: #434afa !important;">
-                        <i class="bi bi-person-fill fs-4"></i>
+                    <button class="btn-back-mobile" onclick="closeChatMobile()">
+                        <i class="bi bi-arrow-left fs-5"></i>
+                    </button>
+                    <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-2 flex-shrink-0" style="width: 38px; height: 38px; background-color: #434afa !important;">
+                        <i class="bi bi-person-fill fs-5"></i>
                     </div>
-                    <div>
-                        <h6 class="mb-0 fw-bold" id="chat_header_name" style="font-size: 1.05rem;">-</h6>
-                        <small class="text-muted" id="modalSenderNumber" style="font-size: 0.8rem;">-</small> <!-- Kept ID for JS compatibility -->
+                    <div style="line-height: 1.2; min-width: 0; flex: 1;" class="me-2">
+                        <div class="mb-0 fw-bold text-truncate text-dark" id="chat_header_name" style="font-size: 0.85rem;">-</div>
+                        <div class="text-muted text-truncate" id="modalSenderNumber" style="font-size: 0.7rem;">-</div> <!-- Kept ID for JS compatibility -->
                     </div>
                 </div>
-                <div class="d-flex">
-                    <button class="btn btn-sm me-2" style="background-color: #434afa; color: white; display: none;" id="btnMarkAsRead" onclick="markChatAsRead()">
-                        <i class="bi bi-check2-all"></i> Mark as Read
+                <div class="d-flex align-items-center flex-shrink-0">
+                    <button class="btn btn-sm py-1 px-2 me-1 d-flex align-items-center" style="background-color: #434afa; color: white; display: none;" id="btnMarkAsRead" onclick="markChatAsRead()" title="Mark as Read">
+                        <i class="bi bi-check2-all"></i> <span class="d-none d-md-inline ms-1" style="font-size: 0.85rem;">Mark as Read</span>
                     </button>
-                    <button class="btn btn-sm" style="background-color: #434afa; color: white; display: none;" onclick="openLeadModalWithData()" id="btnConvertToLead">
-                        <i class="bi bi-person-plus-fill"></i> Convert to Lead
+                    <button class="btn btn-sm py-1 px-2 d-flex align-items-center" style="background-color: #434afa; color: white; display: none;" onclick="openLeadModalWithData()" id="btnConvertToLead" title="Convert to Lead">
+                        <i class="bi bi-person-plus-fill"></i> <span class="d-none d-md-inline ms-1" style="font-size: 0.85rem;">Convert to Lead</span>
                     </button>
                 </div>
             </div>
@@ -333,7 +384,22 @@
         });
     }
 
+    // Mobile UI Functions
+    function showChatMobile() {
+        $('#contactListPanel').addClass('hide-mobile');
+        $('#chatPanel').addClass('active-mobile');
+    }
+
+    function closeChatMobile() {
+        $('#chatPanel').removeClass('active-mobile');
+        $('#contactListPanel').removeClass('hide-mobile');
+        $('.contact-item').removeClass('active-chat').css({'background-color': 'transparent', 'border-left': 'none'});
+        $('#chat_empty_state').removeClass('d-none').addClass('d-flex');
+    }
+
     function viewChatHistory(senderNumber, senderName = '') {
+        showChatMobile();
+
         // Hide empty state properly (d-flex overrides jQuery hide)
         $('#chat_empty_state').removeClass('d-flex').addClass('d-none');
         
