@@ -16,7 +16,9 @@ return new class extends Migration
             return;
         }
         Schema::table('tenants', function (Blueprint $table) {
-            $table->boolean('is_whatsapp_enabled')->default(true)->after('is_sales_enabled');
+            if (!Schema::hasColumn('tenants', 'is_whatsapp_enabled')) {
+                $table->boolean('is_whatsapp_enabled')->default(true)->after('is_sales_enabled');
+            }
         });
     }
 

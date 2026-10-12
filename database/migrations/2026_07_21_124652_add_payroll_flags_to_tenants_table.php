@@ -14,8 +14,12 @@ return new class extends Migration
         if (\Illuminate\Support\Facades\Schema::getConnection()->getName() !== 'mysql') { return; }
 
         Schema::table('tenants', function (Blueprint $table) {
-            $table->boolean('is_payroll_enabled')->default(0);
-            $table->boolean('is_payroll_setup_enabled')->default(0);
+            if (!Schema::hasColumn('tenants', 'is_payroll_enabled')) {
+                $table->boolean('is_payroll_enabled')->default(0);
+            }
+            if (!Schema::hasColumn('tenants', 'is_payroll_setup_enabled')) {
+                $table->boolean('is_payroll_setup_enabled')->default(0);
+            }
         });
     }
 
@@ -27,7 +31,16 @@ return new class extends Migration
         if (\Illuminate\Support\Facades\Schema::getConnection()->getName() !== 'mysql') { return; }
 
         Schema::table('tenants', function (Blueprint $table) {
-            $table->dropColumn(['is_payroll_enabled', 'is_payroll_setup_enabled']);
+            $dropCols = [];
+            if (Schema::hasColumn('tenants', 'is_payroll_enabled')) {
+                $dropCols[] = 'is_payroll_enabled';
+            }
+            if (Schema::hasColumn('tenants', 'is_payroll_setup_enabled')) {
+                $dropCols[] = 'is_payroll_setup_enabled';
+            }
+            if (!empty($dropCols)) {
+                $table->dropColumn($dropCols);
+            }
         });
     }
 };

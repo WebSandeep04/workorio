@@ -17,7 +17,9 @@ return new class extends Migration
         }
 
         Schema::table('tenants', function (Blueprint $table) {
-            $table->boolean('is_approval_enabled')->default(true)->after('is_petty_cash_enable');
+            if (!Schema::hasColumn('tenants', 'is_approval_enabled')) {
+                $table->boolean('is_approval_enabled')->default(true)->after('is_petty_cash_enable');
+            }
         });
     }
 

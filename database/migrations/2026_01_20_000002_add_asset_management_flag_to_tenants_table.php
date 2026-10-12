@@ -17,7 +17,9 @@ return new class extends Migration
         }
 
         Schema::table('tenants', function (Blueprint $table) {
-            $table->boolean('is_asset_management_enable')->default(1)->after('id');
+            if (!Schema::hasColumn('tenants', 'is_asset_management_enable')) {
+                $table->boolean('is_asset_management_enable')->default(1)->after('id');
+            }
         });
     }
 

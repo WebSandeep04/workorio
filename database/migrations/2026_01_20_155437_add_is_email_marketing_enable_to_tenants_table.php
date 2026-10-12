@@ -17,7 +17,9 @@ return new class extends Migration
         }
 
         Schema::table('tenants', function (Blueprint $table) {
-            $table->boolean('is_email_marketing_enable')->default(1);
+            if (!Schema::hasColumn('tenants', 'is_email_marketing_enable')) {
+                $table->boolean('is_email_marketing_enable')->default(1);
+            }
         });
     }
 

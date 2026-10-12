@@ -17,8 +17,12 @@ return new class extends Migration
         }
 
         Schema::table('tenants', function (Blueprint $table) {
-            $table->boolean('is_leadgen_enabled')->default(true)->after('is_sales_enabled');
-            $table->boolean('is_leadgen_setup_enabled')->default(false)->after('is_leadgen_enabled');
+            if (!Schema::hasColumn('tenants', 'is_leadgen_enabled')) {
+                $table->boolean('is_leadgen_enabled')->default(true)->after('is_sales_enabled');
+            }
+            if (!Schema::hasColumn('tenants', 'is_leadgen_setup_enabled')) {
+                $table->boolean('is_leadgen_setup_enabled')->default(false);
+            }
         });
     }
 

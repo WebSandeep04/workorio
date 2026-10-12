@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Skip this migration if running on master database
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
+
         Schema::table('places', function (Blueprint $table) {
             $table->boolean('is_wfh_allowed')->default(0)->after('radius');
         });
@@ -21,6 +26,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (Schema::getConnection()->getName() === 'mysql') {
+            return;
+        }
+
         Schema::table('places', function (Blueprint $table) {
             $table->dropColumn('is_wfh_allowed');
         });

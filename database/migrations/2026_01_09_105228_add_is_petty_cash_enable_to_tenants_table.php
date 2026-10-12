@@ -17,7 +17,9 @@ return new class extends Migration
         }
 
         Schema::table('tenants', function (Blueprint $table) {
-            $table->boolean('is_petty_cash_enable')->default(false)->after('is_document_management_enabled');
+            if (!Schema::hasColumn('tenants', 'is_petty_cash_enable')) {
+                $table->boolean('is_petty_cash_enable')->default(false)->after('is_document_management_enabled');
+            }
         });
     }
 

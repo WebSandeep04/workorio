@@ -17,13 +17,27 @@ return new class extends Migration
         }
         
         Schema::table('tenants', function (Blueprint $table) {
-            $table->boolean('is_setup_enabled')->default(true)->after('tenant_code');
-            $table->boolean('is_sales_enabled')->default(true)->after('is_setup_enabled');
-            $table->boolean('is_worklog_enabled')->default(true)->after('is_sales_enabled');
-            $table->boolean('is_attendance_enabled')->default(true)->after('is_worklog_enabled');
-            $table->boolean('is_subscription_enabled')->default(true)->after('is_attendance_enabled');
-            $table->boolean('is_document_management_enabled')->default(true)->after('is_subscription_enabled');
-            $table->boolean('is_user_setup_enabled')->default(true)->after('is_document_management_enabled');
+            if (!Schema::hasColumn('tenants', 'is_setup_enabled')) {
+                $table->boolean('is_setup_enabled')->default(true)->after('tenant_code');
+            }
+            if (!Schema::hasColumn('tenants', 'is_sales_enabled')) {
+                $table->boolean('is_sales_enabled')->default(true);
+            }
+            if (!Schema::hasColumn('tenants', 'is_worklog_enabled')) {
+                $table->boolean('is_worklog_enabled')->default(true);
+            }
+            if (!Schema::hasColumn('tenants', 'is_attendance_enabled')) {
+                $table->boolean('is_attendance_enabled')->default(true);
+            }
+            if (!Schema::hasColumn('tenants', 'is_subscription_enabled')) {
+                $table->boolean('is_subscription_enabled')->default(true);
+            }
+            if (!Schema::hasColumn('tenants', 'is_document_management_enabled')) {
+                $table->boolean('is_document_management_enabled')->default(true);
+            }
+            if (!Schema::hasColumn('tenants', 'is_user_setup_enabled')) {
+                $table->boolean('is_user_setup_enabled')->default(true);
+            }
         });
     }
 

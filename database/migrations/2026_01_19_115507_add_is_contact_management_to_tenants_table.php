@@ -17,7 +17,9 @@ return new class extends Migration
         }
 
         Schema::table('tenants', function (Blueprint $table) {
-            $table->boolean('is_contact_management')->default(1)->after('id');
+            if (!Schema::hasColumn('tenants', 'is_contact_management')) {
+                $table->boolean('is_contact_management')->default(1)->after('id');
+            }
         });
     }
 

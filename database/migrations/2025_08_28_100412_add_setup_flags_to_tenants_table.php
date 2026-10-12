@@ -17,9 +17,15 @@ return new class extends Migration
         }
         
         Schema::table('tenants', function (Blueprint $table) {
-            $table->boolean('is_sales_setup_enabled')->default(true)->after('is_user_setup_enabled');
-            $table->boolean('is_work_setup_enabled')->default(true)->after('is_sales_setup_enabled');
-            $table->boolean('is_subs_setup_enabled')->default(true)->after('is_work_setup_enabled');
+            if (!Schema::hasColumn('tenants', 'is_sales_setup_enabled')) {
+                $table->boolean('is_sales_setup_enabled')->default(true);
+            }
+            if (!Schema::hasColumn('tenants', 'is_work_setup_enabled')) {
+                $table->boolean('is_work_setup_enabled')->default(true);
+            }
+            if (!Schema::hasColumn('tenants', 'is_subs_setup_enabled')) {
+                $table->boolean('is_subs_setup_enabled')->default(true);
+            }
         });
     }
 
