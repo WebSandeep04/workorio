@@ -298,7 +298,7 @@
                     <select id="user_id" class="form-select-custom">
                         <option value="">Select User</option>
                         @foreach($users as $u)
-                            <option value="{{ $u->id }}" data-branch="{{ $u->employee->branch_id ?? '' }}" data-dept="{{ $u->employee->department_id ?? '' }}" data-status="{{ $u->employee->status ?? '' }}">{{ $u->name }}</option>
+                            <option value="{{ $u->id }}" data-branch="{{ $u->employee->branch_id ?? '' }}" data-dept="{{ $u->employee->department_id ?? '' }}" data-status="{{ strtolower($u->employee->status ?? '') }}">{{ $u->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -819,6 +819,77 @@
 <div id="toastContainer" class="toast-container"></div>
 
 <script>
+let allUserOptions = [];
+
+function initUserOptions() {
+    const userSelect = document.getElementById('user_id');
+    if (userSelect && allUserOptions.length === 0) {
+        allUserOptions = Array.from(userSelect.querySelectorAll('option'))
+            .filter(opt => opt.value !== '')
+            .map(opt => ({
+                value: opt.value,
+                text: opt.textContent.trim(),
+                branch: (opt.getAttribute('data-branch') || '').trim(),
+                dept: (opt.getAttribute('data-dept') || '').trim(),
+                status: (opt.getAttribute('data-status') || '').toLowerCase().trim()
+            }));
+    }
+}
+
+function filterUsers() {
+    initUserOptions();
+    const branchSelect = document.getElementById('user_branch_id');
+    const deptSelect = document.getElementById('user_department_id');
+    const statusSelect = document.getElementById('user_status');
+    const userSelect = document.getElementById('user_id');
+
+    if (!userSelect) return;
+
+    const branchId = branchSelect ? branchSelect.value : '';
+    const deptId = deptSelect ? deptSelect.value : '';
+    const statusId = statusSelect ? (statusSelect.value || '').toLowerCase().trim() : '';
+    const currentValue = userSelect.value;
+
+    userSelect.innerHTML = '<option value="">Select User</option>';
+
+    let matchFound = false;
+    allUserOptions.forEach(u => {
+        let show = true;
+        if (branchId && String(u.branch) !== String(branchId)) show = false;
+        if (deptId && String(u.dept) !== String(deptId)) show = false;
+        if (statusId && u.status !== statusId) show = false;
+
+        if (show) {
+            const opt = document.createElement('option');
+            opt.value = u.value;
+            opt.textContent = u.text;
+            opt.setAttribute('data-branch', u.branch);
+            opt.setAttribute('data-dept', u.dept);
+            opt.setAttribute('data-status', u.status);
+            if (u.value === currentValue) {
+                opt.selected = true;
+                matchFound = true;
+            }
+            userSelect.appendChild(opt);
+        }
+    });
+
+    if (!matchFound) {
+        userSelect.value = '';
+    }
+}
+
+function toggleFilterType(tab) {
+    const type = document.getElementById(tab + '_filter_type').value;
+    if (type === 'range') {
+        document.querySelectorAll('.' + tab + '-month-group, .' + tab + '-date-group').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.' + tab + '-range-group').forEach(el => el.style.display = 'block');
+    } else {
+        document.querySelectorAll('.' + tab + '-month-group, .' + tab + '-date-group').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('.' + tab + '-range-group').forEach(el => el.style.display = 'none');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('loadReport').addEventListener('click', loadReport);
     document.getElementById('exportUserReportPdf').addEventListener('click', exportUserReportPdf);
@@ -861,50 +932,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.id === 'user_status') filterUsers();
         });
     });
+
+    // Apply user filters on initial page load so default status (Active) is respected
+    filterUsers();
 });
-
-function toggleFilterType(tab) {
-    const type = document.getElementById(tab + '_filter_type').value;
-    if (type === 'range') {
-        document.querySelectorAll('.' + tab + '-month-group, .' + tab + '-date-group').forEach(el => el.style.display = 'none');
-        document.querySelectorAll('.' + tab + '-range-group').forEach(el => el.style.display = 'block');
-    } else {
-        document.querySelectorAll('.' + tab + '-month-group, .' + tab + '-date-group').forEach(el => el.style.display = 'block');
-        document.querySelectorAll('.' + tab + '-range-group').forEach(el => el.style.display = 'none');
-    }
-}
-
-function filterUsers() {
-    const branchId = document.getElementById('user_branch_id').value;
-    const deptId = document.getElementById('user_department_id').value;
-    const statusId = document.getElementById('user_status').value;
-    const userSelect = document.getElementById('user_id');
-    
-    Array.from(userSelect.options).forEach(opt => {
-        if (opt.value === "") return;
-        const uBranch = opt.getAttribute('data-branch');
-        const uDept = opt.getAttribute('data-dept');
-        const uStatus = opt.getAttribute('data-status');
-        
-        let show = true;
-        if (branchId && uBranch !== branchId) show = false;
-        if (deptId && uDept !== deptId) show = false;
-        if (statusId && uStatus !== statusId) show = false;
-        
-        opt.hidden = !show;
-        opt.disabled = !show;
-    });
-    
-    if (userSelect.selectedOptions[0] && userSelect.selectedOptions[0].hidden) {
-        userSelect.value = '';
-        for (let i = 0; i < userSelect.options.length; i++) {
-            if (!userSelect.options[i].hidden && userSelect.options[i].value !== '') {
-                userSelect.value = userSelect.options[i].value;
-                break;
-            }
-        }
-    }
-}
 
 function exportMonthlyReport() {
     const type = document.getElementById('monthly_filter_type').value;
