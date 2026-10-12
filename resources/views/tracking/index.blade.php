@@ -266,6 +266,12 @@
     border-radius: 50%;
   }
 
+  /* Leaflet custom marker reset */
+  .custom-tracking-leaflet-marker {
+    background: transparent !important;
+    border: none !important;
+  }
+
   /* Vertical Timeline Styles */
   .timeline-container {
     position: relative;
@@ -423,6 +429,10 @@
                                 <span class="map-stat-dot" style="background-color: #94a3b8;"></span>
                                 <span>Offline: <span id="stat-inactive-count">0</span></span>
                             </div>
+                            <div class="map-stat-item border-start ps-2">
+                                <i class="bi bi-geo-alt-fill text-primary"></i>
+                                <span class="fw-bold">{{ $mapConfig['provider'] === 'osm' ? 'OpenStreetMap' : ucfirst($mapConfig['provider']) . ' Maps' }}</span>
+                            </div>
                         </div>
 
                         <!-- Spinner Overlay -->
@@ -467,58 +477,44 @@
     </div>
 </div>
 
-<!-- Ola Maps Web SDK -->
-<script src="https://www.unpkg.com/olamaps-web-sdk@latest/dist/olamaps-web-sdk.umd.js"></script>
-<link href="https://www.unpkg.com/olamaps-web-sdk@latest/dist/style.css" rel="stylesheet" />
+<!-- Map SDK Dynamic Loading -->
+@if(($mapConfig['provider'] ?? '') === 'google')
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ $mapConfig['api_key'] }}&libraries=marker"></script>
+@elseif(($mapConfig['provider'] ?? '') === 'ola')
+    <script src="https://www.unpkg.com/olamaps-web-sdk@latest/dist/olamaps-web-sdk.umd.js"></script>
+    <link href="https://www.unpkg.com/olamaps-web-sdk@latest/dist/style.css" rel="stylesheet" />
+@elseif(($mapConfig['provider'] ?? '') === 'osm')
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@endif
+
+<!-- Unified TrackingMap Adapter -->
+<script src="{{ asset('js/tracking-map.js') }}"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', async function() {
-        const API_KEY = 'iLBQa55RFiKpDxyF0h9mf8IEC37Xe4e09CyNwtlT';
-        let myMap = null;
-        let markers = [];
+        const mapConfig = @json($mapConfig ?? ['provider' => 'osm', 'api_key' => '', 'usage_id' => null]);
+        let trackingMap = null;
 
-        // Initialize Ola Maps SDK
-        const olaMaps = new OlaMapsSDK.OlaMaps({
-            apiKey: API_KEY
-        });
-
-        // Initialize Map
+        // Initialize Map via unified adapter
         try {
-            // Suppress harmless '3d_model' warning from Ola Maps SDK
-            const originalError = console.error;
-            console.error = function(...args) {
-                const message = args.map(arg => {
-                    if (arg instanceof Error) return arg.message + ' ' + (arg.stack || '');
-                    if (arg && typeof arg === 'object') {
-                        try { return JSON.stringify(arg); } catch(e) { return String(arg); }
-                    }
-                    return String(arg);
-                }).join(' ');
-
-                if (message.includes('3d_model') || message.includes('3d_model_data')) return;
-                originalError.apply(console, args);
-            };
-
-            myMap = await olaMaps.init({
-                style: "https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard-mr/style.json",
-                container: 'map',
-                center: [80.3429, 26.4983],
-                zoom: 12,
+            trackingMap = new TrackingMap({
+                provider: mapConfig.provider,
+                api_key: mapConfig.api_key,
+                usage_id: mapConfig.usage_id,
+                container_id: 'map'
             });
 
-            // Safe mock to prevent _getUIString TypeError inside some Ola Maps SDK builds
-            if (myMap && !myMap._getUIString) {
-                myMap._getUIString = function(key) {
-                    return '';
-                };
-            }
-            
-            console.log("Ola Map loaded successfully");
-            fetchLocations(); // Initial Fetch
+            await trackingMap.init(26.4983, 80.3429, 12);
+            console.log(`Tracking Map initialized with [${mapConfig.provider}] engine`);
 
+            // Ping usage endpoint to increment counter
+            trackingMap.recordUsage("{{ route('tracking.map-loaded') }}", "{{ csrf_token() }}");
+
+            fetchLocations(); // Initial Fetch
         } catch (error) {
             console.error("Map Init Error:", error);
-            document.getElementById('map').innerHTML = `<div class="alert alert-danger m-3">Map Initialization Failed: ${error.message}</div>`;
+            document.getElementById('map').innerHTML = `<div class="alert alert-danger m-3">Map Initialization Failed (${mapConfig.provider}): ${error.message}</div>`;
         }
 
         // --- Loading Spinner Control ---
@@ -540,7 +536,7 @@
 
         // --- Fetch and Render Locations ---
         async function fetchLocations() {
-            if (!myMap) return;
+            if (!trackingMap || !trackingMap.isReady()) return;
             showLoading();
 
             const employeeId = document.getElementById('employee_id').value;
@@ -762,26 +758,9 @@
 
         // --- Render Ola Map Markers & Filtered Route Paths ---
         function updateMapMarkers(locations, isSingleEmployee) {
-            // Clear existing map markers
-            markers.forEach(marker => marker.remove());
-            markers = [];
-
-            // Clear existing route line layer and source safely
-            try {
-                if (typeof myMap.getLayer === 'function' && myMap.getLayer('route-line')) {
-                    myMap.removeLayer('route-line');
-                } else if (typeof myMap.removeLayer === 'function') {
-                    myMap.removeLayer('route-line');
-                }
-            } catch (e) {}
-
-            try {
-                if (typeof myMap.getSource === 'function' && myMap.getSource('route-source')) {
-                    myMap.removeSource('route-source');
-                } else if (typeof myMap.removeSource === 'function') {
-                    myMap.removeSource('route-source');
-                }
-            } catch (e) {}
+            // Clear existing map markers and route via TrackingMap adapter
+            trackingMap.clearMarkers();
+            trackingMap.clearRoute();
 
             if (!locations || locations.length === 0) {
                 const detailsPanel = document.getElementById('trackingDetailsPanel');
@@ -870,11 +849,7 @@
                     container.onmouseleave = () => label.style.display = 'none';
                 }
 
-                const marker = olaMaps.addMarker({ element: container, anchor: 'bottom' })
-                    .setLngLat(lngLat)
-                    .addTo(myMap);
-
-                markers.push(marker);
+                trackingMap.addCustomMarker(lat, lng, container);
             });
 
             // Draw a smooth connecting route path line in Single Employee mode
@@ -889,32 +864,7 @@
                 }
 
                 if (coordinates.length > 1) {
-                    myMap.addSource('route-source', {
-                        'type': 'geojson',
-                        'data': {
-                            'type': 'Feature',
-                            'properties': {},
-                            'geometry': {
-                                'type': 'LineString',
-                                'coordinates': coordinates
-                            }
-                        }
-                    });
-
-                    myMap.addLayer({
-                        'id': 'route-line',
-                        'type': 'line',
-                        'source': 'route-source',
-                        'layout': {
-                            'line-join': 'round',
-                            'line-cap': 'round'
-                        },
-                        'paint': {
-                            'line-color': '#434AFA',
-                            'line-width': 4,
-                            'line-opacity': 0.8
-                        }
-                    });
+                    trackingMap.drawRoute(coordinates);
                 }
             }
 
@@ -1012,9 +962,7 @@
 
             // Adjust map viewport boundary to enclose all active markers nicely
             if (hasValidPoints) {
-                if (minLng === maxLng) { minLng -= 0.01; maxLng += 0.01; }
-                if (minLat === maxLat) { minLat -= 0.01; maxLat += 0.01; }
-                myMap.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 60 });
+                trackingMap.fitBounds(minLng, minLat, maxLng, maxLat, 60);
             }
         }
 

@@ -709,6 +709,7 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Location Tracking
     Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking.index');
     Route::get('/tracking/fetch-locations', [TrackingController::class, 'fetchLocations'])->name('tracking.fetch-locations');
+    Route::post('/tracking/map-loaded', [TrackingController::class, 'recordMapLoad'])->name('tracking.map-loaded');
     Route::get('/tracking/report', [TrackingController::class, 'reportView'])->name('tracking.report');
     Route::post('/tracking/report-data', [TrackingController::class, 'getReportData'])->name('tracking.report-data');
     Route::post('/tracking/monthly-report-data', [TrackingController::class, 'getMonthlyReportData'])->name('tracking.monthly-report-data');

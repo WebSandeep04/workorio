@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'maps' => [
+        'google' => [
+            'api_key' => env('GOOGLE_MAPS_API_KEY', ''),
+            'limit' => (int) env('GOOGLE_MAPS_LIMIT', 10000),
+        ],
+        'ola' => [
+            'api_key' => env('OLA_MAPS_API_KEY', 'iLBQa55RFiKpDxyF0h9mf8IEC37Xe4e09CyNwtlT'),
+            'limit' => (int) env('OLA_MAPS_LIMIT', 50000),
+        ],
+    ],
+
 ];

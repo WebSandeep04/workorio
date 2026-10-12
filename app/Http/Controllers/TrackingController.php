@@ -7,10 +7,20 @@ use Illuminate\Http\Request;
 class TrackingController extends Controller
 {
 
-    public function index()
+    public function index(\App\Services\MapProviderService $mapService)
     {
         $employees = \App\Models\Employee::all()->where('status', 'active');
-        return view('tracking.index', compact('employees'));
+        $mapConfig = $mapService->getActiveProviderConfig();
+        return view('tracking.index', compact('employees', 'mapConfig'));
+    }
+
+    public function recordMapLoad(Request $request, \App\Services\MapProviderService $mapService)
+    {
+        $usageId = $request->input('usage_id');
+        $provider = $request->input('provider');
+        $success = $mapService->recordUsage($usageId ? (int) $usageId : null, $provider);
+
+        return response()->json(['success' => $success]);
     }
 
     public function fetchLocations(Request $request)
