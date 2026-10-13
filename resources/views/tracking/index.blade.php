@@ -933,14 +933,21 @@
                     }
                 }
 
-                // Focus map onto employee latest coordinates
+                // Focus map onto employee location with closer zoom (level 16)
                 if (pointsToRender.length > 0) {
                     const latestLoc = pointsToRender[pointsToRender.length - 1];
                     const lat = parseFloat(latestLoc.latitude);
                     const lng = parseFloat(latestLoc.longitude);
 
-                    // Smoothly focus/fly to employee location
-                    trackingMap.flyTo(lat, lng, 14);
+                    const latDiff = Math.abs(maxLat - minLat);
+                    const lngDiff = Math.abs(maxLng - minLng);
+
+                    if (latDiff > 0.02 || lngDiff > 0.02) {
+                        trackingMap.fitBounds(minLng, minLat, maxLng, maxLat, 80);
+                    } else {
+                        // Smoothly focus/fly to employee location at closer street-level zoom (16)
+                        trackingMap.flyTo(lat, lng, 16);
+                    }
                 }
 
                 // Draw route line if single employee
@@ -1072,8 +1079,8 @@
                     }
                 }
 
-                await trackingMap.switchProvider(quotaMapConfig, centerLat, centerLng, 13);
-                console.log(`Switched to quota provider [${quotaMapConfig.provider}]`);
+                await trackingMap.switchProvider(quotaMapConfig, centerLat, centerLng, 16);
+                console.log(`Switched to quota provider [${quotaMapConfig.provider}] at zoom 16`);
 
                 // Deduct / record quota ONLY ONCE when user activates quota view
                 if (!quotaRecorded) {

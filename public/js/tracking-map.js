@@ -56,11 +56,11 @@ class TrackingMap {
 
         // Suppress harmless '3d_model' warning in some Ola SDK releases
         const originalError = console.error;
-        console.error = function(...args) {
+        console.error = function (...args) {
             const message = args.map(arg => {
                 if (arg instanceof Error) return arg.message + ' ' + (arg.stack || '');
                 if (arg && typeof arg === 'object') {
-                    try { return JSON.stringify(arg); } catch(e) { return String(arg); }
+                    try { return JSON.stringify(arg); } catch (e) { return String(arg); }
                 }
                 return String(arg);
             }).join(' ');
@@ -95,7 +95,7 @@ class TrackingMap {
                         try {
                             this.mapInstance.off('load', onLoaded);
                             this.mapInstance.off('style.load', onLoaded);
-                        } catch(e) {}
+                        } catch (e) { }
                         resolve();
                     };
                     this.mapInstance.once('load', onLoaded);
@@ -229,7 +229,7 @@ class TrackingMap {
                     });
                     this.markers.push(marker);
                     return marker;
-                } catch(e) {
+                } catch (e) {
                     // Fall back to OverlayView if map lacks Map ID
                 }
             }
@@ -266,12 +266,12 @@ class TrackingMap {
                 if (typeof this.mapInstance.getLayer === 'function' && this.mapInstance.getLayer('route-line')) {
                     this.mapInstance.removeLayer('route-line');
                 }
-            } catch(e) {}
+            } catch (e) { }
             try {
                 if (typeof this.mapInstance.getSource === 'function' && this.mapInstance.getSource('route-source')) {
                     this.mapInstance.removeSource('route-source');
                 }
-            } catch(e) {}
+            } catch (e) { }
         } else if (this.provider === 'google') {
             if (this.routeLayer) {
                 this.routeLayer.setMap(null);
@@ -395,7 +395,7 @@ class TrackingMap {
     /**
      * Pan / Fly to specific coordinates smoothly
      */
-    flyTo(lat, lng, zoom = 14) {
+    flyTo(lat, lng, zoom = 30) {
         if (!this.mapInstance) return;
         try {
             if (this.provider === 'ola') {
