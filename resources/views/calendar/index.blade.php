@@ -102,13 +102,43 @@
                     const events = eventsByDate[key] || [];
                     let eventsHtml = '';
                     if(events.length > 0){
-                        const list = events.slice(0,3).map((e) => {
-                            const safe = escapeHtml(e.title || '');
+                        const clientMap = {};
+                        const clientList = [];
+                        events.forEach((e) => {
+                            let clientKey = e.client_id;
+                            let clientName = e.client_name;
+                            let eventName = e.event_name;
+                            if(!clientName && e.title){
+                                const parts = (e.title || '').split(' - ');
+                                clientName = parts[0];
+                                eventName = parts.slice(1).join(' - ');
+                            }
+                            clientKey = clientKey || clientName || e.title;
+                            if(!clientMap[clientKey]){
+                                clientMap[clientKey] = {
+                                    name: clientName || clientKey,
+                                    events: []
+                                };
+                                clientList.push(clientMap[clientKey]);
+                            }
+                            if(eventName && clientMap[clientKey].events.indexOf(eventName) === -1){
+                                clientMap[clientKey].events.push(eventName);
+                            }
+                        });
+
+                        const list = clientList.slice(0,3).map((c) => {
+                            const eventsStr = c.events.length > 0 ? c.events.join(', ') : '';
+                            const fullTitle = eventsStr ? `${c.name} - ${eventsStr}` : c.name;
+                            const safe = escapeHtml(fullTitle);
                             return `<div class="d-flex align-items-center" style="font-size:10px; margin-top:2px; text-align:left; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
                                         <span title="${safe}">${safe.length>30? safe.slice(0,30)+'…': safe}</span>
                                     </div>`;
                         }).join('');
-                        const extra = events.length > 3 ? `<div style="font-size:10px; color:#6c757d; margin-top:2px;">+${events.length-3} more</div>` : '';
+                        const remaining = clientList.slice(3).map(c => {
+                            const eventsStr = c.events.length > 0 ? c.events.join(', ') : '';
+                            return eventsStr ? `${c.name} - ${eventsStr}` : c.name;
+                        }).join('\n');
+                        const extra = clientList.length > 3 ? `<div title="${escapeHtml(remaining)}" style="font-size:10px; color:#6c757d; margin-top:2px;">+${clientList.length-3} more</div>` : '';
                         eventsHtml = `<div style="margin-top:2px;">${list}${extra}</div>`;
                     }
                     html += `<td class="day-cell" data-date="${key}" style="vertical-align:top; height:85px; cursor:pointer; ${isToday? 'outline:2px solid #0d6efd; outline-offset:-2px; border-radius:6px;':''}">`+

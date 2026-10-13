@@ -137,6 +137,9 @@ class CalendarController extends Controller
                 ->join('calendar_events as ce', 'ce.id', '=', 'cec.event_id')
                 ->join('calendar_clients as cc', 'cc.id', '=', 'cec.client_id')
                 ->select(
+                    'cc.id as client_id',
+                    'cc.name as client_name',
+                    'ce.name as event_name',
                     DB::raw("CONCAT(cc.name, ' - ', ce.name) as title"),
                     'ce.event_date as event_date',
                     DB::raw("'event' as type")
@@ -152,6 +155,9 @@ class CalendarController extends Controller
                 ->join('common_events as cem', 'cem.id', '=', 'ccce.common_event_id')
                 ->join('calendar_clients as cc', 'cc.id', '=', 'ccce.client_id')
                 ->select(
+                    'cc.id as client_id',
+                    'cc.name as client_name',
+                    'cem.name as event_name',
                     DB::raw("CONCAT(cc.name, ' - ', cem.name) as title"),
                     'ccce.event_date as event_date',
                     DB::raw("'common' as type")
