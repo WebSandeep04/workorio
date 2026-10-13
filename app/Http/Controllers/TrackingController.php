@@ -9,7 +9,10 @@ class TrackingController extends Controller
 
     public function index(\App\Services\MapProviderService $mapService)
     {
-        $employees = \App\Models\Employee::all()->where('status', 'active');
+        $employees = \App\Models\Employee::where('status', 'active')
+            ->where('is_tracking', 1)
+            ->orderBy('name')
+            ->get();
         $mapConfig = $mapService->getActiveProviderConfig();
         return view('tracking.index', compact('employees', 'mapConfig'));
     }
@@ -25,7 +28,9 @@ class TrackingController extends Controller
 
     public function fetchLocations(Request $request)
     {
-        $query = \App\Models\EmployeeLocation::with('employee');
+        $query = \App\Models\EmployeeLocation::whereHas('employee', function ($q) {
+            $q->where('status', 'active')->where('is_tracking', 1);
+        })->with('employee');
 
         if ($request->has('employee_id') && $request->employee_id) {
             $query->where('employee_id', $request->employee_id);

@@ -373,22 +373,44 @@ class TrackingMap {
     /**
      * Fit bounding box on visible coordinates
      */
-    fitBounds(minLng, minLat, maxLng, maxLat, padding = 60) {
+    fitBounds(minLng, minLat, maxLng, maxLat, padding = 70, maxZoom = 15) {
         if (!this.mapInstance) return;
 
         if (minLng === maxLng) { minLng -= 0.01; maxLng += 0.01; }
         if (minLat === maxLat) { minLat -= 0.01; maxLat += 0.01; }
 
+        const paddingOptions = typeof padding === 'object' ? padding : {
+            top: typeof padding === 'number' ? padding + 25 : 95,
+            bottom: typeof padding === 'number' ? padding : 70,
+            left: typeof padding === 'number' ? padding : 70,
+            right: typeof padding === 'number' ? padding + 25 : 95
+        };
+
         if (this.provider === 'ola') {
-            this.mapInstance.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: padding });
+            this.mapInstance.fitBounds([[minLng, minLat], [maxLng, maxLat]], {
+                padding: paddingOptions,
+                maxZoom: maxZoom
+            });
         } else if (this.provider === 'google') {
             const bounds = new google.maps.LatLngBounds(
                 new google.maps.LatLng(minLat, minLng),
                 new google.maps.LatLng(maxLat, maxLng)
             );
             this.mapInstance.fitBounds(bounds, padding);
+            if (maxZoom) {
+                const listener = google.maps.event.addListenerOnce(this.mapInstance, 'idle', () => {
+                    if (this.mapInstance.getZoom() > maxZoom) {
+                        this.mapInstance.setZoom(maxZoom);
+                    }
+                });
+            }
         } else if (this.provider === 'osm') {
-            this.mapInstance.fitBounds([[minLat, minLng], [maxLat, maxLng]], { padding: [padding, padding] });
+            const padY = typeof padding === 'number' ? padding : 70;
+            const padX = typeof padding === 'number' ? padding : 70;
+            this.mapInstance.fitBounds([[minLat, minLng], [maxLat, maxLng]], {
+                padding: [padY, padX],
+                maxZoom: maxZoom
+            });
         }
     }
 
@@ -466,6 +488,8 @@ class TrackingMap {
             container._leaflet_id = null;
             container.style.height = '100%';
             container.style.width = '100%';
+            container.style.position = 'relative';
+            container.style.zIndex = '1';
         }
         this.ready = false;
     }

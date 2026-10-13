@@ -245,11 +245,13 @@
     padding: 0.5rem 0.85rem;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    z-index: 10;
+    z-index: 1050;
     border: 1px solid #e2e8f0;
     display: flex;
+    align-items: center;
     gap: 0.85rem;
     font-size: 0.7rem;
+    pointer-events: auto;
   }
   
   .map-stat-item {
@@ -384,25 +386,27 @@
 
                     <!-- Directory List -->
                     @foreach($employees as $employee)
-                        @php
-                            $initials = collect(explode(' ', $employee->name))->map(fn($n) => mb_substr($n, 0, 1))->take(2)->join('');
-                        @endphp
-                        <div class="employee-card" data-emp-id="{{ $employee->id }}">
-                            <div class="employee-avatar-wrapper">
-                                @if($employee->profile_picture)
-                                    <img src="{{ asset('storage/' . $employee->profile_picture) }}" class="employee-avatar" alt="{{ $employee->name }}" onerror="this.style.display='none'; document.getElementById('initials-{{ $employee->id }}').style.display='flex';">
-                                    <div class="employee-avatar" id="initials-{{ $employee->id }}" style="display: none;">{{ strtoupper($initials) }}</div>
-                                @else
-                                    <div class="employee-avatar">{{ strtoupper($initials) }}</div>
-                                @endif
-                                <div class="status-indicator status-dot-inactive" id="dot-{{ $employee->id }}"></div>
+                        @if(!empty($employee->is_tracking))
+                            @php
+                                $initials = collect(explode(' ', $employee->name))->map(fn($n) => mb_substr($n, 0, 1))->take(2)->join('');
+                            @endphp
+                            <div class="employee-card" data-emp-id="{{ $employee->id }}">
+                                <div class="employee-avatar-wrapper">
+                                    @if($employee->profile_picture)
+                                        <img src="{{ asset('storage/' . $employee->profile_picture) }}" class="employee-avatar" alt="{{ $employee->name }}" onerror="this.style.display='none'; document.getElementById('initials-{{ $employee->id }}').style.display='flex';">
+                                        <div class="employee-avatar" id="initials-{{ $employee->id }}" style="display: none;">{{ strtoupper($initials) }}</div>
+                                    @else
+                                        <div class="employee-avatar">{{ strtoupper($initials) }}</div>
+                                    @endif
+                                    <div class="status-indicator status-dot-inactive" id="dot-{{ $employee->id }}"></div>
+                                </div>
+                                <div class="employee-details">
+                                    <h6 class="employee-name" title="{{ $employee->name }}">{{ $employee->name }}</h6>
+                                    <p class="employee-meta" title="{{ $employee->designation ?? 'Employee' }}">{{ $employee->designation ?? 'Employee' }}</p>
+                                    <span class="employee-status-badge status-badge-inactive" id="badge-{{ $employee->id }}">Offline</span>
+                                </div>
                             </div>
-                            <div class="employee-details">
-                                <h6 class="employee-name" title="{{ $employee->name }}">{{ $employee->name }}</h6>
-                                <p class="employee-meta" title="{{ $employee->designation ?? 'Employee' }}">{{ $employee->designation ?? 'Employee' }}</p>
-                                <span class="employee-status-badge status-badge-inactive" id="badge-{{ $employee->id }}">Offline</span>
-                            </div>
-                        </div>
+                        @endif
                     @endforeach
                 </div>
             </div>
@@ -415,6 +419,9 @@
                 <div class="d-flex flex-row w-100 h-100" style="overflow: hidden;">
                     <!-- Map Container -->
                     <div id="mapContainer" class="position-relative" style="flex: 1; height: 100%; transition: all 0.3s ease;">
+                        <!-- Map Canvas Container -->
+                        <div id="map" style="height: 100%; width: 100%; position: relative; z-index: 1;"></div>
+
                         <!-- Map Header Overlay Stats -->
                         <div class="map-stats-overlay">
                             <div class="map-stat-item">
@@ -437,14 +444,11 @@
                         </div>
 
                         <!-- Spinner Overlay -->
-                        <div id="loadingOverlay" class="position-absolute w-100 h-100 justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 1000; display: none !important;">
+                        <div id="loadingOverlay" class="position-absolute w-100 h-100 justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 1100; display: none !important;">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Loading map data...</span>
                             </div>
                         </div>
-
-                        <!-- Map Canvas Container -->
-                        <div id="map" style="height: 100%; width: 100%;"></div>
                     </div>
 
                     <!-- Tracking Details Sidebar Panel -->
@@ -524,6 +528,7 @@
         let trackingMap = null;
         let rawLocations = [];
         let isSingleEmpActive = false;
+        let showFullRoute = false;
 
         // Helper: Update Provider Badge & Button states in UI
         function updateProviderBadge() {
@@ -848,7 +853,14 @@
                 });
                 pointsToRender = Object.values(latestByEmployee);
             } else {
-                pointsToRender = cleanedLocations;
+                if (!showFullRoute) {
+                    // Show ONLY current location (latest node) when employee is selected from left sidebar
+                    const latestLoc = cleanedLocations[cleanedLocations.length - 1];
+                    pointsToRender = [latestLoc];
+                } else {
+                    // Show all breadcrumb points along the route
+                    pointsToRender = cleanedLocations;
+                }
             }
 
             let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
@@ -865,7 +877,7 @@
                 if (lat > maxLat) maxLat = lat;
                 hasValidPoints = true;
 
-                const isLatest = !isSingleEmployee || (index === pointsToRender.length - 1);
+                const isLatest = !isSingleEmployee || !showFullRoute || (index === pointsToRender.length - 1);
 
                 // Build modern custom marker DOM
                 const container = document.createElement('div');
@@ -933,43 +945,61 @@
                     }
                 }
 
-                // Focus map onto employee location with closer zoom (level 16)
+                // Map camera positioning (focus / fitBounds)
                 if (pointsToRender.length > 0) {
-                    const latestLoc = pointsToRender[pointsToRender.length - 1];
-                    const lat = parseFloat(latestLoc.latitude);
-                    const lng = parseFloat(latestLoc.longitude);
-
-                    const latDiff = Math.abs(maxLat - minLat);
-                    const lngDiff = Math.abs(maxLng - minLng);
-
-                    if (latDiff > 0.02 || lngDiff > 0.02) {
-                        trackingMap.fitBounds(minLng, minLat, maxLng, maxLat, 80);
+                    if (!showFullRoute) {
+                        // Smoothly focus/fly to employee's single current location at street-level zoom (16)
+                        const latestLoc = pointsToRender[pointsToRender.length - 1];
+                        const lat = parseFloat(latestLoc.latitude);
+                        const lng = parseFloat(latestLoc.longitude);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            trackingMap.flyTo(lat, lng, 16);
+                        }
                     } else {
-                        // Smoothly focus/fly to employee location at closer street-level zoom (16)
-                        trackingMap.flyTo(lat, lng, 16);
+                        // When viewing full route, fit bounds so entire route journey is framed
+                        if (cleanedLocations.length > 1) {
+                            let rMinLng = 180, rMaxLng = -180, rMinLat = 90, rMaxLat = -90;
+                            cleanedLocations.forEach(l => {
+                                const lat = parseFloat(l.latitude);
+                                const lng = parseFloat(l.longitude);
+                                if (!isNaN(lat) && !isNaN(lng)) {
+                                    if (lng < rMinLng) rMinLng = lng;
+                                    if (lng > rMaxLng) rMaxLng = lng;
+                                    if (lat < rMinLat) rMinLat = lat;
+                                    if (lat > rMaxLat) rMaxLat = lat;
+                                }
+                            });
+                            trackingMap.fitBounds(rMinLng, rMinLat, rMaxLng, rMaxLat, 90, 15);
+                        } else if (cleanedLocations.length === 1) {
+                            trackingMap.flyTo(parseFloat(cleanedLocations[0].latitude), parseFloat(cleanedLocations[0].longitude), 15);
+                        }
                     }
                 }
 
-                // Draw route line if single employee
-                let coordinates = pointsToRender
-                    .map(loc => [parseFloat(loc.longitude), parseFloat(loc.latitude)])
-                    .filter(coord => !isNaN(coord[0]) && !isNaN(coord[1]));
+                // Draw route line ONLY if full route is active
+                if (showFullRoute && cleanedLocations.length > 1) {
+                    let coordinates = cleanedLocations
+                        .map(loc => [parseFloat(loc.longitude), parseFloat(loc.latitude)])
+                        .filter(coord => !isNaN(coord[0]) && !isNaN(coord[1]));
 
-                if (coordinates.length > 5) {
-                    coordinates = simplifyPath(coordinates, 0.00012);
+                    if (coordinates.length > 5) {
+                        coordinates = simplifyPath(coordinates, 0.00012);
+                    }
+
+                    if (coordinates.length > 1) {
+                        trackingMap.drawRoute(coordinates);
+                    }
+                } else {
+                    trackingMap.clearRoute();
                 }
 
-                if (coordinates.length > 1) {
-                    trackingMap.drawRoute(coordinates);
-                }
-
-                // Calculate Distance & Stays dynamically
+                // Calculate Distance & Stays dynamically (from all day's locations)
                 let totalDistanceMeters = 0;
                 let totalStaysCount = 0;
 
-                for (let idx = 1; idx < pointsToRender.length; idx++) {
-                    const p1 = pointsToRender[idx - 1];
-                    const p2 = pointsToRender[idx];
+                for (let idx = 1; idx < cleanedLocations.length; idx++) {
+                    const p1 = cleanedLocations[idx - 1];
+                    const p2 = cleanedLocations[idx];
                     const dist = getDistanceInMeters(
                         parseFloat(p1.latitude), parseFloat(p1.longitude),
                         parseFloat(p2.latitude), parseFloat(p2.longitude)
@@ -977,7 +1007,7 @@
                     totalDistanceMeters += dist;
                 }
 
-                pointsToRender.forEach(loc => {
+                cleanedLocations.forEach(loc => {
                     if (loc.isClusterCentroid) {
                         totalStaysCount++;
                     }
@@ -989,17 +1019,17 @@
                 if (distanceEl) distanceEl.textContent = `${totalKM} km`;
                 if (staysEl) staysEl.textContent = totalStaysCount;
 
-                // Render Timeline
+                // Render Timeline (from all day's locations)
                 let timelineHtml = '<div class="timeline-container">';
 
-                if (pointsToRender.length === 0) {
+                if (cleanedLocations.length === 0) {
                     timelineHtml += `
                         <div class="text-center py-5 text-muted">
                             <i class="bi bi-geo-alt-fill fs-3 d-block mb-2"></i>
                             <span class="small" style="font-size:11px;">No logs recorded for today</span>
                         </div>`;
                 } else {
-                    const firstLoc = pointsToRender[0];
+                    const firstLoc = cleanedLocations[0];
                     const startTimeStr = new Date(firstLoc.tracked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     timelineHtml += `
                         <div class="timeline-item">
@@ -1011,7 +1041,7 @@
                             </div>
                         </div>`;
 
-                    pointsToRender.slice(1, -1).forEach(loc => {
+                    cleanedLocations.slice(1, -1).forEach(loc => {
                         const timeStr = new Date(loc.tracked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                         const isStop = loc.isClusterCentroid || false;
                         
@@ -1026,8 +1056,8 @@
                             </div>`;
                     });
 
-                    if (pointsToRender.length > 1) {
-                        const lastLoc = pointsToRender[pointsToRender.length - 1];
+                    if (cleanedLocations.length > 1) {
+                        const lastLoc = cleanedLocations[cleanedLocations.length - 1];
                         const endTimeStr = new Date(lastLoc.tracked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                         timelineHtml += `
                             <div class="timeline-item">
@@ -1064,28 +1094,31 @@
 
         // 1. Switch to Quota / Premium Route View (Ola / Google)
         document.getElementById('btnLoadQuotaRoute').addEventListener('click', async function() {
-            if (currentMode === 'quota') return;
             showLoading();
 
             try {
-                currentMode = 'quota';
+                showFullRoute = true;
 
-                let centerLat = 26.4983, centerLng = 80.3429;
-                if (rawLocations.length > 0) {
-                    const latest = rawLocations[rawLocations.length - 1];
-                    if (latest.latitude && latest.longitude) {
-                        centerLat = parseFloat(latest.latitude);
-                        centerLng = parseFloat(latest.longitude);
+                if (currentMode !== 'quota') {
+                    currentMode = 'quota';
+
+                    let centerLat = 26.4983, centerLng = 80.3429;
+                    if (rawLocations.length > 0) {
+                        const latest = rawLocations[rawLocations.length - 1];
+                        if (latest.latitude && latest.longitude) {
+                            centerLat = parseFloat(latest.latitude);
+                            centerLng = parseFloat(latest.longitude);
+                        }
                     }
-                }
 
-                await trackingMap.switchProvider(quotaMapConfig, centerLat, centerLng, 16);
-                console.log(`Switched to quota provider [${quotaMapConfig.provider}] at zoom 16`);
+                    await trackingMap.switchProvider(quotaMapConfig, centerLat, centerLng, 15);
+                    console.log(`Switched to quota provider [${quotaMapConfig.provider}] at zoom 15`);
 
-                // Deduct / record quota ONLY ONCE when user activates quota view
-                if (!quotaRecorded) {
-                    trackingMap.recordUsage("{{ route('tracking.map-loaded') }}", "{{ csrf_token() }}");
-                    quotaRecorded = true;
+                    // Deduct / record quota ONLY ONCE when user activates quota view
+                    if (!quotaRecorded) {
+                        trackingMap.recordUsage("{{ route('tracking.map-loaded') }}", "{{ csrf_token() }}");
+                        quotaRecorded = true;
+                    }
                 }
 
                 updateProviderBadge();
@@ -1107,6 +1140,7 @@
             showLoading();
 
             try {
+                showFullRoute = false;
                 if (currentMode !== 'free') {
                     currentMode = 'free';
                     await trackingMap.switchProvider(freeMapConfig, 26.4983, 80.3429, 12);
@@ -1138,6 +1172,7 @@
 
         // 3. Close Details Panel
         document.getElementById('btnCloseDetailsPanel').addEventListener('click', function() {
+            showFullRoute = false;
             const resetCard = document.querySelector('.employee-card[data-emp-id=""]');
             if (resetCard) resetCard.click();
         });
@@ -1177,8 +1212,10 @@
                 const empId = this.getAttribute('data-emp-id');
                 document.getElementById('employee_id').value = empId;
 
-                // When returning to "All Employees", switch back to free mode automatically if in quota mode
-                if (!empId && currentMode === 'quota') {
+                showFullRoute = false; // Always show ONLY current location on initial selection
+
+                // Return to free mode if in quota mode
+                if (currentMode === 'quota') {
                     currentMode = 'free';
                     await trackingMap.switchProvider(freeMapConfig, 26.4983, 80.3429, 12);
                     updateProviderBadge();
