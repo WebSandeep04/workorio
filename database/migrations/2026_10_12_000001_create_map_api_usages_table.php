@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Category 2: Master-Only Migration
+        if (Schema::getConnection()->getName() !== 'mysql') {
+            return;
+        }
+
         if (!Schema::hasTable('map_api_usages')) {
             Schema::create('map_api_usages', function (Blueprint $table) {
                 $table->id();
@@ -29,6 +34,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (Schema::getConnection()->getName() !== 'mysql') {
+            return;
+        }
+
         Schema::dropIfExists('map_api_usages');
     }
 };

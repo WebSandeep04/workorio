@@ -9,6 +9,8 @@ class MapApiUsage extends Model
 {
     use HasFactory;
 
+    protected $connection = 'mysql';
+
     protected $fillable = [
         'provider',
         'request_count',

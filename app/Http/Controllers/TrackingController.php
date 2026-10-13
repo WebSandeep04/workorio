@@ -14,16 +14,121 @@ class TrackingController extends Controller
             ->orderBy('name')
             ->get();
         $mapConfig = $mapService->getActiveProviderConfig();
-        return view('tracking.index', compact('employees', 'mapConfig'));
+
+        $mapSetting = null;
+        try {
+            $mapSetting = \App\Models\MapSetting::first();
+        } catch (\Throwable $e) {
+            // Table may not exist yet
+        }
+
+        return view('tracking.index', compact('employees', 'mapConfig', 'mapSetting'));
     }
 
     public function recordMapLoad(Request $request, \App\Services\MapProviderService $mapService)
     {
         $usageId = $request->input('usage_id');
         $provider = $request->input('provider');
-        $success = $mapService->recordUsage($usageId ? (int) $usageId : null, $provider);
+        $isByo = filter_var($request->input('is_byo', false), FILTER_VALIDATE_BOOLEAN);
+        $success = $mapService->recordUsage($usageId ? (int) $usageId : null, $provider, $isByo);
 
         return response()->json(['success' => $success]);
+    }
+
+    public function getMapSettings()
+    {
+        try {
+            $setting = \App\Models\MapSetting::first();
+            return response()->json([
+                'success' => true,
+                'settings' => $setting ?: [
+                    'is_byo_enabled' => false,
+                    'preferred_provider' => 'google',
+                    'google_api_key' => '',
+                    'ola_api_key' => '',
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load map settings: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function mapSettingsView()
+    {
+        $setting = null;
+        try {
+            $setting = \App\Models\MapSetting::first();
+            if ($setting) {
+                $setting->resetCycleIfExpired();
+            }
+        } catch (\Throwable $e) {}
+
+        if (!$setting) {
+            $setting = new \App\Models\MapSetting([
+                'is_byo_enabled' => false,
+                'preferred_provider' => 'google',
+                'google_api_key' => '',
+                'google_limit' => 10000,
+                'google_usage' => 0,
+                'ola_api_key' => '',
+                'ola_limit' => 50000,
+                'ola_usage' => 0,
+            ]);
+        }
+
+        return view('software-setup.map-settings.index', compact('setting'));
+    }
+
+    public function saveMapSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'is_byo_enabled' => 'required|boolean',
+            'preferred_provider' => 'required|in:google,ola',
+            'google_api_key' => 'nullable|string|max:500',
+            'google_limit' => 'nullable|integer|min:0',
+            'ola_api_key' => 'nullable|string|max:500',
+            'ola_limit' => 'nullable|integer|min:0',
+        ]);
+
+        try {
+            $setting = \App\Models\MapSetting::first();
+            if (!$setting) {
+                $setting = new \App\Models\MapSetting();
+                $setting->billing_cycle_start = \Carbon\Carbon::now()->startOfMonth()->toDateString();
+            }
+
+            if (!isset($validated['google_limit']) || $validated['google_limit'] === null) {
+                $validated['google_limit'] = 10000;
+            }
+            if (!isset($validated['ola_limit']) || $validated['ola_limit'] === null) {
+                $validated['ola_limit'] = 50000;
+            }
+
+            $setting->fill($validated);
+            $setting->save();
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Map settings saved successfully.',
+                    'settings' => $setting
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Map API settings updated successfully.');
+        } catch (\Throwable $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to save map settings: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to save map settings: ' . $e->getMessage());
+        }
     }
 
     public function fetchLocations(Request $request)

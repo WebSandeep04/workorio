@@ -468,9 +468,10 @@
                             <!-- On-Demand Quota Route Button -->
                             @php
                                 $quotaProviderName = $mapConfig['provider'] === 'google' ? 'Google Maps' : ($mapConfig['provider'] === 'ola' ? 'Ola Maps' : 'Detailed Map');
+                                $isByoActive = !empty($mapConfig['is_byo']);
                             @endphp
                             <button id="btnLoadQuotaRoute" type="button" class="btn btn-sm btn-primary d-flex align-items-center justify-content-center gap-2 fw-semibold shadow-sm" style="font-size: 11px; padding: 7px 12px; border-radius: 6px;">
-                                <i class="bi bi-map-fill"></i> <span id="quotaRouteBtnText">View Full Route on {{ $quotaProviderName }}</span>
+                                <i class="bi bi-map-fill"></i> <span id="quotaRouteBtnText">View Full Route on {{ $quotaProviderName }}{{ $isByoActive ? ' (Custom API)' : '' }}</span>
                             </button>
 
                             <!-- Return to Overview (shown when in quota mode) -->
@@ -540,10 +541,19 @@
 
             if (currentMode === 'quota') {
                 const providerName = quotaMapConfig.provider === 'google' ? 'Google Maps' : (quotaMapConfig.provider === 'ola' ? 'Ola Maps' : 'OpenStreetMap');
-                badge.style.background = '#eef2ff';
-                badge.style.color = '#434AFA';
-                badge.style.border = '1px solid #c7d2fe';
-                badge.innerHTML = `<i class="bi bi-gem text-primary"></i> ${providerName} (Route Active)`;
+                const isByo = !!quotaMapConfig.is_byo;
+
+                if (isByo) {
+                    badge.style.background = '#f3e8ff';
+                    badge.style.color = '#7e22ce';
+                    badge.style.border = '1px solid #d8b4fe';
+                    badge.innerHTML = `<i class="bi bi-key-fill text-purple"></i> ${providerName} (Custom BYO API)`;
+                } else {
+                    badge.style.background = '#eef2ff';
+                    badge.style.color = '#434AFA';
+                    badge.style.border = '1px solid #c7d2fe';
+                    badge.innerHTML = `<i class="bi bi-gem text-primary"></i> ${providerName} (Product Quota)`;
+                }
 
                 if (btnReturn) {
                     btnReturn.classList.remove('d-none');
@@ -1114,9 +1124,9 @@
                     await trackingMap.switchProvider(quotaMapConfig, centerLat, centerLng, 15);
                     console.log(`Switched to quota provider [${quotaMapConfig.provider}] at zoom 15`);
 
-                    // Deduct / record quota ONLY ONCE when user activates quota view
+                    // Deduct / record quota ONLY ONCE when user activates quota view (bypasses Master DB quota when BYO is enabled)
                     if (!quotaRecorded) {
-                        trackingMap.recordUsage("{{ route('tracking.map-loaded') }}", "{{ csrf_token() }}");
+                        trackingMap.recordUsage("{{ route('tracking.map-loaded') }}", "{{ csrf_token() }}", quotaMapConfig.is_byo);
                         quotaRecorded = true;
                     }
                 }
@@ -1244,7 +1254,132 @@
 
         // Auto Refresh map positions every 30 seconds
         setInterval(fetchLocations, 30000);
+
+        // BYO Toggle show/hide inputs in modal
+        const byoToggle = document.getElementById('byoToggle');
+        const byoFieldsWrapper = document.getElementById('byoFieldsWrapper');
+        if (byoToggle && byoFieldsWrapper) {
+            byoToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    byoFieldsWrapper.classList.remove('d-none');
+                } else {
+                    byoFieldsWrapper.classList.add('d-none');
+                }
+            });
+        }
+
+        // Save Map Settings Form AJAX
+        const mapSettingsForm = document.getElementById('mapSettingsForm');
+        if (mapSettingsForm) {
+            mapSettingsForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const btnSave = document.getElementById('btnSaveMapSettings');
+                const spinner = document.getElementById('btnSaveMapSettingsSpinner');
+                
+                btnSave.disabled = true;
+                if (spinner) spinner.classList.remove('d-none');
+
+                try {
+                    const payload = {
+                        _token: "{{ csrf_token() }}",
+                        is_byo_enabled: byoToggle ? byoToggle.checked : false,
+                        preferred_provider: document.getElementById('byoPreferredProvider').value,
+                        google_api_key: document.getElementById('byoGoogleKey').value,
+                        ola_api_key: document.getElementById('byoOlaKey').value
+                    };
+
+                    const resp = await fetch("{{ route('tracking.settings.save') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await resp.json();
+                    if (data.success) {
+                        alert('Map settings saved successfully. Reloading page...');
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Failed to save settings.');
+                    }
+                } catch (err) {
+                    alert('Error saving settings: ' + err.message);
+                } finally {
+                    btnSave.disabled = false;
+                    if (spinner) spinner.classList.add('d-none');
+                }
+            });
+        }
     });
 </script>
+
+<!-- Map API Settings Modal (BYO-API) -->
+<div class="modal fade" id="mapSettingsModal" tabindex="-1" aria-labelledby="mapSettingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom pb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="p-2 rounded bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-key-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold fs-6 mb-0" id="mapSettingsModalLabel">Tenant Map API Settings</h5>
+                        <p class="text-muted small mb-0">Configure Bring Your Own API (BYO-API)</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="mapSettingsForm">
+                <div class="modal-body p-4">
+                    <div class="alert alert-light border d-flex gap-2 align-items-start mb-3" style="font-size: 12px;">
+                        <i class="bi bi-info-circle-fill text-primary mt-1"></i>
+                        <div>
+                            When <strong>Bring Your Own API</strong> is enabled, this organization will use its own API key for routes and <strong>will not consume the product's global quota</strong>.
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch mb-3 p-2 bg-light rounded d-flex align-items-center justify-content-between ps-3">
+                        <label class="form-check-label fw-semibold mb-0" for="byoToggle" style="font-size: 13px;">
+                            Enable Bring Your Own API (BYO)
+                        </label>
+                        <input class="form-check-input ms-0" type="checkbox" role="switch" id="byoToggle" {{ !empty($mapSetting->is_byo_enabled) ? 'checked' : '' }} style="cursor: pointer; transform: scale(1.2);">
+                    </div>
+
+                    <div id="byoFieldsWrapper" class="{{ !empty($mapSetting->is_byo_enabled) ? '' : 'd-none' }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">Preferred Provider</label>
+                            <select id="byoPreferredProvider" class="form-select form-select-sm">
+                                <option value="google" {{ ($mapSetting->preferred_provider ?? 'google') === 'google' ? 'selected' : '' }}>Google Maps JavaScript API</option>
+                                <option value="ola" {{ ($mapSetting->preferred_provider ?? '') === 'ola' ? 'selected' : '' }}>Ola Maps SDK</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">Google Maps API Key</label>
+                            <input type="password" id="byoGoogleKey" class="form-control form-control-sm" placeholder="AIzaSy..." value="{{ $mapSetting->google_api_key ?? '' }}">
+                            <div class="form-text text-muted" style="font-size: 11px;">Used when Google Maps is chosen.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">Ola Maps API Key</label>
+                            <input type="password" id="byoOlaKey" class="form-control form-control-sm" placeholder="Enter Ola Maps Key..." value="{{ $mapSetting->ola_api_key ?? '' }}">
+                            <div class="form-text text-muted" style="font-size: 11px;">Used when Ola Maps is chosen.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light py-2 px-4">
+                    <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="btnSaveMapSettings" class="btn btn-sm btn-primary px-3">
+                        <span id="btnSaveMapSettingsSpinner" class="spinner-border spinner-border-sm d-none me-1" role="status"></span>
+                        Save Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 

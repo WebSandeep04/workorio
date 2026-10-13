@@ -582,6 +582,10 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/software-setup/notifications', [NotificationController::class, 'index'])->name('software-setup.notifications.index');
     Route::post('/software-setup/notifications/send', [NotificationController::class, 'send'])->name('software-setup.notifications.send');
 
+    // Map API Settings (Software Setup)
+    Route::get('/software-setup/map-settings', [TrackingController::class, 'mapSettingsView'])->name('software-setup.map-settings.index');
+    Route::post('/software-setup/map-settings', [TrackingController::class, 'saveMapSettings'])->name('software-setup.map-settings.save');
+
     // All Data (Admin)
     Route::get('/alldata', [AllDataController::class, 'index'])->name('alldata');
     Route::get('/fetchalldata', [AllDataController::class, 'fetchalldata'])->name('fetchalldata');
@@ -710,6 +714,8 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking.index');
     Route::get('/tracking/fetch-locations', [TrackingController::class, 'fetchLocations'])->name('tracking.fetch-locations');
     Route::post('/tracking/map-loaded', [TrackingController::class, 'recordMapLoad'])->name('tracking.map-loaded');
+    Route::get('/tracking/settings', [TrackingController::class, 'getMapSettings'])->name('tracking.settings.get');
+    Route::post('/tracking/settings', [TrackingController::class, 'saveMapSettings'])->name('tracking.settings.save');
     Route::get('/tracking/report', [TrackingController::class, 'reportView'])->name('tracking.report');
     Route::post('/tracking/report-data', [TrackingController::class, 'getReportData'])->name('tracking.report-data');
     Route::post('/tracking/monthly-report-data', [TrackingController::class, 'getMonthlyReportData'])->name('tracking.monthly-report-data');

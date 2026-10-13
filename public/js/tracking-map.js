@@ -7,6 +7,7 @@ class TrackingMap {
         this.provider = config.provider || 'osm';
         this.apiKey = config.api_key || '';
         this.usageId = config.usage_id || null;
+        this.isByo = !!config.is_byo;
         this.containerId = config.container_id || 'map';
         this.mapInstance = null;
         this.olaMapsSDK = null;
@@ -502,13 +503,14 @@ class TrackingMap {
         this.provider = newConfig.provider || 'osm';
         this.apiKey = newConfig.api_key || '';
         this.usageId = newConfig.usage_id || null;
+        this.isByo = !!newConfig.is_byo;
         return await this.init(centerLat, centerLng, zoom);
     }
 
     /**
      * Send tracking ping to increment provider usage quota in backend
      */
-    recordUsage(endpointUrl, csrfToken) {
+    recordUsage(endpointUrl, csrfToken, isByo = null) {
         if (!endpointUrl) return;
 
         fetch(endpointUrl, {
@@ -519,7 +521,8 @@ class TrackingMap {
             },
             body: JSON.stringify({
                 usage_id: this.usageId,
-                provider: this.provider
+                provider: this.provider,
+                is_byo: isByo !== null ? isByo : this.isByo
             })
         }).catch(err => {
             console.warn('Map usage record ping failed:', err);
