@@ -430,29 +430,51 @@
                                 <span>Offline: <span id="stat-inactive-count">0</span></span>
                             </div>
                             <div class="map-stat-item border-start ps-2">
-                                <i class="bi bi-geo-alt-fill text-primary"></i>
-                                <span class="fw-bold">{{ $mapConfig['provider'] === 'osm' ? 'OpenStreetMap' : ucfirst($mapConfig['provider']) . ' Maps' }}</span>
+                                <span id="providerModeBadge" class="badge rounded-pill" style="font-size: 10px; font-weight: 600; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;">
+                                    <i class="bi bi-shield-check text-success"></i> Free Overview (0 Quota)
+                                </span>
                             </div>
                         </div>
 
                         <!-- Spinner Overlay -->
-                        <div id="loadingOverlay" class="position-absolute w-100 h-100 d-none justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 1000;">
+                        <div id="loadingOverlay" class="position-absolute w-100 h-100 justify-content-center align-items-center bg-white bg-opacity-75" style="z-index: 1000; display: none !important;">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Loading map data...</span>
                             </div>
                         </div>
 
-                        <!-- Ola Maps Container -->
+                        <!-- Map Canvas Container -->
                         <div id="map" style="height: 100%; width: 100%;"></div>
                     </div>
 
                     <!-- Tracking Details Sidebar Panel -->
-                    <div id="trackingDetailsPanel" class="d-none border-start bg-light h-100 animate__animated animate__fadeInRight" style="width: 320px; overflow-y: auto; transition: all 0.3s ease; font-family: 'Montserrat', sans-serif; min-width: 320px; z-index: 5;">
+                    <div id="trackingDetailsPanel" class="d-none border-start bg-light h-100 animate__animated animate__fadeInRight" style="width: 330px; overflow-y: auto; transition: all 0.3s ease; font-family: 'Montserrat', sans-serif; min-width: 330px; z-index: 5;">
                         <div class="p-3 bg-white border-bottom sticky-top shadow-sm d-flex justify-content-between align-items-center">
-                            <h6 class="m-0 fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 13px;">
-                                <i class="bi bi-clock-history text-primary"></i> Tracking Log
-                            </h6>
+                            <div>
+                                <h6 class="m-0 fw-bold text-dark d-flex align-items-center gap-2" style="font-size: 13px;">
+                                    <i class="bi bi-geo-alt-fill text-primary"></i> <span id="panelEmpName">Employee Details</span>
+                                </h6>
+                                <span class="badge bg-light text-muted border mt-1" id="panelEmpStatusBadge" style="font-size: 10px;">Offline</span>
+                            </div>
+                            <button type="button" class="btn-close btn-sm" id="btnCloseDetailsPanel" aria-label="Close" style="font-size: 10px;"></button>
                         </div>
+
+                        <!-- Action buttons for Route -->
+                        <div class="p-3 bg-white border-bottom d-flex flex-column gap-2">
+                            <!-- On-Demand Quota Route Button -->
+                            @php
+                                $quotaProviderName = $mapConfig['provider'] === 'google' ? 'Google Maps' : ($mapConfig['provider'] === 'ola' ? 'Ola Maps' : 'Detailed Map');
+                            @endphp
+                            <button id="btnLoadQuotaRoute" type="button" class="btn btn-sm btn-primary d-flex align-items-center justify-content-center gap-2 fw-semibold shadow-sm" style="font-size: 11px; padding: 7px 12px; border-radius: 6px;">
+                                <i class="bi bi-map-fill"></i> <span id="quotaRouteBtnText">View Full Route on {{ $quotaProviderName }}</span>
+                            </button>
+
+                            <!-- Return to Overview (shown when in quota mode) -->
+                            <button id="btnReturnToFree" type="button" class="btn btn-sm btn-light border d-none align-items-center justify-content-center gap-2 text-muted fw-semibold" style="font-size: 11px; padding: 6px 10px; border-radius: 6px;">
+                                <i class="bi bi-arrow-left"></i> Return to Overview
+                            </button>
+                        </div>
+
                         <!-- Compact Metrics Bar -->
                         <div class="px-3 py-2 bg-white border-bottom d-flex align-items-center gap-3 text-muted" style="font-size: 11px;">
                             <span class="d-flex align-items-center gap-1">
@@ -477,15 +499,16 @@
     </div>
 </div>
 
-<!-- Map SDK Dynamic Loading -->
+<!-- 100% Free OpenStreetMap Engine (Always loaded for Free Overview) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Quota Provider SDK (Ola or Google) -->
 @if(($mapConfig['provider'] ?? '') === 'google')
     <script src="https://maps.googleapis.com/maps/api/js?key={{ $mapConfig['api_key'] }}&libraries=marker"></script>
 @elseif(($mapConfig['provider'] ?? '') === 'ola')
     <script src="https://www.unpkg.com/olamaps-web-sdk@latest/dist/olamaps-web-sdk.umd.js"></script>
     <link href="https://www.unpkg.com/olamaps-web-sdk@latest/dist/style.css" rel="stylesheet" />
-@elseif(($mapConfig['provider'] ?? '') === 'osm')
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 @endif
 
 <!-- Unified TrackingMap Adapter -->
@@ -493,44 +516,79 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', async function() {
-        const mapConfig = @json($mapConfig ?? ['provider' => 'osm', 'api_key' => '', 'usage_id' => null]);
+        const quotaMapConfig = @json($mapConfig ?? ['provider' => 'osm', 'api_key' => '', 'usage_id' => null]);
+        const freeMapConfig = { provider: 'osm', api_key: '', usage_id: null, container_id: 'map' };
+
+        let currentMode = 'free'; // 'free' (OpenStreetMap) or 'quota' (Ola / Google)
+        let quotaRecorded = false;
         let trackingMap = null;
+        let rawLocations = [];
+        let isSingleEmpActive = false;
 
-        // Initialize Map via unified adapter
+        // Helper: Update Provider Badge & Button states in UI
+        function updateProviderBadge() {
+            const badge = document.getElementById('providerModeBadge');
+            const btnReturn = document.getElementById('btnReturnToFree');
+            const btnQuota = document.getElementById('btnLoadQuotaRoute');
+
+            if (!badge) return;
+
+            if (currentMode === 'quota') {
+                const providerName = quotaMapConfig.provider === 'google' ? 'Google Maps' : (quotaMapConfig.provider === 'ola' ? 'Ola Maps' : 'OpenStreetMap');
+                badge.style.background = '#eef2ff';
+                badge.style.color = '#434AFA';
+                badge.style.border = '1px solid #c7d2fe';
+                badge.innerHTML = `<i class="bi bi-gem text-primary"></i> ${providerName} (Route Active)`;
+
+                if (btnReturn) {
+                    btnReturn.classList.remove('d-none');
+                    btnReturn.classList.add('d-flex');
+                }
+                if (btnQuota) {
+                    btnQuota.classList.add('d-none');
+                }
+            } else {
+                badge.style.background = '#f0fdf4';
+                badge.style.color = '#15803d';
+                badge.style.border = '1px solid #bbf7d0';
+                badge.innerHTML = `<i class="bi bi-shield-check text-success"></i> Free Overview (0 Quota)`;
+
+                if (btnReturn) {
+                    btnReturn.classList.remove('d-flex');
+                    btnReturn.classList.add('d-none');
+                }
+                if (btnQuota) {
+                    btnQuota.classList.remove('d-none');
+                }
+            }
+        }
+
+        // Initialize Map in 100% FREE mode (OpenStreetMap) on page load
         try {
-            trackingMap = new TrackingMap({
-                provider: mapConfig.provider,
-                api_key: mapConfig.api_key,
-                usage_id: mapConfig.usage_id,
-                container_id: 'map'
-            });
-
+            trackingMap = new TrackingMap(freeMapConfig);
             await trackingMap.init(26.4983, 80.3429, 12);
-            console.log(`Tracking Map initialized with [${mapConfig.provider}] engine`);
+            console.log("Free Tracking Map initialized with [OpenStreetMap] engine (0 Quota used)");
+            updateProviderBadge();
 
-            // Ping usage endpoint to increment counter
-            trackingMap.recordUsage("{{ route('tracking.map-loaded') }}", "{{ csrf_token() }}");
-
-            fetchLocations(); // Initial Fetch
+            // Fetch initial positions
+            fetchLocations();
         } catch (error) {
             console.error("Map Init Error:", error);
-            document.getElementById('map').innerHTML = `<div class="alert alert-danger m-3">Map Initialization Failed (${mapConfig.provider}): ${error.message}</div>`;
+            document.getElementById('map').innerHTML = `<div class="alert alert-danger m-3">Map Initialization Failed: ${error.message}</div>`;
         }
 
         // --- Loading Spinner Control ---
         function showLoading() {
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
-                overlay.classList.add('d-flex');
-                overlay.classList.remove('d-none');
+                overlay.style.setProperty('display', 'flex', 'important');
             }
         }
 
         function hideLoading() {
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
-                overlay.classList.remove('d-flex');
-                overlay.classList.add('d-none');
+                overlay.style.setProperty('display', 'none', 'important');
             }
         }
 
@@ -541,13 +599,15 @@
 
             const employeeId = document.getElementById('employee_id').value;
             const date = document.getElementById('date').value;
+            isSingleEmpActive = !!employeeId;
 
             try {
                 const response = await fetch(`{{ route('tracking.fetch-locations') }}?employee_id=${employeeId}&date=${date}`);
                 const data = await response.json();
 
                 if (data.success) {
-                    updateMapMarkers(data.data, !!employeeId);
+                    rawLocations = data.data || [];
+                    updateMapMarkers(rawLocations, isSingleEmpActive);
                     updateSidebarStatuses(data.employee_details);
                 }
             } catch (error) {
@@ -616,9 +676,8 @@
 
         // --- GPS Filtering, Clustering, and Path Smoothing Helpers ---
 
-        // Haversine formula to compute distance between two coordinates in meters
         function getDistanceInMeters(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // Earth radius in meters
+            const R = 6371e3;
             const phi1 = lat1 * Math.PI / 180;
             const phi2 = lat2 * Math.PI / 180;
             const deltaPhi = (lat2 - lat1) * Math.PI / 180;
@@ -632,7 +691,6 @@
             return R * c;
         }
 
-        // Ramer-Douglas-Peucker Simplification to reduce zig-zag points
         function simplifyPath(points, epsilon) {
             if (points.length <= 2) return points;
 
@@ -667,12 +725,10 @@
             return den === 0 ? 0 : num / den;
         }
 
-        // Main coordinate filter for removing jitter, small movements, and unrealistic speed jumps
         function filterAndSmoothRoute(locations, isSingleEmployee) {
             if (!locations || locations.length === 0) return [];
             if (!isSingleEmployee) return locations;
 
-            // Ensure chronological order
             const sorted = [...locations].sort((a, b) => new Date(a.tracked_at) - new Date(b.tracked_at));
             const filtered = [];
             let prevValid = null;
@@ -686,18 +742,15 @@
                     const prevLat = parseFloat(prevValid.latitude);
                     const prevLng = parseFloat(prevValid.longitude);
                     const dist = getDistanceInMeters(prevLat, prevLng, lat, lng);
-                    const timeDiff = (new Date(loc.tracked_at) - new Date(prevValid.tracked_at)) / 1000; // in seconds
+                    const timeDiff = (new Date(loc.tracked_at) - new Date(prevValid.tracked_at)) / 1000;
 
-                    // 1. Minimum Movement Filter: Skip coordinates if movement is < 50 meters
-                    // EXCEPT if more than 5 minutes have passed (to show periodic updates when stationary)
                     if (dist < 50 && timeDiff < 300) {
                         return;
                     }
 
-                    // 2. Unrealistic Jump Detection: Ignore sudden spikes (> 200m within very short time)
                     if (timeDiff > 0) {
-                        const speed = dist / timeDiff; // m/s
-                        if (speed > 25 && dist > 150) { // Speed greater than 90 km/h with high distance is filtered
+                        const speed = dist / timeDiff;
+                        if (speed > 25 && dist > 150) {
                             return;
                         }
                     }
@@ -709,8 +762,6 @@
 
             if (filtered.length <= 2) return filtered;
 
-            // 3. Stationary Centroid Clustering: Merge consecutive points within 20m of each other
-            // to entirely eliminate stationary "starburst" jitter web patterns.
             const clustered = [];
             let i = 0;
             while (i < filtered.length) {
@@ -756,31 +807,39 @@
             return clustered;
         }
 
-        // --- Render Ola Map Markers & Filtered Route Paths ---
+        // --- Render Map Markers & Route Paths ---
         function updateMapMarkers(locations, isSingleEmployee) {
-            // Clear existing map markers and route via TrackingMap adapter
             trackingMap.clearMarkers();
             trackingMap.clearRoute();
 
+            const detailsPanel = document.getElementById('trackingDetailsPanel');
+
             if (!locations || locations.length === 0) {
-                const detailsPanel = document.getElementById('trackingDetailsPanel');
-                if (detailsPanel) detailsPanel.classList.add('d-none');
+                if (isSingleEmployee && detailsPanel) {
+                    detailsPanel.classList.remove('d-none');
+                    const timelineContainer = document.getElementById('trackingTimelineContent');
+                    if (timelineContainer) {
+                        timelineContainer.innerHTML = `
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-geo-alt-fill fs-3 d-block mb-2 text-secondary"></i>
+                                <span class="small" style="font-size:11px;">No GPS entries recorded today</span>
+                            </div>`;
+                    }
+                } else if (detailsPanel) {
+                    detailsPanel.classList.add('d-none');
+                }
                 return;
             }
 
-            // Clean, filter and cluster points to remove drift and starburst patterns
             const cleanedLocations = filterAndSmoothRoute(locations, isSingleEmployee);
             if (cleanedLocations.length === 0) {
-                const detailsPanel = document.getElementById('trackingDetailsPanel');
-                if (detailsPanel) detailsPanel.classList.add('d-none');
+                if (detailsPanel && !isSingleEmployee) detailsPanel.classList.add('d-none');
                 return;
             }
-
 
             let pointsToRender = [];
 
             if (!isSingleEmployee) {
-                // "All Employees" mode: Show ONLY the latest location for each
                 const latestByEmployee = {};
                 cleanedLocations.forEach(loc => {
                     if (!latestByEmployee[loc.employee_id] || new Date(loc.tracked_at) > new Date(latestByEmployee[loc.employee_id].tracked_at)) {
@@ -789,7 +848,6 @@
                 });
                 pointsToRender = Object.values(latestByEmployee);
             } else {
-                // "Single Employee" mode: Show ALL valid points (history path)
                 pointsToRender = cleanedLocations;
             }
 
@@ -801,23 +859,28 @@
                 const lng = parseFloat(loc.longitude);
                 if (isNaN(lat) || isNaN(lng)) return;
 
-                // Update viewport boundary parameters
                 if (lng < minLng) minLng = lng;
                 if (lng > maxLng) maxLng = lng;
                 if (lat < minLat) minLat = lat;
                 if (lat > maxLat) maxLat = lat;
                 hasValidPoints = true;
 
-                const lngLat = [lng, lat];
                 const isLatest = !isSingleEmployee || (index === pointsToRender.length - 1);
 
-                // Build modern custom marker elements
+                // Build modern custom marker DOM
                 const container = document.createElement('div');
                 container.style.display = 'flex';
                 container.style.flexDirection = 'column';
                 container.style.alignItems = 'center';
                 container.style.transform = 'translate(-50%, -100%)';
                 container.style.cursor = 'pointer';
+
+                // Click marker to focus and select employee in sidebar
+                container.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const targetCard = document.querySelector(`.employee-card[data-emp-id="${loc.employee_id}"]`);
+                    if (targetCard) targetCard.click();
+                });
 
                 const dot = document.createElement('div');
                 dot.style.width = isLatest ? '16px' : '10px';
@@ -852,26 +915,46 @@
                 trackingMap.addCustomMarker(lat, lng, container);
             });
 
-            // Draw a smooth connecting route path line in Single Employee mode
+            // Single Employee View: Route & Navigation setup
             if (isSingleEmployee) {
+                if (detailsPanel) detailsPanel.classList.remove('d-none');
+
+                // Update Employee details in the header
+                const empId = document.getElementById('employee_id').value;
+                const activeCard = document.querySelector(`.employee-card[data-emp-id="${empId}"]`);
+                if (activeCard) {
+                    const empName = activeCard.querySelector('.employee-name')?.textContent || 'Employee';
+                    const empBadge = activeCard.querySelector('.employee-status-badge');
+                    document.getElementById('panelEmpName').textContent = empName;
+                    const panelBadge = document.getElementById('panelEmpStatusBadge');
+                    if (panelBadge && empBadge) {
+                        panelBadge.className = empBadge.className;
+                        panelBadge.textContent = empBadge.textContent;
+                    }
+                }
+
+                // Focus map onto employee latest coordinates
+                if (pointsToRender.length > 0) {
+                    const latestLoc = pointsToRender[pointsToRender.length - 1];
+                    const lat = parseFloat(latestLoc.latitude);
+                    const lng = parseFloat(latestLoc.longitude);
+
+                    // Smoothly focus/fly to employee location
+                    trackingMap.flyTo(lat, lng, 14);
+                }
+
+                // Draw route line if single employee
                 let coordinates = pointsToRender
                     .map(loc => [parseFloat(loc.longitude), parseFloat(loc.latitude)])
                     .filter(coord => !isNaN(coord[0]) && !isNaN(coord[1]));
 
-                // Apply Ramer-Douglas-Peucker simplification to eliminate zig-zag jitter lines
                 if (coordinates.length > 5) {
-                    coordinates = simplifyPath(coordinates, 0.00012); // ~13m tolerance
+                    coordinates = simplifyPath(coordinates, 0.00012);
                 }
 
                 if (coordinates.length > 1) {
                     trackingMap.drawRoute(coordinates);
                 }
-            }
-
-            // Render Dynamic Vertical Timeline of stops and track logs
-            const detailsPanel = document.getElementById('trackingDetailsPanel');
-            if (isSingleEmployee) {
-                if (detailsPanel) detailsPanel.classList.remove('d-none');
 
                 // Calculate Distance & Stays dynamically
                 let totalDistanceMeters = 0;
@@ -899,6 +982,7 @@
                 if (distanceEl) distanceEl.textContent = `${totalKM} km`;
                 if (staysEl) staysEl.textContent = totalStaysCount;
 
+                // Render Timeline
                 let timelineHtml = '<div class="timeline-container">';
 
                 if (pointsToRender.length === 0) {
@@ -908,7 +992,6 @@
                             <span class="small" style="font-size:11px;">No logs recorded for today</span>
                         </div>`;
                 } else {
-                    // Start of day
                     const firstLoc = pointsToRender[0];
                     const startTimeStr = new Date(firstLoc.tracked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     timelineHtml += `
@@ -921,7 +1004,6 @@
                             </div>
                         </div>`;
 
-                    // Intermediary Stops / Movement points
                     pointsToRender.slice(1, -1).forEach(loc => {
                         const timeStr = new Date(loc.tracked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                         const isStop = loc.isClusterCentroid || false;
@@ -937,7 +1019,6 @@
                             </div>`;
                     });
 
-                    // Latest / End location
                     if (pointsToRender.length > 1) {
                         const lastLoc = pointsToRender[pointsToRender.length - 1];
                         const endTimeStr = new Date(lastLoc.tracked_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -960,11 +1041,84 @@
                 if (detailsPanel) detailsPanel.classList.add('d-none');
             }
 
-            // Adjust map viewport boundary to enclose all active markers nicely
-            if (hasValidPoints) {
+            // Adjust map viewport boundary in All Employees mode
+            if (hasValidPoints && !isSingleEmployee) {
                 trackingMap.fitBounds(minLng, minLat, maxLng, maxLat, 60);
             }
         }
+
+        // --- Button Handlers for On-Demand Quota Route & Navigation ---
+
+        // 1. Switch to Quota / Premium Route View (Ola / Google)
+        document.getElementById('btnLoadQuotaRoute').addEventListener('click', async function() {
+            if (currentMode === 'quota') return;
+            showLoading();
+
+            try {
+                currentMode = 'quota';
+
+                let centerLat = 26.4983, centerLng = 80.3429;
+                if (rawLocations.length > 0) {
+                    const latest = rawLocations[rawLocations.length - 1];
+                    if (latest.latitude && latest.longitude) {
+                        centerLat = parseFloat(latest.latitude);
+                        centerLng = parseFloat(latest.longitude);
+                    }
+                }
+
+                await trackingMap.switchProvider(quotaMapConfig, centerLat, centerLng, 13);
+                console.log(`Switched to quota provider [${quotaMapConfig.provider}]`);
+
+                // Deduct / record quota ONLY ONCE when user activates quota view
+                if (!quotaRecorded) {
+                    trackingMap.recordUsage("{{ route('tracking.map-loaded') }}", "{{ csrf_token() }}");
+                    quotaRecorded = true;
+                }
+
+                updateProviderBadge();
+                updateMapMarkers(rawLocations, isSingleEmpActive);
+            } catch (err) {
+                console.error("Failed to switch to quota map:", err);
+                alert("Could not load " + (quotaMapConfig.provider || 'quota map') + ": " + err.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // 2. Switch Back to Free Overview
+        document.getElementById('btnReturnToFree').addEventListener('click', async function() {
+            if (currentMode === 'free') return;
+            showLoading();
+
+            try {
+                currentMode = 'free';
+
+                let centerLat = 26.4983, centerLng = 80.3429;
+                if (rawLocations.length > 0) {
+                    const latest = rawLocations[rawLocations.length - 1];
+                    if (latest.latitude && latest.longitude) {
+                        centerLat = parseFloat(latest.latitude);
+                        centerLng = parseFloat(latest.longitude);
+                    }
+                }
+
+                await trackingMap.switchProvider(freeMapConfig, centerLat, centerLng, 12);
+                console.log("Switched back to Free OpenStreetMap mode");
+
+                updateProviderBadge();
+                updateMapMarkers(rawLocations, isSingleEmpActive);
+            } catch (err) {
+                console.error("Failed to switch back to free map:", err);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // 3. Close Details Panel
+        document.getElementById('btnCloseDetailsPanel').addEventListener('click', function() {
+            const resetCard = document.querySelector('.employee-card[data-emp-id=""]');
+            if (resetCard) resetCard.click();
+        });
 
         // --- Sidebar Interactions & Inputs ---
         
@@ -1009,3 +1163,4 @@
     });
 </script>
 @endsection
+

@@ -84,6 +84,26 @@ class TrackingMap {
         if (this.mapInstance && !this.mapInstance._getUIString) {
             this.mapInstance._getUIString = () => '';
         }
+
+        // Wait for Ola Vector style to be fully loaded
+        if (this.mapInstance) {
+            await new Promise((resolve) => {
+                if (typeof this.mapInstance.isStyleLoaded === 'function' && this.mapInstance.isStyleLoaded()) {
+                    resolve();
+                } else {
+                    const onLoaded = () => {
+                        try {
+                            this.mapInstance.off('load', onLoaded);
+                            this.mapInstance.off('style.load', onLoaded);
+                        } catch(e) {}
+                        resolve();
+                    };
+                    this.mapInstance.once('load', onLoaded);
+                    this.mapInstance.once('style.load', onLoaded);
+                    setTimeout(onLoaded, 3000);
+                }
+            });
+        }
     }
 
     /**
@@ -240,6 +260,8 @@ class TrackingMap {
      */
     clearRoute() {
         if (this.provider === 'ola') {
+            if (!this.mapInstance) return;
+            if (typeof this.mapInstance.isStyleLoaded === 'function' && !this.mapInstance.isStyleLoaded()) return;
             try {
                 if (typeof this.mapInstance.getLayer === 'function' && this.mapInstance.getLayer('route-line')) {
                     this.mapInstance.removeLayer('route-line');
@@ -275,32 +297,57 @@ class TrackingMap {
         const opacity = options.opacity || 0.8;
 
         if (this.provider === 'ola') {
-            this.mapInstance.addSource('route-source', {
-                'type': 'geojson',
-                'data': {
+            if (!this.mapInstance) return;
+
+            // Wait if style is not ready yet
+            if (typeof this.mapInstance.isStyleLoaded === 'function' && !this.mapInstance.isStyleLoaded()) {
+                const onLoaded = () => {
+                    this.drawRoute(coordinates, options);
+                };
+                this.mapInstance.once('load', onLoaded);
+                this.mapInstance.once('style.load', onLoaded);
+                return;
+            }
+
+            try {
+                const geojsonData = {
                     'type': 'Feature',
                     'properties': {},
                     'geometry': {
                         'type': 'LineString',
                         'coordinates': coordinates
                     }
-                }
-            });
+                };
 
-            this.mapInstance.addLayer({
-                'id': 'route-line',
-                'type': 'line',
-                'source': 'route-source',
-                'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                'paint': {
-                    'line-color': color,
-                    'line-width': width,
-                    'line-opacity': opacity
+                const existingSource = this.mapInstance.getSource('route-source');
+                if (existingSource && typeof existingSource.setData === 'function') {
+                    existingSource.setData(geojsonData);
+                } else {
+                    this.mapInstance.addSource('route-source', {
+                        'type': 'geojson',
+                        'data': geojsonData
+                    });
                 }
-            });
+
+                if (!this.mapInstance.getLayer('route-line')) {
+                    this.mapInstance.addLayer({
+                        'id': 'route-line',
+                        'type': 'line',
+                        'source': 'route-source',
+                        'layout': {
+                            'line-join': 'round',
+                            'line-cap': 'round'
+                        },
+                        'paint': {
+                            'line-color': color,
+                            'line-width': width,
+                            'line-opacity': opacity
+                        }
+                    });
+                }
+            } catch (err) {
+                console.warn('Ola drawRoute warning:', err);
+            }
         } else if (this.provider === 'google') {
             const path = coordinates.map(([lng, lat]) => ({ lat: lat, lng: lng }));
             this.routeLayer = new google.maps.Polyline({
@@ -346,6 +393,71 @@ class TrackingMap {
     }
 
     /**
+     * Pan / Fly to specific coordinates smoothly
+     */
+    flyTo(lat, lng, zoom = 14) {
+        if (!this.mapInstance) return;
+        try {
+            if (this.provider === 'ola') {
+                if (typeof this.mapInstance.flyTo === 'function') {
+                    this.mapInstance.flyTo({ center: [lng, lat], zoom: zoom });
+                }
+            } else if (this.provider === 'google') {
+                if (typeof this.mapInstance.panTo === 'function') {
+                    this.mapInstance.panTo({ lat: lat, lng: lng });
+                    this.mapInstance.setZoom(zoom);
+                }
+            } else if (this.provider === 'osm') {
+                if (typeof this.mapInstance.flyTo === 'function') {
+                    this.mapInstance.flyTo([lat, lng], zoom);
+                } else if (typeof this.mapInstance.setView === 'function') {
+                    this.mapInstance.setView([lat, lng], zoom);
+                }
+            }
+        } catch (e) {
+            console.warn('flyTo failed:', e);
+        }
+    }
+
+    /**
+     * Clean up and destroy current map instance
+     */
+    destroy() {
+        this.clearMarkers();
+        this.clearRoute();
+        if (this.mapInstance) {
+            try {
+                if (typeof this.mapInstance.remove === 'function') {
+                    this.mapInstance.remove();
+                }
+            } catch (e) {
+                console.warn('Map cleanup error:', e);
+            }
+            this.mapInstance = null;
+        }
+        const container = document.getElementById(this.containerId);
+        if (container) {
+            container.innerHTML = '';
+            container.className = container.className.replace(/\bleaflet-[^\s]+/g, '').trim();
+            container._leaflet_id = null;
+            container.style.height = '100%';
+            container.style.width = '100%';
+        }
+        this.ready = false;
+    }
+
+    /**
+     * Switch map provider dynamically (e.g. from Free OSM to Quota Ola/Google)
+     */
+    async switchProvider(newConfig, centerLat = 26.4983, centerLng = 80.3429, zoom = 12) {
+        this.destroy();
+        this.provider = newConfig.provider || 'osm';
+        this.apiKey = newConfig.api_key || '';
+        this.usageId = newConfig.usage_id || null;
+        return await this.init(centerLat, centerLng, zoom);
+    }
+
+    /**
      * Send tracking ping to increment provider usage quota in backend
      */
     recordUsage(endpointUrl, csrfToken) {
@@ -366,3 +478,4 @@ class TrackingMap {
         });
     }
 }
+
