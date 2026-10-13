@@ -1045,6 +1045,12 @@
             if (hasValidPoints && !isSingleEmployee) {
                 trackingMap.fitBounds(minLng, minLat, maxLng, maxLat, 60);
             }
+
+            // Invalidate size immediately and after panel transition so map spans full 100% width
+            if (trackingMap) {
+                setTimeout(() => trackingMap.invalidateSize(), 50);
+                setTimeout(() => trackingMap.invalidateSize(), 350);
+            }
         }
 
         // --- Button Handlers for On-Demand Quota Route & Navigation ---
@@ -1077,6 +1083,10 @@
 
                 updateProviderBadge();
                 updateMapMarkers(rawLocations, isSingleEmpActive);
+                
+                setTimeout(() => {
+                    if (trackingMap) trackingMap.invalidateSize();
+                }, 100);
             } catch (err) {
                 console.error("Failed to switch to quota map:", err);
                 alert("Could not load " + (quotaMapConfig.provider || 'quota map') + ": " + err.message);
@@ -1085,28 +1095,33 @@
             }
         });
 
-        // 2. Switch Back to Free Overview
+        // 2. Switch Back to Free Overview (All Employees)
         document.getElementById('btnReturnToFree').addEventListener('click', async function() {
-            if (currentMode === 'free') return;
             showLoading();
 
             try {
-                currentMode = 'free';
-
-                let centerLat = 26.4983, centerLng = 80.3429;
-                if (rawLocations.length > 0) {
-                    const latest = rawLocations[rawLocations.length - 1];
-                    if (latest.latitude && latest.longitude) {
-                        centerLat = parseFloat(latest.latitude);
-                        centerLng = parseFloat(latest.longitude);
-                    }
+                if (currentMode !== 'free') {
+                    currentMode = 'free';
+                    await trackingMap.switchProvider(freeMapConfig, 26.4983, 80.3429, 12);
+                    console.log("Switched back to Free OpenStreetMap mode");
+                    updateProviderBadge();
                 }
 
-                await trackingMap.switchProvider(freeMapConfig, centerLat, centerLng, 12);
-                console.log("Switched back to Free OpenStreetMap mode");
+                // Reset to "All Employees" selection
+                const resetCard = document.querySelector('.employee-card[data-emp-id=""]');
+                if (resetCard) {
+                    resetCard.click();
+                } else {
+                    document.getElementById('employee_id').value = '';
+                    fetchLocations();
+                }
 
-                updateProviderBadge();
-                updateMapMarkers(rawLocations, isSingleEmpActive);
+                setTimeout(() => {
+                    if (trackingMap) trackingMap.invalidateSize();
+                }, 100);
+                setTimeout(() => {
+                    if (trackingMap) trackingMap.invalidateSize();
+                }, 350);
             } catch (err) {
                 console.error("Failed to switch back to free map:", err);
             } finally {
@@ -1148,15 +1163,40 @@
 
         // Click Employee Card
         document.querySelectorAll('.employee-card').forEach(card => {
-            card.addEventListener('click', function() {
+            card.addEventListener('click', async function() {
                 document.querySelectorAll('.employee-card').forEach(c => c.classList.remove('active'));
                 this.classList.add('active');
 
                 const empId = this.getAttribute('data-emp-id');
                 document.getElementById('employee_id').value = empId;
+
+                // When returning to "All Employees", switch back to free mode automatically if in quota mode
+                if (!empId && currentMode === 'quota') {
+                    currentMode = 'free';
+                    await trackingMap.switchProvider(freeMapConfig, 26.4983, 80.3429, 12);
+                    updateProviderBadge();
+                }
+
                 fetchLocations();
+
+                // Trigger map resize as sidebar panel opens or closes
+                if (trackingMap) {
+                    setTimeout(() => trackingMap.invalidateSize(), 50);
+                    setTimeout(() => trackingMap.invalidateSize(), 350);
+                }
             });
         });
+
+        // Auto-detect container resizing (e.g. sidebar open/close, window resize)
+        if (window.ResizeObserver) {
+            const resizeObs = new ResizeObserver(() => {
+                if (trackingMap && trackingMap.isReady()) {
+                    trackingMap.invalidateSize();
+                }
+            });
+            const mapContainerEl = document.getElementById('mapContainer');
+            if (mapContainerEl) resizeObs.observe(mapContainerEl);
+        }
 
         // Auto Refresh map positions every 30 seconds
         setInterval(fetchLocations, 30000);

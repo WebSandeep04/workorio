@@ -420,6 +420,30 @@ class TrackingMap {
     }
 
     /**
+     * Invalidate and recalculate container dimensions (e.g. after sidebar opens or closes)
+     */
+    invalidateSize() {
+        if (!this.mapInstance) return;
+        try {
+            if (this.provider === 'osm') {
+                if (typeof this.mapInstance.invalidateSize === 'function') {
+                    this.mapInstance.invalidateSize();
+                }
+            } else if (this.provider === 'ola') {
+                if (typeof this.mapInstance.resize === 'function') {
+                    this.mapInstance.resize();
+                }
+            } else if (this.provider === 'google') {
+                if (typeof google !== 'undefined' && google.maps && google.maps.event) {
+                    google.maps.event.trigger(this.mapInstance, 'resize');
+                }
+            }
+        } catch (e) {
+            console.warn('Map resize/invalidateSize error:', e);
+        }
+    }
+
+    /**
      * Clean up and destroy current map instance
      */
     destroy() {
