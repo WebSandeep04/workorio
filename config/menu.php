@@ -319,7 +319,7 @@ return [
                         ['route' => 'state', 'title' => 'State', 'icon' => 'bi bi-globe', 'permission' => 'setup.state', 'feature_flag' => 'is_core_setup_enabled'],
                         ['route' => 'city', 'title' => 'City', 'icon' => 'bi bi-geo-alt', 'permission' => 'setup.city', 'feature_flag' => 'is_core_setup_enabled'],
                         ['route' => 'places.index', 'title' => 'Places', 'icon' => 'bi bi-map', 'permission' => 'setup.places', 'feature_flag' => 'is_master_setup_enabled'],
-                        ['route' => 'software-setup.map-settings.index', 'title' => 'Map API Setting', 'icon' => 'bi bi-geo-alt-fill', 'roles' => ['admin']],
+                        ['route' => 'software-setup.map-settings.index', 'title' => 'Map API Setting', 'icon' => 'bi bi-geo-alt-fill', 'permission' => 'setup.map_settings', 'feature_flag' => 'is_master_setup_enabled'],
                     ]
                 ],
                 [
@@ -459,7 +459,7 @@ return [
                         // • Whatsapp Template
                         // Ah! It's in both or just here? Let's leave it where PDF says. Wait, PDF page 3 says WhatsApp Management -> Templates -> Whatsapp Template. And Page 5 says Communication Setup -> Whatsapp Template. I'll put it in both.
                         ['route' => 'whatsapp-template.index', 'title' => 'Whatsapp Template', 'icon' => 'bi bi-whatsapp', 'permission' => 'setup.whatsapp_templates', 'feature_flag' => 'is_tally_calling_setup_enabled'],
-                        ['route' => 'software-setup.notifications.index', 'title' => 'Notifications', 'icon' => 'bi bi-bell-fill', 'roles' => ['admin']],
+                        ['route' => 'software-setup.notifications.index', 'title' => 'Notifications', 'icon' => 'bi bi-bell-fill', 'permission' => 'setup.notifications', 'feature_flag' => 'is_master_setup_enabled'],
                     ]
                 ],
                 [

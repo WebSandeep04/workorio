@@ -27,6 +27,7 @@ class TenantFeatureService
                     'setup.leave_types' => 'Setup: Leave Types',
                     'setup.late_reasons' => 'Setup: Late Reasons',
                     'setup.places' => 'Setup: Places',
+                    'setup.map_settings' => 'Setup: Map API Settings',
                 ]
             ],
             'sales_crm' => [
@@ -133,6 +134,7 @@ class TenantFeatureService
                 'permissions' => [
                     'attendance.report' => 'Reports: Attendance Report',
                     'reports.worklog' => 'Reports: Timesheet Report',
+                    'tracking.report' => 'Reports: Tracking Report',
                 ]
             ],
             'user_rbac' => [
@@ -231,6 +233,8 @@ class TenantFeatureService
                     'documents.manage' => 'Documents: Manage',
                     'documents.my_documents' => 'Documents: My Files',
                     'email_marketing.view' => 'Email Marketing: View',
+                    'setup.notifications' => 'Setup: Broadcast Notifications',
+                    'setup.posting_log' => 'Setup: System Logs',
                 ]
             ]
         ];
