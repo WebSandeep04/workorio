@@ -321,7 +321,7 @@ class PayrollController extends Controller
             return back()->with('error', 'Month and year are required');
         }
 
-        $summaries = \App\Models\MonthlyAttendanceSummary::with('employee')
+        $summaries = \App\Models\MonthlyAttendanceSummary::with(['employee.branch', 'employee.departmentRelation'])
             ->where('month', $month)
             ->where('year', $year)
             ->get();
@@ -371,7 +371,7 @@ class PayrollController extends Controller
         $fileName = 'Payroll_Report_' . date('F', mktime(0, 0, 0, $month, 1)) . '_' . $year . '.csv';
 
         $headers = array(
-            "Content-type"        => "text/csv",
+            "Content-type"        => "text/csv; charset=UTF-8",
             "Content-Disposition" => "attachment; filename=$fileName",
             "Pragma"              => "no-cache",
             "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
@@ -379,10 +379,15 @@ class PayrollController extends Controller
         );
 
         $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyDays, $employeePenaltyAmounts, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $withPenalty) {
+            if (ob_get_level() > 0) {
+                ob_end_clean();
+            }
             $file = fopen('php://output', 'w');
             
+            // Add UTF-8 BOM so Excel opens text/symbols correctly
+            fputs($file, "\xEF\xBB\xBF");
+            
             $grandTotalPaidSalary = 0;
-            $colTotals = array_fill(0, count($uniqueComponents) + 22, 0); // Enough for all columns
             
             // Header Row
             $baseColumns = [
@@ -399,6 +404,10 @@ class PayrollController extends Controller
                 $uniqueComponents,
                 $baseColumns
             );
+
+            // Size colTotals accurately based on total columns to prevent out-of-bounds error
+            $colTotals = array_fill(0, count($columns), 0);
+
             fputcsv($file, $columns);
 
             foreach ($summaries as $summary) {
@@ -466,6 +475,7 @@ class PayrollController extends Controller
                     if ($paid !== null) {
                         $colTotals[$colIdx] += $paid;
                     }
+                    $colIdx++;
                 }
 
                 $baseRow = [
@@ -505,18 +515,11 @@ class PayrollController extends Controller
             
             $totalRow = array_fill(0, count($columns), '');
             $totalRow[3] = 'Total:';
-            $tIdx = 4;
-            foreach ($uniqueComponents as $uc) {
-                $totalRow[$tIdx] = $colTotals[$tIdx]; $tIdx++;
-            }
-            $numCols = count($columns) - 4 - count($uniqueComponents);
-            for ($i = 0; $i < $numCols; $i++) {
-                $totalRow[$tIdx] = $colTotals[$tIdx] ?? 0;
-                $tIdx++;
+            for ($i = 4; $i < count($columns); $i++) {
+                $totalRow[$i] = $colTotals[$i] ?? 0;
             }
             fputcsv($file, $totalRow);
 
-            
             fclose($file);
         };
 
