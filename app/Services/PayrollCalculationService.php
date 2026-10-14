@@ -440,8 +440,11 @@ class PayrollCalculationService
             $rule = $this->statutoryRules['PF'];
             
             $calcOn = strtolower(trim($rule->calculate_on ?? ''));
+            $normCalcOn = str_replace([' ', '+'], '_', $calcOn);
             if ($calcOn === 'basic' || $calcOn === 'basic + da' || $calcOn === 'basic_da' || $calcOn === 'basic_+_da') {
                 $baseForPF = $context['basic'] ?? $context['basic_+_da'] ?? $context['basic_da'] ?? 0;
+            } elseif (!empty($normCalcOn) && isset($context[$normCalcOn])) {
+                $baseForPF = $context[$normCalcOn];
             } else {
                 $baseForPF = $totalEarnings;
             }
@@ -456,10 +459,20 @@ class PayrollCalculationService
         if ($isEsiApplicable && $this->settings->esi_enabled && isset($this->statutoryRules['ESI'])) {
             $rule = $this->statutoryRules['ESI'];
             
+            $calcOn = strtolower(trim($rule->calculate_on ?? ''));
+            $normCalcOn = str_replace([' ', '+'], '_', $calcOn);
+            if ($calcOn === 'basic' || $calcOn === 'basic + da' || $calcOn === 'basic_da' || $calcOn === 'basic_+_da') {
+                $baseForESI = $context['basic'] ?? $context['basic_+_da'] ?? $context['basic_da'] ?? 0;
+            } elseif (!empty($normCalcOn) && isset($context[$normCalcOn])) {
+                $baseForESI = $context[$normCalcOn];
+            } else {
+                $baseForESI = $totalEarnings;
+            }
+
             $hasLimit = $rule->salary_limit > 0;
 
             if (!$hasLimit || $totalEarnings <= $rule->salary_limit) {
-                $deductions['ESI'] = round(($totalEarnings * $rule->employee_rate) / 100);
+                $deductions['ESI'] = round(($baseForESI * $rule->employee_rate) / 100);
             }
         }
 
