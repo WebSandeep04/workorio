@@ -29,6 +29,7 @@
                 @foreach($uniqueComponents as $comp)
                 <th class="text-end">{{ $comp }}</th>
                 @endforeach
+                <th class="text-end nowrap">Gross Salary</th>
                 <th>Working Days</th>
                 <th>Total Present</th>
                 <th>Full Day</th>
@@ -58,6 +59,7 @@
             @php 
                 $grandTotalPaidSalary = 0; 
                 $colTotals = [
+                    'gross_salary' => 0,
                     'working_days' => 0, 'total_present' => 0, 'full_day' => 0, 'half_day' => 0,
                     'leave' => 0, 'unpaid_leave' => 0, 'absent' => 0, 'weekly_offs' => 0, 'holidays' => 0,
                     'deduction_days' => 0, 'lop_deduction' => 0, 'advance_deduction' => 0, 'loan_deduction' => 0,
@@ -87,6 +89,11 @@
                         $grandTotalPaidSalary += (float)((isset($withPenalty) && $withPenalty) ? $paid : ($paid + $penaltyAmount));
                     }
                     
+                    $empGross = isset($grossSalaries[$summary->employee_id]) 
+                        ? (float) $grossSalaries[$summary->employee_id] 
+                        : (count($comps) > 0 ? array_sum($comps) : 0);
+                    $colTotals['gross_salary'] += $empGross;
+
                     $colTotals['working_days'] += $summary->total_working_days ?? 0;
                     $colTotals['total_present'] += $summary->total_present_combined ?? 0;
                     $colTotals['full_day'] += $summary->total_present ?? 0;
@@ -126,6 +133,7 @@
                         @endphp
                         <td class="text-end">{{ $cVal }}</td>
                     @endforeach
+                    <td class="text-end fw-bold">{{ round($empGross) }}</td>
                     
                     <td>{{ $summary->total_working_days ?? 0 }}</td>
                     <td>{{ $summary->total_present_combined ?? 0 }}</td>
@@ -158,6 +166,7 @@
                     @foreach($uniqueComponents as $comp)
                         <td class="text-end">{{ $compTotals[$comp] }}</td>
                     @endforeach
+                    <td class="text-end nowrap">{{ round($colTotals['gross_salary']) }}</td>
                     <td>{{ $colTotals['working_days'] }}</td>
                     <td>{{ $colTotals['total_present'] }}</td>
                     <td>{{ $colTotals['full_day'] }}</td>
@@ -186,7 +195,7 @@
             @endif
             @if($summaries->isEmpty())
                 <tr>
-                    <td colspan="{{ ((isset($withPenalty) && $withPenalty) ? 23 : 18) + count($uniqueComponents) }}">No data available for this month.</td>
+                    <td colspan="{{ ((isset($withPenalty) && $withPenalty) ? 24 : 19) + count($uniqueComponents) }}">No data available for this month.</td>
                 </tr>
             @endif
         </tbody>

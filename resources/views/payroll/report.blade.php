@@ -192,6 +192,7 @@ $(document).ready(function() {
                     cols.forEach(c => {
                         headHtml += `<th class="text-end" style="min-width: 100px;">${c}</th>`;
                     });
+                    headHtml += `<th class="text-end fw-bold" style="min-width: 110px;">Gross Salary</th>`;
                     
                     headHtml += `
                         <th class="text-center" style="min-width: 100px;">Working Days</th>
@@ -237,6 +238,7 @@ $(document).ready(function() {
                             let val = row.components[c] !== undefined ? row.components[c] : 0;
                             tr += `<td class="text-end text-muted">₹${val}</td>`;
                         });
+                        tr += `<td class="text-end fw-bold text-dark">₹${row.gross_salary}</td>`;
                             
                         tr += `<td class="text-center">${row.total_working_days}</td>
                             <td class="text-center">${row.total_present_combined}</td>

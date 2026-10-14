@@ -204,6 +204,7 @@ class PayrollController extends Controller
         $payroll = \App\Models\Payroll::with(['details.components.salaryComponent'])->where('month', $month)->where('year', $year)->first();
         
         $paidSalaries = [];
+        $grossSalaries = [];
         $employeeComponents = [];
         $employeeDeductions = [];
         $uniqueComponents = collect();
@@ -219,6 +220,7 @@ class PayrollController extends Controller
 
         if ($payroll) {
             foreach ($payroll->details as $detail) {
+                $grossSalaries[$detail->employee_id] = $detail->gross_salary;
                 $paidSalaries[$detail->employee_id] = $detail->net_salary;
                 $employeeDeductions[$detail->employee_id] = $detail->total_deductions ?? 0;
                 $employeeAdvanceDeductions[$detail->employee_id] = $detail->advance_deduction_amount ?? 0;
@@ -246,7 +248,7 @@ class PayrollController extends Controller
         $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
 
         // Attach paid salary to each summary
-        $data = $summaries->map(function ($summary) use ($paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyAmounts, $employeePenaltyDays, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $uniqueComponents) {
+        $data = $summaries->map(function ($summary) use ($paidSalaries, $grossSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyAmounts, $employeePenaltyDays, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $uniqueComponents) {
             $paid = $paidSalaries[$summary->employee_id] ?? null;
             $comps = $employeeComponents[$summary->employee_id] ?? [];
             $deductionAmount = $employeeDeductions[$summary->employee_id] ?? 0;
@@ -264,6 +266,10 @@ class PayrollController extends Controller
             foreach ($uniqueComponents as $uc) {
                 $normalizedComps[$uc] = isset($comps[$uc]) ? round($comps[$uc]) : 0;
             }
+
+            $empGross = isset($grossSalaries[$summary->employee_id]) 
+                ? (float) $grossSalaries[$summary->employee_id] 
+                : (count($normalizedComps) > 0 ? array_sum($normalizedComps) : 0);
             
             // Calculate deduction days and payable days
             $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
@@ -275,6 +281,7 @@ class PayrollController extends Controller
                 'branch_name' => $summary->employee && $summary->employee->branch ? $summary->employee->branch->name : '-',
                 'department_name' => $summary->employee && $summary->employee->departmentRelation ? $summary->employee->departmentRelation->name : '-',
                 'components' => $normalizedComps,
+                'gross_salary' => number_format($empGross, 2, '.', ''),
                 
                 'total_working_days' => $summary->total_working_days ?? 0,
                 'total_present_combined' => $summary->total_present_combined ?? 0, // Total Present
@@ -329,6 +336,7 @@ class PayrollController extends Controller
         $payroll = \App\Models\Payroll::with(['details.components.salaryComponent'])->where('month', $month)->where('year', $year)->first();
         
         $paidSalaries = [];
+        $grossSalaries = [];
         $employeeComponents = [];
         $employeeDeductions = [];
         $employeeAdvanceDeductions = [];
@@ -342,6 +350,7 @@ class PayrollController extends Controller
 
         if ($payroll) {
             foreach ($payroll->details as $detail) {
+                $grossSalaries[$detail->employee_id] = $detail->gross_salary;
                 $paidSalaries[$detail->employee_id] = $detail->net_salary;
                 $employeeDeductions[$detail->employee_id] = $detail->total_deductions ?? 0;
                 $employeeAdvanceDeductions[$detail->employee_id] = $detail->advance_deduction_amount ?? 0;
@@ -378,7 +387,7 @@ class PayrollController extends Controller
             "Expires"             => "0"
         );
 
-        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyDays, $employeePenaltyAmounts, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $withPenalty) {
+        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $grossSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyDays, $employeePenaltyAmounts, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $withPenalty) {
             if (ob_get_level() > 0) {
                 ob_end_clean();
             }
@@ -402,6 +411,7 @@ class PayrollController extends Controller
             $columns = array_merge(
                 ['Employee Code', 'Employee Name', 'Branch', 'Department'],
                 $uniqueComponents,
+                ['Gross Salary'],
                 $baseColumns
             );
 
@@ -423,6 +433,10 @@ class PayrollController extends Controller
                 $exemptedLates = $employeeExemptedLates[$summary->employee_id] ?? 0;
                 $actualLates = $employeeActualLates[$summary->employee_id] ?? 0;
                 
+                $empGross = isset($grossSalaries[$summary->employee_id]) 
+                    ? (float) $grossSalaries[$summary->employee_id] 
+                    : (count($comps) > 0 ? array_sum($comps) : 0);
+
                 $row = [
                     $summary->employee ? $summary->employee->employee_code : '-',
                     $summary->employee ? $summary->employee->name : 'Unknown',
@@ -433,6 +447,7 @@ class PayrollController extends Controller
                 foreach ($uniqueComponents as $uc) {
                     $row[] = isset($comps[$uc]) ? round($comps[$uc]) : 0;
                 }
+                $row[] = round($empGross);
 
                 $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
                 
@@ -446,6 +461,7 @@ class PayrollController extends Controller
                     $colTotals[$colIdx] += isset($comps[$uc]) ? round($comps[$uc]) : 0;
                     $colIdx++;
                 }
+                $colTotals[$colIdx++] += round($empGross);
                 $colTotals[$colIdx++] += $summary->total_working_days ?? 0;
                 $colTotals[$colIdx++] += $summary->total_present ?? 0;
                 $colTotals[$colIdx++] += $summary->total_halfday ?? 0;
@@ -544,6 +560,7 @@ class PayrollController extends Controller
         $payroll = \App\Models\Payroll::with(['details.components.salaryComponent'])->where('month', $month)->where('year', $year)->first();
         
         $paidSalaries = [];
+        $grossSalaries = [];
         $employeeComponents = [];
         $employeeDeductions = [];
         $employeeAdvanceDeductions = [];
@@ -557,6 +574,7 @@ class PayrollController extends Controller
 
         if ($payroll) {
             foreach ($payroll->details as $detail) {
+                $grossSalaries[$detail->employee_id] = $detail->gross_salary;
                 $paidSalaries[$detail->employee_id] = $detail->net_salary;
                 $employeeDeductions[$detail->employee_id] = $detail->total_deductions ?? 0;
                 $employeeAdvanceDeductions[$detail->employee_id] = $detail->advance_deduction_amount ?? 0;
@@ -582,7 +600,7 @@ class PayrollController extends Controller
         $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
         $fileName = 'Payroll_Report_' . date('F', mktime(0, 0, 0, $month, 1)) . '_' . $year . '.pdf';
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePenaltyDays', 'employeePenaltyAmounts', 'employeeTotalLates', 'employeeExemptedLates', 'employeeActualLates', 'month', 'year', 'withPenalty'))
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'grossSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePenaltyDays', 'employeePenaltyAmounts', 'employeeTotalLates', 'employeeExemptedLates', 'employeeActualLates', 'month', 'year', 'withPenalty'))
                 ->setPaper('a3', 'landscape');
                 
         return $pdf->download($fileName);
