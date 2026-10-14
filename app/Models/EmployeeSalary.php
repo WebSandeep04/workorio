@@ -9,7 +9,12 @@ class EmployeeSalary extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $casts = ['effective_from' => 'date'];
+    protected $casts = [
+        'effective_from' => 'date',
+        'component_breakdown' => 'array',
+        'is_pf_applicable' => 'boolean',
+        'is_esi_applicable' => 'boolean',
+    ];
     public function employee() { return $this->belongsTo(Employee::class); }
     public function structure() { return $this->belongsTo(SalaryStructure::class, 'salary_structure_id'); }
 }

@@ -94,13 +94,27 @@ class PayrollCalculationService
             'absent_days' => $summary->days_absent
         ];
 
+        $breakdown = $employeeSalary->component_breakdown;
+        if (is_string($breakdown)) {
+            $breakdown = json_decode($breakdown, true);
+        }
+        $breakdown = is_array($breakdown) ? $breakdown : [];
+
         // First Pass: Calculate all fixed and percentage earnings to build full context
         foreach ($components as $component) {
             if ($component->type === 'earning') {
-                $amount = $this->calculateComponentValue($component, $context, $grossSalary);
+                $compSlug = strtolower(str_replace(' ', '_', $component->name));
+                if (isset($breakdown[$component->id]) && is_numeric($breakdown[$component->id])) {
+                    $amount = round((float) $breakdown[$component->id]);
+                } elseif (isset($breakdown[$compSlug]) && is_numeric($breakdown[$compSlug])) {
+                    $amount = round((float) $breakdown[$compSlug]);
+                } else {
+                    $amount = $this->calculateComponentValue($component, $context, $grossSalary);
+                }
+
                 $calculatedComponents[$component->id] = $amount;
                 // Add to context by name for other formulas (e.g., basic)
-                $context[strtolower(str_replace(' ', '_', $component->name))] = $amount;
+                $context[$compSlug] = $amount;
                 $totalEarnings += $amount;
             }
         }
@@ -108,7 +122,15 @@ class PayrollCalculationService
         // Second Pass: Deductions and Employer Contributions (which might depend on earnings like 'basic')
         foreach ($components as $component) {
             if (in_array($component->type, ['deduction', 'employer_contribution'])) {
-                $amount = $this->calculateComponentValue($component, $context, $grossSalary);
+                $compSlug = strtolower(str_replace(' ', '_', $component->name));
+                if (isset($breakdown[$component->id]) && is_numeric($breakdown[$component->id])) {
+                    $amount = round((float) $breakdown[$component->id]);
+                } elseif (isset($breakdown[$compSlug]) && is_numeric($breakdown[$compSlug])) {
+                    $amount = round((float) $breakdown[$compSlug]);
+                } else {
+                    $amount = $this->calculateComponentValue($component, $context, $grossSalary);
+                }
+
                 $calculatedComponents[$component->id] = $amount;
                 
                 if ($component->type === 'deduction') {
@@ -118,7 +140,7 @@ class PayrollCalculationService
         }
 
         // Apply Statutory Deductions
-        $statutoryDeductions = $this->calculateStatutoryDeductions($context, $totalEarnings);
+        $statutoryDeductions = $this->calculateStatutoryDeductions($context, $totalEarnings, $employeeSalary);
         foreach ($statutoryDeductions as $type => $amount) {
             $totalDeductions += $amount;
         }
@@ -405,16 +427,25 @@ class PayrollCalculationService
     /**
      * Calculate Statutory Deductions based on settings and rules
      */
-    protected function calculateStatutoryDeductions($context, $totalEarnings)
+    protected function calculateStatutoryDeductions($context, $totalEarnings, $employeeSalary = null)
     {
         $deductions = [];
         $employeeId = $context['employee_id'] ?? null;
 
+        $isPfApplicable = $employeeSalary ? (bool) ($employeeSalary->is_pf_applicable ?? true) : true;
+        $isEsiApplicable = $employeeSalary ? (bool) ($employeeSalary->is_esi_applicable ?? true) : true;
+
         // PF
-        if ($this->settings->pf_enabled && isset($this->statutoryRules['PF'])) {
+        if ($isPfApplicable && $this->settings->pf_enabled && isset($this->statutoryRules['PF'])) {
             $rule = $this->statutoryRules['PF'];
             
-            $baseForPF = $rule->calculate_on === 'basic' ? ($context['basic'] ?? 0) : $totalEarnings;
+            $calcOn = strtolower(trim($rule->calculate_on ?? ''));
+            if ($calcOn === 'basic' || $calcOn === 'basic + da' || $calcOn === 'basic_da' || $calcOn === 'basic_+_da') {
+                $baseForPF = $context['basic'] ?? $context['basic_+_da'] ?? $context['basic_da'] ?? 0;
+            } else {
+                $baseForPF = $totalEarnings;
+            }
+
             if ($rule->salary_limit > 0 && $baseForPF > $rule->salary_limit) {
                 $baseForPF = $rule->salary_limit;
             }
@@ -422,7 +453,7 @@ class PayrollCalculationService
         }
 
         // ESI
-        if ($this->settings->esi_enabled && isset($this->statutoryRules['ESI'])) {
+        if ($isEsiApplicable && $this->settings->esi_enabled && isset($this->statutoryRules['ESI'])) {
             $rule = $this->statutoryRules['ESI'];
             
             $hasLimit = $rule->salary_limit > 0;

@@ -833,6 +833,142 @@
     const shiftOptions = @json($shifts);
     const stateOptions = @json($states);
     const countryOptions = @json($countries);
+    const salaryStructureOptions = @json($salaryStructures);
+    let isUpdatingSalaryFields = false;
+
+    function renderSalaryComponentInputs(structureId, existingBreakdown = null) {
+        const $container = $('#salary_components_container');
+        const $inputsRow = $('#salary_components_inputs');
+        $inputsRow.empty();
+
+        if (!structureId) {
+            $container.hide();
+            return;
+        }
+
+        const structure = salaryStructureOptions.find(s => Number(s.id) === Number(structureId));
+        if (!structure || !structure.components || structure.components.length === 0) {
+            $container.hide();
+            return;
+        }
+
+        const currentGross = parseFloat($('#employee_gross_salary').val()) || 0;
+        let breakdownObj = existingBreakdown;
+        if (typeof breakdownObj === 'string') {
+            try { breakdownObj = JSON.parse(breakdownObj); } catch(e) { breakdownObj = null; }
+        }
+        const hasBreakdown = breakdownObj && typeof breakdownObj === 'object' && Object.keys(breakdownObj).length > 0;
+        let html = '';
+
+        structure.components.forEach(function (comp) {
+            const pivot = comp.pivot || {};
+            const compId = comp.id;
+            const compName = comp.name;
+            const calcType = comp.calculation_type;
+            const pivotVal = parseFloat(pivot.value) || 0;
+            const compType = comp.type; // earning, deduction, employer_contribution
+
+            let initialVal = '';
+            const compSlug = compName.toLowerCase().replace(/ /g, '_');
+            if (hasBreakdown && (breakdownObj[compId] !== undefined || breakdownObj[compSlug] !== undefined)) {
+                initialVal = breakdownObj[compId] !== undefined ? breakdownObj[compId] : breakdownObj[compSlug];
+            } else if (compType === 'earning') {
+                if (calcType === 'percentage' && currentGross > 0) {
+                    initialVal = Math.round((currentGross * pivotVal) / 100);
+                } else if (calcType === 'fixed' && pivotVal > 0) {
+                    initialVal = pivotVal;
+                }
+            }
+
+            const badgeText = calcType === 'percentage' ? `${pivotVal}%` : (calcType === 'fixed' ? 'Fixed' : calcType);
+            const badgeClass = compType === 'earning' ? 'badge bg-light text-primary border' : 'badge bg-light text-danger border';
+
+            html += `
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <label class="form-label d-flex justify-content-between align-items-center mb-1" style="font-size: 0.8rem;">
+                        <span class="text-truncate fw-medium">${escapeHtml(compName)}</span>
+                        <span class="${badgeClass}" style="font-size: 0.65rem;">${badgeText}</span>
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white text-muted">₹</span>
+                        <input type="number" step="0.01" min="0" 
+                            class="form-control form-control-sm comp-breakdown-input" 
+                            data-id="${compId}" 
+                            data-name="${escapeHtml(compName)}" 
+                            data-type="${compType}" 
+                            data-calc-type="${calcType}" 
+                            data-calc-val="${pivotVal}" 
+                            placeholder="0" 
+                            value="${initialVal !== '' ? initialVal : ''}">
+                    </div>
+                </div>
+            `;
+        });
+
+        $inputsRow.html(html);
+        $container.show();
+    }
+
+    function recalculateGrossFromComponents() {
+        if (isUpdatingSalaryFields) return;
+        isUpdatingSalaryFields = true;
+
+        let totalEarnings = 0;
+        let anyValEntered = false;
+
+        $('.comp-breakdown-input').each(function () {
+            const compType = $(this).data('type');
+            const val = parseFloat($(this).val());
+            if (!isNaN(val) && val > 0) {
+                anyValEntered = true;
+                if (compType === 'earning') {
+                    totalEarnings += val;
+                }
+            }
+        });
+
+        if (anyValEntered) {
+            $('#employee_gross_salary').val(totalEarnings);
+        }
+
+        isUpdatingSalaryFields = false;
+    }
+
+    function recalculateComponentsFromGross() {
+        if (isUpdatingSalaryFields) return;
+        isUpdatingSalaryFields = true;
+
+        const gross = parseFloat($('#employee_gross_salary').val()) || 0;
+
+        $('.comp-breakdown-input').each(function () {
+            const calcType = $(this).data('calc-type');
+            const calcVal = parseFloat($(this).data('calc-val')) || 0;
+            const compType = $(this).data('type');
+
+            if (compType === 'earning' && calcType === 'percentage') {
+                const computed = gross > 0 ? Math.round((gross * calcVal) / 100) : '';
+                $(this).val(computed);
+            }
+        });
+
+        isUpdatingSalaryFields = false;
+    }
+
+    function getComponentBreakdownValues() {
+        const breakdown = {};
+        let hasValues = false;
+
+        $('.comp-breakdown-input').each(function () {
+            const compId = $(this).data('id');
+            const val = parseFloat($(this).val());
+            if (!isNaN(val)) {
+                breakdown[compId] = val;
+                hasValues = true;
+            }
+        });
+
+        return hasValues ? breakdown : null;
+    }
 
     function escapeHtml(text = '') {
         return (text || '').toString()
@@ -996,7 +1132,10 @@
             working_type: $('#employee_working_type').val(),
             places: selectedPlaceIds,
             gross_salary: $('#employee_gross_salary').val(),
-            salary_structure_id: $('#employee_salary_structure').val()
+            salary_structure_id: $('#employee_salary_structure').val(),
+            component_breakdown: getComponentBreakdownValues(),
+            is_pf_applicable: $('#employee_is_pf_applicable').is(':checked') ? 1 : 0,
+            is_esi_applicable: $('#employee_is_esi_applicable').is(':checked') ? 1 : 0
         };
     }
 
@@ -1180,11 +1319,16 @@
             $('#employee_address').val(data.address_line || '');
             
             if (data.salaries && data.salaries.length > 0) {
-                $('#employee_gross_salary').val(data.salaries[0].gross_salary || '');
-                $('#employee_salary_structure').val(data.salaries[0].salary_structure_id || '');
+                const latestSal = data.salaries[0];
+                $('#employee_gross_salary').val(latestSal.gross_salary || '');
+                $('#employee_salary_structure').val(latestSal.salary_structure_id || '').trigger('change', [latestSal.component_breakdown]);
+                $('#employee_is_pf_applicable').prop('checked', latestSal.is_pf_applicable !== undefined && latestSal.is_pf_applicable !== null ? Boolean(Number(latestSal.is_pf_applicable)) : true);
+                $('#employee_is_esi_applicable').prop('checked', latestSal.is_esi_applicable !== undefined && latestSal.is_esi_applicable !== null ? Boolean(Number(latestSal.is_esi_applicable)) : true);
             } else {
                 $('#employee_gross_salary').val('');
-                $('#employee_salary_structure').val('');
+                $('#employee_salary_structure').val('').trigger('change');
+                $('#employee_is_pf_applicable').prop('checked', true);
+                $('#employee_is_esi_applicable').prop('checked', true);
             }
             $('#employee_blood_group').val(data.blood_group || '');
             $('#employee_marital_status').val(data.marital_status || '');
@@ -1274,7 +1418,9 @@
             $('#employee_role').val('');
             
             $('#employee_gross_salary').val('');
-            $('#employee_salary_structure').val('');
+            $('#employee_salary_structure').val('').trigger('change');
+            $('#employee_is_pf_applicable').prop('checked', true);
+            $('#employee_is_esi_applicable').prop('checked', true);
         }
         new bootstrap.Modal('#employeeModal').show();
     }
@@ -1449,6 +1595,8 @@
                 const value = payloadObject[key];
                  if (Array.isArray(value)) {
                     value.forEach(v => formData.append(`${key}[]`, v));
+                } else if (value !== null && typeof value === 'object') {
+                    formData.append(key, JSON.stringify(value));
                 } else if(value !== null && value !== undefined) {
                     formData.append(key, value);
                 }
@@ -1667,6 +1815,18 @@
 
     $('#employee_state_select').on('change', function () {
         loadCityOptions($(this).val(), null);
+    });
+
+    $('#employee_salary_structure').on('change', function (e, existingBreakdown) {
+        renderSalaryComponentInputs($(this).val(), existingBreakdown || null);
+    });
+
+    $('#employee_gross_salary').on('input', function () {
+        recalculateComponentsFromGross();
+    });
+
+    $(document).on('input', '.comp-breakdown-input', function () {
+        recalculateGrossFromComponents();
     });
 
     $(document).on('click', '.edit-employee', function () {
@@ -2224,6 +2384,37 @@
                         <div class="col-md-6">
                             <label class="form-label">Gross Salary</label>
                             <input type="number" step="0.01" min="0" id="employee_gross_salary" class="form-control form-control-sm" placeholder="e.g. 50000">
+                        </div>
+
+                        <div class="col-12 mt-2" id="salary_components_container" style="display: none;">
+                            <div class="card bg-light border-0 p-3 rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold text-primary small"><i class="bi bi-diagram-3 me-1"></i> Salary Component Breakdown</span>
+                                    <small class="text-muted">Enter individual amounts or let Gross Salary distribute automatically</small>
+                                </div>
+                                <div class="row g-2" id="salary_components_inputs">
+                                    <!-- Dynamic component inputs injected here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-2">
+                            <div class="p-2 border rounded bg-white d-flex align-items-center justify-content-between gap-3">
+                                <div>
+                                    <span class="fw-semibold text-secondary small d-block">Statutory Deductions (PF & ESI)</span>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Enable or disable statutory coverage for this employee</small>
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" id="employee_is_pf_applicable" checked>
+                                        <label class="form-check-label small fw-medium" for="employee_is_pf_applicable">Deduct PF</label>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" id="employee_is_esi_applicable" checked>
+                                        <label class="form-check-label small fw-medium" for="employee_is_esi_applicable">Deduct ESI</label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-12">

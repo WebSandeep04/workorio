@@ -30,7 +30,7 @@ class EmployeeController extends Controller
         $shifts = Shift::orderBy('name')->get();
         $states = State::orderBy('state_name')->get();
         $countries = Country::orderBy('name')->get();
-        $salaryStructures = \App\Models\SalaryStructure::orderBy('name')->get();
+        $salaryStructures = \App\Models\SalaryStructure::with('components')->orderBy('name')->get();
         return view('employees.index', compact('branches', 'departments', 'designations', 'employmentTypes', 'shifts', 'states', 'countries', 'salaryStructures'));
     }
 
@@ -104,10 +104,17 @@ class EmployeeController extends Controller
         }
         
         if ($request->filled('gross_salary') || $request->filled('salary_structure_id')) {
+            $breakdown = $request->input('component_breakdown');
+            if (is_string($breakdown)) {
+                $breakdown = json_decode($breakdown, true);
+            }
             \App\Models\EmployeeSalary::create([
                 'employee_id' => $employee->id,
                 'gross_salary' => $request->input('gross_salary') ?: 0,
                 'salary_structure_id' => $request->input('salary_structure_id'),
+                'component_breakdown' => !empty($breakdown) ? $breakdown : null,
+                'is_pf_applicable' => $request->has('is_pf_applicable') ? (bool) $request->input('is_pf_applicable') : true,
+                'is_esi_applicable' => $request->has('is_esi_applicable') ? (bool) $request->input('is_esi_applicable') : true,
                 'effective_from' => $employee->date_of_joining ?: \Carbon\Carbon::today(),
             ]);
         }
@@ -177,13 +184,36 @@ class EmployeeController extends Controller
                 
             $newGross = $request->input('gross_salary') ?: 0;
             $newStructure = $request->input('salary_structure_id');
+            $newBreakdown = $request->input('component_breakdown');
+            if (is_string($newBreakdown)) {
+                $newBreakdown = json_decode($newBreakdown, true);
+            }
+            $newBreakdown = !empty($newBreakdown) ? $newBreakdown : null;
+
+            $newPf = $request->has('is_pf_applicable') ? (bool) $request->input('is_pf_applicable') : true;
+            $newEsi = $request->has('is_esi_applicable') ? (bool) $request->input('is_esi_applicable') : true;
+
+            $existingBreakdown = $latestSalary ? $latestSalary->component_breakdown : null;
+            if (is_string($existingBreakdown)) {
+                $existingBreakdown = json_decode($existingBreakdown, true);
+            }
+            $existingBreakdown = !empty($existingBreakdown) ? $existingBreakdown : null;
+
+            $existingPf = $latestSalary ? (bool) ($latestSalary->is_pf_applicable ?? true) : true;
+            $existingEsi = $latestSalary ? (bool) ($latestSalary->is_esi_applicable ?? true) : true;
+
+            $breakdownChanged = json_encode($existingBreakdown) !== json_encode($newBreakdown);
+            $statutoryChanged = ($existingPf !== $newPf) || ($existingEsi !== $newEsi);
             
-            // Only create a new record if the salary or structure actually changed
-            if (!$latestSalary || $latestSalary->gross_salary != $newGross || $latestSalary->salary_structure_id != $newStructure) {
+            // Only create a new record if the salary, structure, component breakdown, or statutory applicability changed
+            if (!$latestSalary || $latestSalary->gross_salary != $newGross || $latestSalary->salary_structure_id != $newStructure || $breakdownChanged || $statutoryChanged) {
                 \App\Models\EmployeeSalary::create([
                     'employee_id' => $employee->id,
                     'gross_salary' => $newGross,
                     'salary_structure_id' => $newStructure,
+                    'component_breakdown' => $newBreakdown,
+                    'is_pf_applicable' => $newPf,
+                    'is_esi_applicable' => $newEsi,
                     'effective_from' => \Carbon\Carbon::today(),
                 ]);
             }
