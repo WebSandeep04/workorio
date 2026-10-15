@@ -210,6 +210,8 @@ $(document).ready(function() {
                         <th class="text-end" style="min-width: 150px;">Days Deduction</th>
                         <th class="text-end" style="min-width: 150px;">Advance Deduction</th>
                         <th class="text-end" style="min-width: 150px;">Loan Deduction</th>
+                        <th class="text-end" style="min-width: 130px;">PF Deduction</th>
+                        <th class="text-end" style="min-width: 130px;">ESI Deduction</th>
                         <th class="text-end" style="min-width: 150px;">Total Deduction</th>
                         <th class="text-end" style="min-width: 120px;">Salary</th>
                         <th class="text-center" style="min-width: 120px;">Total Lates</th>
@@ -255,6 +257,8 @@ $(document).ready(function() {
                             <td class="text-end text-danger">₹${row.lop_deduction}</td>
                             <td class="text-end text-danger">₹${row.advance_deduction}</td>
                             <td class="text-end text-danger">₹${row.loan_deduction}</td>
+                            <td class="text-end text-danger">₹${row.pf_deduction}</td>
+                            <td class="text-end text-danger">₹${row.esi_deduction}</td>
                             <td class="text-end text-danger">₹${row.deduction_amount}</td>
                             <td class="text-end ${salaryBeforeClass}">${salaryBeforeText}</td>
                             <td class="text-center text-danger">${row.total_late_occurrences}</td>

@@ -43,6 +43,8 @@
                 <th class="text-end">Days deduction amount</th>
                 <th class="text-end">Advance Deduction</th>
                 <th class="text-end">Loan Deduction</th>
+                <th class="text-end">PF Deduction</th>
+                <th class="text-end">ESI Deduction</th>
                 <th class="text-end">Total Deduction</th>
                 <th class="text-end">Salary</th>
                 @if(isset($withPenalty) && $withPenalty)
@@ -63,6 +65,7 @@
                     'working_days' => 0, 'total_present' => 0, 'full_day' => 0, 'half_day' => 0,
                     'leave' => 0, 'unpaid_leave' => 0, 'absent' => 0, 'weekly_offs' => 0, 'holidays' => 0,
                     'deduction_days' => 0, 'lop_deduction' => 0, 'advance_deduction' => 0, 'loan_deduction' => 0,
+                    'pf_deduction' => 0, 'esi_deduction' => 0,
                     'total_deduction' => 0, 'salary' => 0, 'total_lates' => 0, 'exempted_lates' => 0, 'eligible_lates' => 0,
                     'penalty_days' => 0, 'penalty_amount' => 0, 'final_salary' => 0
                 ];
@@ -79,6 +82,8 @@
                     $advanceDeduction = $employeeAdvanceDeductions[$summary->employee_id] ?? 0;
                     $loanDeduction = $employeeLoanDeductions[$summary->employee_id] ?? 0;
                     $lopDeduction = $employeeLopDeductions[$summary->employee_id] ?? 0;
+                    $pfDeduction = $employeePfDeductions[$summary->employee_id] ?? 0;
+                    $esiDeduction = $employeeEsiDeductions[$summary->employee_id] ?? 0;
                     $penaltyDays = $employeePenaltyDays[$summary->employee_id] ?? 0;
                     $penaltyAmount = $employeePenaltyAmounts[$summary->employee_id] ?? 0;
                     $totalLates = $employeeTotalLates[$summary->employee_id] ?? 0;
@@ -107,6 +112,8 @@
                     $colTotals['lop_deduction'] += $lopDeduction;
                     $colTotals['advance_deduction'] += $advanceDeduction;
                     $colTotals['loan_deduction'] += $loanDeduction;
+                    $colTotals['pf_deduction'] += $pfDeduction;
+                    $colTotals['esi_deduction'] += $esiDeduction;
                     $colTotals['total_deduction'] += ($deductionAmount - $penaltyAmount);
                     if ($paid !== null) {
                         $colTotals['salary'] += ($paid + $penaltyAmount);
@@ -148,6 +155,8 @@
                     <td class="text-end">{{ $lopDeduction }}</td>
                     <td class="text-end">{{ $advanceDeduction }}</td>
                     <td class="text-end">{{ $loanDeduction }}</td>
+                    <td class="text-end">{{ $pfDeduction }}</td>
+                    <td class="text-end">{{ $esiDeduction }}</td>
                     <td class="text-end">{{ $deductionAmount - $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated' }}</td>
                     @if(isset($withPenalty) && $withPenalty)
@@ -180,6 +189,8 @@
                     <td class="text-end">{{ $colTotals['lop_deduction'] }}</td>
                     <td class="text-end">{{ $colTotals['advance_deduction'] }}</td>
                     <td class="text-end">{{ $colTotals['loan_deduction'] }}</td>
+                    <td class="text-end">{{ $colTotals['pf_deduction'] }}</td>
+                    <td class="text-end">{{ $colTotals['esi_deduction'] }}</td>
                     <td class="text-end">{{ $colTotals['total_deduction'] }}</td>
                     <td class="text-end nowrap">{{ number_format($colTotals['salary'], 0, '', '') }}</td>
                     @if(isset($withPenalty) && $withPenalty)
@@ -195,7 +206,7 @@
             @endif
             @if($summaries->isEmpty())
                 <tr>
-                    <td colspan="{{ ((isset($withPenalty) && $withPenalty) ? 24 : 19) + count($uniqueComponents) }}">No data available for this month.</td>
+                    <td colspan="{{ ((isset($withPenalty) && $withPenalty) ? 26 : 21) + count($uniqueComponents) }}">No data available for this month.</td>
                 </tr>
             @endif
         </tbody>
