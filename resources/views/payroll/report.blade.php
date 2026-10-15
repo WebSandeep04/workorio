@@ -220,6 +220,9 @@ $(document).ready(function() {
                         <th class="text-center" style="min-width: 100px;">Penalty Days</th>
                         <th class="text-end" style="min-width: 150px;">Penalty Amount</th>
                         <th class="text-end" style="min-width: 120px;">Final Salary</th>
+                        <th class="text-end" style="min-width: 120px;">Employer PF</th>
+                        <th class="text-end" style="min-width: 120px;">Employer ESI</th>
+                        <th class="text-end" style="min-width: 160px;">Total Employer Cont.</th>
                     </tr>`;
                     thead.append(headHtml);
                     
@@ -267,6 +270,9 @@ $(document).ready(function() {
                             <td class="text-center text-danger">${row.penalty_days}</td>
                             <td class="text-end text-danger">₹${row.penalty_amount}</td>
                             <td class="text-end ${salaryClass}">${salaryText}</td>
+                            <td class="text-end text-primary">₹${row.employer_pf}</td>
+                            <td class="text-end text-primary">₹${row.employer_esi}</td>
+                            <td class="text-end fw-bold text-primary">₹${row.total_employer_contribution}</td>
                         </tr>`;
                         tbody.append(tr);
                     });

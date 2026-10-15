@@ -90,14 +90,29 @@
             </tr>
             @php $totalDeductions += $detail->lop_deduction_amount; @endphp
             @endif
-            @if($detail->statutory_deduction_amount > 0)
+            @if(isset($detail->pf_deduction_amount) && ($detail->pf_deduction_amount > 0 || $detail->esi_deduction_amount > 0))
+                @if($detail->pf_deduction_amount > 0)
+                <tr>
+                    <td>Provident Fund (PF)</td>
+                    <td class="amount">{{ number_format($detail->pf_deduction_amount, 2) }}</td>
+                </tr>
+                @php $totalDeductions += $detail->pf_deduction_amount; @endphp
+                @endif
+                @if($detail->esi_deduction_amount > 0)
+                <tr>
+                    <td>ESI Deduction</td>
+                    <td class="amount">{{ number_format($detail->esi_deduction_amount, 2) }}</td>
+                </tr>
+                @php $totalDeductions += $detail->esi_deduction_amount; @endphp
+                @endif
+            @elseif($detail->statutory_deduction_amount > 0)
             <tr>
                 <td>Statutory Deductions</td>
                 <td class="amount">{{ number_format($detail->statutory_deduction_amount, 2) }}</td>
             </tr>
             @php $totalDeductions += $detail->statutory_deduction_amount; @endphp
             @endif
-            @if($deductions->isEmpty() && $detail->lop_deduction_amount <= 0 && $detail->statutory_deduction_amount <= 0)
+            @if($deductions->isEmpty() && $detail->lop_deduction_amount <= 0 && $detail->statutory_deduction_amount <= 0 && (empty($detail->pf_deduction_amount) || $detail->pf_deduction_amount <= 0) && (empty($detail->esi_deduction_amount) || $detail->esi_deduction_amount <= 0))
             <tr>
                 <td>No Deductions</td>
                 <td class="amount">0.00</td>

@@ -223,6 +223,9 @@ class PayrollController extends Controller
         $employeeLopDeductions = [];
         $employeePfDeductions = [];
         $employeeEsiDeductions = [];
+        $employeeEmployerPfs = [];
+        $employeeEmployerEsis = [];
+        $employeeEmployerTotals = [];
         $employeePenaltyAmounts = [];
         $employeePenaltyDays = [];
         $employeeTotalLates = [];
@@ -241,6 +244,9 @@ class PayrollController extends Controller
                 $statutory = $this->resolveStatutoryBreakdown($detail, $employeeSalaries[$detail->employee_id] ?? null, $settings, $statutoryRules);
                 $employeePfDeductions[$detail->employee_id] = $statutory['pf'];
                 $employeeEsiDeductions[$detail->employee_id] = $statutory['esi'];
+                $employeeEmployerPfs[$detail->employee_id] = $statutory['employer_pf'];
+                $employeeEmployerEsis[$detail->employee_id] = $statutory['employer_esi'];
+                $employeeEmployerTotals[$detail->employee_id] = $statutory['total_employer_contribution'];
                 
                 $penaltyAmount = $detail->penalty_deduction_amount ?? 0;
                 $employeePenaltyAmounts[$detail->employee_id] = $penaltyAmount;
@@ -263,7 +269,7 @@ class PayrollController extends Controller
         $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
 
         // Attach paid salary to each summary
-        $data = $summaries->map(function ($summary) use ($paidSalaries, $grossSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePfDeductions, $employeeEsiDeductions, $employeePenaltyAmounts, $employeePenaltyDays, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $uniqueComponents) {
+        $data = $summaries->map(function ($summary) use ($paidSalaries, $grossSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePfDeductions, $employeeEsiDeductions, $employeeEmployerPfs, $employeeEmployerEsis, $employeeEmployerTotals, $employeePenaltyAmounts, $employeePenaltyDays, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $uniqueComponents) {
             $paid = $paidSalaries[$summary->employee_id] ?? null;
             $comps = $employeeComponents[$summary->employee_id] ?? [];
             $deductionAmount = $employeeDeductions[$summary->employee_id] ?? 0;
@@ -272,6 +278,9 @@ class PayrollController extends Controller
             $lopDeduction = $employeeLopDeductions[$summary->employee_id] ?? 0;
             $pfDeduction = $employeePfDeductions[$summary->employee_id] ?? 0;
             $esiDeduction = $employeeEsiDeductions[$summary->employee_id] ?? 0;
+            $employerPf = $employeeEmployerPfs[$summary->employee_id] ?? 0;
+            $employerEsi = $employeeEmployerEsis[$summary->employee_id] ?? 0;
+            $totalEmployer = $employeeEmployerTotals[$summary->employee_id] ?? 0;
             $penaltyAmount = $employeePenaltyAmounts[$summary->employee_id] ?? 0;
             $penaltyDays = $employeePenaltyDays[$summary->employee_id] ?? 0;
             $totalLates = $employeeTotalLates[$summary->employee_id] ?? 0;
@@ -327,7 +336,10 @@ class PayrollController extends Controller
                 'payable_days' => $payableDays, // 2nd Working Days
                 
                 'is_locked' => $summary->is_locked,
-                'paid_salary' => $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated'
+                'paid_salary' => $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated',
+                'employer_pf' => number_format($employerPf, 2, '.', ''),
+                'employer_esi' => number_format($employerEsi, 2, '.', ''),
+                'total_employer_contribution' => number_format($totalEmployer, 2, '.', '')
             ];
         });
 
@@ -372,6 +384,9 @@ class PayrollController extends Controller
         $employeeLopDeductions = [];
         $employeePfDeductions = [];
         $employeeEsiDeductions = [];
+        $employeeEmployerPfs = [];
+        $employeeEmployerEsis = [];
+        $employeeEmployerTotals = [];
         $employeePenaltyDays = [];
         $employeePenaltyAmounts = [];
         $employeeTotalLates = [];
@@ -391,6 +406,9 @@ class PayrollController extends Controller
                 $statutory = $this->resolveStatutoryBreakdown($detail, $employeeSalaries[$detail->employee_id] ?? null, $settings, $statutoryRules);
                 $employeePfDeductions[$detail->employee_id] = $statutory['pf'];
                 $employeeEsiDeductions[$detail->employee_id] = $statutory['esi'];
+                $employeeEmployerPfs[$detail->employee_id] = $statutory['employer_pf'];
+                $employeeEmployerEsis[$detail->employee_id] = $statutory['employer_esi'];
+                $employeeEmployerTotals[$detail->employee_id] = $statutory['total_employer_contribution'];
                 
                 $penaltyAmount = $detail->penalty_deduction_amount ?? 0;
                 $employeePenaltyAmounts[$detail->employee_id] = $penaltyAmount;
@@ -422,7 +440,7 @@ class PayrollController extends Controller
             "Expires"             => "0"
         );
 
-        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $grossSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePfDeductions, $employeeEsiDeductions, $employeePenaltyDays, $employeePenaltyAmounts, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $withPenalty) {
+        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $grossSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePfDeductions, $employeeEsiDeductions, $employeeEmployerPfs, $employeeEmployerEsis, $employeeEmployerTotals, $employeePenaltyDays, $employeePenaltyAmounts, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $withPenalty) {
             if (ob_get_level() > 0) {
                 ob_end_clean();
             }
@@ -442,6 +460,7 @@ class PayrollController extends Controller
             if ($withPenalty) {
                 $baseColumns = array_merge($baseColumns, ['Total Lates', 'Exempted Late Occurrences', 'Penalty-Eligible Lates', 'Penalty Days', 'Penalty Amount', 'Final Salary']);
             }
+            $baseColumns = array_merge($baseColumns, ['Employer PF', 'Employer ESI', 'Total Employer Contribution']);
 
             $columns = array_merge(
                 ['Employee Code', 'Employee Name', 'Branch', 'Department'],
@@ -464,6 +483,9 @@ class PayrollController extends Controller
                 $lopDeduction = $employeeLopDeductions[$summary->employee_id] ?? 0;
                 $pfDeduction = $employeePfDeductions[$summary->employee_id] ?? 0;
                 $esiDeduction = $employeeEsiDeductions[$summary->employee_id] ?? 0;
+                $employerPf = $employeeEmployerPfs[$summary->employee_id] ?? 0;
+                $employerEsi = $employeeEmployerEsis[$summary->employee_id] ?? 0;
+                $totalEmployer = $employeeEmployerTotals[$summary->employee_id] ?? 0;
                 $penaltyDays = $employeePenaltyDays[$summary->employee_id] ?? 0;
                 $penaltyAmount = $employeePenaltyAmounts[$summary->employee_id] ?? 0;
                 $totalLates = $employeeTotalLates[$summary->employee_id] ?? 0;
@@ -532,6 +554,9 @@ class PayrollController extends Controller
                     }
                     $colIdx++;
                 }
+                $colTotals[$colIdx++] += $employerPf;
+                $colTotals[$colIdx++] += $employerEsi;
+                $colTotals[$colIdx++] += $totalEmployer;
 
                 $baseRow = [
                     $summary->total_working_days ?? 0,
@@ -565,6 +590,12 @@ class PayrollController extends Controller
                         $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated'
                     ]);
                 }
+
+                $baseRow = array_merge($baseRow, [
+                    number_format($employerPf, 2, '.', ''),
+                    number_format($employerEsi, 2, '.', ''),
+                    number_format($totalEmployer, 2, '.', '')
+                ]);
 
                 $row = array_merge($row, $baseRow);
                 fputcsv($file, $row);
@@ -618,6 +649,9 @@ class PayrollController extends Controller
         $employeeLopDeductions = [];
         $employeePfDeductions = [];
         $employeeEsiDeductions = [];
+        $employeeEmployerPfs = [];
+        $employeeEmployerEsis = [];
+        $employeeEmployerTotals = [];
         $employeePenaltyDays = [];
         $employeePenaltyAmounts = [];
         $employeeTotalLates = [];
@@ -637,6 +671,9 @@ class PayrollController extends Controller
                 $statutory = $this->resolveStatutoryBreakdown($detail, $employeeSalaries[$detail->employee_id] ?? null, $settings, $statutoryRules);
                 $employeePfDeductions[$detail->employee_id] = $statutory['pf'];
                 $employeeEsiDeductions[$detail->employee_id] = $statutory['esi'];
+                $employeeEmployerPfs[$detail->employee_id] = $statutory['employer_pf'];
+                $employeeEmployerEsis[$detail->employee_id] = $statutory['employer_esi'];
+                $employeeEmployerTotals[$detail->employee_id] = $statutory['total_employer_contribution'];
 
                 $employeePenaltyDays[$detail->employee_id] = $detail->penalty ? $detail->penalty->penalty_days : 0;
                 $employeePenaltyAmounts[$detail->employee_id] = $detail->penalty_deduction_amount ?? 0;
@@ -658,7 +695,7 @@ class PayrollController extends Controller
         $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
         $fileName = 'Payroll_Report_' . date('F', mktime(0, 0, 0, $month, 1)) . '_' . $year . '.pdf';
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'grossSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePfDeductions', 'employeeEsiDeductions', 'employeePenaltyDays', 'employeePenaltyAmounts', 'employeeTotalLates', 'employeeExemptedLates', 'employeeActualLates', 'month', 'year', 'withPenalty'))
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'grossSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePfDeductions', 'employeeEsiDeductions', 'employeeEmployerPfs', 'employeeEmployerEsis', 'employeeEmployerTotals', 'employeePenaltyDays', 'employeePenaltyAmounts', 'employeeTotalLates', 'employeeExemptedLates', 'employeeActualLates', 'month', 'year', 'withPenalty'))
                 ->setPaper('a3', 'landscape');
                 
         return $pdf->download($fileName);
@@ -666,13 +703,36 @@ class PayrollController extends Controller
 
     private function resolveStatutoryBreakdown($detail, $empSalary, $settings, $statutoryRules)
     {
-        $pf = 0;
-        $esi = 0;
-        
-        if (!$detail || (float)($detail->statutory_deduction_amount ?? 0) <= 0) {
-            return ['pf' => 0, 'esi' => 0];
+        if (!$detail) {
+            return [
+                'pf' => 0, 
+                'esi' => 0, 
+                'employer_pf' => 0, 
+                'employer_esi' => 0, 
+                'total_employer_contribution' => 0
+            ];
         }
 
+        // If explicitly stored in database columns on payroll_details
+        $hasStoredBreakdown = ($detail->pf_deduction_amount !== null || $detail->employer_pf_amount !== null);
+        $pf = (float) ($detail->pf_deduction_amount ?? 0);
+        $esi = (float) ($detail->esi_deduction_amount ?? 0);
+        $empPf = (float) ($detail->employer_pf_amount ?? 0);
+        $empEsi = (float) ($detail->employer_esi_amount ?? 0);
+        $totalEmp = (float) ($detail->employer_contribution_amount ?? ($empPf + $empEsi));
+
+        $statutoryRecorded = (float) ($detail->statutory_deduction_amount ?? 0);
+        if ($hasStoredBreakdown && ($pf > 0 || $esi > 0 || $empPf > 0 || $empEsi > 0 || $statutoryRecorded == 0)) {
+            return [
+                'pf' => $pf,
+                'esi' => $esi,
+                'employer_pf' => $empPf,
+                'employer_esi' => $empEsi,
+                'total_employer_contribution' => $totalEmp,
+            ];
+        }
+
+        // Dynamic fallback if record was created prior to new columns
         $empComps = [];
         foreach ($detail->components as $c) {
             if ($c->salaryComponent) {
@@ -683,6 +743,11 @@ class PayrollController extends Controller
 
         $isPfApplicable = $empSalary ? (bool) ($empSalary->is_pf_applicable ?? true) : true;
         $isEsiApplicable = $empSalary ? (bool) ($empSalary->is_esi_applicable ?? true) : true;
+
+        $pf = 0;
+        $esi = 0;
+        $empPf = 0;
+        $empEsi = 0;
 
         // PF
         if ($isPfApplicable && ($settings->pf_enabled ?? false) && isset($statutoryRules['PF'])) {
@@ -699,7 +764,12 @@ class PayrollController extends Controller
             if ($rule->salary_limit > 0 && $base > $rule->salary_limit) {
                 $base = $rule->salary_limit;
             }
-            $pf = round(($base * (float)$rule->employee_rate) / 100);
+            if ((float)($detail->statutory_deduction_amount ?? 0) > 0) {
+                $pf = round(($base * (float)$rule->employee_rate) / 100);
+            }
+            if ((float)($rule->employer_rate ?? 0) > 0) {
+                $empPf = round(($base * (float)$rule->employer_rate) / 100);
+            }
         }
 
         // ESI
@@ -715,20 +785,37 @@ class PayrollController extends Controller
                 $base = (float) $detail->gross_salary;
             }
             $hasLimit = $rule->salary_limit > 0;
-            if (!$hasLimit || (float)$detail->gross_salary <= $rule->salary_limit) {
-                $esi = round(($base * (float)$rule->employee_rate) / 100);
+            $gross = (float) $detail->gross_salary;
+            if (!$hasLimit || $gross <= $rule->salary_limit) {
+                if ((float)($detail->statutory_deduction_amount ?? 0) > 0) {
+                    $esi = round(($base * (float)$rule->employee_rate) / 100);
+                }
+                if ((float)($rule->employer_rate ?? 0) > 0) {
+                    $empEsi = round(($base * (float)$rule->employer_rate) / 100);
+                }
             }
         }
 
-        $recorded = (float) $detail->statutory_deduction_amount;
-        if (($pf + $esi) != $recorded) {
-            if ($pf > 0 && $esi == 0) {
-                $pf = $recorded;
-            } elseif ($esi > 0 && $pf == 0) {
-                $esi = $recorded;
+        if ((float)($detail->statutory_deduction_amount ?? 0) > 0) {
+            $recorded = (float) $detail->statutory_deduction_amount;
+            if (($pf + $esi) != $recorded) {
+                if ($pf > 0 && $esi == 0) {
+                    $pf = $recorded;
+                } elseif ($esi > 0 && $pf == 0) {
+                    $esi = $recorded;
+                }
             }
+        } else {
+            $pf = 0;
+            $esi = 0;
         }
 
-        return ['pf' => $pf, 'esi' => $esi];
+        return [
+            'pf' => $pf,
+            'esi' => $esi,
+            'employer_pf' => $empPf,
+            'employer_esi' => $empEsi,
+            'total_employer_contribution' => ($empPf + $empEsi)
+        ];
     }
 }

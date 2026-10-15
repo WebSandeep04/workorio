@@ -145,6 +145,14 @@ class PayrollCalculationService
             $totalDeductions += $amount;
         }
 
+        // Calculate Employer Statutory Contributions
+        $employerContributions = $this->calculateEmployerContributions($context, $totalEarnings, $employeeSalary);
+        $employeePf = $statutoryDeductions['PF'] ?? 0;
+        $employeeEsi = $statutoryDeductions['ESI'] ?? 0;
+        $employerPf = $employerContributions['PF'] ?? 0;
+        $employerEsi = $employerContributions['ESI'] ?? 0;
+        $totalEmployer = $employerPf + $employerEsi;
+
         // Apply LOP Deduction to total deductions
         if ($deductionAmount > 0) {
             $totalDeductions += $deductionAmount;
@@ -342,18 +350,30 @@ class PayrollCalculationService
         $netSalary = $totalEarnings - $totalDeductions;
 
         // Save Payroll Detail
+        $payrollDetailData = [
+            'gross_salary' => $totalEarnings, 
+            'net_salary' => $netSalary,
+            'total_deductions' => $totalDeductions,
+            'lop_deduction_amount' => $deductionAmount,
+            'statutory_deduction_amount' => array_sum($statutoryDeductions),
+            'loan_deduction_amount' => $loanDeduction,
+            'advance_deduction_amount' => $advanceDeduction,
+            'penalty_deduction_amount' => $penaltyAmount
+        ];
+
+        // Persist breakdown if columns exist in database table
+        $detailModel = new PayrollDetail();
+        if ($detailModel->getConnection()->getSchemaBuilder()->hasColumn('payroll_details', 'pf_deduction_amount')) {
+            $payrollDetailData['pf_deduction_amount'] = $employeePf;
+            $payrollDetailData['esi_deduction_amount'] = $employeeEsi;
+            $payrollDetailData['employer_pf_amount'] = $employerPf;
+            $payrollDetailData['employer_esi_amount'] = $employerEsi;
+            $payrollDetailData['employer_contribution_amount'] = $totalEmployer;
+        }
+
         $payrollDetail = PayrollDetail::updateOrCreate(
             ['payroll_id' => $payroll->id, 'employee_id' => $employeeId],
-            [
-                'gross_salary' => $totalEarnings, 
-                'net_salary' => $netSalary,
-                'total_deductions' => $totalDeductions,
-                'lop_deduction_amount' => $deductionAmount,
-                'statutory_deduction_amount' => array_sum($statutoryDeductions),
-                'loan_deduction_amount' => $loanDeduction,
-                'advance_deduction_amount' => $advanceDeduction,
-                'penalty_deduction_amount' => $penaltyAmount
-            ]
+            $payrollDetailData
         );
 
         // Save Penalty Detail
@@ -483,6 +503,63 @@ class PayrollCalculationService
         }
 
         return $deductions;
+    }
+
+    /**
+     * Calculate Employer Statutory Contributions based on settings and rules
+     */
+    protected function calculateEmployerContributions($context, $totalEarnings, $employeeSalary = null)
+    {
+        $contributions = [];
+
+        $isPfApplicable = $employeeSalary ? (bool) ($employeeSalary->is_pf_applicable ?? true) : true;
+        $isEsiApplicable = $employeeSalary ? (bool) ($employeeSalary->is_esi_applicable ?? true) : true;
+
+        // Employer PF
+        if ($isPfApplicable && ($this->settings->pf_enabled ?? false) && isset($this->statutoryRules['PF'])) {
+            $rule = $this->statutoryRules['PF'];
+            $employerRate = (float) ($rule->employer_rate ?? 0);
+            if ($employerRate > 0) {
+                $calcOn = strtolower(trim($rule->calculate_on ?? ''));
+                $normCalcOn = str_replace([' ', '+'], '_', $calcOn);
+                if ($calcOn === 'basic' || $calcOn === 'basic + da' || $calcOn === 'basic_da' || $calcOn === 'basic_+_da') {
+                    $baseForPF = $context['basic'] ?? $context['basic_+_da'] ?? $context['basic_da'] ?? 0;
+                } elseif (!empty($normCalcOn) && isset($context[$normCalcOn])) {
+                    $baseForPF = $context[$normCalcOn];
+                } else {
+                    $baseForPF = $totalEarnings;
+                }
+
+                if ($rule->salary_limit > 0 && $baseForPF > $rule->salary_limit) {
+                    $baseForPF = $rule->salary_limit;
+                }
+                $contributions['PF'] = round(($baseForPF * $employerRate) / 100);
+            }
+        }
+
+        // Employer ESI
+        if ($isEsiApplicable && ($this->settings->esi_enabled ?? false) && isset($this->statutoryRules['ESI'])) {
+            $rule = $this->statutoryRules['ESI'];
+            $employerRate = (float) ($rule->employer_rate ?? 0);
+            if ($employerRate > 0) {
+                $calcOn = strtolower(trim($rule->calculate_on ?? ''));
+                $normCalcOn = str_replace([' ', '+'], '_', $calcOn);
+                if ($calcOn === 'basic' || $calcOn === 'basic + da' || $calcOn === 'basic_da' || $calcOn === 'basic_+_da') {
+                    $baseForESI = $context['basic'] ?? $context['basic_+_da'] ?? $context['basic_da'] ?? 0;
+                } elseif (!empty($normCalcOn) && isset($context[$normCalcOn])) {
+                    $baseForESI = $context[$normCalcOn];
+                } else {
+                    $baseForESI = $totalEarnings;
+                }
+
+                $hasLimit = $rule->salary_limit > 0;
+                if (!$hasLimit || $totalEarnings <= $rule->salary_limit) {
+                    $contributions['ESI'] = round(($baseForESI * $employerRate) / 100);
+                }
+            }
+        }
+
+        return $contributions;
     }
 
     /**

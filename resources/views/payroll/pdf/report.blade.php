@@ -55,6 +55,9 @@
                 <th class="text-end">Penalty Amount</th>
                 <th class="text-end">Final Salary</th>
                 @endif
+                <th class="text-end">Employer PF</th>
+                <th class="text-end">Employer ESI</th>
+                <th class="text-end">Total Employer Cont.</th>
             </tr>
         </thead>
         <tbody>
@@ -67,7 +70,8 @@
                     'deduction_days' => 0, 'lop_deduction' => 0, 'advance_deduction' => 0, 'loan_deduction' => 0,
                     'pf_deduction' => 0, 'esi_deduction' => 0,
                     'total_deduction' => 0, 'salary' => 0, 'total_lates' => 0, 'exempted_lates' => 0, 'eligible_lates' => 0,
-                    'penalty_days' => 0, 'penalty_amount' => 0, 'final_salary' => 0
+                    'penalty_days' => 0, 'penalty_amount' => 0, 'final_salary' => 0,
+                    'employer_pf' => 0, 'employer_esi' => 0, 'total_employer_cont' => 0
                 ];
                 $compTotals = [];
                 foreach($uniqueComponents as $comp) {
@@ -115,6 +119,13 @@
                     $colTotals['pf_deduction'] += $pfDeduction;
                     $colTotals['esi_deduction'] += $esiDeduction;
                     $colTotals['total_deduction'] += ($deductionAmount - $penaltyAmount);
+                    $employerPf = $employeeEmployerPfs[$summary->employee_id] ?? 0;
+                    $employerEsi = $employeeEmployerEsis[$summary->employee_id] ?? 0;
+                    $totalEmployer = $employeeEmployerTotals[$summary->employee_id] ?? 0;
+                    $colTotals['employer_pf'] += $employerPf;
+                    $colTotals['employer_esi'] += $employerEsi;
+                    $colTotals['total_employer_cont'] += $totalEmployer;
+
                     if ($paid !== null) {
                         $colTotals['salary'] += ($paid + $penaltyAmount);
                         if (isset($withPenalty) && $withPenalty) {
@@ -167,6 +178,9 @@
                     <td class="text-end">{{ $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated' }}</td>
                     @endif
+                    <td class="text-end nowrap">{{ number_format($employerPf, 2, '.', '') }}</td>
+                    <td class="text-end nowrap">{{ number_format($employerEsi, 2, '.', '') }}</td>
+                    <td class="text-end nowrap">{{ number_format($totalEmployer, 2, '.', '') }}</td>
                 </tr>
             @endforeach
             @if($summaries->isNotEmpty())
@@ -201,12 +215,15 @@
                     <td class="text-end">{{ $colTotals['penalty_amount'] }}</td>
                     <td class="text-end nowrap">{{ number_format($colTotals['final_salary'], 0, '', '') }}</td>
                     @endif
+                    <td class="text-end nowrap">{{ number_format($colTotals['employer_pf'], 2, '.', '') }}</td>
+                    <td class="text-end nowrap">{{ number_format($colTotals['employer_esi'], 2, '.', '') }}</td>
+                    <td class="text-end nowrap">{{ number_format($colTotals['total_employer_cont'], 2, '.', '') }}</td>
                 </tr>
 
             @endif
             @if($summaries->isEmpty())
                 <tr>
-                    <td colspan="{{ ((isset($withPenalty) && $withPenalty) ? 26 : 21) + count($uniqueComponents) }}">No data available for this month.</td>
+                    <td colspan="{{ ((isset($withPenalty) && $withPenalty) ? 29 : 24) + count($uniqueComponents) }}">No data available for this month.</td>
                 </tr>
             @endif
         </tbody>
