@@ -343,10 +343,19 @@ class PayrollController extends Controller
             ];
         });
 
+        $totalPfRecorded = array_sum($employeePfDeductions) + array_sum($employeeEmployerPfs);
+        $totalEsiRecorded = array_sum($employeeEsiDeductions) + array_sum($employeeEmployerEsis);
+        $showPf = ($settings->pf_enabled ?? false) || ($totalPfRecorded > 0);
+        $showEsi = ($settings->esi_enabled ?? false) || ($totalEsiRecorded > 0);
+        $showEmployerCont = $showPf || $showEsi;
+
         return response()->json([
             'success' => true, 
             'columns' => $uniqueComponents,
-            'data' => $data
+            'data' => $data,
+            'show_pf' => $showPf,
+            'show_esi' => $showEsi,
+            'show_employer_cont' => $showEmployerCont
         ]);
     }
     public function exportReport(Request $request)
@@ -430,6 +439,12 @@ class PayrollController extends Controller
         
         $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
 
+        $totalPfRecorded = array_sum($employeePfDeductions) + array_sum($employeeEmployerPfs);
+        $totalEsiRecorded = array_sum($employeeEsiDeductions) + array_sum($employeeEmployerEsis);
+        $showPf = ($settings->pf_enabled ?? false) || ($totalPfRecorded > 0);
+        $showEsi = ($settings->esi_enabled ?? false) || ($totalEsiRecorded > 0);
+        $showEmployerCont = $showPf || $showEsi;
+
         $fileName = 'Payroll_Report_' . date('F', mktime(0, 0, 0, $month, 1)) . '_' . $year . '.csv';
 
         $headers = array(
@@ -440,7 +455,7 @@ class PayrollController extends Controller
             "Expires"             => "0"
         );
 
-        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $grossSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePfDeductions, $employeeEsiDeductions, $employeeEmployerPfs, $employeeEmployerEsis, $employeeEmployerTotals, $employeePenaltyDays, $employeePenaltyAmounts, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $withPenalty) {
+        $callback = function() use($summaries, $uniqueComponents, $paidSalaries, $grossSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePfDeductions, $employeeEsiDeductions, $employeeEmployerPfs, $employeeEmployerEsis, $employeeEmployerTotals, $employeePenaltyDays, $employeePenaltyAmounts, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $withPenalty, $showPf, $showEsi, $showEmployerCont) {
             if (ob_get_level() > 0) {
                 ob_end_clean();
             }
@@ -455,12 +470,29 @@ class PayrollController extends Controller
             $baseColumns = [
                 'Total Working Days', 'Full Day', 'Half Day', 'Leave', 'Unpaid Leave', 
                 'Absent', 'Total Weekly Off', 'Total Holidays', 'Holiday Work', 'Sunday Work', 
-                'Total Present', 'Deduction Days', 'Days deduction amount', 'Advance Deduction', 'Loan Deduction', 'PF Deduction', 'ESI Deduction', 'Total Deduction', 'Salary'
+                'Total Present', 'Deduction Days', 'Days deduction amount', 'Advance Deduction', 'Loan Deduction'
             ];
+            if ($showPf) {
+                $baseColumns[] = 'PF Deduction';
+            }
+            if ($showEsi) {
+                $baseColumns[] = 'ESI Deduction';
+            }
+            $baseColumns[] = 'Total Deduction';
+            $baseColumns[] = 'Salary';
+
             if ($withPenalty) {
                 $baseColumns = array_merge($baseColumns, ['Total Lates', 'Exempted Late Occurrences', 'Penalty-Eligible Lates', 'Penalty Days', 'Penalty Amount', 'Final Salary']);
             }
-            $baseColumns = array_merge($baseColumns, ['Employer PF', 'Employer ESI', 'Total Employer Contribution']);
+            if ($showPf) {
+                $baseColumns[] = 'Employer PF';
+            }
+            if ($showEsi) {
+                $baseColumns[] = 'Employer ESI';
+            }
+            if ($showEmployerCont) {
+                $baseColumns[] = 'Total Employer Contribution';
+            }
 
             $columns = array_merge(
                 ['Employee Code', 'Employee Name', 'Branch', 'Department'],
@@ -536,8 +568,12 @@ class PayrollController extends Controller
                 $colTotals[$colIdx++] += $lopDeduction;
                 $colTotals[$colIdx++] += $advanceDeduction;
                 $colTotals[$colIdx++] += $loanDeduction;
-                $colTotals[$colIdx++] += $pfDeduction;
-                $colTotals[$colIdx++] += $esiDeduction;
+                if ($showPf) {
+                    $colTotals[$colIdx++] += $pfDeduction;
+                }
+                if ($showEsi) {
+                    $colTotals[$colIdx++] += $esiDeduction;
+                }
                 $colTotals[$colIdx++] += ($deductionAmount - $penaltyAmount);
                 if ($paid !== null) {
                     $colTotals[$colIdx] += ($paid + $penaltyAmount);
@@ -554,9 +590,15 @@ class PayrollController extends Controller
                     }
                     $colIdx++;
                 }
-                $colTotals[$colIdx++] += $employerPf;
-                $colTotals[$colIdx++] += $employerEsi;
-                $colTotals[$colIdx++] += $totalEmployer;
+                if ($showPf) {
+                    $colTotals[$colIdx++] += $employerPf;
+                }
+                if ($showEsi) {
+                    $colTotals[$colIdx++] += $employerEsi;
+                }
+                if ($showEmployerCont) {
+                    $colTotals[$colIdx++] += $totalEmployer;
+                }
 
                 $baseRow = [
                     $summary->total_working_days ?? 0,
@@ -573,12 +615,16 @@ class PayrollController extends Controller
                     $deductionDays,
                     $lopDeduction,
                     $advanceDeduction,
-                    $loanDeduction,
-                    $pfDeduction,
-                    $esiDeduction,
-                    $deductionAmount - $penaltyAmount,
-                    $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated'
+                    $loanDeduction
                 ];
+                if ($showPf) {
+                    $baseRow[] = $pfDeduction;
+                }
+                if ($showEsi) {
+                    $baseRow[] = $esiDeduction;
+                }
+                $baseRow[] = $deductionAmount - $penaltyAmount;
+                $baseRow[] = $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated';
 
                 if ($withPenalty) {
                     $baseRow = array_merge($baseRow, [
@@ -591,11 +637,15 @@ class PayrollController extends Controller
                     ]);
                 }
 
-                $baseRow = array_merge($baseRow, [
-                    number_format($employerPf, 2, '.', ''),
-                    number_format($employerEsi, 2, '.', ''),
-                    number_format($totalEmployer, 2, '.', '')
-                ]);
+                if ($showPf) {
+                    $baseRow[] = number_format($employerPf, 2, '.', '');
+                }
+                if ($showEsi) {
+                    $baseRow[] = number_format($employerEsi, 2, '.', '');
+                }
+                if ($showEmployerCont) {
+                    $baseRow[] = number_format($totalEmployer, 2, '.', '');
+                }
 
                 $row = array_merge($row, $baseRow);
                 fputcsv($file, $row);
@@ -693,9 +743,15 @@ class PayrollController extends Controller
         }
         
         $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
+        $totalPfRecorded = array_sum($employeePfDeductions) + array_sum($employeeEmployerPfs);
+        $totalEsiRecorded = array_sum($employeeEsiDeductions) + array_sum($employeeEmployerEsis);
+        $showPf = ($settings->pf_enabled ?? false) || ($totalPfRecorded > 0);
+        $showEsi = ($settings->esi_enabled ?? false) || ($totalEsiRecorded > 0);
+        $showEmployerCont = $showPf || $showEsi;
+
         $fileName = 'Payroll_Report_' . date('F', mktime(0, 0, 0, $month, 1)) . '_' . $year . '.pdf';
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'grossSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePfDeductions', 'employeeEsiDeductions', 'employeeEmployerPfs', 'employeeEmployerEsis', 'employeeEmployerTotals', 'employeePenaltyDays', 'employeePenaltyAmounts', 'employeeTotalLates', 'employeeExemptedLates', 'employeeActualLates', 'month', 'year', 'withPenalty'))
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'grossSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePfDeductions', 'employeeEsiDeductions', 'employeeEmployerPfs', 'employeeEmployerEsis', 'employeeEmployerTotals', 'employeePenaltyDays', 'employeePenaltyAmounts', 'employeeTotalLates', 'employeeExemptedLates', 'employeeActualLates', 'month', 'year', 'withPenalty', 'showPf', 'showEsi', 'showEmployerCont'))
                 ->setPaper('a3', 'landscape');
                 
         return $pdf->download($fileName);

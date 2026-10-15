@@ -181,6 +181,11 @@ $(document).ready(function() {
                     $('#reportTable').show();
                     $('#noDataMessage').hide();
                     
+                    // Flags for statutory columns
+                    const showPf = response.show_pf !== undefined ? response.show_pf : true;
+                    const showEsi = response.show_esi !== undefined ? response.show_esi : true;
+                    const showEmployerCont = response.show_employer_cont !== undefined ? response.show_employer_cont : (showPf || showEsi);
+
                     // Build Headers dynamically
                     let cols = response.columns || [];
                     let headHtml = `<tr>
@@ -209,9 +214,16 @@ $(document).ready(function() {
                         <th class="text-center" style="min-width: 150px;">Total Deduction Days</th>
                         <th class="text-end" style="min-width: 150px;">Days Deduction</th>
                         <th class="text-end" style="min-width: 150px;">Advance Deduction</th>
-                        <th class="text-end" style="min-width: 150px;">Loan Deduction</th>
-                        <th class="text-end" style="min-width: 130px;">PF Deduction</th>
-                        <th class="text-end" style="min-width: 130px;">ESI Deduction</th>
+                        <th class="text-end" style="min-width: 150px;">Loan Deduction</th>`;
+                    
+                    if (showPf) {
+                        headHtml += `<th class="text-end" style="min-width: 130px;">PF Deduction</th>`;
+                    }
+                    if (showEsi) {
+                        headHtml += `<th class="text-end" style="min-width: 130px;">ESI Deduction</th>`;
+                    }
+
+                    headHtml += `
                         <th class="text-end" style="min-width: 150px;">Total Deduction</th>
                         <th class="text-end" style="min-width: 120px;">Salary</th>
                         <th class="text-center" style="min-width: 120px;">Total Lates</th>
@@ -219,11 +231,18 @@ $(document).ready(function() {
                         <th class="text-center" style="min-width: 120px;">Eligible Lates</th>
                         <th class="text-center" style="min-width: 100px;">Penalty Days</th>
                         <th class="text-end" style="min-width: 150px;">Penalty Amount</th>
-                        <th class="text-end" style="min-width: 120px;">Final Salary</th>
-                        <th class="text-end" style="min-width: 120px;">Employer PF</th>
-                        <th class="text-end" style="min-width: 120px;">Employer ESI</th>
-                        <th class="text-end" style="min-width: 160px;">Total Employer Cont.</th>
-                    </tr>`;
+                        <th class="text-end" style="min-width: 120px;">Final Salary</th>`;
+
+                    if (showPf) {
+                        headHtml += `<th class="text-end" style="min-width: 120px;">Employer PF</th>`;
+                    }
+                    if (showEsi) {
+                        headHtml += `<th class="text-end" style="min-width: 120px;">Employer ESI</th>`;
+                    }
+                    if (showEmployerCont) {
+                        headHtml += `<th class="text-end" style="min-width: 160px;">Total Employer Cont.</th>`;
+                    }
+                    headHtml += `</tr>`;
                     thead.append(headHtml);
                     
                     // Build Rows
@@ -259,21 +278,34 @@ $(document).ready(function() {
                             <td class="text-center text-danger">${row.total_deduction_days}</td>
                             <td class="text-end text-danger">₹${row.lop_deduction}</td>
                             <td class="text-end text-danger">₹${row.advance_deduction}</td>
-                            <td class="text-end text-danger">₹${row.loan_deduction}</td>
-                            <td class="text-end text-danger">₹${row.pf_deduction}</td>
-                            <td class="text-end text-danger">₹${row.esi_deduction}</td>
-                            <td class="text-end text-danger">₹${row.deduction_amount}</td>
+                            <td class="text-end text-danger">₹${row.loan_deduction}</td>`;
+
+                        if (showPf) {
+                            tr += `<td class="text-end text-danger">₹${row.pf_deduction}</td>`;
+                        }
+                        if (showEsi) {
+                            tr += `<td class="text-end text-danger">₹${row.esi_deduction}</td>`;
+                        }
+
+                        tr += `<td class="text-end text-danger">₹${row.deduction_amount}</td>
                             <td class="text-end ${salaryBeforeClass}">${salaryBeforeText}</td>
                             <td class="text-center text-danger">${row.total_late_occurrences}</td>
                             <td class="text-center text-success">${row.exempted_late_occurrences}</td>
                             <td class="text-center text-danger">${row.penalty_eligible_lates}</td>
                             <td class="text-center text-danger">${row.penalty_days}</td>
                             <td class="text-end text-danger">₹${row.penalty_amount}</td>
-                            <td class="text-end ${salaryClass}">${salaryText}</td>
-                            <td class="text-end text-primary">₹${row.employer_pf}</td>
-                            <td class="text-end text-primary">₹${row.employer_esi}</td>
-                            <td class="text-end fw-bold text-primary">₹${row.total_employer_contribution}</td>
-                        </tr>`;
+                            <td class="text-end ${salaryClass}">${salaryText}</td>`;
+
+                        if (showPf) {
+                            tr += `<td class="text-end text-primary">₹${row.employer_pf}</td>`;
+                        }
+                        if (showEsi) {
+                            tr += `<td class="text-end text-primary">₹${row.employer_esi}</td>`;
+                        }
+                        if (showEmployerCont) {
+                            tr += `<td class="text-end fw-bold text-primary">₹${row.total_employer_contribution}</td>`;
+                        }
+                        tr += `</tr>`;
                         tbody.append(tr);
                     });
                 } else {

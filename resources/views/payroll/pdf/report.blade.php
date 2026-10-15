@@ -43,8 +43,12 @@
                 <th class="text-end">Days deduction amount</th>
                 <th class="text-end">Advance Deduction</th>
                 <th class="text-end">Loan Deduction</th>
+                @if($showPf ?? true)
                 <th class="text-end">PF Deduction</th>
+                @endif
+                @if($showEsi ?? true)
                 <th class="text-end">ESI Deduction</th>
+                @endif
                 <th class="text-end">Total Deduction</th>
                 <th class="text-end">Salary</th>
                 @if(isset($withPenalty) && $withPenalty)
@@ -55,13 +59,22 @@
                 <th class="text-end">Penalty Amount</th>
                 <th class="text-end">Final Salary</th>
                 @endif
+                @if($showPf ?? true)
                 <th class="text-end">Employer PF</th>
+                @endif
+                @if($showEsi ?? true)
                 <th class="text-end">Employer ESI</th>
+                @endif
+                @if($showEmployerCont ?? true)
                 <th class="text-end">Total Employer Cont.</th>
+                @endif
             </tr>
         </thead>
         <tbody>
             @php 
+                $showPf = $showPf ?? true;
+                $showEsi = $showEsi ?? true;
+                $showEmployerCont = $showEmployerCont ?? ($showPf || $showEsi);
                 $grandTotalPaidSalary = 0; 
                 $colTotals = [
                     'gross_salary' => 0,
@@ -166,8 +179,12 @@
                     <td class="text-end">{{ $lopDeduction }}</td>
                     <td class="text-end">{{ $advanceDeduction }}</td>
                     <td class="text-end">{{ $loanDeduction }}</td>
+                    @if($showPf)
                     <td class="text-end">{{ $pfDeduction }}</td>
+                    @endif
+                    @if($showEsi)
                     <td class="text-end">{{ $esiDeduction }}</td>
+                    @endif
                     <td class="text-end">{{ $deductionAmount - $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid + $penaltyAmount, 0, '', '') : 'Not Generated' }}</td>
                     @if(isset($withPenalty) && $withPenalty)
@@ -178,9 +195,15 @@
                     <td class="text-end">{{ $penaltyAmount }}</td>
                     <td class="text-end nowrap">{{ $paid !== null ? number_format($paid, 0, '', '') : 'Not Generated' }}</td>
                     @endif
+                    @if($showPf)
                     <td class="text-end nowrap">{{ number_format($employerPf, 2, '.', '') }}</td>
+                    @endif
+                    @if($showEsi)
                     <td class="text-end nowrap">{{ number_format($employerEsi, 2, '.', '') }}</td>
+                    @endif
+                    @if($showEmployerCont)
                     <td class="text-end nowrap">{{ number_format($totalEmployer, 2, '.', '') }}</td>
+                    @endif
                 </tr>
             @endforeach
             @if($summaries->isNotEmpty())
@@ -203,8 +226,12 @@
                     <td class="text-end">{{ $colTotals['lop_deduction'] }}</td>
                     <td class="text-end">{{ $colTotals['advance_deduction'] }}</td>
                     <td class="text-end">{{ $colTotals['loan_deduction'] }}</td>
+                    @if($showPf)
                     <td class="text-end">{{ $colTotals['pf_deduction'] }}</td>
+                    @endif
+                    @if($showEsi)
                     <td class="text-end">{{ $colTotals['esi_deduction'] }}</td>
+                    @endif
                     <td class="text-end">{{ $colTotals['total_deduction'] }}</td>
                     <td class="text-end nowrap">{{ number_format($colTotals['salary'], 0, '', '') }}</td>
                     @if(isset($withPenalty) && $withPenalty)
@@ -215,15 +242,24 @@
                     <td class="text-end">{{ $colTotals['penalty_amount'] }}</td>
                     <td class="text-end nowrap">{{ number_format($colTotals['final_salary'], 0, '', '') }}</td>
                     @endif
+                    @if($showPf)
                     <td class="text-end nowrap">{{ number_format($colTotals['employer_pf'], 2, '.', '') }}</td>
+                    @endif
+                    @if($showEsi)
                     <td class="text-end nowrap">{{ number_format($colTotals['employer_esi'], 2, '.', '') }}</td>
+                    @endif
+                    @if($showEmployerCont)
                     <td class="text-end nowrap">{{ number_format($colTotals['total_employer_cont'], 2, '.', '') }}</td>
+                    @endif
                 </tr>
 
             @endif
             @if($summaries->isEmpty())
+                @php
+                    $emptyColspan = 4 + count($uniqueComponents) + 1 + 14 + ($showPf ? 1 : 0) + ($showEsi ? 1 : 0) + 2 + ((isset($withPenalty) && $withPenalty) ? 6 : 0) + ($showPf ? 1 : 0) + ($showEsi ? 1 : 0) + ($showEmployerCont ? 1 : 0);
+                @endphp
                 <tr>
-                    <td colspan="{{ ((isset($withPenalty) && $withPenalty) ? 29 : 24) + count($uniqueComponents) }}">No data available for this month.</td>
+                    <td colspan="{{ $emptyColspan }}">No data available for this month.</td>
                 </tr>
             @endif
         </tbody>
