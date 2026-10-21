@@ -770,14 +770,9 @@
             <i class="bi bi-search"></i>
             <input type="text" id="employeeSearch" placeholder="Search by name, email, phone..." onkeyup="filterEmployees()">
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('employees.approvals') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center">
-                <i class="bi bi-person-check-fill me-1"></i>Employee Approvals
-            </a>
-            <button type="button" class="table-search-btn" id="openEmployeeModal">
-                <i class="bi bi-plus me-1"></i>Add
-            </button>
-        </div>
+        <button type="button" class="table-search-btn" id="openEmployeeModal">
+            <i class="bi bi-plus me-1"></i>Add
+        </button>
     </div>
 
     <!-- Table Card -->
