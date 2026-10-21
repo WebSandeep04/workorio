@@ -770,9 +770,14 @@
             <i class="bi bi-search"></i>
             <input type="text" id="employeeSearch" placeholder="Search by name, email, phone..." onkeyup="filterEmployees()">
         </div>
-        <button type="button" class="table-search-btn" id="openEmployeeModal">
-            <i class="bi bi-plus me-1"></i>Add
-        </button>
+        <div class="d-flex gap-2">
+            <a href="{{ route('employees.approvals') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center">
+                <i class="bi bi-person-check-fill me-1"></i>Employee Approvals
+            </a>
+            <button type="button" class="table-search-btn" id="openEmployeeModal">
+                <i class="bi bi-plus me-1"></i>Add
+            </button>
+        </div>
     </div>
 
     <!-- Table Card -->
@@ -798,12 +803,13 @@
                             <th>Join Date</th>
                             <th>Working Type</th>
                             <th>Status</th>
+                            <th>Approval</th>
                             <th>Docs</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="employeeTableBody">
-                        <tr><td colspan="17" class="loading-state"><i class="bi bi-arrow-repeat"></i><p class="mt-2 mb-0">Loading employees...</p></td></tr>
+                        <tr><td colspan="18" class="loading-state"><i class="bi bi-arrow-repeat"></i><p class="mt-2 mb-0">Loading employees...</p></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1006,11 +1012,23 @@
                 <td>${row.date_of_joining ? row.date_of_joining.toString().substring(0, 10) : ''}</td>
                 <td>${row.working_type ? `<span class="badge ${row.working_type === 'Remote' ? 'bg-info' : 'bg-primary'}">${escapeHtml(row.working_type)}</span>` : '-'}</td>
                 <td><span class="badge ${row.status === 'active' ? 'bg-success' : 'bg-secondary'}">${escapeHtml(row.status || '')}</span></td>
+                <td>
+                    ${(() => {
+                        const appStatus = (row.approval_status || 'pending').toLowerCase();
+                        if (appStatus === 'approved') return '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Approved</span>';
+                        if (appStatus === 'rejected') return '<span class="badge bg-danger" title="' + escapeHtml(row.rejection_reason || '') + '"><i class="bi bi-x-circle me-1"></i>Rejected</span>';
+                        return '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Pending</span>';
+                    })()}
+                </td>
                 <td class="text-center">${row.documents_count || 0}</td>
                 <td class="text-center">
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-primary edit-employee" data-id="${row.id}"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-danger delete-employee" data-id="${row.id}"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-primary edit-employee" data-id="${row.id}" title="Edit Employee"><i class="bi bi-pencil"></i></button>
+                        ${(row.approval_status || 'pending').toLowerCase() !== 'approved' ? `
+                            <button class="btn btn-danger delete-employee" data-id="${row.id}" title="Delete Employee"><i class="bi bi-trash"></i></button>
+                        ` : `
+                            <button class="btn btn-secondary disabled" title="Approved employee cannot be deleted" style="opacity: 0.45; cursor: not-allowed;"><i class="bi bi-trash"></i></button>
+                        `}
                     </div>
                 </td>
             </tr>`;
@@ -1031,7 +1049,7 @@
     };
 
     function loadEmployees() {
-        $('#employeeTableBody').html('<tr><td colspan="17" class="loading-state"><i class="bi bi-arrow-repeat"></i><p class="mt-2 mb-0">Loading employees...</p></td></tr>');
+        $('#employeeTableBody').html('<tr><td colspan="18" class="loading-state"><i class="bi bi-arrow-repeat"></i><p class="mt-2 mb-0">Loading employees...</p></td></tr>');
         $.get(listUrl)
             .done(function (rows) {
                 allEmployees = rows || [];
@@ -1042,7 +1060,7 @@
                 renderEmployees(allEmployees);
             })
             .fail(function () {
-                $('#employeeTableBody').html('<tr><td colspan="17" class="text-center text-danger">Failed to load employees</td></tr>');
+                $('#employeeTableBody').html('<tr><td colspan="18" class="text-center text-danger">Failed to load employees</td></tr>');
             });
     }
 
@@ -1728,8 +1746,19 @@
             url: `{{ url('/employees') }}/${id}`,
             method: 'DELETE',
             data: { _token: csrf },
-        }).done(loadEmployees)
-            .fail(() => alert('Failed to delete employee.'));
+        }).done(function (res) {
+            loadEmployees();
+            if (typeof showAlert === 'function') {
+                showAlert('success', res.message || 'Employee removed successfully.');
+            }
+        }).fail(function (xhr) {
+            const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Failed to delete employee.';
+            if (typeof showAlert === 'function') {
+                showAlert('error', msg);
+            } else {
+                alert(msg);
+            }
+        });
     }
 
     function openDocumentModal(employeeId, name) {

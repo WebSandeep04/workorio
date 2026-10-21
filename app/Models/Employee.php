@@ -76,6 +76,10 @@ class Employee extends Model
         'working_type',
         'face_embeddings',
         'is_face_enrolled',
+        'approval_status',
+        'approved_by',
+        'approved_at',
+        'rejection_reason',
     ];
 
     protected $casts = [
@@ -83,11 +87,17 @@ class Employee extends Model
         'date_of_birth' => 'date',
         'passport_expiry' => 'date',
         'insurance_valid_till' => 'date',
+        'approved_at' => 'datetime',
         'experience_years' => 'decimal:2',
         'is_place_allowed' => 'boolean',
         'is_tracking' => 'boolean',
         'is_field_attendance_enable' => 'boolean',
     ];
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
 
     public function documents()
     {

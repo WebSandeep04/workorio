@@ -258,6 +258,13 @@ class EmployeeController extends Controller
     {
         $employee = Employee::findOrFail($employeeId);
         
+        if ($employee->approval_status === 'approved') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Approved employees cannot be deleted. You can mark the employee as Inactive instead.',
+            ], 403);
+        }
+
         foreach ($employee->documents as $document) {
             if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
                 Storage::disk('public')->delete($document->file_path);
@@ -270,6 +277,88 @@ class EmployeeController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Employee removed successfully.',
+        ]);
+    }
+
+    public function approvals()
+    {
+        return view('employees.approvals');
+    }
+
+    public function approvalsFetch(Request $request): JsonResponse
+    {
+        $status = $request->query('status', 'all');
+
+        $query = Employee::with([
+            'branch',
+            'departmentRelation',
+            'designationRelation',
+            'employmentTypeRelation',
+            'shiftHistory.shift',
+            'approver'
+        ])->withCount('documents');
+
+        if ($status && $status !== 'all') {
+            $query->where('approval_status', $status);
+        }
+
+        $employees = $query->orderByRaw("CASE WHEN approval_status = 'pending' THEN 1 WHEN approval_status IS NULL THEN 1 WHEN approval_status = 'rejected' THEN 2 ELSE 3 END")
+            ->orderByDesc('created_at')
+            ->get();
+
+        $counts = [
+            'total' => Employee::count(),
+            'pending' => Employee::where('approval_status', 'pending')->orWhereNull('approval_status')->count(),
+            'approved' => Employee::where('approval_status', 'approved')->count(),
+            'rejected' => Employee::where('approval_status', 'rejected')->count(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $employees,
+            'counts' => $counts
+        ]);
+    }
+
+    public function approve(Request $request, $employeeId): JsonResponse
+    {
+        $employee = Employee::findOrFail($employeeId);
+        $userId = auth()->id() ?? session('user_id');
+
+        $employee->update([
+            'approval_status' => 'approved',
+            'approved_by' => $userId,
+            'approved_at' => now(),
+            'rejection_reason' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Employee '{$employee->name}' has been approved successfully. Delete is now restricted.",
+            'employee' => $employee->fresh(['approver'])
+        ]);
+    }
+
+    public function reject(Request $request, $employeeId): JsonResponse
+    {
+        $request->validate([
+            'reason' => 'required|string|max:500'
+        ]);
+
+        $employee = Employee::findOrFail($employeeId);
+        $userId = auth()->id() ?? session('user_id');
+
+        $employee->update([
+            'approval_status' => 'rejected',
+            'approved_by' => $userId,
+            'approved_at' => now(),
+            'rejection_reason' => $request->input('reason'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Employee '{$employee->name}' has been rejected.",
+            'employee' => $employee->fresh(['approver'])
         ]);
     }
 

@@ -247,6 +247,13 @@ class EmployeeController extends Controller
     {
         $employee = Employee::findOrFail($employeeId);
         
+        if ($employee->approval_status === 'approved') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Approved employees cannot be deleted. You can mark the employee as Inactive instead.',
+            ], 403);
+        }
+
         foreach ($employee->documents as $document) {
             if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
                 Storage::disk('public')->delete($document->file_path);

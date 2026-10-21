@@ -234,7 +234,12 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/subscription-status/store', [SubscriptionStatusController::class, 'store'])->name('subscription-status.store');
     Route::get('/get-subscription-statuses', [SubscriptionStatusController::class, 'getStatuses'])->name('subscription-status.list');
 
-    // Employee & Organization Management
+    // Employee Approvals
+    Route::get('/employees/approvals', [EmployeeController::class, 'approvals'])->name('employees.approvals');
+    Route::get('/employees/approvals/fetch', [EmployeeController::class, 'approvalsFetch'])->name('employees.approvals.fetch');
+    Route::post('/employees/{employee}/approve', [EmployeeController::class, 'approve'])->name('employees.approve');
+    Route::post('/employees/{employee}/reject', [EmployeeController::class, 'reject'])->name('employees.reject');
+
     Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
     Route::get('/employees/list', [EmployeeController::class, 'list'])->name('employees.list');
     Route::get('/employees/{employee}', [EmployeeController::class, 'show'])->name('employees.show');
