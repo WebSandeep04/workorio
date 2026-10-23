@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Assigned Leads')
-@section('page_title', 'Assigned Leads')
+@section('title', 'Assigned Leads (Leads Assigned by Me)')
+@section('page_title', 'Assigned Leads (Leads Assigned by Me)')
 @push('styles')
 <style>
 .data-table-card .custom-table thead th {  

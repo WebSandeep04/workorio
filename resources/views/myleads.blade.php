@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'My Leads')
-@section('page_title', 'My Leads')
+@section('title', 'My Leads (Leads Assigned to Me)')
+@section('page_title', 'My Leads (Leads Assigned to Me)')
 
 @push('styles')
 <style>

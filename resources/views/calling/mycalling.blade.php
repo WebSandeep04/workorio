@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'My Calling')
-@section('page_title', 'My Calling')
+@section('title', 'My Calls (Calls Assigned to Me)')
+@section('page_title', 'My Calls (Calls Assigned to Me)')
 
 @push('styles')
 <style>

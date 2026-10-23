@@ -64,6 +64,16 @@ public function fetchUsersForManager()
 public function fetchSalesUsers()
 {
     $users = User::where('is_sales', 1)
+                 ->where(function($q) {
+                     $q->whereNull('is_login')->orWhere('is_login', 1);
+                 })
+                 ->where(function($q) {
+                     $q->whereNull('employee_id')
+                       ->orWhereDoesntHave('employee')
+                       ->orWhereHas('employee', function($eq) {
+                           $eq->where('status', 'active');
+                       });
+                 })
                  ->select('id', 'name')
                  ->orderBy('name')
                  ->get();
