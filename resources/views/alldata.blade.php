@@ -793,6 +793,59 @@
     .modal-backdrop.show {
       background-color: rgba(15, 23, 42, 0.55);
     }
+
+    .prospect-search-wrapper {
+      width: 215px;
+      max-width: 60%;
+    }
+    .prospect-search-box {
+      border: 1px solid #d8dbe0;
+      border-radius: 4px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 8px;
+      transition: all 0.2s ease;
+    }
+    .prospect-search-box:focus-within {
+      border-color: #434AFA;
+      box-shadow: 0 0 0 2px rgba(67, 74, 250, 0.12);
+    }
+    .prospect-search-box input {
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      font-size: 0.76rem !important;
+      font-family: Montserrat, sans-serif !important;
+      width: 100%;
+      padding: 0 6px !important;
+      color: #334155;
+      height: 100%;
+    }
+    .prospect-search-box input::placeholder {
+      color: #94a3b8;
+    }
+    .prospect-search-box .search-icon {
+      color: #434AFA;
+      font-size: 0.72rem;
+      flex-shrink: 0;
+    }
+    .prospect-search-box .clear-btn {
+      background: none;
+      border: none;
+      padding: 0 2px;
+      color: #94a3b8;
+      font-size: 0.72rem;
+      cursor: pointer;
+      display: none;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .prospect-search-box .clear-btn:hover {
+      color: #475569;
+    }
   </style>
 @endpush
 
@@ -986,12 +1039,23 @@
               <!-- Column 1 -->
               <div class="col-md-6">
                 <div class="mb-2">
-                  <label for="add_lead_prospectus" class="form-label-modern">Prospect <span class="text-danger">*</span></label>
+                  <div class="d-flex justify-content-between align-items-center mb-1" style="min-height: 28px;">
+                    <label for="add_lead_prospectus" class="form-label-modern mb-0">Prospect <span class="text-danger">*</span></label>
+                    <div class="prospect-search-wrapper">
+                      <div class="prospect-search-box">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text" id="alldata_search_prospect_input" placeholder="Search prospect..." autocomplete="off">
+                        <button type="button" id="alldata_clear_prospect_search" class="clear-btn" title="Clear">
+                          <i class="bi bi-x-circle-fill"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                   <div class="input-group input-group-sm">
                     <select class="form-select form-select-modern" id="add_lead_prospectus" name="prospectus" required>
                       <option value="">Select Prospect</option>
                     </select>
-                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="openProspectusModal()">
+                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="openProspectusModal()" title="Add New Prospect">
                       <i class="bi bi-plus-lg"></i>
                     </button>
                   </div>
@@ -2095,12 +2159,30 @@
       fetchAddLeadOptions();
     });
 
+    let alldataProspectsList = [];
+
+    function populateAlldataProspectDropdown(list, selectedVal = null, placeholder = 'Select Prospect') {
+      let opts = `<option value="">${placeholder}</option>`;
+      let currentVal = selectedVal !== null ? selectedVal : $('#add_lead_prospectus').val();
+      let hasSelected = false;
+      $.each(list, function (key, val) {
+        let isSelected = (currentVal && currentVal == val.id) ? 'selected' : '';
+        if (isSelected) hasSelected = true;
+        opts += `<option value="${val.id}" ${isSelected}>${val.prospectus_name}</option>`;
+      });
+      $('#add_lead_prospectus').html(opts);
+      if (selectedVal) {
+        $('#add_lead_prospectus').val(selectedVal);
+      } else if (currentVal && hasSelected) {
+        $('#add_lead_prospectus').val(currentVal);
+      }
+    }
+
     function fetchAddLeadOptions() {
       // Prospect
       $.get("{{ route('getProspectus') }}", function (data) {
-        let opts = '<option value="">Select Prospect</option>';
-        $.each(data, function (key, val) { opts += `<option value="${val.id}">${val.prospectus_name}</option>`; });
-        $('#add_lead_prospectus').html(opts);
+        alldataProspectsList = data || [];
+        populateAlldataProspectDropdown(alldataProspectsList);
       });
 
       // States (Add Lead)
@@ -2264,9 +2346,18 @@
           showAlert('success', 'Prospect added successfully.');
           // Refresh Prospect Dropdown in Add Lead Modal
           $.get("{{ route('getProspectus') }}", function (data) {
-            let opts = '<option value="">Select Prospect</option>';
-            $.each(data, function (key, val) { opts += `<option value="${val.id}">${val.prospectus_name}</option>`; });
-            $('#add_lead_prospectus').html(opts);
+            alldataProspectsList = data || [];
+            let q = $('#alldata_search_prospect_input').val().toLowerCase().trim();
+            if (q) {
+              let filtered = alldataProspectsList.filter(function (p) {
+                return (p.prospectus_name || '').toLowerCase().includes(q) ||
+                       (p.contact_person || '').toLowerCase().includes(q) ||
+                       (p.contact_number || '').toLowerCase().includes(q);
+              });
+              populateAlldataProspectDropdown(filtered);
+            } else {
+              populateAlldataProspectDropdown(alldataProspectsList);
+            }
           });
         })
         .fail(function (xhr) {
@@ -2274,6 +2365,68 @@
           console.log(xhr.responseText);
         });
     }
+
+    // Search filter for Prospect dropdown in alldata with auto-selection
+    function filterAlldataProspects(q) {
+      if (!q) {
+        populateAlldataProspectDropdown(alldataProspectsList);
+        return;
+      }
+      let filtered = alldataProspectsList.filter(function (p) {
+        let name = (p.prospectus_name || '').toLowerCase();
+        let person = (p.contact_person || '').toLowerCase();
+        let phone = (p.contact_number || '').toLowerCase();
+        let email = (p.email || '').toLowerCase();
+        return name.includes(q) || person.includes(q) || phone.includes(q) || email.includes(q);
+      });
+
+      if (filtered.length === 0) {
+        populateAlldataProspectDropdown([], null, `No match for "${q}"`);
+      } else if (filtered.length === 1) {
+        // Auto-select single match and auto-fill lead details!
+        populateAlldataProspectDropdown(filtered, filtered[0].id);
+        $('#add_lead_prospectus').val(filtered[0].id).trigger('change');
+      } else {
+        populateAlldataProspectDropdown(filtered, null, `Select Prospect (${filtered.length} found)`);
+      }
+    }
+
+    $(document).on('input', '#alldata_search_prospect_input', function () {
+      let raw = $(this).val();
+      if (raw.length > 0) {
+        $('#alldata_clear_prospect_search').show();
+      } else {
+        $('#alldata_clear_prospect_search').hide();
+      }
+      filterAlldataProspects(raw.toLowerCase().trim());
+    });
+
+    $(document).on('click', '#alldata_clear_prospect_search', function () {
+      $('#alldata_search_prospect_input').val('');
+      $(this).hide();
+      filterAlldataProspects('');
+      $('#alldata_search_prospect_input').focus();
+    });
+
+    // Press Enter to pick first match immediately
+    $(document).on('keydown', '#alldata_search_prospect_input', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        let q = $(this).val().toLowerCase().trim();
+        if (!q) return;
+        let filtered = alldataProspectsList.filter(function (p) {
+          let name = (p.prospectus_name || '').toLowerCase();
+          let person = (p.contact_person || '').toLowerCase();
+          let phone = (p.contact_number || '').toLowerCase();
+          let email = (p.email || '').toLowerCase();
+          return name.includes(q) || person.includes(q) || phone.includes(q) || email.includes(q);
+        });
+        if (filtered.length > 0) {
+          populateAlldataProspectDropdown(filtered, filtered[0].id);
+          $('#add_lead_prospectus').val(filtered[0].id).trigger('change');
+        }
+      }
+    });
     function openProspectusModal() {
       $('#addLeadModal .blur-target').addClass('blur-active');
       $('#addProspectusModal').modal('show');
