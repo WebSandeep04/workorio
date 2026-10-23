@@ -123,12 +123,12 @@
       <!-- Column 1 -->
       <div class="col-md-4">
         <div class="mb-2">
-          <label for="prospectus" class="form-label">Prospectus</label>
+          <label for="prospectus" class="form-label">Prospect <span class="text-danger">*</span></label>
           <select class="form-select" id="prospectus" name="prospectus" required>
-            <option value="">Select Prospectus</option>
+            <option value="">Select Prospect</option>
           </select>
             <a href="#" class="small text-light text-decoration-none mt-1 d-inline-block" data-bs-toggle="modal" data-bs-target="#addProspectusModal">
-            + Add New Prospectus
+            + Add New Prospect
             </a>
         </div>
 
@@ -249,7 +249,7 @@
 
       <!-- Header -->
       <div class="modal-header">
-        <h5 class="modal-title" id="addProspectusModalLabel" style="font-size: 13px;">Add New Prospectus</h5>
+        <h5 class="modal-title" id="addProspectusModalLabel" style="font-size: 13px;">Add New Prospect</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
@@ -259,42 +259,42 @@
           <div class="row g-3">
 
             <div class="col-md-6">
-              <label for="modalnewProspectusName" class="form-label">Prospect Name</label>
-              <input type="text" class="form-control" id="modalnewProspectusName" name="modal_new_prospectus_name" placeholder="Enter Prospectus Name" required>
+              <label for="modalnewProspectusName" class="form-label">Prospect Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="modalnewProspectusName" name="modal_new_prospectus_name" placeholder="Enter Prospect Name" required>
             </div>
 
             <div class="col-md-6">
               <label for="modal_contact_person" class="form-label">Contact Person</label>
-              <input type="text" class="form-control" id="modal_contact_person" name="modal_contact_person" placeholder="Enter Contact Person" required>
+              <input type="text" class="form-control" id="modal_contact_person" name="modal_contact_person" placeholder="Enter Contact Person">
             </div>
 
             <div class="col-md-6">
               <label for="modal_contact_number" class="form-label">Contact Number</label>
-              <input type="text" class="form-control" id="modal_contact_number" name="modal_contact_number" placeholder="Enter Contact Number" required>
+              <input type="text" class="form-control" id="modal_contact_number" name="modal_contact_number" placeholder="Enter Contact Number">
             </div>
 
             <div class="col-md-6">
               <label for="modal_address" class="form-label">Address</label>
-              <input type="text" class="form-control" id="modal_address" name="modal_address" placeholder="Enter Address" required>
+              <input type="text" class="form-control" id="modal_address" name="modal_address" placeholder="Enter Address">
             </div>
 
             <div class="col-md-6">
               <label for="modal_state" class="form-label">State</label>
-              <select class="form-select" id="modal_state" name="modal_state" required>
+              <select class="form-select" id="modal_state" name="modal_state">
                 <option value="">Select State</option>
               </select>
             </div>
 
             <div class="col-md-6">
               <label for="modal_city" class="form-label">City</label>
-              <select class="form-select" id="modal_city" name="modal_city" required>
+              <select class="form-select" id="modal_city" name="modal_city">
                 <option value="">Select City</option>
               </select>
             </div>
 
             <div class="col-md-6">
               <label for="modal_email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="modal_email" name="modal_email" placeholder="Enter Email" required>
+              <input type="email" class="form-control" id="modal_email" name="modal_email" placeholder="Enter Email">
             </div>
 
             <div class="col-md-6">
@@ -306,7 +306,7 @@
 
                   <div class="col-md-6">
   <label for="modal_business_type" class="form-label">Business Type</label>
-  <select class="form-select" id="modal_business_type" name="modal_business_type" required>
+  <select class="form-select" id="modal_business_type" name="modal_business_type">
     <option value="">Loading...</option>
   </select>
 </div>

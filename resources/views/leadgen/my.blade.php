@@ -231,9 +231,9 @@
         <form id="addLeadForm">
            <div class="row g-2">
               <div class="col-md-6">
-                 <label class="form-label-modern">Prospectus <span style="color:red;">*</span></label>
+                 <label class="form-label-modern">Prospect <span style="color:red;">*</span></label>
                  <div class="input-group input-group-sm">
-                   <select id="add_lead_prospectus" class="form-select-modern" required><option value="">Select Prospectus</option></select>
+                   <select id="add_lead_prospectus" class="form-select-modern" required><option value="">Select Prospect</option></select>
                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="openProspectusModal()"><i class="bi bi-plus-lg"></i></button>
                  </div>
                  
@@ -271,7 +271,7 @@
 <div class="modal fade" id="addProspectusModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header"><h5><i class="bi bi-building-add text-white me-2"></i>Add New Prospectus</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5><i class="bi bi-building-add text-white me-2"></i>Add New Prospect</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
       <div class="modal-body py-2">
         <form id="addProspectusForm">
            <div class="row g-2">
@@ -364,7 +364,7 @@ function submitProspect(e) {
 
 function fetchProspectuses() {
     $.get('{{ route("getProspectus") }}', data => {
-        let h = '<option value="">Select Prospectus</option>';
+        let h = '<option value="">Select Prospect</option>';
         data.forEach(p => h += `<option value="${p.id}">${p.prospectus_name}</option>`);
         $('#add_lead_prospectus').html(h);
     });

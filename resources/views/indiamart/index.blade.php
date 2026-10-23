@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'IndiaMART Leads')
-@section('page_title', 'IndiaMART Leads')
+@section('title', 'External Leads')
+@section('page_title', 'External Leads')
 
 @push('styles')
 <style>

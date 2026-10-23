@@ -986,10 +986,10 @@
               <!-- Column 1 -->
               <div class="col-md-6">
                 <div class="mb-2">
-                  <label for="add_lead_prospectus" class="form-label-modern">Prospectus <span class="text-danger">*</span></label>
+                  <label for="add_lead_prospectus" class="form-label-modern">Prospect <span class="text-danger">*</span></label>
                   <div class="input-group input-group-sm">
                     <select class="form-select form-select-modern" id="add_lead_prospectus" name="prospectus" required>
-                      <option value="">Select Prospectus</option>
+                      <option value="">Select Prospect</option>
                     </select>
                     <button class="btn btn-outline-secondary btn-sm" type="button" onclick="openProspectusModal()">
                       <i class="bi bi-plus-lg"></i>
@@ -1110,7 +1110,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="addProspectusModalLabel" style="font-size: 1rem;">
-            <i class="bi bi-building-add text-white me-2"></i>Add New Prospectus
+            <i class="bi bi-building-add text-white me-2"></i>Add New Prospect
           </h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
@@ -1121,39 +1121,39 @@
               <div class="col-md-6">
                 <label for="modalnewProspectusName" class="form-label-modern">Prospect Name <span class="text-danger">*</span></label>
                 <input type="text" class="form-control form-control-modern" id="modalnewProspectusName"
-                  name="modal_new_prospectus_name" placeholder="Enter Prospectus Name" required>
+                  name="modal_new_prospectus_name" placeholder="Enter Prospect Name" required>
               </div>
               <div class="col-md-6">
-                <label for="modal_contact_person" class="form-label-modern">Contact Person <span class="text-danger">*</span></label>
+                <label for="modal_contact_person" class="form-label-modern">Contact Person</label>
                 <input type="text" class="form-control form-control-modern" id="modal_contact_person"
-                  name="modal_contact_person" placeholder="Enter Contact Person" required>
+                  name="modal_contact_person" placeholder="Enter Contact Person">
               </div>
               <div class="col-md-6">
-                <label for="modal_contact_number" class="form-label-modern">Contact Number <span class="text-danger">*</span></label>
+                <label for="modal_contact_number" class="form-label-modern">Contact Number</label>
                 <input type="text" class="form-control form-control-modern" id="modal_contact_number"
-                  name="modal_contact_number" placeholder="Enter Contact Number" required>
+                  name="modal_contact_number" placeholder="Enter Contact Number">
               </div>
               <div class="col-md-6">
-                <label for="modal_address" class="form-label-modern">Address <span class="text-danger">*</span></label>
+                <label for="modal_address" class="form-label-modern">Address</label>
                 <input type="text" class="form-control form-control-modern" id="modal_address" name="modal_address"
-                  placeholder="Enter Address" required>
+                  placeholder="Enter Address">
               </div>
               <div class="col-md-6">
-                <label for="modal_state" class="form-label-modern">State <span class="text-danger">*</span></label>
-                <select class="form-select form-select-modern" id="modal_state" name="modal_state" required>
+                <label for="modal_state" class="form-label-modern">State</label>
+                <select class="form-select form-select-modern" id="modal_state" name="modal_state">
                   <option value="">Select State</option>
                 </select>
               </div>
               <div class="col-md-6">
-                <label for="modal_city" class="form-label-modern">City <span class="text-danger">*</span></label>
-                <select class="form-select form-select-modern" id="modal_city" name="modal_city" required>
+                <label for="modal_city" class="form-label-modern">City</label>
+                <select class="form-select form-select-modern" id="modal_city" name="modal_city">
                   <option value="">Select City</option>
                 </select>
               </div>
               <div class="col-md-6">
-                <label for="modal_email" class="form-label-modern">Email <span class="text-danger">*</span></label>
+                <label for="modal_email" class="form-label-modern">Email</label>
                 <input type="email" class="form-control form-control-modern" id="modal_email" name="modal_email"
-                  placeholder="Enter Email" required>
+                  placeholder="Enter Email">
               </div>
               <div class="col-md-6">
                 <label for="modal_website_link" class="form-label-modern">Website</label>
@@ -1161,9 +1161,8 @@
                   name="modal_website_link" placeholder="Enter Website URL">
               </div>
               <div class="col-md-6">
-                <label for="modal_business_type" class="form-label-modern">Business Type <span class="text-danger">*</span></label>
-                <select class="form-select form-select-modern" id="modal_business_type" name="modal_business_type"
-                  required>
+                <label for="modal_business_type" class="form-label-modern">Business Type</label>
+                <select class="form-select form-select-modern" id="modal_business_type" name="modal_business_type">
                   <option value="">Loading...</option>
                 </select>
               </div>
@@ -2097,9 +2096,9 @@
     });
 
     function fetchAddLeadOptions() {
-      // Prospectus
+      // Prospect
       $.get("{{ route('getProspectus') }}", function (data) {
-        let opts = '<option value="">Select Prospectus</option>';
+        let opts = '<option value="">Select Prospect</option>';
         $.each(data, function (key, val) { opts += `<option value="${val.id}">${val.prospectus_name}</option>`; });
         $('#add_lead_prospectus').html(opts);
       });
@@ -2263,9 +2262,9 @@
           $('#addProspectusModal').modal('hide');
           $('#addProspectusForm')[0].reset();
           showAlert('success', 'Prospect added successfully.');
-          // Refresh Prospectus Dropdown in Add Lead Modal
+          // Refresh Prospect Dropdown in Add Lead Modal
           $.get("{{ route('getProspectus') }}", function (data) {
-            let opts = '<option value="">Select Prospectus</option>';
+            let opts = '<option value="">Select Prospect</option>';
             $.each(data, function (key, val) { opts += `<option value="${val.id}">${val.prospectus_name}</option>`; });
             $('#add_lead_prospectus').html(opts);
           });

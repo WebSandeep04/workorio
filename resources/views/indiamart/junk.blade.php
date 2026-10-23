@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'IndiaMART Junk Leads')
-@section('page_title', 'IndiaMART Junk Leads')
+@section('title', 'External Junk Leads')
+@section('page_title', 'External Junk Leads')
 
   @push('styles')
 <style>
@@ -17,7 +17,7 @@
     <div class="junk-hero-card shadow-sm">
         <div>
             <p class="eyebrow-text">Cleanup</p>
-            <h2 class="hero-title">IndiaMART Junk Leads</h2>
+            <h2 class="hero-title">External Junk Leads</h2>
             <p class="hero-subtitle">Review and restore valuable leads or remove the noise. Keep your pipeline fresh and intentional.</p>
         </div>
         <button class="btn btn-refresh" id="imj_refresh">

@@ -9,7 +9,7 @@ return [
             'sections' => [
                 [
                     'key' => 'crm',
-                    'title' => 'CRM',
+                    'title' => 'LMS',
                     'icon' => 'bi bi-person-lines-fill',
                     'feature_flag' => 'is_sales_enabled',
                     'roles' => ['admin'],

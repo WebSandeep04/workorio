@@ -158,7 +158,7 @@
 
       <!-- Header -->
       <div class="modal-header">
-        <h5 class="modal-title" id="editProspectusModalLabel">Edit Prospectus</h5>
+        <h5 class="modal-title" id="editProspectusModalLabel">Edit Prospect</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
@@ -169,47 +169,47 @@
           <div class="row g-3">
 
             <div class="col-md-6">
-              <label for="edit_modalnewProspectusName" class="form-label">Prospect Name</label>
-              <input type="text" class="form-control" id="edit_modalnewProspectusName" name="edit_modal_new_prospectus_name" placeholder="Enter Prospectus Name" required>
+              <label for="edit_modalnewProspectusName" class="form-label">Prospect Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="edit_modalnewProspectusName" name="edit_modal_new_prospectus_name" placeholder="Enter Prospect Name" required>
             </div>
 
             <div class="col-md-6">
               <label for="edit_modal_contact_person" class="form-label">Contact Person</label>
-              <input type="text" class="form-control" id="edit_modal_contact_person" name="edit_modal_contact_person" placeholder="Enter Contact Person" required>
+              <input type="text" class="form-control" id="edit_modal_contact_person" name="edit_modal_contact_person" placeholder="Enter Contact Person">
             </div>
 
             <div class="col-md-6">
               <label for="edit_modal_contact_number" class="form-label">Contact Number</label>
-              <input type="text" class="form-control" id="edit_modal_contact_number" name="edit_modal_contact_number" placeholder="Enter Contact Number" required>
+              <input type="text" class="form-control" id="edit_modal_contact_number" name="edit_modal_contact_number" placeholder="Enter Contact Number">
             </div>
 
             <div class="col-md-6">
               <label for="edit_modal_address" class="form-label">Address</label>
-              <input type="text" class="form-control" id="edit_modal_address" name="edit_modal_address" placeholder="Enter Address" required>
+              <input type="text" class="form-control" id="edit_modal_address" name="edit_modal_address" placeholder="Enter Address">
             </div>
 
             <div class="col-md-6">
               <label for="edit_modal_state" class="form-label">State</label>
-              <select class="form-select" id="edit_modal_state" name="edit_modal_state" required>
+              <select class="form-select" id="edit_modal_state" name="edit_modal_state">
                 <option value="">Select State</option>
               </select>
             </div>
 
             <div class="col-md-6">
               <label for="edit_modal_city" class="form-label">City</label>
-              <select class="form-select" id="edit_modal_city" name="edit_modal_city" required>
+              <select class="form-select" id="edit_modal_city" name="edit_modal_city">
                 <option value="">Select City</option>
               </select>
             </div>
 
             <div class="col-md-6">
               <label for="edit_modal_email" class="form-label">Email</label>
-              <input type="email" class="form-control" id="edit_modal_email" name="edit_modal_email" placeholder="Enter Email" required>
+              <input type="email" class="form-control" id="edit_modal_email" name="edit_modal_email" placeholder="Enter Email">
             </div>
 
             <div class="col-md-6">
               <label for="edit_modal_business_type" class="form-label">Business Type</label>
-              <select class="form-select" id="edit_modal_business_type" name="edit_modal_business_type" required>
+              <select class="form-select" id="edit_modal_business_type" name="edit_modal_business_type">
                 <option value="">Loading...</option>
               </select>
             </div>
@@ -220,7 +220,7 @@
 
       <!-- Footer -->
       <div class="modal-footer justify-content-center" style="background-color: #434afa;">
-        <button type="submit" onclick="updateProspect(event)" class="btn btn-warning fw-bold" form="editProspectusForm">Update Prospectus</button>
+        <button type="submit" onclick="updateProspect(event)" class="btn btn-warning fw-bold" form="editProspectusForm">Update Prospect</button>
       </div>
 
     </div>
