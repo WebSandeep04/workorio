@@ -94,11 +94,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2>🔔 New IndiaMART Lead Received</h2>
+            <h2>🔔 New External Lead Received</h2>
         </div>
         
         <div class="content">
-            <p>A new lead has been received from IndiaMART. Please review the details below:</p>
+            <p>A new external lead has been received{{ !empty($leadData['source']) ? ' from ' . $leadData['source'] : (isset($leadData['lead_source']) ? ' from ' . $leadData['lead_source'] : '') }}. Please review the details below:</p>
             
             <div class="field">
                 <span class="label">Name:</span>

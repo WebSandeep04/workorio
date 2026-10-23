@@ -27,7 +27,8 @@ class IndiaMartLeadNotification extends Mailable
      */
     public function envelope(): Envelope
     {
-        $subject = "New IndiaMART Lead: " . ($this->leadData['sender_company'] ?? $this->leadData['sender_name'] ?? 'Unknown');
+        $source = !empty($this->leadData['source']) ? $this->leadData['source'] : (!empty($this->leadData['lead_source']) ? $this->leadData['lead_source'] : 'External');
+        $subject = "New {$source} Lead: " . ($this->leadData['sender_company'] ?? $this->leadData['sender_name'] ?? 'Unknown');
         
         return new Envelope(
             subject: $subject,
