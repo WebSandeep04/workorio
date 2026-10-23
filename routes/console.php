@@ -116,29 +116,35 @@ Schedule::command('subscription:send-mail', ['--alert=9'])
     ->timezone('Asia/Kolkata')
     ->description('Send daily subscription summary and overdue alerts');
 
-Schedule::command('calling:send-analytic-report', ['--alert=10'])
+Schedule::command('whatsapp:send-inbox-mail', ['--alert=10'])
+    ->daily()
+    ->at('14:45')
+    ->timezone('Asia/Kolkata')
+    ->description('Send daily summary of the WhatsApp Inbox (All section) to Admins');
+
+Schedule::command('calling:send-analytic-report', ['--alert=11'])
     ->daily()
     ->at('19:30')
     ->timezone('Asia/Kolkata')
     ->description('Send daily calling analytic reports to admins for all tenants');
 
-Schedule::command('attendance:send-night-mail', ['--alert=11'])
+Schedule::command('attendance:send-night-mail', ['--alert=12'])
     ->daily()
     ->at('20:35')
     ->timezone('Asia/Kolkata')
     ->description('Send evening attendance summary and monthly breakdown to all active users');
 
-Schedule::command('worklog:send-today-mail', ['--alert=12'])
+Schedule::command('worklog:send-today-mail', ['--alert=13'])
     ->daily()
     ->at('20:40')
     ->timezone('Asia/Kolkata')
     ->description("Send today's worklog summary to HR/Admins");
 
-Schedule::command('sales:send-admin-follow-up-report', ['--alert=13'])
-    ->daily()
-    ->at('23:30')
-    ->timezone('Asia/Kolkata')
-    ->description('Send consolidated daily follow-up reports to tenant admins/managers');
+// Schedule::command('sales:send-admin-follow-up-report', ['--alert=14'])
+//     ->daily()
+//     ->at('23:30')
+//     ->timezone('Asia/Kolkata')
+//     ->description('Send consolidated daily follow-up reports to tenant admins/managers');
 
 
 Schedule::call(function () {
