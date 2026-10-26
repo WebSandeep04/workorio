@@ -350,6 +350,17 @@
                 </table>
             </div>
         </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+            <div class="d-flex align-items-center">
+                <div class="table-range-meta" id="campRangeInfo">Showing 0-0 from 0 data</div>
+                <div class="goto-page-wrapper" id="campGotoPageWrapper" style="display: none;">
+                    <input type="number" id="campGotoPageInput" class="goto-page-input" placeholder="Page">
+                    <button id="campGotoPageBtn" class="goto-page-btn">Go</button>
+                </div>
+            </div>
+            <ul class="pagination mb-0" id="campPaginationLinks"></ul>
+        </div>
     </div>
 </div>
 
@@ -404,14 +415,17 @@
             });
         }
 
-        window.loadCampaignLeads = function(campId, campName) {
+        let currentCampName = '';
+
+        window.loadCampaignLeads = function(campId, campName, page = 1) {
             currentCampaignId = campId;
-            $('#selectedCampTitle').text(campName);
+            if (campName) currentCampName = campName;
+            $('#selectedCampTitle').text(currentCampName);
             $('#campaignListView').hide();
             $('#campaignDataView').fadeIn(200);
-            $('#campDataTable tbody').html('<tr><td colspan="7" class="text-center p-4 text-muted">Executing query...</td></tr>');
+            $('#campDataTable tbody').html('<tr><td colspan="11" class="text-center p-4 text-muted">Executing query...</td></tr>');
 
-            $.post('{{ route("calling.my.filter") }}', { campaign_id: campId }).done(function(data) {
+            $.post('{{ route("calling.my.filter") }}?page=' + page, { campaign_id: campId }).done(function(data) {
                 let rows = data.data || [];
                 let html = '';
                 rows.forEach(function(r) {
@@ -436,9 +450,27 @@
                         </td>
                     </tr>`;
                 });
-                if(!rows.length) html = '<tr><td colspan="7" class="text-center p-4">Empty result set.</td></tr>';
+                if(!rows.length) html = '<tr><td colspan="11" class="text-center p-4">Empty result set.</td></tr>';
                 $('#campDataTable tbody').html(html);
+                buildCampPagination(data);
             });
+        }
+
+        function buildCampPagination(data) {
+            const $container = $('#campPaginationLinks');
+            $container.empty();
+            if (!data.last_page || data.last_page <= 1) {
+                $('#campGotoPageWrapper').hide();
+                $('#campRangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
+                return;
+            }
+            $('#campGotoPageWrapper').show();
+            $('#campGotoPageInput').attr('max', data.last_page).val(data.current_page);
+
+            $container.append(`<li class="page-item ${data.current_page === 1 ? 'disabled' : ''}"><a class="page-link camp-page-link" href="#" data-page="${data.current_page - 1}"><i class="bi bi-chevron-left"></i> Previous</a></li>`);
+            $container.append(`<li class="page-item active"><span class="page-link">${data.current_page} / ${data.last_page}</span></li>`);
+            $container.append(`<li class="page-item ${data.current_page === data.last_page ? 'disabled' : ''}"><a class="page-link camp-page-link" href="#" data-page="${data.current_page + 1}">Next <i class="bi bi-chevron-right"></i></a></li>`);
+            $('#campRangeInfo').text(`Showing ${data.from || 0}-${data.to || 0} from ${data.total || 0} data`);
         }
 
         function getTeamDropdown(id, campId) {
@@ -604,7 +636,36 @@
             loadData(1);
         });
 
-        $(document).on('click', '.page-link', function(e) { e.preventDefault(); loadData($(this).data('page')); });
+        $('#campGotoPageBtn').on('click', function() {
+            const page = parseInt($('#campGotoPageInput').val());
+            const max = parseInt($('#campGotoPageInput').attr('max'));
+            if (page >= 1 && page <= max) {
+                if (currentCampaignId) {
+                    loadCampaignLeads(currentCampaignId, null, page);
+                }
+            } else {
+                alert('Please enter a valid page number between 1 and ' + max);
+            }
+        });
+
+        $('#campGotoPageInput').on('keypress', function(e) {
+            if (e.which == 13) {
+                $('#campGotoPageBtn').click();
+            }
+        });
+
+        $(document).on('click', '.camp-page-link', function(e) {
+            e.preventDefault();
+            const page = $(this).data('page');
+            if (page && currentCampaignId) {
+                loadCampaignLeads(currentCampaignId, null, page);
+            }
+        });
+
+        $(document).on('click', '.page-link:not(.camp-page-link)', function(e) { 
+            e.preventDefault(); 
+            loadData($(this).data('page')); 
+        });
     });
 </script>
 @endpush
