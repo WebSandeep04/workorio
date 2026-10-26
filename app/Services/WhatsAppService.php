@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Msg91Setting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -13,13 +14,15 @@ class WhatsAppService
     protected $templateName;
     protected $apiUrl = 'https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/';
 
-    public function __construct()
+    public function __construct(?Msg91Setting $setting = null)
     {
-        // Load from config or environment
-        $this->authKey = env('MSG91_AUTH_KEY', 'YOUR_MSG91_AUTH_KEY');
-        $this->integratedNumber = env('MSG91_WHATSAPP_NUMBER', '919451820817');
-        $this->templateNamespace = env('MSG91_TEMPLATE_NAMESPACE', '78b03afb_64e5_429f_813d_68bad14fe1cd');
-        $this->templateName = env('MSG91_INDIAMART_TEMPLATE', 'india_mart_leads_greeting');
+        // Load from current tenant's msg91_settings table
+        $setting = $setting ?? Msg91Setting::first();
+
+        $this->authKey = $setting?->auth_key;
+        $this->integratedNumber = $setting?->whatsapp_number;
+        $this->templateNamespace = $setting?->whatsapp_namespace;
+        $this->templateName = 'india_mart_leads_greeting';
     }
 
     /**
@@ -31,8 +34,13 @@ class WhatsAppService
     public function sendLeadGreeting($leadData)
     {
         // Skip if WhatsApp is not configured
-        if ($this->authKey === 'YOUR_MSG91_AUTH_KEY') {
-            Log::info('WhatsApp Service: Skipped - MSG91_AUTH_KEY not configured');
+        if (empty($this->authKey) || $this->authKey === 'YOUR_MSG91_AUTH_KEY') {
+            Log::info('WhatsApp Service: Skipped - MSG91 credentials not configured');
+            return false;
+        }
+
+        if (empty($this->integratedNumber) || empty($this->templateNamespace)) {
+            Log::info('WhatsApp Service: Skipped - MSG91 integrated number or namespace not configured');
             return false;
         }
 

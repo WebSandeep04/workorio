@@ -104,6 +104,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WhatsappTemplateController;
 use App\Http\Controllers\WhatsappCampaignController;
 use App\Http\Controllers\Msg91TemplateController;
+use App\Http\Controllers\Msg91SettingController;
 use App\Http\Controllers\WhatsappInboxController;
 use App\Http\Controllers\WorkflowDependencyController;
 use App\Http\Controllers\WorkflowTaskDependencyController;
@@ -590,6 +591,11 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Map API Settings (Software Setup)
     Route::get('/software-setup/map-settings', [TrackingController::class, 'mapSettingsView'])->name('software-setup.map-settings.index');
     Route::post('/software-setup/map-settings', [TrackingController::class, 'saveMapSettings'])->name('software-setup.map-settings.save');
+
+    // MSG91 WhatsApp Settings (Software Setup)
+    Route::get('/software-setup/msg91-settings', [Msg91SettingController::class, 'index'])->name('software-setup.msg91-settings.index');
+    Route::post('/software-setup/msg91-settings', [Msg91SettingController::class, 'store'])->name('software-setup.msg91-settings.store');
+    Route::post('/software-setup/msg91-settings/test', [Msg91SettingController::class, 'testConnection'])->name('software-setup.msg91-settings.test');
 
     // All Data (Admin)
     Route::get('/alldata', [AllDataController::class, 'index'])->name('alldata');

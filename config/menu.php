@@ -460,6 +460,7 @@ return [
                         // • Whatsapp Template
                         // Ah! It's in both or just here? Let's leave it where PDF says. Wait, PDF page 3 says WhatsApp Management -> Templates -> Whatsapp Template. And Page 5 says Communication Setup -> Whatsapp Template. I'll put it in both.
                         ['route' => 'whatsapp-template.index', 'title' => 'Whatsapp Template', 'icon' => 'bi bi-whatsapp', 'permission' => 'setup.whatsapp_templates', 'feature_flag' => 'is_tally_calling_setup_enabled'],
+                        ['route' => 'software-setup.msg91-settings.index', 'title' => 'WhatsApp MSG91 Settings', 'icon' => 'bi bi-gear-wide-connected', 'roles' => ['admin']],
                         ['route' => 'software-setup.notifications.index', 'title' => 'Notifications', 'icon' => 'bi bi-bell-fill', 'permission' => 'setup.notifications', 'feature_flag' => 'is_master_setup_enabled'],
                     ]
                 ],

@@ -205,7 +205,21 @@
             },
             error: function(xhr) {
                 let msg = xhr.responseJSON?.message || 'Error fetching data';
-                $('#templatesTableBody').html(`<tr><td colspan="5" class="text-center text-danger py-4">${msg}</td></tr>`);
+                if (msg.includes('MSG91 Settings not configured')) {
+                    $('#templatesTableBody').html(`
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="text-danger fw-semibold mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> MSG91 Settings not configured.</div>
+                                <p class="text-muted small mb-3">Please configure your MSG91 Auth Key, WhatsApp number, and namespace to load templates.</p>
+                                <a href="{{ route('software-setup.msg91-settings.index') }}" class="btn btn-sm btn-primary px-3 shadow-sm">
+                                    <i class="bi bi-gear-wide-connected me-1"></i> Configure MSG91 Settings
+                                </a>
+                            </td>
+                        </tr>
+                    `);
+                } else {
+                    $('#templatesTableBody').html(`<tr><td colspan="5" class="text-center text-danger py-4">${msg}</td></tr>`);
+                }
                 updateRangeInfo(0, 0, 0);
                 $('#paginationLinks').html('');
             }
