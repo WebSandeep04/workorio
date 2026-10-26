@@ -18,7 +18,12 @@ class IndiaMartLeadsController extends Controller
 {
     public function index()
     {
-        return view('indiamart.index');
+        $tenantId = session('tenant_id') ?? (auth()->check() ? auth()->user()->tenant_id : 1);
+        $tenant = \App\Models\Tenant::on('mysql')->find($tenantId);
+        $tenantSlug = $tenant ? ($tenant->tenant_code ?: $tenant->id) : 1;
+        $indiamartWebhookUrl = url("/api/indiamart/webhook/{$tenantSlug}");
+
+        return view('indiamart.index', compact('indiamartWebhookUrl', 'tenant'));
     }
 
     public function junkIndex()

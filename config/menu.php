@@ -373,6 +373,7 @@ return [
                         ['route' => 'product', 'title' => 'Product', 'icon' => 'bi bi-box2', 'permission' => 'setup.products', 'feature_flag' => 'is_sales_setup_enabled'],
                         ['route' => 'status', 'title' => 'Sales Status', 'icon' => 'bi bi-check2-circle', 'permission' => 'setup.sales_status', 'feature_flag' => 'is_sales_setup_enabled'],
                         ['route' => 'quotation.setup', 'title' => 'Quotation Setup', 'icon' => 'bi bi-file-earmark-text', 'permission' => 'setup.quotation', 'feature_flag' => 'is_sales_setup_enabled'],
+                        ['route' => 'software-setup.indiamart-settings.index', 'title' => 'IndiaMART Setup', 'icon' => 'bi bi-broadcast', 'roles' => ['admin']],
                     ]
                 ],
                 [

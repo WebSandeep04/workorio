@@ -468,6 +468,10 @@ use App\Http\Controllers\WhatsappWebhookController;
 Route::post('msg91/webhook/{tenant}/inbound', [WhatsappWebhookController::class, 'handleInbound'])->name('msg91.webhook.inbound');
 Route::post('msg91/webhook/{tenant}/outbound', [WhatsappWebhookController::class, 'handleOutbound'])->name('msg91.webhook.outbound');
 
+// Multi-Tenant IndiaMART Push API Webhook
+use App\Http\Controllers\IndiaMartWebhookController;
+Route::match(['get', 'post'], 'indiamart/webhook/{tenant}', [IndiaMartWebhookController::class, 'handle'])->name('indiamart.webhook');
+
 // Legacy fallback
 Route::post('msg91/whatsapp-webhook', [WhatsappWebhookController::class, 'handleInbound']);
 

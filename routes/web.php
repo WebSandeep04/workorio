@@ -50,6 +50,7 @@ use App\Http\Controllers\FollowupController;
 use App\Http\Controllers\FormBuilderController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\IndiaMartLeadsController;
+use App\Http\Controllers\IndiaMartWebhookController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceFollowupController;
 use App\Http\Controllers\JunkCallingController;
@@ -596,6 +597,9 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/software-setup/msg91-settings', [Msg91SettingController::class, 'index'])->name('software-setup.msg91-settings.index');
     Route::post('/software-setup/msg91-settings', [Msg91SettingController::class, 'store'])->name('software-setup.msg91-settings.store');
     Route::post('/software-setup/msg91-settings/test', [Msg91SettingController::class, 'testConnection'])->name('software-setup.msg91-settings.test');
+
+    // IndiaMART Push API Settings (Software Setup > Sales Setup)
+    Route::get('/software-setup/indiamart-settings', [IndiaMartWebhookController::class, 'settingsView'])->name('software-setup.indiamart-settings.index');
 
     // All Data (Admin)
     Route::get('/alldata', [AllDataController::class, 'index'])->name('alldata');
