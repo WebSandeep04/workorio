@@ -243,6 +243,36 @@
           </li>
         </ul>
 
+        <div class="card bg-white border border-primary border-opacity-25 p-3 rounded-3 mb-3 shadow-sm">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="fw-bold text-dark small"><i class="bi bi-link-45deg text-primary me-1"></i>Your Tenant Webhook URLs</span>
+            <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 10px;">Tenant: {{ $tenant->tenant_name ?? 'Current' }}</span>
+          </div>
+          <p class="text-muted" style="font-size: 11px;">Configure these two URLs in your MSG91 WhatsApp Webhook dashboard so incoming messages and delivery reports update automatically.</p>
+
+          <!-- Inbound Webhook -->
+          <div class="mb-2">
+            <label class="form-label mb-1" style="font-size: 11px; font-weight: 600;">Inbound Webhook (Customer Replies)</label>
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control bg-light font-monospace" style="font-size: 11px;" value="{{ $inboundWebhookUrl }}" id="inboundWebhookInput" readonly>
+              <button class="btn btn-outline-primary btn-copy" type="button" data-clipboard-target="#inboundWebhookInput" title="Copy to clipboard">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Outbound Webhook -->
+          <div>
+            <label class="form-label mb-1" style="font-size: 11px; font-weight: 600;">Outbound Webhook (Delivery Reports)</label>
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control bg-light font-monospace" style="font-size: 11px;" value="{{ $outboundWebhookUrl }}" id="outboundWebhookInput" readonly>
+              <button class="btn btn-outline-primary btn-copy" type="button" data-clipboard-target="#outboundWebhookInput" title="Copy to clipboard">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="card bg-light border-0 p-3 rounded-3">
           <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-link-45deg text-primary fs-5"></i>
@@ -387,6 +417,24 @@ $(document).ready(function() {
         });
       }
     });
+  // Clipboard Copy for Webhook URLs
+  $('.btn-copy').on('click', function() {
+    const targetSelector = $(this).data('clipboard-target');
+    const input = $(targetSelector);
+    if (input.length) {
+      input.select();
+      navigator.clipboard.writeText(input.val()).then(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Copied!',
+          text: 'Webhook URL copied to clipboard.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }).catch(() => {
+        document.execCommand('copy');
+      });
+    }
   });
 });
 </script>

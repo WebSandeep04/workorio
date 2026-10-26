@@ -15,7 +15,16 @@ class Msg91SettingController extends Controller
     public function index()
     {
         $setting = Msg91Setting::first();
-        return view('software-setup.msg91-settings.index', compact('setting'));
+        
+        // Get current tenant
+        $tenantId = session('tenant_id') ?? (auth()->check() ? auth()->user()->tenant_id : 1);
+        $tenant = \App\Models\Tenant::on('mysql')->find($tenantId);
+        $tenantSlug = $tenant ? ($tenant->tenant_code ?: $tenant->id) : 1;
+
+        $inboundWebhookUrl = url("/api/msg91/webhook/{$tenantSlug}/inbound");
+        $outboundWebhookUrl = url("/api/msg91/webhook/{$tenantSlug}/outbound");
+
+        return view('software-setup.msg91-settings.index', compact('setting', 'tenant', 'inboundWebhookUrl', 'outboundWebhookUrl'));
     }
 
     /**

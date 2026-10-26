@@ -464,6 +464,11 @@ Route::middleware(['tenant.db', 'auth:sanctum'])->group(function () {
     Route::post('/gemini/parse-card', [GeminiController::class, 'parseCard']);
 
 use App\Http\Controllers\WhatsappWebhookController;
-Route::post('msg91/whatsapp-webhook', [WhatsappWebhookController::class, 'handle']);
+// Multi-Tenant MSG91 WhatsApp Webhooks
+Route::post('msg91/webhook/{tenant}/inbound', [WhatsappWebhookController::class, 'handleInbound'])->name('msg91.webhook.inbound');
+Route::post('msg91/webhook/{tenant}/outbound', [WhatsappWebhookController::class, 'handleOutbound'])->name('msg91.webhook.outbound');
+
+// Legacy fallback
+Route::post('msg91/whatsapp-webhook', [WhatsappWebhookController::class, 'handleInbound']);
 
 Route::get('/tracking/report/user-wise', [App\Http\Controllers\Api\TrackingReportApiController::class, 'getUserWiseReport'])->middleware(['tenant.db']);
