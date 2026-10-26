@@ -95,6 +95,9 @@ class MyCallingController extends Controller
         if ($request->filled('campaign_id')) {
             $query->where('calling_campaign_calling.calling_campaign_id', $request->campaign_id);
         }
+        if ($request->filled('calling_type_id')) {
+            $query->where('calling_campaign_calling.calling_type_id', $request->calling_type_id);
+        }
         if ($request->filled('state_id')) {
             $stateName = \App\Models\State::where('id', $request->state_id)->value('state_name');
             if ($stateName) {
@@ -113,7 +116,25 @@ class MyCallingController extends Controller
 
     public function getFilterOptions()
     {
+        $userId = $this->getCurrentUserId();
+
+        // Get campaigns where the user has assigned leads, or all active campaigns
+        $userCampaigns = DB::table('calling_campaign_calling')
+            ->join('calling_campaigns', 'calling_campaign_calling.calling_campaign_id', '=', 'calling_campaigns.id')
+            ->where('calling_campaign_calling.user_id', $userId)
+            ->where('calling_campaign_calling.is_locked', 1)
+            ->select('calling_campaigns.id', 'calling_campaigns.name')
+            ->distinct()
+            ->orderBy('calling_campaigns.name')
+            ->get();
+
+        // Fallback to all campaigns if user has none assigned yet
+        if ($userCampaigns->isEmpty()) {
+            $userCampaigns = \App\Models\CallingCampaign::orderBy('name')->get(['id', 'name']);
+        }
+
         return response()->json([
+            'campaigns' => $userCampaigns,
             'states' => \App\Models\State::orderBy('state_name')->get([
                 'id', \DB::raw('state_name as name')
             ]),

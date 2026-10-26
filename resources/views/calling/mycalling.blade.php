@@ -245,6 +245,12 @@
     <div id="mainListView">
         <div class="filterBox">
             <div>
+                <label for="filter_campaign" class="form-label-modern"><i class="bi bi-megaphone"></i> Campaign</label>
+                <select id="filter_campaign" class="form-control-modern">
+                    <option value="">All Campaigns</option>
+                </select>
+            </div>
+            <div>
                 <label for="filter_state" class="form-label-modern"><i class="bi bi-geo-alt"></i> State</label>
                 <select id="filter_state" class="form-control-modern">
                     <option value="">All States</option>
@@ -465,6 +471,12 @@
 
         function loadFilterData() {
             $.get('{{ route("calling.my.filter-options") }}', function(resp) {
+                var $camp = $('#filter_campaign');
+                $camp.empty().append('<option value="">All Campaigns</option>');
+                (resp.campaigns || []).forEach(function(c){
+                    $camp.append('<option value="'+c.id+'">'+c.name+'</option>');
+                });
+
                 var $state = $('#filter_state');
                 $state.empty().append('<option value="">All States</option>');
                 (resp.states || []).forEach(function(s){
@@ -528,14 +540,15 @@
 
         function loadData(page = 1) {
             var name = ($('#filter_name').val() || '').trim();
+            var campaignId = $('#filter_campaign').val();
             var stateId = $('#filter_state').val();
             var cityId = $('#filter_city').val();
             var typeId = $('#filter_calling_type').val();
-            const appliedCount = [name, stateId, cityId, typeId].filter(Boolean).length;
+            const appliedCount = [name, campaignId, stateId, cityId, typeId].filter(Boolean).length;
             $('#activeFilters').text(appliedCount);
 
             $.post('{{ route("calling.my.filter") }}?page=' + page, {
-                name: name, state_id: stateId, city_id: cityId, calling_type_id: typeId
+                name: name, campaign_id: campaignId, state_id: stateId, city_id: cityId, calling_type_id: typeId
             }).done(function(data){
                 renderRows(data.data || []);
                 buildPagination(data);
@@ -580,12 +593,13 @@
             loadData(1);
         });
 
+        $('#filter_campaign').on('change', () => loadData(1));
         $('#filter_state').on('change', function(){ loadCitiesByState($(this).val()); loadData(1); });
         $('#filter_city').on('change', () => loadData(1));
         $('#filter_calling_type').on('change', () => loadData(1));
         $('#filter_name').on('input', function() { loadData(1); });
         $('#resetFilters').on('click', function() {
-            $('#filter_name').val(''); $('#filter_state').val(''); $('#filter_city').html('<option value="">All Cities</option>');
+            $('#filter_name').val(''); $('#filter_campaign').val(''); $('#filter_state').val(''); $('#filter_city').html('<option value="">All Cities</option>');
             $('#filter_calling_type').val('');
             loadData(1);
         });
