@@ -94,9 +94,18 @@
                 </div>
                 <div class="col-md-12 mt-2">
                     <div id="whatsapp_action_container" style="display: none;">
-                        <button type="button" class="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center" id="whatsapp_btn" style="background-color: #434AFA; border: none; padding: 8px;">
-                            <i class="bi bi-whatsapp me-2"></i> Send WhatsApp
-                        </button>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-sm w-100 d-flex align-items-center justify-content-center text-white" id="whatsapp_btn" style="background-color: #25D366; border: none; padding: 8px; font-weight: 600;">
+                                    <i class="bi bi-whatsapp me-2 fs-6"></i> Send WhatsApp
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn btn-sm w-100 d-flex align-items-center justify-content-center text-white" id="outlook_btn" style="background-color: #0078D4; border: none; padding: 8px; font-weight: 600;">
+                                    <i class="bi bi-envelope-at me-2 fs-6"></i> Send Outlook
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -285,6 +294,9 @@
           <button type="button" class="btn btn-sm btn-outline-primary" id="composer_copy_btn">
             <i class="bi bi-clipboard me-1"></i> Copy Text
           </button>
+          <button type="button" class="btn btn-sm text-white px-3" id="composer_outlook_btn" style="background-color: #0078D4; border-color: #0078D4;">
+            <i class="bi bi-envelope-at me-1 fs-6"></i> Open in Outlook
+          </button>
           <button type="button" class="btn btn-sm btn-success px-3" id="composer_send_btn" style="background-color: #25D366; border-color: #25D366;">
             <i class="bi bi-whatsapp me-1 fs-6"></i> Send via WhatsApp
           </button>
@@ -458,6 +470,8 @@ $(document).ready(function() {
     const interestedBtnContainer = $('#interested_action_container');
     const statusSelect = $('#calling_type_id');
     const leadPhone = "{{ $calling->phone }}";
+    const leadEmail = "{{ $calling->email }}";
+    const leadName = "{{ $calling->name }}";
     let interestedUsersFetched = false;
 
     function checkStatusForWhatsapp() {
@@ -632,6 +646,37 @@ $(document).ready(function() {
         const whatsappUrl = `https://wa.me/${finalPhone}?text=${encodedMsg}`;
 
         window.open(whatsappUrl, '_blank');
+        $('#whatsappTemplateModal').modal('hide');
+    });
+
+    // Open Outlook button triggers
+    $('#outlook_btn').on('click', function() {
+        $('#whatsappTemplateModal').modal('show');
+    });
+
+    $('#composer_outlook_btn').on('click', function() {
+        const fullMessage = updateWhatsAppPreview();
+        if (!fullMessage || fullMessage === '(No message text or documents selected)') {
+            Swal.fire('Notice', 'Please enter a message or select a template/document.', 'warning');
+            return;
+        }
+
+        const templateName = $('#composer_template_select option:selected').text().trim();
+        const subject = templateName && !templateName.includes('Custom Message') 
+            ? templateName + ' - ' + (leadName || 'Information') 
+            : 'Details from Our Discussion - ' + (leadName || '');
+
+        const encodedSubject = encodeURIComponent(subject);
+        const encodedBody = encodeURIComponent(fullMessage);
+        const emailRecipient = leadEmail || '';
+
+        // Mailto URL automatically opens Outlook (or default email client) with pre-filled To, Subject, and Body with download links
+        const mailtoUrl = `mailto:${emailRecipient}?subject=${encodedSubject}&body=${encodedBody}`;
+
+        // Direct web link fallback for Outlook Web / Office 365
+        // window.open(`https://outlook.office.com/mail/deeplink/compose?to=${emailRecipient}&subject=${encodedSubject}&body=${encodedBody}`, '_blank');
+        
+        window.location.href = mailtoUrl;
         $('#whatsappTemplateModal').modal('hide');
     });
 });
