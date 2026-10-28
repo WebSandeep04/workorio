@@ -293,11 +293,11 @@
         <table class="table custom-table" id="templateTable">
           <thead>
             <tr>
-              <th style="width: 50px;">ID</th>
+              <th style="width: 60px;">ID</th>
               <th style="width: 180px;">Name</th>
-              <th>Template Text</th>
-              <th style="width: 250px;">Attached WhatsApp Documents</th>
-              <th style="width: 90px; text-align: center;">Actions</th>
+              <th style="max-width: 450px;">Template Text</th>
+              <th style="width: 110px; text-align: center;">Attached</th>
+              <th style="width: 110px; text-align: center; white-space: nowrap;">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -483,24 +483,25 @@ function loadTemplates(page = 1) {
                 $('#paginationLinks').empty();
             } else {
                 data.data.forEach(function (temp) {
-                    let docBadges = '';
-                    if (temp.documents && temp.documents.length > 0) {
-                        temp.documents.forEach(function(doc) {
-                            docBadges += `<a href="${doc.file_url}" target="_blank" class="doc-badge text-decoration-none" title="${doc.title}"><i class="bi bi-paperclip"></i> ${doc.title.length > 20 ? doc.title.substring(0, 20) + '...' : doc.title}</a>`;
-                        });
-                    } else {
-                        docBadges = '<span class="text-muted small fst-italic">No documents</span>';
-                    }
+                    const docCount = (temp.documents && temp.documents.length) ? temp.documents.length : 0;
+                    const docTitles = docCount > 0 ? temp.documents.map(d => d.title).join(', ') : 'No documents attached';
+                    let docBadge = docCount > 0 
+                        ? `<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1" style="font-size: 0.75rem; font-weight: 600;" title="${docTitles}">
+                                <i class="bi bi-paperclip me-1"></i>${docCount} ${docCount === 1 ? 'Doc' : 'Docs'}
+                           </span>`
+                        : `<span class="text-muted small" style="font-size: 0.75rem;">0</span>`;
 
                     html += `
                         <tr>
                             <td>${temp.id}</td>
                             <td><strong>${temp.name}</strong></td>
-                            <td class="text-truncate" style="max-width: 300px;" title="${temp.text.replace(/"/g, '&quot;')}">${temp.text}</td>
-                            <td>${docBadges}</td>
-                            <td style="text-align: center;">
-                                <button class="btn-action btn-action-edit edit-btn" data-id="${temp.id}" title="Edit"><i class="bi bi-pencil"></i></button>
-                                <button class="btn-action btn-action-delete delete-btn" data-id="${temp.id}" title="Delete"><i class="bi bi-trash"></i></button>
+                            <td style="max-width: 450px; white-space: normal; word-break: break-word;" title="${temp.text.replace(/"/g, '&quot;')}">${temp.text}</td>
+                            <td style="text-align: center; white-space: nowrap;">${docBadge}</td>
+                            <td style="text-align: center; white-space: nowrap;">
+                                <div class="d-inline-flex align-items-center justify-content-center gap-1">
+                                    <button class="btn-action btn-action-edit edit-btn" data-id="${temp.id}" title="Edit"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn-action btn-action-delete delete-btn" data-id="${temp.id}" title="Delete"><i class="bi bi-trash"></i></button>
+                                </div>
                             </td>
                         </tr>
                     `;
