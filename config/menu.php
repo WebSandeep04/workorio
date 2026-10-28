@@ -321,6 +321,7 @@ return [
                         ['route' => 'city', 'title' => 'City', 'icon' => 'bi bi-geo-alt', 'permission' => 'setup.city', 'feature_flag' => 'is_core_setup_enabled'],
                         ['route' => 'places.index', 'title' => 'Places', 'icon' => 'bi bi-map', 'permission' => 'setup.places', 'feature_flag' => 'is_master_setup_enabled'],
                         ['route' => 'software-setup.map-settings.index', 'title' => 'Map API Setting', 'icon' => 'bi bi-geo-alt-fill', 'permission' => 'setup.map_settings', 'feature_flag' => 'is_master_setup_enabled'],
+                        ['route' => 'software-setup.ai-settings.index', 'title' => 'AI API Settings', 'icon' => 'bi bi-cpu', 'roles' => ['admin'], 'feature_flag' => 'is_master_setup_enabled'],
                     ]
                 ],
                 [

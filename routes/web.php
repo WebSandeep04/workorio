@@ -100,6 +100,7 @@ use App\Http\Controllers\TeamLeadsController;
 use App\Http\Controllers\TenantController;
 use App\Http\Controllers\TodaysCallingController;
 use App\Http\Controllers\TrackingController;
+use App\Http\Controllers\AiSettingController;
 use App\Http\Controllers\UnlockAttendanceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WhatsappTemplateController;
@@ -593,6 +594,12 @@ Route::middleware(['auth.or.session'])->group(function () {
     // Map API Settings (Software Setup)
     Route::get('/software-setup/map-settings', [TrackingController::class, 'mapSettingsView'])->name('software-setup.map-settings.index');
     Route::post('/software-setup/map-settings', [TrackingController::class, 'saveMapSettings'])->name('software-setup.map-settings.save');
+
+    // AI API Settings (Software Setup - Gemini & OpenAI BYO)
+    Route::get('/software-setup/ai-settings', [AiSettingController::class, 'index'])->name('software-setup.ai-settings.index');
+    Route::post('/software-setup/ai-settings', [AiSettingController::class, 'save'])->name('software-setup.ai-settings.save');
+    Route::post('/software-setup/ai-settings/test-gemini', [AiSettingController::class, 'testGemini'])->name('software-setup.ai-settings.test-gemini');
+    Route::post('/software-setup/ai-settings/test-openai', [AiSettingController::class, 'testOpenAi'])->name('software-setup.ai-settings.test-openai');
 
     // MSG91 WhatsApp Settings (Software Setup)
     Route::get('/software-setup/msg91-settings', [Msg91SettingController::class, 'index'])->name('software-setup.msg91-settings.index');

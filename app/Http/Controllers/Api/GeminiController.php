@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Services\AiKeyResolverService;
 
 class GeminiController extends Controller
 {
@@ -20,7 +21,7 @@ class GeminiController extends Controller
         ]);
 
         $text = $request->input('text');
-        $apiKey = env('GEMINI_API_KEY');
+        $apiKey = AiKeyResolverService::getGeminiKey();
 
         if (!$apiKey) {
             return response()->json(['error' => 'Gemini API key not configured'], 500);

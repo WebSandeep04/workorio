@@ -119,7 +119,7 @@ EOT;
      */
     public function detectTasks(array $messages, string $model = 'gpt-5-nano'): array
     {
-        $apiKey = env('OPENAI_API_KEY');
+        $apiKey = \App\Services\AiKeyResolverService::getOpenAiKey();
         if (empty($apiKey)) {
             Log::error('OpenAI API Key is missing.');
             return [];
