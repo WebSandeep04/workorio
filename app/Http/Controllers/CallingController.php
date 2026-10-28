@@ -7,6 +7,7 @@ use App\Models\Calling;
 use App\Models\CallingCampaign;
 use App\Models\CallingType;
 use App\Models\WhatsappTemplate;
+use App\Models\WhatsappTemplateDocument;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Session;
@@ -507,10 +508,11 @@ class CallingController extends Controller
         }
 
         $callingTypes = CallingType::orderBy('name')->get();
-        $whatsappTemplates = WhatsappTemplate::orderBy('name')->get();
+        $whatsappTemplates = WhatsappTemplate::with('documents')->orderBy('name')->get();
+        $allDocuments = WhatsappTemplateDocument::orderBy('title')->get();
         $currentUserId = $this->getCurrentUserId();
 
-        return view('calling.remarks', compact('calling', 'currentCampaign', 'pivotData', 'callingTypes', 'whatsappTemplates', 'currentUserId'));
+        return view('calling.remarks', compact('calling', 'currentCampaign', 'pivotData', 'callingTypes', 'whatsappTemplates', 'allDocuments', 'currentUserId'));
     }
 
     /**
@@ -872,3 +874,4 @@ class CallingController extends Controller
         );
     }
 }
+

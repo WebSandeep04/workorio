@@ -186,6 +186,7 @@ Route::get('/superadmindashboard', function () {
 Route::group(['middleware' => ['web']], function () {
     Route::get('/public/form/{tenant}/{form}', [FormBuilderController::class, 'publicView'])->name('public.form.view');
     Route::post('/public/form/{tenant}/{form}/submit', [FormBuilderController::class, 'publicSubmit'])->name('public.form.submit');
+    Route::get('/public/whatsapp-doc/{tenant}/{id}/download', [WhatsappTemplateController::class, 'publicDownload'])->name('public.whatsapp-doc.download');
 });
 
 // --------------------------------------------------------------------------
@@ -1106,6 +1107,9 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/whatsapp-template/{id}/edit', [WhatsappTemplateController::class, 'edit'])->name('whatsapp-template.edit');
     Route::put('/whatsapp-template/{id}', [WhatsappTemplateController::class, 'update'])->name('whatsapp-template.update');
     Route::delete('/whatsapp-template/{id}', [WhatsappTemplateController::class, 'destroy'])->name('whatsapp-template.destroy');
+    Route::post('/whatsapp-template/documents/upload', [WhatsappTemplateController::class, 'uploadDocument'])->name('whatsapp-template.documents.upload');
+    Route::get('/whatsapp-template/documents/list', [WhatsappTemplateController::class, 'listDocuments'])->name('whatsapp-template.documents.list');
+    Route::delete('/whatsapp-template/documents/{id}', [WhatsappTemplateController::class, 'deleteDocument'])->name('whatsapp-template.documents.delete');
     Route::get('/getcallingtypes', [CallingTypeController::class, 'getCallingTypes'])->name('getcallingtypes');
 
     // IndiaMart

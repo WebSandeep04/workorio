@@ -166,27 +166,128 @@
 </div>
 @endsection
 
-<!-- WhatsApp Template Modal -->
-<div class="modal fade" id="whatsappTemplateModal" tabindex="-1" aria-labelledby="whatsappTemplateModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header text-white" style="background-color: #434AFA;">
-        <h5 class="modal-title" id="whatsappTemplateModalLabel">Select WhatsApp Template</h5>
+<!-- WhatsApp Composer Modal with Multi-Document Attachment (Split 2-Column UI) -->
+<div class="modal fade" id="whatsappTemplateModal" tabindex="-1" aria-labelledby="whatsappTemplateModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 1100px;">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header text-white py-2 px-3" style="background-color: #434AFA;">
+        <h5 class="modal-title d-flex align-items-center mb-0" id="whatsappTemplateModalLabel" style="font-size: 1.05rem;">
+          <i class="bi bi-whatsapp me-2 fs-5"></i> Compose WhatsApp Message
+        </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
-        <div class="list-group">
-          @forelse($whatsappTemplates as $template)
-            <button type="button" class="list-group-item list-group-item-action whatsapp-template-item" 
-                    data-text="{{ $template->text }}">
-              <strong>{{ $template->name }}</strong>
-              <p class="mb-0 small text-muted">{{ \Illuminate\Support\Str::limit($template->text, 100) }}</p>
-            </button>
-          @empty
-            <div class="text-center py-3">
-              <p class="text-muted">No templates found. Please add them to the database.</p>
+      <div class="modal-body p-3">
+        <div class="row g-3">
+          <!-- Left Column: Template, Text & Document Selection -->
+          <div class="col-lg-7 border-end pe-lg-3">
+            <!-- Choose Template -->
+            <div class="mb-2">
+              <label class="form-label fw-bold text-dark small mb-1">
+                <i class="bi bi-file-text me-1 text-primary"></i> Choose Template
+              </label>
+              <select class="form-select form-select-sm" id="composer_template_select">
+                <option value="">-- Custom Message (or choose template) --</option>
+                @foreach($whatsappTemplates as $tmpl)
+                  <option value="{{ $tmpl->id }}">
+                    {{ $tmpl->name }}
+                  </option>
+                @endforeach
+              </select>
             </div>
-          @endforelse
+
+            <!-- Message Text -->
+            <div class="mb-2">
+              <label class="form-label fw-bold text-dark small mb-1">
+                <i class="bi bi-chat-left-quote me-1 text-primary"></i> Message Text
+              </label>
+              <textarea class="form-control form-control-sm" id="composer_message_text" rows="4" placeholder="Type your message to {{ $calling->name }}..."></textarea>
+            </div>
+
+            <!-- Multi-Select Documents -->
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-bold text-dark small mb-0">
+                  <i class="bi bi-paperclip me-1 text-primary"></i> Attach WhatsApp Documents
+                </label>
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" id="composer_select_all_docs" style="font-size: 0.75rem;">Select All</button>
+                  <span class="text-muted" style="font-size: 0.75rem;">|</span>
+                  <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted" id="composer_clear_all_docs" style="font-size: 0.75rem;">Clear All</button>
+                </div>
+              </div>
+
+              <div class="border rounded p-2" style="max-height: 200px; min-height: 140px; overflow-y: auto; background-color: #f8faff;">
+                @forelse($allDocuments as $doc)
+                  <label class="doc-item-row d-flex align-items-center justify-content-between p-2 mb-2 rounded bg-white border cursor-pointer" for="composer_doc_{{ $doc->id }}">
+                    <div class="d-flex align-items-center">
+                      <input class="form-check-input composer-doc-checkbox m-0 me-2" type="checkbox" 
+                             value="{{ $doc->id }}" 
+                             data-title="{{ $doc->title }}" 
+                             data-url="{{ $doc->file_url }}" 
+                             id="composer_doc_{{ $doc->id }}"
+                             style="width: 17px; height: 17px; cursor: pointer; float: none;">
+                      <span class="text-dark fw-medium" style="font-size: 0.84rem;">
+                        {{ $doc->title }}
+                      </span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1">
+                      <span class="badge bg-light text-secondary border text-uppercase" style="font-size: 0.68rem; font-weight: 600;">{{ $doc->file_extension ?? 'FILE' }}</span>
+                      <span class="text-muted" style="font-size: 0.72rem;">{{ $doc->formatted_file_size }}</span>
+                    </div>
+                  </label>
+                @empty
+                  <div class="text-center py-3 text-muted small">
+                    <i class="bi bi-file-earmark-x fs-4 d-block mb-1"></i>
+                    No documents uploaded in WhatsApp Documents library.
+                  </div>
+                @endforelse
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Live Chat Preview -->
+          <div class="col-lg-5 ps-lg-3 d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label fw-bold text-dark small mb-0">
+                <i class="bi bi-phone me-1 text-success"></i> WhatsApp Live Preview
+              </label>
+              <span class="badge bg-success-subtle text-success small" style="font-size: 0.7rem;">
+                To: {{ $calling->phone }}
+              </span>
+            </div>
+
+            <!-- WhatsApp Bubble Container -->
+            <div class="rounded border p-3 flex-grow-1 d-flex flex-column justify-content-between" style="background: #EFEAE2 url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png') repeat; min-height: 330px; max-height: 380px; overflow-y: auto;">
+              
+              <!-- Message Bubble -->
+              <div class="align-self-start shadow-sm rounded-3 p-2 bg-white" style="max-width: 95%; position: relative; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                <div class="text-dark" style="white-space: pre-wrap; word-break: break-word; font-size: 0.84rem; line-height: 1.45;" id="composer_preview_text">
+                  (No message text entered yet)
+                </div>
+                <div class="text-end text-muted mt-1" style="font-size: 0.65rem;">
+                  <span>Now</span> <i class="bi bi-check2-all text-primary ms-1"></i>
+                </div>
+              </div>
+
+              <div class="text-center mt-2">
+                <span class="badge bg-light text-muted shadow-sm fw-normal border" style="font-size: 0.7rem;">
+                  <i class="bi bi-lock-fill me-1"></i> Direct link to web/mobile WhatsApp
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer d-flex justify-content-between bg-light py-2 px-3">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-primary" id="composer_copy_btn">
+            <i class="bi bi-clipboard me-1"></i> Copy Text
+          </button>
+          <button type="button" class="btn btn-sm btn-success px-3" id="composer_send_btn" style="background-color: #25D366; border-color: #25D366;">
+            <i class="bi bi-whatsapp me-1 fs-6"></i> Send via WhatsApp
+          </button>
         </div>
       </div>
     </div>
@@ -196,6 +297,9 @@
 @push('styles')
 <style>
 .calling-remarks-page { background: #f8f9fa; min-height: calc(100vh - 100px); padding-bottom: 3rem; }
+.doc-item-row { transition: all 0.2s ease; margin-left: 0 !important; }
+.doc-item-row:hover { background-color: #f0f4ff !important; border-color: #c7d2fe !important; }
+.cursor-pointer { cursor: pointer; }
 .ui-card { border-radius: 12px; border: 1px solid #eef0f6; box-shadow: 0 4px 12px rgba(0,0,0,0.03); overflow: hidden; min-height: 500px; }
 .ui-header { background: #434AFA; color: #fff; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.05em; padding: 14px 16px; border: none; }
 .ui-body { padding: 1.5rem; }
@@ -415,25 +519,118 @@ $(document).ready(function() {
         $('#whatsappTemplateModal').modal('show');
     });
 
-    $('.whatsapp-template-item').on('click', function() {
-        const templateText = $(this).data('text');
+    // WhatsApp Composer & Template Multi-Document Integration
+    const templatesData = @json($whatsappTemplates);
+
+    function updateWhatsAppPreview() {
+        let baseText = $('#composer_message_text').val().trim();
+        let selectedDocUrls = [];
+
+        $('.composer-doc-checkbox:checked').each(function() {
+            const title = $(this).data('title');
+            const url = $(this).data('url');
+            if (url) {
+                selectedDocUrls.push('• ' + title + ':\n' + url);
+            }
+        });
+
+        let fullMessage = baseText;
+        if (selectedDocUrls.length > 0) {
+            if (fullMessage) {
+                fullMessage += '\n\n';
+            }
+            fullMessage += '📎 Documents:\n' + selectedDocUrls.join('\n\n');
+        }
+
+        if (fullMessage) {
+            $('#composer_preview_text').text(fullMessage);
+        } else {
+            $('#composer_preview_text').text('(No message text or documents selected)');
+        }
+
+        return fullMessage;
+    }
+
+    // On Template change
+    $('#composer_template_select').on('change', function() {
+        const selectedId = parseInt($(this).val());
+        $('.composer-doc-checkbox').prop('checked', false);
+
+        if (!selectedId) {
+            $('#composer_message_text').val('');
+            updateWhatsAppPreview();
+            return;
+        }
+
+        const template = templatesData.find(t => t.id === selectedId);
+        if (template) {
+            $('#composer_message_text').val(template.text);
+            if (template.documents && template.documents.length > 0) {
+                template.documents.forEach(doc => {
+                    $(`#composer_doc_${doc.id}`).prop('checked', true);
+                });
+            }
+        }
+        updateWhatsAppPreview();
+    });
+
+    // Real-time input and checkbox events
+    $('#composer_message_text').on('input', updateWhatsAppPreview);
+    $(document).on('change', '.composer-doc-checkbox', updateWhatsAppPreview);
+
+    $('#composer_select_all_docs').on('click', function() {
+        $('.composer-doc-checkbox').prop('checked', true);
+        updateWhatsAppPreview();
+    });
+
+    $('#composer_clear_all_docs').on('click', function() {
+        $('.composer-doc-checkbox').prop('checked', false);
+        updateWhatsAppPreview();
+    });
+
+    // Copy message to clipboard
+    $('#composer_copy_btn').on('click', function() {
+        const fullMessage = updateWhatsAppPreview();
+        if (!fullMessage || fullMessage === '(No message text or documents selected)') {
+            Swal.fire('Notice', 'No message text to copy.', 'info');
+            return;
+        }
+
+        navigator.clipboard.writeText(fullMessage).then(function() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Copied!',
+                text: 'Message copied to clipboard.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }).catch(function() {
+            Swal.fire('Error', 'Failed to copy to clipboard.', 'error');
+        });
+    });
+
+    // Send WhatsApp Message
+    $('#composer_send_btn').on('click', function() {
         if (!leadPhone) {
             Swal.fire('Error', 'Lead phone number is missing.', 'error');
             return;
         }
 
-        // Clean phone number (keep only digits)
+        const fullMessage = updateWhatsAppPreview();
+        if (!fullMessage || fullMessage === '(No message text or documents selected)') {
+            Swal.fire('Notice', 'Please enter a message or select a template/document.', 'warning');
+            return;
+        }
+
         const cleanPhone = leadPhone.replace(/\D/g, '');
-        
-        // Ensure it has a country code, the user didn't specify, but I'll assume 91 for India if it's 10 digits
         let finalPhone = cleanPhone;
         if (cleanPhone.length === 10) {
             finalPhone = '91' + cleanPhone;
         }
 
-        const encodedMsg = encodeURIComponent(templateText);
+        const encodedMsg = encodeURIComponent(fullMessage);
         const whatsappUrl = `https://wa.me/${finalPhone}?text=${encodedMsg}`;
-        
+
         window.open(whatsappUrl, '_blank');
         $('#whatsappTemplateModal').modal('hide');
     });

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
 use App\Models\DocumentUserAccess;
 
@@ -61,6 +62,14 @@ class Document extends Model
     public function documentAccess()
     {
         return $this->hasMany(DocumentUserAccess::class, 'document_id');
+    }
+
+    /**
+     * WhatsApp templates linked to this document
+     */
+    public function whatsappTemplates(): BelongsToMany
+    {
+        return $this->belongsToMany(WhatsappTemplate::class, 'whatsapp_template_documents');
     }
 
     /**
