@@ -161,7 +161,7 @@ class PayrollCalculationService
         // Calculate Late Penalty
         $penaltyDays = 0;
         $penaltyAmount = 0;
-        $employee = \App\Models\Employee::with('shiftHistory', 'shiftRelation', 'user')->find($employeeId);
+        $employee = \App\Models\Employee::with(['shiftHistory', 'shiftRelation', 'user', 'employmentTypeRelation'])->find($employeeId);
         $shift = $employee ? $employee->getShiftForDate(Carbon::create($summary->year, $summary->month)->endOfMonth()) : null;
         
         $totalLateCount = $summary->late_count ?? 0;
@@ -349,8 +349,11 @@ class PayrollCalculationService
         $totalDeductions += $advanceDeduction + $loanDeduction;
         $netSalary = $totalEarnings - $totalDeductions;
 
+        $employmentTypeName = $employee ? ($employee->employmentTypeRelation->name ?? $employee->employment_type ?? null) : null;
+
         // Save Payroll Detail
         $payrollDetailData = [
+            'employment_type' => $employmentTypeName,
             'gross_salary' => $totalEarnings, 
             'net_salary' => $netSalary,
             'total_deductions' => $totalDeductions,

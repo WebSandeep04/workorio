@@ -24,6 +24,7 @@
             <tr>
                 <th class="text-start nowrap">Emp Code</th>
                 <th class="text-start nowrap">Employee Name</th>
+                <th class="text-start nowrap">Employment Type</th>
                 <th class="text-start nowrap">Branch</th>
                 <th class="text-start nowrap">Department</th>
                 @foreach($uniqueComponents as $comp)
@@ -151,9 +152,15 @@
                         }
                     }
                 @endphp
+                @php
+                    $empType = !empty($employeeEmploymentTypes[$summary->employee_id]) 
+                        ? $employeeEmploymentTypes[$summary->employee_id] 
+                        : '-';
+                @endphp
                 <tr>
                     <td class="text-start nowrap">{{ $summary->employee ? $summary->employee->employee_code : '-' }}</td>
                     <td class="text-start nowrap">{{ $summary->employee ? $summary->employee->name : 'Unknown' }}</td>
+                    <td class="text-start nowrap">{{ $empType }}</td>
                     <td class="text-start nowrap">{{ $summary->employee && $summary->employee->branch ? $summary->employee->branch->name : '-' }}</td>
                     <td class="text-start nowrap">{{ $summary->employee && $summary->employee->departmentRelation ? $summary->employee->departmentRelation->name : '-' }}</td>
                     

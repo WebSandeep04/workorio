@@ -191,6 +191,7 @@ $(document).ready(function() {
                     let headHtml = `<tr>
                         <th style="min-width: 120px;">Emp Code</th>
                         <th style="min-width: 150px;">Employee Name</th>
+                        <th style="min-width: 130px;">Employment Type</th>
                         <th style="min-width: 120px;">Branch</th>
                         <th style="min-width: 120px;">Department</th>`;
                     
@@ -255,6 +256,7 @@ $(document).ready(function() {
                         let tr = `<tr>
                             <td><span class="fw-medium">${row.employee_code || '-'}</span></td>
                             <td>${row.employee_name}</td>
+                            <td>${row.employment_type || '-'}</td>
                             <td>${row.branch_name}</td>
                             <td>${row.department_name}</td>`;
                         

@@ -26,6 +26,7 @@ class PayrollReportApiController extends Controller
         $payroll = \App\Models\Payroll::with(['details.components.salaryComponent'])->where('month', $month)->where('year', $year)->first();
         
         $paidSalaries = [];
+        $employeeEmploymentTypes = [];
         $employeeComponents = [];
         $employeeDeductions = [];
         $uniqueComponents = collect();
@@ -42,6 +43,7 @@ class PayrollReportApiController extends Controller
         if ($payroll) {
             foreach ($payroll->details as $detail) {
                 $paidSalaries[$detail->employee_id] = $detail->net_salary;
+                $employeeEmploymentTypes[$detail->employee_id] = $detail->employment_type;
                 $employeeDeductions[$detail->employee_id] = $detail->total_deductions ?? 0;
                 $employeeAdvanceDeductions[$detail->employee_id] = $detail->advance_deduction_amount ?? 0;
                 $employeeLoanDeductions[$detail->employee_id] = $detail->loan_deduction_amount ?? 0;
@@ -68,7 +70,7 @@ class PayrollReportApiController extends Controller
         $uniqueComponents = $uniqueComponents->unique()->values()->toArray();
 
         // Attach paid salary to each summary
-        $data = $summaries->map(function ($summary) use ($paidSalaries, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyAmounts, $employeePenaltyDays, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $uniqueComponents) {
+        $data = $summaries->map(function ($summary) use ($paidSalaries, $employeeEmploymentTypes, $employeeComponents, $employeeDeductions, $employeeAdvanceDeductions, $employeeLoanDeductions, $employeeLopDeductions, $employeePenaltyAmounts, $employeePenaltyDays, $employeeTotalLates, $employeeExemptedLates, $employeeActualLates, $uniqueComponents) {
             $paid = $paidSalaries[$summary->employee_id] ?? null;
             $comps = $employeeComponents[$summary->employee_id] ?? [];
             $deductionAmount = $employeeDeductions[$summary->employee_id] ?? 0;
@@ -91,9 +93,14 @@ class PayrollReportApiController extends Controller
             $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
             $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
             
+            $empType = !empty($employeeEmploymentTypes[$summary->employee_id]) 
+                ? $employeeEmploymentTypes[$summary->employee_id] 
+                : '-';
+
             return [
                 'employee_code' => $summary->employee ? $summary->employee->employee_code : '-',
                 'employee_name' => $summary->employee ? $summary->employee->name : 'Unknown',
+                'employment_type' => $empType,
                 'branch_name' => $summary->employee && $summary->employee->branch ? $summary->employee->branch->name : '-',
                 'department_name' => $summary->employee && $summary->employee->departmentRelation ? $summary->employee->departmentRelation->name : '-',
                 'components' => $normalizedComps,
