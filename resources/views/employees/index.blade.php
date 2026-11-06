@@ -1097,6 +1097,7 @@
             city: cityName,
             country: countryName,
             date_of_birth: $('#employee_dob').val(),
+            anniversary_date: $('#employee_anniversary').val(),
             date_of_joining: $('#employee_doj').val(),
             personal_email: $('#employee_personal_email').val().trim(),
             blood_group: $('#employee_blood_group').val().trim(),
@@ -1326,6 +1327,7 @@
             $('#employee_personal_email').val(data.personal_email || '');
             $('#employee_doj').val(data.date_of_joining ? data.date_of_joining.toString().substring(0, 10) : '');
             $('#employee_dob').val(data.date_of_birth ? data.date_of_birth.toString().substring(0, 10) : '');
+            $('#employee_anniversary').val(data.anniversary_date ? data.anniversary_date.toString().substring(0, 10) : '');
             $('#employee_status').val(data.status || 'active');
             $('#employee_work_location').val(data.work_location || '');
             $('#employee_working_type').val(data.working_type || '');
@@ -2448,6 +2450,10 @@
                         <div class="col-md-4">
                             <label class="form-label">Date of Birth</label>
                             <input type="date" id="employee_dob" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Anniversary Date</label>
+                            <input type="date" id="employee_anniversary" class="form-control form-control-sm">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Personal Email</label>

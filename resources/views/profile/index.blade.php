@@ -285,6 +285,10 @@
                     <input type="date" class="form-control-modern" name="date_of_birth" value="{{ optional($employee->date_of_birth)->format('Y-m-d') }}">
                 </div>
                 <div class="col-md-4 mb-3">
+                    <label class="form-label-modern">Anniversary Date</label>
+                    <input type="date" class="form-control-modern" name="anniversary_date" value="{{ optional($employee->anniversary_date)->format('Y-m-d') }}">
+                </div>
+                <div class="col-md-4 mb-3">
                     <label class="form-label-modern">Blood Group</label>
                     <input type="text" class="form-control-modern" name="blood_group" value="{{ $employee->blood_group }}" placeholder="e.g. O+">
                 </div>

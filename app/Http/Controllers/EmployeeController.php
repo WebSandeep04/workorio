@@ -449,6 +449,7 @@ class EmployeeController extends Controller
             'city' => 'nullable|string|max:150',
             'date_of_joining' => 'nullable|date',
             'date_of_birth' => 'nullable|date',
+            'anniversary_date' => 'nullable|date',
             'blood_group' => 'nullable|string|max:10',
             'marital_status' => 'nullable|string|max:50',
             'spouse_name' => 'nullable|string|max:255',

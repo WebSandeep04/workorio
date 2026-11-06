@@ -1023,13 +1023,27 @@ function renderCelebrations(list) {
         return;
     }
     let html = '';
-    list.slice(0, 1).forEach(c => {
+    list.slice(0, 5).forEach(c => {
         const d = new Date(c.date);
         const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
         const initial = c.name.split(' ').map(n => n[0]).join('').toUpperCase();
-        const icon = c.type === 'birthday' ? '🎂' : '💼';
-        const color = c.type === 'birthday' ? '#fca5a5' : '#60a5fa';
-        const labelColor = c.type === 'birthday' ? '#db2777' : '#2563eb';
+        let icon = '🎉';
+        let color = '#a78bfa';
+        let labelColor = '#7c3aed';
+        
+        if (c.type === 'birthday') {
+            icon = '🎂';
+            color = '#fca5a5';
+            labelColor = '#db2777';
+        } else if (c.type === 'work_anniversary') {
+            icon = '💼';
+            color = '#60a5fa';
+            labelColor = '#2563eb';
+        } else if (c.type === 'anniversary') {
+            icon = '💍';
+            color = '#f472b6';
+            labelColor = '#e11d48';
+        }
         
         html += `<div style="background: #f9fafb; border: 1px solid #f3f4f6; padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 12px;">

@@ -150,6 +150,7 @@ class ProfileController extends Controller
             
             // Extended Personal Fields
             'date_of_birth' => 'nullable|date',
+            'anniversary_date' => 'nullable|date',
             'blood_group' => 'nullable|string|max:10',
             'marital_status' => 'nullable|string|max:50',
             'personal_email' => 'nullable|email|max:255',

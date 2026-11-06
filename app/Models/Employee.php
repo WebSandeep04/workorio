@@ -32,6 +32,7 @@ class Employee extends Model
         'city_id',
         'country_id',
         'date_of_birth',
+        'anniversary_date',
         'blood_group',
         'marital_status',
         'personal_email',
@@ -85,6 +86,7 @@ class Employee extends Model
     protected $casts = [
         'date_of_joining' => 'date',
         'date_of_birth' => 'date',
+        'anniversary_date' => 'date',
         'passport_expiry' => 'date',
         'insurance_valid_till' => 'date',
         'approved_at' => 'datetime',

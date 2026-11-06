@@ -975,7 +975,22 @@ public function calendarSummary(Request $request)
                 $aQuery->whereRaw("DATE_FORMAT(date_of_joining, '%m-%d') >= ?", [$todayMD])
                        ->whereRaw("DATE_FORMAT(date_of_joining, '%m-%d') <= ?", [$endMD]);
             }
-            $anniversaries = $aQuery->select('name', 'date_of_joining as date', DB::raw("'anniversary' as type"), 'profile_picture', 'date_of_joining')->get();
+            $anniversaries = $aQuery->select('name', 'date_of_joining as date', DB::raw("'work_anniversary' as type"), 'profile_picture', 'date_of_joining')->get();
+
+            $marriageAnniversaries = collect();
+            if (Schema::hasColumn('employees', 'anniversary_date')) {
+                $mQuery = DB::table('employees')->where('status', 'active')->whereNotNull('anniversary_date');
+                if ($endMD < $todayMD) {
+                    $mQuery->where(function($q) use ($todayMD, $endMD) {
+                        $q->whereRaw("DATE_FORMAT(anniversary_date, '%m-%d') >= ?", [$todayMD])
+                          ->orWhereRaw("DATE_FORMAT(anniversary_date, '%m-%d') <= ?", [$endMD]);
+                    });
+                } else {
+                    $mQuery->whereRaw("DATE_FORMAT(anniversary_date, '%m-%d') >= ?", [$todayMD])
+                           ->whereRaw("DATE_FORMAT(anniversary_date, '%m-%d') <= ?", [$endMD]);
+                }
+                $marriageAnniversaries = $mQuery->select('name', 'anniversary_date as date', DB::raw("'anniversary' as type"), 'profile_picture', 'anniversary_date')->get();
+            }
             
             $merged = collect();
             
@@ -995,9 +1010,24 @@ public function calendarSummary(Request $request)
                     $annDate->addYear();
                     $years++;
                 }
-                $ann->label = $years . ($years == 1 ? 'st' : ($years == 2 ? 'nd' : ($years == 3 ? 'rd' : 'th'))) . " Work Anniversary";
+                $suffix = ($years == 1 ? 'st' : ($years == 2 ? 'nd' : ($years == 3 ? 'rd' : 'th')));
+                $ann->label = $years > 0 ? ($years . $suffix . " Work Anniversary") : "Work Anniversary";
                 $ann->days_until = $today->diffInDays($annDate);
                 $merged->push($ann);
+            }
+
+            foreach ($marriageAnniversaries as $mAnn) {
+                $mDate = Carbon::parse($mAnn->anniversary_date);
+                $years = $today->year - $mDate->year;
+                $curMDate = $mDate->copy()->year($today->year);
+                if ($curMDate->lt($today)) {
+                    $curMDate->addYear();
+                    $years++;
+                }
+                $suffix = ($years == 1 ? 'st' : ($years == 2 ? 'nd' : ($years == 3 ? 'rd' : 'th')));
+                $mAnn->label = $years > 0 ? ($years . $suffix . " Marriage Anniversary") : "Marriage Anniversary";
+                $mAnn->days_until = $today->diffInDays($curMDate);
+                $merged->push($mAnn);
             }
             
             $list = $merged->sortBy('days_until')->values();
