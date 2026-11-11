@@ -4,11 +4,14 @@
     <meta charset="utf-8">
     <title>Payroll Report</title>
     <style>
+        @page {
+            margin: 10px 15px;
+        }
         body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8px; color: #333; margin: 0; padding: 0; }
         h2 { text-align: center; color: #434AFA; margin-bottom: 5px; }
         p.subtitle { text-align: center; margin-top: 0; color: #666; font-size: 10px; margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 3px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: auto; }
+        th, td { border: 1px solid #ddd; padding: 3px 4px; text-align: center; }
         th { background-color: #f4f6f9; color: #333; font-weight: bold; }
         .text-start { text-align: left; }
         .text-end { text-align: right; }

@@ -982,7 +982,7 @@ class PayrollController extends Controller
         $fileName = 'Payroll_Report_' . date('F', mktime(0, 0, 0, $month, 1)) . '_' . $year . '.pdf';
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('payroll.pdf.report', compact('summaries', 'uniqueComponents', 'paidSalaries', 'grossSalaries', 'employeeComponents', 'employeeDeductions', 'employeeAdvanceDeductions', 'employeeLoanDeductions', 'employeeLopDeductions', 'employeePfDeductions', 'employeeEsiDeductions', 'employeeEmployerPfs', 'employeeEmployerEsis', 'employeeEmployerTotals', 'employeePenaltyDays', 'employeePenaltyAmounts', 'employeeTotalLates', 'employeeExemptedLates', 'employeeActualLates', 'employeeEmploymentTypes', 'month', 'year', 'withPenalty', 'showPf', 'showEsi', 'showEmployerCont'))
-                ->setPaper('a3', 'landscape');
+                ->setPaper('a2', 'landscape');
                 
         return $pdf->download($fileName);
     }
