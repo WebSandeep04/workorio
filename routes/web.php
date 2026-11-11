@@ -1354,6 +1354,7 @@ Route::middleware(['auth.or.session'])->group(function () {
         Route::delete('process/{id}/void', [App\Http\Controllers\Payroll\PayrollController::class, 'void'])->name('process.void');
         Route::get('payslip/{detail_id}/download', [App\Http\Controllers\Payroll\PayrollController::class, 'downloadPayslip'])->name('payslip.download');
         Route::get('report', [App\Http\Controllers\Payroll\PayrollController::class, 'report'])->name('report');
+        Route::post('report/fetch-yearly', [App\Http\Controllers\Payroll\PayrollController::class, 'fetchYearlyReportData'])->name('report.fetch-yearly');
         Route::post('report/fetch', [App\Http\Controllers\Payroll\PayrollController::class, 'fetchReportData'])->name('report.fetch');
         Route::get('report/export', [App\Http\Controllers\Payroll\PayrollController::class, 'exportReport'])->name('report.export');
         Route::get('report/export-pdf', [App\Http\Controllers\Payroll\PayrollController::class, 'exportReportPdf'])->name('report.export-pdf');

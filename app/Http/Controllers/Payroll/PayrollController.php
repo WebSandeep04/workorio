@@ -185,6 +185,140 @@ class PayrollController extends Controller
         return view('payroll.report', compact('years', 'months'));
     }
 
+        public function fetchYearlyReportData(Request $request)
+    {
+        $year = $request->input('year', date('Y'));
+
+        if (!$year) {
+            return response()->json(['success' => false, 'message' => 'Year is required'], 400);
+        }
+
+        // Find all payrolls generated for this year ordered by month desc
+        $payrolls = \App\Models\Payroll::where('year', $year)
+            ->whereHas('details')
+            ->orderBy('month', 'desc')
+            ->get();
+
+        $monthNames = [
+            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+        ];
+
+        $results = [];
+
+        foreach ($payrolls as $payroll) {
+            $month = $payroll->month;
+            
+            // Build request object to invoke internal data builder
+            $subReq = new Request(['month' => $month, 'year' => $year]);
+            $repRes = $this->fetchReportData($subReq);
+            $repJson = $repRes->getData(true);
+
+            if ($repJson['success'] && !empty($repJson['data'])) {
+                $rows = $repJson['data'];
+                $cols = $repJson['columns'] ?? [];
+                
+                // Calculate column totals for this month
+                $totals = [
+                    'gross_salary' => 0,
+                    'total_working_days' => 0,
+                    'total_present_combined' => 0,
+                    'total_present' => 0,
+                    'total_halfday' => 0,
+                    'sunday_work' => 0,
+                    'holiday_work' => 0,
+                    'leave' => 0,
+                    'unpaid_leave' => 0,
+                    'absent' => 0,
+                    'total_weekly_off' => 0,
+                    'total_holidays' => 0,
+                    'total_deduction_days' => 0,
+                    'lop_deduction' => 0,
+                    'advance_deduction' => 0,
+                    'loan_deduction' => 0,
+                    'pf_deduction' => 0,
+                    'esi_deduction' => 0,
+                    'deduction_amount' => 0,
+                    'salary_before_penalty' => 0,
+                    'total_late_occurrences' => 0,
+                    'exempted_late_occurrences' => 0,
+                    'penalty_eligible_lates' => 0,
+                    'penalty_days' => 0,
+                    'penalty_amount' => 0,
+                    'paid_salary' => 0,
+                    'employer_pf' => 0,
+                    'employer_esi' => 0,
+                    'total_employer_contribution' => 0,
+                    'components' => array_fill_keys($cols, 0)
+                ];
+
+                $employeeCount = count($rows);
+
+                foreach ($rows as $r) {
+                    $totals['gross_salary'] += (float) ($r['gross_salary'] ?? 0);
+                    $totals['total_working_days'] += (float) ($r['total_working_days'] ?? 0);
+                    $totals['total_present_combined'] += (float) ($r['total_present_combined'] ?? 0);
+                    $totals['total_present'] += (float) ($r['total_present'] ?? 0);
+                    $totals['total_halfday'] += (float) ($r['total_halfday'] ?? 0);
+                    $totals['sunday_work'] += (float) ($r['sunday_work'] ?? 0);
+                    $totals['holiday_work'] += (float) ($r['holiday_work'] ?? 0);
+                    $totals['leave'] += (float) ($r['leave'] ?? 0);
+                    $totals['unpaid_leave'] += (float) ($r['unpaid_leave'] ?? 0);
+                    $totals['absent'] += (float) ($r['absent'] ?? 0);
+                    $totals['total_weekly_off'] += (float) ($r['total_weekly_off'] ?? 0);
+                    $totals['total_holidays'] += (float) ($r['total_holidays'] ?? 0);
+                    $totals['total_deduction_days'] += (float) ($r['total_deduction_days'] ?? 0);
+                    $totals['lop_deduction'] += (float) ($r['lop_deduction'] ?? 0);
+                    $totals['advance_deduction'] += (float) ($r['advance_deduction'] ?? 0);
+                    $totals['loan_deduction'] += (float) ($r['loan_deduction'] ?? 0);
+                    $totals['pf_deduction'] += (float) ($r['pf_deduction'] ?? 0);
+                    $totals['esi_deduction'] += (float) ($r['esi_deduction'] ?? 0);
+                    $totals['deduction_amount'] += (float) ($r['deduction_amount'] ?? 0);
+                    
+                    if (is_numeric($r['salary_before_penalty'] ?? null)) {
+                        $totals['salary_before_penalty'] += (float) $r['salary_before_penalty'];
+                    }
+                    $totals['total_late_occurrences'] += (float) ($r['total_late_occurrences'] ?? 0);
+                    $totals['exempted_late_occurrences'] += (float) ($r['exempted_late_occurrences'] ?? 0);
+                    $totals['penalty_eligible_lates'] += (float) ($r['penalty_eligible_lates'] ?? 0);
+                    $totals['penalty_days'] += (float) ($r['penalty_days'] ?? 0);
+                    $totals['penalty_amount'] += (float) ($r['penalty_amount'] ?? 0);
+                    
+                    if (is_numeric($r['paid_salary'] ?? null)) {
+                        $totals['paid_salary'] += (float) $r['paid_salary'];
+                    }
+                    $totals['employer_pf'] += (float) ($r['employer_pf'] ?? 0);
+                    $totals['employer_esi'] += (float) ($r['employer_esi'] ?? 0);
+                    $totals['total_employer_contribution'] += (float) ($r['total_employer_contribution'] ?? 0);
+
+                    foreach ($cols as $c) {
+                        $totals['components'][$c] += (float) ($r['components'][$c] ?? 0);
+                    }
+                }
+
+                $results[] = [
+                    'month' => $month,
+                    'month_name' => $monthNames[$month] ?? "Month {$month}",
+                    'payroll_status' => $payroll->status ?? 'Draft',
+                    'employee_count' => $employeeCount,
+                    'columns' => $cols,
+                    'totals' => $totals,
+                    'data' => $rows,
+                    'show_pf' => $repJson['show_pf'] ?? false,
+                    'show_esi' => $repJson['show_esi'] ?? false,
+                    'show_employer_cont' => $repJson['show_employer_cont'] ?? false,
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'year' => $year,
+            'payrolls' => $results
+        ]);
+    }
+
     public function fetchReportData(Request $request)
     {
         $month = $request->input('month');
