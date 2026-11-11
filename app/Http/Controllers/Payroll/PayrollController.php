@@ -41,10 +41,10 @@ class PayrollController extends Controller
         $month = $validated['month'];
         $year = $validated['year'];
 
-        // Check if payroll already generated and finalized
+        // Check if payroll already generated and finalized/approved
         $existing = Payroll::where('month', $month)->where('year', $year)->first();
-        if ($existing && $existing->status === 'Finalized') {
-            return response()->json(['success' => false, 'message' => 'Payroll for this month is already finalized.']);
+        if ($existing && in_array($existing->status, ['Finalized', 'Approved'])) {
+            return response()->json(['success' => false, 'message' => 'Payroll for this month is already approved/finalized.']);
         }
 
         try {
@@ -64,8 +64,8 @@ class PayrollController extends Controller
     {
         $payroll = Payroll::with('details')->findOrFail($id);
         
-        if ($payroll->status === 'Finalized') {
-            return response()->json(['success' => false, 'message' => 'Cannot void a finalized payroll.'], 403);
+        if (in_array($payroll->status, ['Finalized', 'Approved'])) {
+            return response()->json(['success' => false, 'message' => 'Cannot void an approved or finalized payroll.'], 403);
         }
 
         // Rollback Loans
@@ -123,6 +123,112 @@ class PayrollController extends Controller
         
         return response()->json(['success' => true, 'message' => 'Payroll voided successfully.']);
     }
+
+    public function approvals()
+    {
+        $years = range(date('Y') - 5, date('Y') + 1);
+        rsort($years);
+        return view('payroll.approvals', compact('years'));
+    }
+
+    public function fetchApprovals(Request $request)
+    {
+        $query = Payroll::with(['approver'])
+            ->select('payrolls.*')
+            ->selectRaw('(SELECT COUNT(*) FROM payroll_details WHERE payroll_details.payroll_id = payrolls.id) as details_count')
+            ->selectRaw('(SELECT COALESCE(SUM(net_salary), 0) FROM payroll_details WHERE payroll_details.payroll_id = payrolls.id) as total_net')
+            ->selectRaw('(SELECT COALESCE(SUM(gross_salary), 0) FROM payroll_details WHERE payroll_details.payroll_id = payrolls.id) as total_gross')
+            ->selectRaw('(SELECT COALESCE(SUM(total_deductions), 0) FROM payroll_details WHERE payroll_details.payroll_id = payrolls.id) as total_deductions');
+
+        if ($request->filled('year')) {
+            $query->where('year', $request->year);
+        }
+
+        if ($request->filled('month')) {
+            $query->where('month', $request->month);
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $status = strtolower($request->status);
+            if ($status === 'pending') {
+                $query->whereIn('status', ['Draft', 'Processed', 'pending']);
+            } elseif ($status === 'approved') {
+                $query->whereIn('status', ['Approved', 'Finalized', 'approved']);
+            } elseif ($status === 'rejected') {
+                $query->whereIn('status', ['Rejected', 'rejected']);
+            } else {
+                $query->where('status', $request->status);
+            }
+        }
+
+        // Summary Counts
+        $allPayrolls = (clone $query)->get();
+        $counts = [
+            'total' => $allPayrolls->count(),
+            'pending' => $allPayrolls->filter(fn($p) => in_array(strtolower($p->status), ['draft', 'processed', 'pending']))->count(),
+            'approved' => $allPayrolls->filter(fn($p) => in_array(strtolower($p->status), ['approved', 'finalized']))->count(),
+            'rejected' => $allPayrolls->filter(fn($p) => strtolower($p->status) === 'rejected')->count(),
+            'pending_amount' => $allPayrolls->filter(fn($p) => in_array(strtolower($p->status), ['draft', 'processed', 'pending']))->sum('total_net'),
+        ];
+
+        $payrolls = $query->orderBy('year', 'desc')->orderBy('month', 'desc')->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'data' => $payrolls->items(),
+            'counts' => $counts,
+            'current_page' => $payrolls->currentPage(),
+            'last_page' => $payrolls->lastPage(),
+            'total' => $payrolls->total(),
+            'from' => $payrolls->firstItem() ?? 0,
+            'to' => $payrolls->lastItem() ?? 0
+        ]);
+    }
+
+    public function approve(Request $request, $id)
+    {
+        $payroll = Payroll::findOrFail($id);
+
+        if (in_array(strtolower($payroll->status), ['approved', 'finalized'])) {
+            return response()->json(['success' => false, 'message' => 'Payroll is already approved.'], 422);
+        }
+
+        $userId = auth()->id() ?? session('user_id');
+
+        $payroll->update([
+            'status' => 'Approved',
+            'approved_by' => $userId,
+            'approved_at' => now(),
+            'rejection_reason' => null
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Payroll successfully approved!']);
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:500'
+        ]);
+
+        $payroll = Payroll::findOrFail($id);
+
+        if (in_array(strtolower($payroll->status), ['approved', 'finalized'])) {
+            return response()->json(['success' => false, 'message' => 'Cannot reject an already approved payroll.'], 422);
+        }
+
+        $userId = auth()->id() ?? session('user_id');
+
+        $payroll->update([
+            'status' => 'Rejected',
+            'approved_by' => $userId,
+            'approved_at' => now(),
+            'rejection_reason' => $request->reason
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Payroll rejected successfully.']);
+    }
+
     public function show(Request $request, $id)
     {
         $payroll = Payroll::findOrFail($id);

@@ -41,6 +41,7 @@
   .badge-modern-success { background: #10B981; color: white; padding: 0.35em 0.65em; border-radius: 4px; font-weight: 500; }
   .badge-modern-secondary { background: #6B7280; color: white; padding: 0.35em 0.65em; border-radius: 4px; font-weight: 500; }
   .badge-modern-warning { background: #F59E0B; color: white; padding: 0.35em 0.65em; border-radius: 4px; font-weight: 500; }
+  .badge-modern-danger { background: #EF4444; color: white; padding: 0.35em 0.65em; border-radius: 4px; font-weight: 500; }
   
   .modal-content { border-radius: 0px !important; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
   .modal-header { border-radius: 0px !important; background: #434AFA !important; color: white; border-bottom: none; padding: 1rem 1.5rem; }
@@ -240,9 +241,12 @@ $(function () {
         
         let rows = '';
         $.each(data.data, function (i, row) {
-          const statusBadge = row.status === 'Finalized' 
-            ? '<span class="badge badge-modern-success"><i class="bi bi-check-circle"></i> Finalized</span>' 
-            : '<span class="badge badge-modern-warning"><i class="bi bi-pencil"></i> Draft</span>';
+          let statusBadge = '<span class="badge badge-modern-warning"><i class="bi bi-pencil"></i> Draft</span>';
+          if (row.status === 'Approved' || row.status === 'Finalized') {
+            statusBadge = '<span class="badge badge-modern-success"><i class="bi bi-check-circle"></i> Approved</span>';
+          } else if (row.status === 'Rejected') {
+            statusBadge = '<span class="badge badge-modern-danger"><i class="bi bi-x-circle"></i> Rejected</span>';
+          }
             
           const createdDate = new Date(row.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
 
@@ -257,10 +261,6 @@ $(function () {
                   <a href="${baseUrl}/${row.id}" class="btn-action btn-action-view" title="View Details">
                     <i class="bi bi-eye"></i>
                   </a>
-                  ${row.status !== 'Finalized' ? `
-                  <button class="btn-action btn-action-delete void-payroll" data-id="${row.id}" title="Void Payroll">
-                    <i class="bi bi-trash"></i>
-                  </button>` : ''}
                 </div>
               </td>
             </tr>
@@ -329,24 +329,6 @@ $(function () {
     .always(function(){
         $btn.prop('disabled', false).html('<i class="bi bi-lightning-charge"></i> Run Payroll Engine');
     });
-  });
-
-  $(document).on('click', '.void-payroll', function () {
-    if (confirm('Are you sure you want to void this draft payroll? This will delete all generated payslips for this period.')) {
-      $.ajax({
-        url: `/payroll/process/${$(this).data('id')}/void`,
-        type: 'DELETE',
-        data: { _token: csrf },
-        success: function (res) {
-          loadPayrolls();
-          showAlert('success', res.message);
-        },
-        error: function(xhr) {
-          const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to void payroll.';
-          showAlert('error', msg);
-        }
-      });
-    }
   });
 });
 </script>

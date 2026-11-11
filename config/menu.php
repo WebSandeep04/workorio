@@ -254,6 +254,7 @@ return [
                         ['route' => 'leave.approvals', 'title' => 'Leave Approval', 'icon' => 'bi bi-calendar-check', 'permission' => 'approvals.leave'],
                         ['route' => 'loans.admin', 'title' => 'Financial Request Approval', 'icon' => 'bi bi-bank', 'permission' => 'loans.manage', 'feature_flag' => 'is_payroll_enabled'],
                         ['route' => 'employees.approvals', 'title' => 'Employee Approval', 'icon' => 'bi bi-person-check-fill', 'permission' => 'approvals.employee'],
+                        ['route' => 'payroll.approvals', 'title' => 'Payroll Approval', 'icon' => 'bi bi-cash-stack', 'permission' => 'payroll.approval', 'feature_flag' => 'is_payroll_enabled'],
                     ],
                 ],
                 [
