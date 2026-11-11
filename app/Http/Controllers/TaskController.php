@@ -183,13 +183,34 @@ class TaskController extends Controller
     }
 
     /**
-     * Get users for dropdown
+     * Get users for dropdown (only active users by default)
      */
-    public function getUsers()
+    public function getUsers(Request $request)
     {
-        $users = User::select('id', 'name')
-            ->orderBy('name')
-            ->get();
+        $query = User::select('id', 'name');
+
+        if (!$request->boolean('all')) {
+            if (Schema::hasColumn('users', 'status')) {
+                $query->whereRaw('LOWER(status) = ?', ['active']);
+            }
+
+            if (Schema::hasColumn('users', 'is_login')) {
+                $query->where(function ($q) {
+                    $q->where('is_login', 1)
+                      ->orWhereNull('is_login');
+                });
+            }
+
+            if (Schema::hasTable('employees')) {
+                $query->where(function ($q) {
+                    $q->whereHas('employee', function ($empQ) {
+                        $empQ->whereRaw('LOWER(status) = ?', ['active']);
+                    })->orWhereNull('employee_id');
+                });
+            }
+        }
+
+        $users = $query->orderBy('name')->get();
 
         return response()->json($users);
     }
