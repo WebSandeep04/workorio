@@ -241,12 +241,10 @@ $(function () {
         
         let rows = '';
         $.each(data.data, function (i, row) {
-          let statusBadge = '<span class="badge badge-modern-warning"><i class="bi bi-pencil"></i> Draft</span>';
-          if (row.status === 'Approved' || row.status === 'Finalized') {
-            statusBadge = '<span class="badge badge-modern-success"><i class="bi bi-check-circle"></i> Approved</span>';
-          } else if (row.status === 'Rejected') {
-            statusBadge = '<span class="badge badge-modern-danger"><i class="bi bi-x-circle"></i> Rejected</span>';
-          }
+          const isApproved = (row.status === 'Approved' || row.status === 'Finalized');
+          const statusBadge = isApproved
+            ? '<span class="badge badge-modern-success"><i class="bi bi-check-circle"></i> Approved</span>' 
+            : '<span class="badge badge-modern-warning"><i class="bi bi-pencil"></i> Draft</span>';
             
           const createdDate = new Date(row.created_at).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
 
@@ -261,6 +259,10 @@ $(function () {
                   <a href="${baseUrl}/${row.id}" class="btn-action btn-action-view" title="View Details">
                     <i class="bi bi-eye"></i>
                   </a>
+                  ${!isApproved ? `
+                  <button class="btn-action btn-action-delete void-payroll" data-id="${row.id}" title="Void Payroll">
+                    <i class="bi bi-trash"></i>
+                  </button>` : ''}
                 </div>
               </td>
             </tr>
@@ -329,6 +331,24 @@ $(function () {
     .always(function(){
         $btn.prop('disabled', false).html('<i class="bi bi-lightning-charge"></i> Run Payroll Engine');
     });
+  });
+
+  $(document).on('click', '.void-payroll', function () {
+    if (confirm('Are you sure you want to void this draft payroll? This will roll back all loan/advance deductions and delete all generated payslips for this period.')) {
+      $.ajax({
+        url: `/payroll/process/${$(this).data('id')}/void`,
+        type: 'DELETE',
+        data: { _token: csrf },
+        success: function (res) {
+          loadPayrolls();
+          showAlert('success', res.message);
+        },
+        error: function(xhr) {
+          const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to void payroll.';
+          showAlert('error', msg);
+        }
+      });
+    }
   });
 });
 </script>

@@ -113,6 +113,9 @@ class PayrollController extends Controller
             }
         }
 
+        // Rollback & Delete Penalties
+        \App\Models\PayrollPenalty::where('payroll_id', $payroll->id)->delete();
+
         // Delete all associated details
         foreach ($payroll->details as $detail) {
             $detail->components()->delete();
@@ -154,8 +157,6 @@ class PayrollController extends Controller
                 $query->whereIn('status', ['Draft', 'Processed', 'pending']);
             } elseif ($status === 'approved') {
                 $query->whereIn('status', ['Approved', 'Finalized', 'approved']);
-            } elseif ($status === 'rejected') {
-                $query->whereIn('status', ['Rejected', 'rejected']);
             } else {
                 $query->where('status', $request->status);
             }
@@ -167,7 +168,6 @@ class PayrollController extends Controller
             'total' => $allPayrolls->count(),
             'pending' => $allPayrolls->filter(fn($p) => in_array(strtolower($p->status), ['draft', 'processed', 'pending']))->count(),
             'approved' => $allPayrolls->filter(fn($p) => in_array(strtolower($p->status), ['approved', 'finalized']))->count(),
-            'rejected' => $allPayrolls->filter(fn($p) => strtolower($p->status) === 'rejected')->count(),
             'pending_amount' => $allPayrolls->filter(fn($p) => in_array(strtolower($p->status), ['draft', 'processed', 'pending']))->sum('total_net'),
         ];
 
@@ -203,30 +203,6 @@ class PayrollController extends Controller
         ]);
 
         return response()->json(['success' => true, 'message' => 'Payroll successfully approved!']);
-    }
-
-    public function reject(Request $request, $id)
-    {
-        $request->validate([
-            'reason' => 'required|string|max:500'
-        ]);
-
-        $payroll = Payroll::findOrFail($id);
-
-        if (in_array(strtolower($payroll->status), ['approved', 'finalized'])) {
-            return response()->json(['success' => false, 'message' => 'Cannot reject an already approved payroll.'], 422);
-        }
-
-        $userId = auth()->id() ?? session('user_id');
-
-        $payroll->update([
-            'status' => 'Rejected',
-            'approved_by' => $userId,
-            'approved_at' => now(),
-            'rejection_reason' => $request->reason
-        ]);
-
-        return response()->json(['success' => true, 'message' => 'Payroll rejected successfully.']);
     }
 
     public function show(Request $request, $id)

@@ -13,7 +13,7 @@
   /* Summary Cards */
   .summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 0.5rem;
     margin-bottom: 0.5rem;
   }
@@ -58,7 +58,6 @@
   .icon-blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
   .icon-amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
   .icon-green { background: linear-gradient(135deg, #10b981, #34d399); }
-  .icon-rose { background: linear-gradient(135deg, #ef4444, #f87171); }
 
   .summary-card-content {
     display: flex;
@@ -123,29 +122,6 @@
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
   }
 
-  /* Table search */
-  .table-search {
-    width: 100%;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .table-search-field {
-    flex: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: #f4f5f7;
-    border: 1px solid #e5e7eb;
-    border-radius: 2px;
-    padding: 0.35rem 0.9rem;
-  }
-
-  .table-search-field i { color: #9ca3af; font-size: 0.85rem; }
-  .table-search-field input { border: none; background: transparent; font-size: 0.85rem; width: 100%; outline: none; color: #111827; }
-
   /* Data Table Card */
   .modern-card { padding: 0; margin-bottom: 0.5rem; }
   .data-table-card {
@@ -199,7 +175,6 @@
   .badge-status { font-weight: 600; font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 4px; }
   .badge-pending { background: #fef3c7; color: #d97706; }
   .badge-approved { background: #d1fae5; color: #059669; }
-  .badge-rejected { background: #fee2e2; color: #dc2626; }
 
   /* Action Buttons */
   .btn-approve {
@@ -213,18 +188,6 @@
     transition: all 0.2s ease;
   }
   .btn-approve:hover { background: #059669; color: white; }
-
-  .btn-reject {
-    background: #EF4444;
-    color: white;
-    border: none;
-    padding: 0.3rem 0.75rem;
-    border-radius: 3px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
-  }
-  .btn-reject:hover { background: #DC2626; color: white; }
 
   .btn-view-details {
     background: #434AFA;
@@ -294,16 +257,6 @@
         <div class="summary-card-value text-success" id="countApproved">0</div>
       </div>
     </div>
-
-    <div class="summary-card" data-status="rejected" onclick="filterByStatus('rejected', this)">
-      <div class="summary-card-icon icon-rose">
-        <i class="bi bi-x-circle"></i>
-      </div>
-      <div class="summary-card-content">
-        <div class="summary-card-label">Rejected</div>
-        <div class="summary-card-value text-danger" id="countRejected">0</div>
-      </div>
-    </div>
   </div>
 
   <!-- Filter Box -->
@@ -334,7 +287,6 @@
         <option value="all">All Status</option>
         <option value="pending">Pending Approval</option>
         <option value="approved">Approved</option>
-        <option value="rejected">Rejected</option>
       </select>
     </div>
   </div>
@@ -353,12 +305,11 @@
               <th>Net Salary</th>
               <th>Status</th>
               <th>Approved By / On</th>
-              <th>Rejection Reason</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>
           <tbody id="approvalsTableBody">
-            <tr><td colspan="9" class="text-center py-4 text-muted">Loading payroll approvals...</td></tr>
+            <tr><td colspan="8" class="text-center py-4 text-muted">Loading payroll approvals...</td></tr>
           </tbody>
         </table>
       </div>
@@ -368,30 +319,6 @@
   <div class="d-flex justify-content-between align-items-center mt-2 px-1">
     <div class="text-muted small" id="rangeInfo">Showing 0-0 from 0 data</div>
     <ul class="pagination mb-0" id="paginationLinks"></ul>
-  </div>
-</div>
-
-<!-- Reject Modal -->
-<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title fs-6 fw-bold"><i class="bi bi-x-circle me-1"></i> Reject Payroll Batch</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="rejectPayrollId">
-        <div class="mb-3">
-          <label class="form-label fw-semibold text-dark">Reason for Rejection <span class="text-danger">*</span></label>
-          <textarea class="form-control" id="rejectReason" rows="3" placeholder="Provide reason for rejecting this payroll..."></textarea>
-          <div class="invalid-feedback d-none" id="rejectError">Please provide a reason.</div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger btn-sm" id="confirmRejectBtn">Confirm Rejection</button>
-      </div>
-    </div>
   </div>
 </div>
 @endsection
@@ -424,7 +351,7 @@ function fetchApprovals(page = 1) {
   const status = $('#filterStatus').val();
 
   $('#approvalsTableBody').html(`
-    <tr><td colspan="9" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat spin me-2"></i>Loading payroll approvals...</td></tr>
+    <tr><td colspan="8" class="text-center py-4 text-muted"><i class="bi bi-arrow-repeat spin me-2"></i>Loading payroll approvals...</td></tr>
   `);
 
   $.ajax({
@@ -439,12 +366,11 @@ function fetchApprovals(page = 1) {
         $('#countTotal').text(res.counts.total || 0);
         $('#countPending').text(res.counts.pending || 0);
         $('#countApproved').text(res.counts.approved || 0);
-        $('#countRejected').text(res.counts.rejected || 0);
       }
 
       if (!res.data || res.data.length === 0) {
         $('#approvalsTableBody').html(`
-          <tr><td colspan="9" class="text-center py-4 text-muted"><i class="bi bi-inbox me-2"></i>No payroll batches found for selected criteria.</td></tr>
+          <tr><td colspan="8" class="text-center py-4 text-muted"><i class="bi bi-inbox me-2"></i>No payroll batches found for selected criteria.</td></tr>
         `);
         $('#paginationLinks').empty();
         $('#rangeInfo').text('Showing 0-0 from 0 data');
@@ -457,8 +383,6 @@ function fetchApprovals(page = 1) {
         let statusBadge = '<span class="badge-status badge-pending">Draft / Pending</span>';
         if (rawStatus === 'approved' || rawStatus === 'finalized') {
           statusBadge = '<span class="badge-status badge-approved">Approved</span>';
-        } else if (rawStatus === 'rejected') {
-          statusBadge = '<span class="badge-status badge-rejected">Rejected</span>';
         }
 
         let approvedInfo = '-';
@@ -479,9 +403,6 @@ function fetchApprovals(page = 1) {
             <button class="btn-approve me-1" onclick="approvePayroll(${p.id}, '${monthNames[p.month]} ${p.year}', this)">
               <i class="bi bi-check-lg"></i> Approve
             </button>
-            <button class="btn-reject" onclick="openRejectModal(${p.id})">
-              <i class="bi bi-x-lg"></i> Reject
-            </button>
           `;
         }
 
@@ -494,7 +415,6 @@ function fetchApprovals(page = 1) {
             <td class="text-success fw-bold">${formatCurrency(p.total_net)}</td>
             <td>${statusBadge}</td>
             <td>${approvedInfo}</td>
-            <td class="text-danger small" style="max-width: 180px; overflow: hidden; text-overflow: ellipsis;">${p.rejection_reason || '-'}</td>
             <td class="text-center">${actions}</td>
           </tr>
         `;
@@ -506,7 +426,7 @@ function fetchApprovals(page = 1) {
     },
     error: function() {
       $('#approvalsTableBody').html(`
-        <tr><td colspan="9" class="text-center text-danger py-4">Failed to load payroll approvals.</td></tr>
+        <tr><td colspan="8" class="text-center text-danger py-4">Failed to load payroll approvals.</td></tr>
       `);
     }
   });
@@ -572,47 +492,6 @@ function approvePayroll(id, period, btnEl) {
   });
 }
 
-function openRejectModal(id) {
-  $('#rejectPayrollId').val(id);
-  $('#rejectReason').val('');
-  $('#rejectError').addClass('d-none');
-  $('#rejectModal').modal('show');
-}
-
-$('#confirmRejectBtn').on('click', function() {
-  const id = $('#rejectPayrollId').val();
-  const reason = $('#rejectReason').val().trim();
-
-  if (!reason) {
-    $('#rejectError').removeClass('d-none');
-    return;
-  }
-
-  const $btn = $(this);
-  $btn.prop('disabled', true).text('Rejecting...');
-
-  $.ajax({
-    url: `{{ url('payroll/approvals') }}/${id}/reject`,
-    type: 'POST',
-    data: { _token: '{{ csrf_token() }}', reason },
-    success: function(res) {
-      $('#rejectModal').modal('hide');
-      $btn.prop('disabled', false).text('Confirm Rejection');
-      if (res.success) {
-        showAlert('success', res.message);
-        fetchApprovals(currentPage);
-      } else {
-        showAlert('error', res.message);
-      }
-    },
-    error: function(xhr) {
-      $btn.prop('disabled', false).text('Confirm Rejection');
-      const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Error rejecting payroll.';
-      showAlert('error', msg);
-    }
-  });
-});
-
 $(document).ready(function() {
   $('#filterYear, #filterMonth, #filterStatus').on('change', function() {
     fetchApprovals(1);
@@ -622,4 +501,3 @@ $(document).ready(function() {
 });
 </script>
 @endpush
-

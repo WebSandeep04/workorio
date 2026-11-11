@@ -1358,7 +1358,6 @@ Route::middleware(['auth.or.session'])->group(function () {
         Route::get('approvals', [App\Http\Controllers\Payroll\PayrollController::class, 'approvals'])->name('approvals');
         Route::get('approvals/fetch', [App\Http\Controllers\Payroll\PayrollController::class, 'fetchApprovals'])->name('approvals.fetch');
         Route::post('approvals/{id}/approve', [App\Http\Controllers\Payroll\PayrollController::class, 'approve'])->name('approvals.approve');
-        Route::post('approvals/{id}/reject', [App\Http\Controllers\Payroll\PayrollController::class, 'reject'])->name('approvals.reject');
         Route::get('report', [App\Http\Controllers\Payroll\PayrollController::class, 'report'])->name('report');
         Route::post('report/fetch-yearly', [App\Http\Controllers\Payroll\PayrollController::class, 'fetchYearlyReportData'])->name('report.fetch-yearly');
         Route::post('report/fetch', [App\Http\Controllers\Payroll\PayrollController::class, 'fetchReportData'])->name('report.fetch');
