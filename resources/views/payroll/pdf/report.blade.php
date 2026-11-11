@@ -215,7 +215,7 @@
             @endforeach
             @if($summaries->isNotEmpty())
                 <tr style="font-weight: bold; background-color: #f4f6f9;">
-                    <td colspan="4" class="text-end">Total:</td>
+                    <td colspan="5" class="text-end">Total:</td>
                     @foreach($uniqueComponents as $comp)
                         <td class="text-end">{{ $compTotals[$comp] }}</td>
                     @endforeach
