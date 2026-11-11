@@ -59,6 +59,9 @@ class PayrollCalculationService
     {
         $employeeId = $summary->employee_id;
         
+        // Load employee
+        $employee = \App\Models\Employee::with(['shiftHistory', 'shiftRelation', 'user', 'employmentTypeRelation'])->find($employeeId);
+
         // Get employee's salary structure
         $employeeSalary = EmployeeSalary::where('employee_id', $employeeId)
             ->where('effective_from', '<=', Carbon::create($summary->year, $summary->month)->endOfMonth())
@@ -70,13 +73,31 @@ class PayrollCalculationService
             return; // Cannot process without salary structure
         }
 
-        $grossSalary = $employeeSalary->gross_salary;
+        $fullGrossSalary = (float) $employeeSalary->gross_salary;
         $components = $employeeSalary->structure->components;
+
+        // Mid-month joining pro-rata calculation
+        $monthStart = Carbon::create($summary->year, $summary->month, 1)->startOfMonth();
+        $monthEnd = $monthStart->copy()->endOfMonth();
+        $joiningDate = $employee && $employee->date_of_joining ? Carbon::parse($employee->date_of_joining) : null;
+        
+        $isMidMonthJoiner = $joiningDate && $joiningDate->between($monthStart, $monthEnd) && $joiningDate->gt($monthStart);
+        $proRataFactor = 1.0;
+
+        if ($isMidMonthJoiner) {
+            // Count total calendar days in month vs remaining days from joining date
+            $totalMonthDays = $monthStart->daysInMonth;
+            $remainingDays = $joiningDate->diffInDays($monthEnd) + 1; // inclusive of joining day
+            
+            $proRataFactor = max(0.0, min(1.0, $remainingDays / $totalMonthDays));
+        }
+
+        $grossSalary = round($fullGrossSalary * $proRataFactor);
 
         // Calculate Loss of Pay (LOP) based on total deduction days if setting is enabled
         $deductionAmount = 0;
         if ($this->settings->attendance_based && $summary->total_deduction_days > 0) {
-            $perDaySalary = $grossSalary / 26;
+            $perDaySalary = $fullGrossSalary / 26;
             $deductionAmount = round($perDaySalary * $summary->total_deduction_days);
         }
 
@@ -88,7 +109,7 @@ class PayrollCalculationService
         $context = [
             'employee_id' => $employeeId,
             'gross' => $grossSalary,
-            'base_gross' => $grossSalary,
+            'base_gross' => $fullGrossSalary,
             'working_days' => $summary->total_working_days,
             'payable_days' => $summary->days_worked + $summary->days_on_leave + $summary->total_holidays + $summary->total_weekly_offs,
             'absent_days' => $summary->days_absent
@@ -105,11 +126,14 @@ class PayrollCalculationService
             if ($component->type === 'earning') {
                 $compSlug = strtolower(str_replace(' ', '_', $component->name));
                 if (isset($breakdown[$component->id]) && is_numeric($breakdown[$component->id])) {
-                    $amount = round((float) $breakdown[$component->id]);
+                    $amount = round((float) $breakdown[$component->id] * $proRataFactor);
                 } elseif (isset($breakdown[$compSlug]) && is_numeric($breakdown[$compSlug])) {
-                    $amount = round((float) $breakdown[$compSlug]);
+                    $amount = round((float) $breakdown[$compSlug] * $proRataFactor);
                 } else {
                     $amount = $this->calculateComponentValue($component, $context, $grossSalary);
+                    if ($component->calculation_type === 'fixed' && $isMidMonthJoiner) {
+                        $amount = round($amount * $proRataFactor);
+                    }
                 }
 
                 $calculatedComponents[$component->id] = $amount;
@@ -161,7 +185,7 @@ class PayrollCalculationService
         // Calculate Late Penalty
         $penaltyDays = 0;
         $penaltyAmount = 0;
-        $employee = \App\Models\Employee::with(['shiftHistory', 'shiftRelation', 'user', 'employmentTypeRelation'])->find($employeeId);
+        // employee already loaded above
         $shift = $employee ? $employee->getShiftForDate(Carbon::create($summary->year, $summary->month)->endOfMonth()) : null;
         
         $totalLateCount = $summary->late_count ?? 0;

@@ -368,6 +368,7 @@ class AttendanceReportService
         $presentDays = 0; 
         $halfDays = 0; 
         $daysAbsent = 0;
+        $preJoiningDays = 0;
         $totalSundays = 0;
         $totalSundaysWorked = 0;
         $totalHolidaysWorked = 0;
@@ -383,10 +384,14 @@ class AttendanceReportService
             $isHoliday = $dayData['is_holiday'];
             $isSunday = $dayData['is_sunday'];
             
-            if ($isSunday) {
-                $totalSundays++;
-            } elseif (!$isHoliday) {
-                $totalWorkingDays++;
+            if ($code === 'NA') {
+                $preJoiningDays++;
+            } else {
+                if ($isSunday) {
+                    $totalSundays++;
+                } elseif (!$isHoliday) {
+                    $totalWorkingDays++;
+                }
             }
             
             $totalHours += $dayData['hours'];
@@ -450,6 +455,7 @@ class AttendanceReportService
         
         return [
             'total_working_days' => $totalWorkingDays,
+            'pre_joining_days' => $preJoiningDays,
             'days_worked' => $totalDaysWorked,
             'days_absent' => $daysAbsent,
             'days_on_leave' => $daysOnLeave, 
