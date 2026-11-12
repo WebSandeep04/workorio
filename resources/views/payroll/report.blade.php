@@ -295,6 +295,11 @@ $(document).ready(function() {
                                         <th class="text-end" style="min-width: 130px;">Advance Deduction</th>
                                         <th class="text-end" style="min-width: 130px;">Loan Deduction</th>`;
 
+            cols.forEach(c => {
+                accordionHtml += `<th class="text-end" style="min-width: 105px;">Earned ${c}</th>`;
+            });
+            accordionHtml += `<th class="text-end fw-bold" style="min-width: 115px;">Earned Gross</th>`;
+
             if (showPf) {
                 accordionHtml += `<th class="text-end" style="min-width: 120px;">PF Deduction</th>`;
             }
@@ -365,6 +370,14 @@ $(document).ready(function() {
                         <td class="text-end text-danger">₹${Number(row.advance_deduction || 0).toLocaleString('en-IN')}</td>
                         <td class="text-end text-danger">₹${Number(row.loan_deduction || 0).toLocaleString('en-IN')}</td>`;
 
+                cols.forEach(c => {
+                    let earnedVal = (row.earned_components && row.earned_components[c] !== undefined) 
+                        ? row.earned_components[c] 
+                        : (row.components[c] !== undefined ? row.components[c] : 0);
+                    accordionHtml += `<td class="text-end text-muted">₹${Number(earnedVal).toLocaleString('en-IN')}</td>`;
+                });
+                accordionHtml += `<td class="text-end fw-bold text-dark">₹${Number(row.earned_gross_salary || 0).toLocaleString('en-IN')}</td>`;
+
                 if (showPf) {
                     accordionHtml += `<td class="text-end text-danger">₹${Number(row.pf_deduction || 0).toLocaleString('en-IN')}</td>`;
                 }
@@ -425,6 +438,12 @@ $(document).ready(function() {
                                         <th class="text-end text-danger">₹${Number(totals.lop_deduction || 0).toLocaleString('en-IN')}</th>
                                         <th class="text-end text-danger">₹${Number(totals.advance_deduction || 0).toLocaleString('en-IN')}</th>
                                         <th class="text-end text-danger">₹${Number(totals.loan_deduction || 0).toLocaleString('en-IN')}</th>`;
+
+            cols.forEach(c => {
+                let compEarnedTotal = totals.earned_components && totals.earned_components[c] !== undefined ? totals.earned_components[c] : 0;
+                accordionHtml += `<th class="text-end">₹${Number(compEarnedTotal).toLocaleString('en-IN')}</th>`;
+            });
+            accordionHtml += `<th class="text-end fw-bold">₹${Number(totals.earned_gross_salary || 0).toLocaleString('en-IN')}</th>`;
 
             if (showPf) {
                 accordionHtml += `<th class="text-end text-danger">₹${Number(totals.pf_deduction || 0).toLocaleString('en-IN')}</th>`;

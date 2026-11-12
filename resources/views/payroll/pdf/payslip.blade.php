@@ -47,22 +47,32 @@
     <table class="salary-breakdown">
         <thead>
             <tr>
-                <th style="width: 50%;">Earnings</th>
-                <th class="amount" style="width: 50%;">Amount (Rs.)</th>
+                <th style="width: 40%;">Earnings Component</th>
+                <th class="amount" style="width: 30%;">Monthly Rate (Rs.)</th>
+                <th class="amount" style="width: 30%;">Earned Amount (Rs.)</th>
             </tr>
         </thead>
         <tbody>
-            @php $totalEarnings = 0; @endphp
+            @php 
+                $totalContracted = 0; 
+                $totalEarned = 0;
+            @endphp
             @foreach($earnings as $earning)
+            @php 
+                $cEarned = isset($earning->earned_amount) && $earning->earned_amount !== null ? $earning->earned_amount : $earning->amount;
+                $totalContracted += $earning->amount;
+                $totalEarned += $cEarned;
+            @endphp
             <tr>
                 <td>{{ $earning->salaryComponent->name }}</td>
                 <td class="amount">{{ number_format($earning->amount, 2) }}</td>
+                <td class="amount fw-bold">{{ number_format($cEarned, 2) }}</td>
             </tr>
-            @php $totalEarnings += $earning->amount; @endphp
             @endforeach
             <tr class="total-row">
-                <td>Total Earnings</td>
-                <td class="amount">{{ number_format($totalEarnings, 2) }}</td>
+                <td>Total Gross</td>
+                <td class="amount">{{ number_format($totalContracted, 2) }}</td>
+                <td class="amount">{{ number_format($totalEarned, 2) }}</td>
             </tr>
         </tbody>
     </table>

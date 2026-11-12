@@ -116,7 +116,9 @@ class PayrollCalculationService
         }
 
         $calculatedComponents = [];
+        $earnedComponents = [];
         $totalEarnings = 0;
+        $totalEarnedEarnings = 0;
         $totalDeductions = 0;
         
         // Context for expression language
@@ -137,6 +139,11 @@ class PayrollCalculationService
 
         // First Pass: Calculate all fixed and percentage earnings to build full monthly structure
         // Earning components store the full monthly contracted entitlement for report clarity
+        $attendanceDeductionRatio = $fullGrossSalary > 0 
+            ? min(1.0, ($deductionAmount + $joiningDeductionAmount) / $fullGrossSalary) 
+            : 0;
+        $effectiveFactor = max(0.0, 1.0 - $attendanceDeductionRatio);
+
         foreach ($components as $component) {
             if ($component->type === 'earning') {
                 $compSlug = strtolower(str_replace(' ', '_', $component->name));
@@ -149,9 +156,13 @@ class PayrollCalculationService
                 }
 
                 $calculatedComponents[$component->id] = $amount;
+                $earnedAmount = round($amount * $effectiveFactor);
+                $earnedComponents[$component->id] = $earnedAmount;
+
                 // Add to context by name for other formulas (e.g., basic)
                 $context[$compSlug] = $amount;
                 $totalEarnings += $amount;
+                $totalEarnedEarnings += $earnedAmount;
             }
         }
 
@@ -168,6 +179,7 @@ class PayrollCalculationService
                 }
 
                 $calculatedComponents[$component->id] = $amount;
+                $earnedComponents[$component->id] = $amount;
                 
                 if ($component->type === 'deduction') {
                     $totalDeductions += $amount;
@@ -177,7 +189,6 @@ class PayrollCalculationService
 
         // Build Earned Context for Statutory Deductions (PF / ESI computed on earned basic & earned gross)
         // For mid-month joiners, wages are scaled by proRataFactor * attendanceFactor
-        $effectiveFactor = $proRataFactor * $attendanceFactor;
         $earnedContext = $context;
         foreach ($context as $k => $v) {
             if (is_numeric($v)) {
@@ -406,7 +417,8 @@ class PayrollCalculationService
         // Save Payroll Detail
         $payrollDetailData = [
             'employment_type' => $employmentTypeName,
-            'gross_salary' => $totalEarnings, 
+            'gross_salary' => $totalEarnings,
+            'earned_gross_salary' => $totalEarnedEarnings, 
             'net_salary' => $netSalary,
             'total_deductions' => $totalDeductions,
             'lop_deduction_amount' => $deductionAmount,
@@ -466,7 +478,10 @@ class PayrollCalculationService
         foreach ($calculatedComponents as $componentId => $amount) {
             PayrollComponentDetail::updateOrCreate(
                 ['payroll_detail_id' => $payrollDetail->id, 'salary_component_id' => $componentId],
-                ['amount' => $amount]
+                [
+                    'amount' => $amount,
+                    'earned_amount' => $earnedComponents[$componentId] ?? $amount
+                ]
             );
         }
     }

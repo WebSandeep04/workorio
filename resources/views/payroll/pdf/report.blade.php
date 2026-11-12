@@ -47,6 +47,10 @@
                 <th class="text-end">Days deduction amount</th>
                 <th class="text-end">Advance Deduction</th>
                 <th class="text-end">Loan Deduction</th>
+                @foreach($uniqueComponents as $comp)
+                <th class="text-end">Earned {{ $comp }}</th>
+                @endforeach
+                <th class="text-end nowrap">Earned Gross</th>
                 @if($showPf ?? true)
                 <th class="text-end">PF Deduction</th>
                 @endif
@@ -91,9 +95,12 @@
                     'employer_pf' => 0, 'employer_esi' => 0, 'total_employer_cont' => 0
                 ];
                 $compTotals = [];
+                $earnedCompTotals = [];
                 foreach($uniqueComponents as $comp) {
                     $compTotals[$comp] = 0;
+                    $earnedCompTotals[$comp] = 0;
                 }
+                $colTotals['earned_gross_salary'] = 0;
             @endphp
             @foreach($summaries as $summary)
                 @php
@@ -119,6 +126,12 @@
                         ? (float) $grossSalaries[$summary->employee_id] 
                         : (count($comps) > 0 ? array_sum($comps) : 0);
                     $colTotals['gross_salary'] += $empGross;
+
+                    $earnedComps = $employeeEarnedComponents[$summary->employee_id] ?? [];
+                    $empEarnedGross = isset($earnedGrossSalaries[$summary->employee_id])
+                        ? (float) $earnedGrossSalaries[$summary->employee_id]
+                        : (count($earnedComps) > 0 ? array_sum($earnedComps) : ($empGross - $lopDeduction));
+                    $colTotals['earned_gross_salary'] += $empEarnedGross;
 
                     $colTotals['working_days'] += $summary->total_working_days ?? 0;
                     $colTotals['total_present'] += $summary->total_present_combined ?? 0;
@@ -189,6 +202,14 @@
                     <td class="text-end">{{ $lopDeduction }}</td>
                     <td class="text-end">{{ $advanceDeduction }}</td>
                     <td class="text-end">{{ $loanDeduction }}</td>
+                    @foreach($uniqueComponents as $comp)
+                        @php
+                            $cEarnedVal = isset($earnedComps[$comp]) ? round($earnedComps[$comp]) : (isset($comps[$comp]) ? round($comps[$comp]) : 0);
+                            $earnedCompTotals[$comp] += $cEarnedVal;
+                        @endphp
+                        <td class="text-end">{{ $cEarnedVal }}</td>
+                    @endforeach
+                    <td class="text-end fw-bold">{{ round($empEarnedGross) }}</td>
                     @if($showPf)
                     <td class="text-end">{{ $pfDeduction }}</td>
                     @endif
@@ -236,6 +257,10 @@
                     <td class="text-end">{{ $colTotals['lop_deduction'] }}</td>
                     <td class="text-end">{{ $colTotals['advance_deduction'] }}</td>
                     <td class="text-end">{{ $colTotals['loan_deduction'] }}</td>
+                    @foreach($uniqueComponents as $comp)
+                        <td class="text-end">{{ $earnedCompTotals[$comp] }}</td>
+                    @endforeach
+                    <td class="text-end nowrap fw-bold">{{ round($colTotals['earned_gross_salary']) }}</td>
                     @if($showPf)
                     <td class="text-end">{{ $colTotals['pf_deduction'] }}</td>
                     @endif
