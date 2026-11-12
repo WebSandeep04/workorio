@@ -456,7 +456,7 @@ class PayrollController extends Controller
                 $employeeDeductions[$detail->employee_id] = $detail->total_deductions ?? 0;
                 $employeeAdvanceDeductions[$detail->employee_id] = $detail->advance_deduction_amount ?? 0;
                 $employeeLoanDeductions[$detail->employee_id] = $detail->loan_deduction_amount ?? 0;
-                $employeeLopDeductions[$detail->employee_id] = $detail->lop_deduction_amount ?? 0;
+                $employeeLopDeductions[$detail->employee_id] = ($detail->lop_deduction_amount ?? 0) + ($detail->joining_deduction_amount ?? 0);
 
                 $statutory = $this->resolveStatutoryBreakdown($detail, $employeeSalaries[$detail->employee_id] ?? null, $settings, $statutoryRules);
                 $employeePfDeductions[$detail->employee_id] = $statutory['pf'];
@@ -634,7 +634,7 @@ class PayrollController extends Controller
                 $employeeDeductions[$detail->employee_id] = $detail->total_deductions ?? 0;
                 $employeeAdvanceDeductions[$detail->employee_id] = $detail->advance_deduction_amount ?? 0;
                 $employeeLoanDeductions[$detail->employee_id] = $detail->loan_deduction_amount ?? 0;
-                $employeeLopDeductions[$detail->employee_id] = $detail->lop_deduction_amount ?? 0;
+                $employeeLopDeductions[$detail->employee_id] = ($detail->lop_deduction_amount ?? 0) + ($detail->joining_deduction_amount ?? 0);
 
                 $statutory = $this->resolveStatutoryBreakdown($detail, $employeeSalaries[$detail->employee_id] ?? null, $settings, $statutoryRules);
                 $employeePfDeductions[$detail->employee_id] = $statutory['pf'];
@@ -946,7 +946,7 @@ class PayrollController extends Controller
                 $employeeDeductions[$detail->employee_id] = $detail->total_deductions ?? 0;
                 $employeeAdvanceDeductions[$detail->employee_id] = $detail->advance_deduction_amount ?? 0;
                 $employeeLoanDeductions[$detail->employee_id] = $detail->loan_deduction_amount ?? 0;
-                $employeeLopDeductions[$detail->employee_id] = $detail->lop_deduction_amount ?? 0;
+                $employeeLopDeductions[$detail->employee_id] = ($detail->lop_deduction_amount ?? 0) + ($detail->joining_deduction_amount ?? 0);
 
                 $statutory = $this->resolveStatutoryBreakdown($detail, $employeeSalaries[$detail->employee_id] ?? null, $settings, $statutoryRules);
                 $employeePfDeductions[$detail->employee_id] = $statutory['pf'];

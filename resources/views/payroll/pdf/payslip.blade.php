@@ -90,6 +90,13 @@
             </tr>
             @php $totalDeductions += $detail->lop_deduction_amount; @endphp
             @endif
+            @if(isset($detail->joining_deduction_amount) && $detail->joining_deduction_amount > 0)
+            <tr>
+                <td>Mid-month Joining Adjustment</td>
+                <td class="amount">{{ number_format($detail->joining_deduction_amount, 2) }}</td>
+            </tr>
+            @php $totalDeductions += $detail->joining_deduction_amount; @endphp
+            @endif
             @if(isset($detail->pf_deduction_amount) && ($detail->pf_deduction_amount > 0 || $detail->esi_deduction_amount > 0))
                 @if($detail->pf_deduction_amount > 0)
                 <tr>
@@ -112,7 +119,7 @@
             </tr>
             @php $totalDeductions += $detail->statutory_deduction_amount; @endphp
             @endif
-            @if($deductions->isEmpty() && $detail->lop_deduction_amount <= 0 && $detail->statutory_deduction_amount <= 0 && (empty($detail->pf_deduction_amount) || $detail->pf_deduction_amount <= 0) && (empty($detail->esi_deduction_amount) || $detail->esi_deduction_amount <= 0))
+            @if($deductions->isEmpty() && $detail->lop_deduction_amount <= 0 && (empty($detail->joining_deduction_amount) || $detail->joining_deduction_amount <= 0) && $detail->statutory_deduction_amount <= 0 && (empty($detail->pf_deduction_amount) || $detail->pf_deduction_amount <= 0) && (empty($detail->esi_deduction_amount) || $detail->esi_deduction_amount <= 0))
             <tr>
                 <td>No Deductions</td>
                 <td class="amount">0.00</td>

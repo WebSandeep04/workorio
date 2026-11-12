@@ -83,6 +83,7 @@ class PayrollCalculationService
         
         $isMidMonthJoiner = $joiningDate && $joiningDate->between($monthStart, $monthEnd) && $joiningDate->gt($monthStart);
         $proRataFactor = 1.0;
+        $joiningDeductionAmount = 0;
 
         if ($isMidMonthJoiner) {
             // Count total calendar days in month vs remaining days from joining date (inclusive of joining day)
@@ -90,9 +91,14 @@ class PayrollCalculationService
             $remainingDays = $joiningDate->copy()->startOfDay()->diffInDays($monthEnd->copy()->startOfDay()) + 1;
             
             $proRataFactor = max(0.0, min(1.0, $remainingDays / $totalMonthDays));
+            // Joining deduction amount: the portion of monthly gross for calendar days prior to joining
+            $joiningDeductionAmount = round($fullGrossSalary * (1.0 - $proRataFactor));
         }
 
-        $grossSalary = round($fullGrossSalary * $proRataFactor);
+        // Mid-month joiner tenure prorated gross (for statutory context and net calculation)
+        $proratedGrossSalary = round($fullGrossSalary * $proRataFactor);
+        // Gross salary displayed on structure represents full monthly package
+        $grossSalary = $fullGrossSalary;
 
         // Calculate attendance factor based on attendance deduction days (absent + unpaid leaves + halfdays * 0.5)
         $attendanceFactor = 1.0;
@@ -129,20 +135,17 @@ class PayrollCalculationService
         }
         $breakdown = is_array($breakdown) ? $breakdown : [];
 
-        // First Pass: Calculate all fixed and percentage earnings to build full context
-        // Earning components represent the monthly scheduled/pro-rated entitlement
+        // First Pass: Calculate all fixed and percentage earnings to build full monthly structure
+        // Earning components store the full monthly contracted entitlement for report clarity
         foreach ($components as $component) {
             if ($component->type === 'earning') {
                 $compSlug = strtolower(str_replace(' ', '_', $component->name));
                 if (isset($breakdown[$component->id]) && is_numeric($breakdown[$component->id])) {
-                    $amount = round((float) $breakdown[$component->id] * $proRataFactor);
+                    $amount = round((float) $breakdown[$component->id]);
                 } elseif (isset($breakdown[$compSlug]) && is_numeric($breakdown[$compSlug])) {
-                    $amount = round((float) $breakdown[$compSlug] * $proRataFactor);
+                    $amount = round((float) $breakdown[$compSlug]);
                 } else {
                     $amount = $this->calculateComponentValue($component, $context, $grossSalary);
-                    if ($component->calculation_type === 'fixed' && $isMidMonthJoiner) {
-                        $amount = round($amount * $proRataFactor);
-                    }
                 }
 
                 $calculatedComponents[$component->id] = $amount;
@@ -173,13 +176,15 @@ class PayrollCalculationService
         }
 
         // Build Earned Context for Statutory Deductions (PF / ESI computed on earned basic & earned gross)
+        // For mid-month joiners, wages are scaled by proRataFactor * attendanceFactor
+        $effectiveFactor = $proRataFactor * $attendanceFactor;
         $earnedContext = $context;
         foreach ($context as $k => $v) {
             if (is_numeric($v)) {
-                $earnedContext[$k] = round($v * $attendanceFactor);
+                $earnedContext[$k] = round($v * $effectiveFactor);
             }
         }
-        $earnedEarnings = round($totalEarnings * $attendanceFactor);
+        $earnedEarnings = round($totalEarnings * $effectiveFactor);
 
         // Apply Statutory Deductions on Earned Wages
         $statutoryDeductions = $this->calculateStatutoryDeductions($earnedContext, $earnedEarnings, $employeeSalary);
@@ -388,6 +393,11 @@ class PayrollCalculationService
             }
         }
 
+        // Apply Mid-month Joining Pro-rata Adjustment to total deductions if applicable
+        if ($joiningDeductionAmount > 0) {
+            $totalDeductions += $joiningDeductionAmount;
+        }
+
         $totalDeductions += $advanceDeduction + $loanDeduction;
         $netSalary = $totalEarnings - $totalDeductions;
 
@@ -400,6 +410,7 @@ class PayrollCalculationService
             'net_salary' => $netSalary,
             'total_deductions' => $totalDeductions,
             'lop_deduction_amount' => $deductionAmount,
+            'joining_deduction_amount' => $joiningDeductionAmount,
             'statutory_deduction_amount' => array_sum($statutoryDeductions),
             'loan_deduction_amount' => $loanDeduction,
             'advance_deduction_amount' => $advanceDeduction,
