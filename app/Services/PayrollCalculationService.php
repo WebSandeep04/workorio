@@ -85,9 +85,9 @@ class PayrollCalculationService
         $proRataFactor = 1.0;
 
         if ($isMidMonthJoiner) {
-            // Count total calendar days in month vs remaining days from joining date
+            // Count total calendar days in month vs remaining days from joining date (inclusive of joining day)
             $totalMonthDays = $monthStart->daysInMonth;
-            $remainingDays = $joiningDate->diffInDays($monthEnd) + 1; // inclusive of joining day
+            $remainingDays = $joiningDate->copy()->startOfDay()->diffInDays($monthEnd->copy()->startOfDay()) + 1;
             
             $proRataFactor = max(0.0, min(1.0, $remainingDays / $totalMonthDays));
         }
@@ -129,21 +129,19 @@ class PayrollCalculationService
         }
         $breakdown = is_array($breakdown) ? $breakdown : [];
 
-        // Combined factor for earning components: mid-month joining pro-rata * attendance factor
-        $earningProRataFactor = $proRataFactor * $attendanceFactor;
-
         // First Pass: Calculate all fixed and percentage earnings to build full context
+        // Earning components represent the monthly scheduled/pro-rated entitlement
         foreach ($components as $component) {
             if ($component->type === 'earning') {
                 $compSlug = strtolower(str_replace(' ', '_', $component->name));
                 if (isset($breakdown[$component->id]) && is_numeric($breakdown[$component->id])) {
-                    $amount = round((float) $breakdown[$component->id] * $earningProRataFactor);
+                    $amount = round((float) $breakdown[$component->id] * $proRataFactor);
                 } elseif (isset($breakdown[$compSlug]) && is_numeric($breakdown[$compSlug])) {
-                    $amount = round((float) $breakdown[$compSlug] * $earningProRataFactor);
+                    $amount = round((float) $breakdown[$compSlug] * $proRataFactor);
                 } else {
                     $amount = $this->calculateComponentValue($component, $context, $grossSalary);
-                    if ($component->calculation_type === 'fixed') {
-                        $amount = round($amount * $earningProRataFactor);
+                    if ($component->calculation_type === 'fixed' && $isMidMonthJoiner) {
+                        $amount = round($amount * $proRataFactor);
                     }
                 }
 
@@ -174,22 +172,33 @@ class PayrollCalculationService
             }
         }
 
-        // Apply Statutory Deductions
-        $statutoryDeductions = $this->calculateStatutoryDeductions($context, $totalEarnings, $employeeSalary);
+        // Build Earned Context for Statutory Deductions (PF / ESI computed on earned basic & earned gross)
+        $earnedContext = $context;
+        foreach ($context as $k => $v) {
+            if (is_numeric($v)) {
+                $earnedContext[$k] = round($v * $attendanceFactor);
+            }
+        }
+        $earnedEarnings = round($totalEarnings * $attendanceFactor);
+
+        // Apply Statutory Deductions on Earned Wages
+        $statutoryDeductions = $this->calculateStatutoryDeductions($earnedContext, $earnedEarnings, $employeeSalary);
         foreach ($statutoryDeductions as $type => $amount) {
             $totalDeductions += $amount;
         }
 
-        // Calculate Employer Statutory Contributions
-        $employerContributions = $this->calculateEmployerContributions($context, $totalEarnings, $employeeSalary);
+        // Calculate Employer Statutory Contributions on Earned Wages
+        $employerContributions = $this->calculateEmployerContributions($earnedContext, $earnedEarnings, $employeeSalary);
         $employeePf = $statutoryDeductions['PF'] ?? 0;
         $employeeEsi = $statutoryDeductions['ESI'] ?? 0;
         $employerPf = $employerContributions['PF'] ?? 0;
         $employerEsi = $employerContributions['ESI'] ?? 0;
         $totalEmployer = $employerPf + $employerEsi;
 
-        // Note: In Approach A, earning components are already adjusted for attendance/LOP,
-        // so $deductionAmount is tracked as the LOP value but not double-deducted from Net Salary.
+        // Apply LOP Deduction to total deductions
+        if ($deductionAmount > 0) {
+            $totalDeductions += $deductionAmount;
+        }
 
         // Calculate Late Penalty
         $penaltyDays = 0;
