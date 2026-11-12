@@ -165,6 +165,9 @@
                         <div class="summary-card-label">Opening Balance</div>
                         <div class="summary-card-value text-dark">₹{{ number_format($dept['opening_balance'], 2) }}</div>
                     </div>
+                    <a href="{{ route('petty-cash.department.opening-balances', $dept['department_id']) }}" class="metric-arrow" title="View Opening Balance History">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
                 </div>
 
                 <!-- Expense Card -->

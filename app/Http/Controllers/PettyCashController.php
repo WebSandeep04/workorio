@@ -7,6 +7,7 @@ use App\Models\PettyCashData;
 use App\Models\Expense;
 use Illuminate\Support\Facades\DB;
 use App\Traits\TenantAwareStorage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PettyCashController extends Controller
 {
@@ -232,4 +233,166 @@ class PettyCashController extends Controller
         return view('pettycash.department-expenses', compact('department', 'expenses'));
     }
 
+    public function departmentOpeningBalances($id = null)
+    {
+        if ($id) {
+            $department = \App\Models\Department::findOrFail($id);
+            $balances = \App\Models\PettyOpeningBalance::with('department')
+                ->where('department_id', $id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+            $title = $department->name . ' - Opening Balance History';
+        } else {
+            $department = null;
+            $balances = \App\Models\PettyOpeningBalance::with('department')
+                ->orderBy('created_at', 'desc')
+                ->get();
+            $title = 'All Departments - Opening Balance History';
+        }
+
+        return view('pettycash.department-opening-balances', compact('department', 'balances', 'title'));
+    }
+
+    public function openingBalanceHistory(Request $request)
+    {
+        $departmentId = $request->department_id;
+
+        $query = \App\Models\PettyOpeningBalance::with('department')
+            ->orderBy('created_at', 'desc');
+
+        if ($departmentId) {
+            $query->where('department_id', $departmentId);
+        }
+
+        $balances = $query->get();
+        $totalAmount = $balances->sum('amount');
+
+        return response()->json([
+            'success' => true,
+            'total_amount' => $totalAmount,
+            'data' => $balances
+        ]);
+    }
+
+    private function buildFilteredQuery(Request $request)
+    {
+        $query = PettyCashData::with(['expense', 'department'])->orderBy('created_at', 'desc');
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('expense', function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%");
+                })->orWhereHas('department', function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%");
+                })->orWhere('remark', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->has('expense_id') && !empty($request->expense_id)) {
+            $query->where('expense_id', $request->expense_id);
+        }
+
+        if ($request->has('department_id') && !empty($request->department_id)) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->has('status') && $request->status !== null && $request->status !== '') {
+            $query->where('is_approved', $request->status);
+        }
+
+        if ($request->has('from_date') && !empty($request->from_date)) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+
+        if ($request->has('to_date') && !empty($request->to_date)) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        if ($request->has('month') && !empty($request->month)) {
+            $query->whereMonth('created_at', $request->month)
+                  ->whereYear('created_at', date('Y'));
+        }
+
+        return $query;
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $items = $this->buildFilteredQuery($request)->get();
+        $filename = 'petty_cash_report_' . date('Ymd_His') . '.csv';
+
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = ['#', 'Date', 'Wallet / Department', 'Expense Name', 'Price (INR)', 'Remark', 'Status'];
+
+        $callback = function() use ($items, $columns) {
+            $file = fopen('php://output', 'w');
+            // Write UTF-8 BOM so Excel opens it with proper encoding
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($file, $columns);
+
+            $totalPrice = 0;
+            foreach ($items as $index => $item) {
+                $price = (float)$item->price;
+                $totalPrice += $price;
+
+                fputcsv($file, [
+                    $index + 1,
+                    $item->created_at ? $item->created_at->format('d M Y') : '-',
+                    $item->department ? $item->department->name : '-',
+                    $item->expense ? $item->expense->name : 'N/A',
+                    number_format($price, 2, '.', ''),
+                    $item->remark ?? '-',
+                    $item->is_approved ? 'Approved' : 'Pending'
+                ]);
+            }
+
+            // Total row
+            fputcsv($file, ['', '', '', 'Total:', number_format($totalPrice, 2, '.', ''), '', '']);
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $items = $this->buildFilteredQuery($request)->get();
+        $totalExpense = $items->sum('price');
+
+        $departmentId = $request->department_id;
+        $totalOpeningBalance = \App\Models\PettyOpeningBalance::query()
+            ->when($departmentId, function($q) use ($departmentId) {
+                return $q->where('department_id', $departmentId);
+            })
+            ->sum('amount');
+
+        $remainingBalance = $totalOpeningBalance - $totalExpense;
+
+        $deptName = 'All Wallets';
+        if ($departmentId) {
+            $dept = \App\Models\Department::find($departmentId);
+            if ($dept) $deptName = $dept->name;
+        }
+        $title = "Petty Cash Report ({$deptName})";
+
+        $pdf = Pdf::loadView('pettycash.pdf', compact(
+            'items',
+            'title',
+            'totalOpeningBalance',
+            'totalExpense',
+            'remainingBalance'
+        ))->setPaper('a4', 'portrait');
+
+        $filename = 'petty_cash_report_' . date('Ymd_His') . '.pdf';
+        return $pdf->download($filename);
+    }
 }

@@ -269,6 +269,24 @@
     background: #2d30b8;
   }
 
+  .btn-export-pdf {
+    background: #dc2626 !important;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3) !important;
+  }
+  .btn-export-pdf:hover {
+    background: #b91c1c !important;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4) !important;
+  }
+
+  .btn-export-excel {
+    background: #16a34a !important;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3) !important;
+  }
+  .btn-export-excel:hover {
+    background: #15803d !important;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4) !important;
+  }
+
   .table-search-field i {
     color: #9ca3af;
     font-size: 0.85rem;
@@ -552,7 +570,7 @@
 <div class="container-fluid px-2">
   <!-- Summary Cards -->
   <div class="summary-cards">
-      <div class="summary-card card-4">
+      <a href="{{ route('petty-cash.department.opening-balances') }}" class="summary-card card-4 text-decoration-none" title="Click to view Opening Balance History">
         <div class="summary-card-icon icon-violet">
           <i class="bi bi-wallet2 fs-5 text-white"></i>
         </div>
@@ -560,10 +578,10 @@
           <div class="summary-card-label">Total Opening Balance</div>
           <div class="summary-card-value text-dark">₹<span id="stat_opening_balance">0.00</span></div>
         </div>
-        <a href="{{ route('petty-cash.department-summary') }}" class="metric-arrow">
+        <div class="metric-arrow" title="View Department Summary" onclick="event.preventDefault(); window.location.href='{{ route('petty-cash.department-summary') }}';">
             <i class="bi bi-arrow-right"></i>
-        </a>
-      </div>
+        </div>
+      </a>
       <div class="summary-card card-5">
         <div class="summary-card-icon icon-rose">
           <i class="bi bi-cash-stack fs-5 text-white"></i>
@@ -646,15 +664,23 @@
     </div>
   </div>
 
-  <!-- Search & Add (Separate Row) -->
-  <div class="table-search mb-2">
+  <!-- Search & Add & Export (Separate Row) -->
+  <div class="table-search mb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div class="table-search-field">
       <i class="bi bi-search"></i>
       <input type="text" id="filter_search" placeholder="Search expenses..." />
     </div>
-    <button class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createEntryModal">
-      <i class="bi bi-plus me-1"></i>Add
-    </button>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" id="btnExportPdf" class="table-search-btn btn-export-pdf" title="Export Filtered Data as PDF">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Export PDF
+      </button>
+      <button type="button" id="btnExportExcel" class="table-search-btn btn-export-excel" title="Export Filtered Data as Excel/CSV">
+        <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+      </button>
+      <button class="table-search-btn" data-bs-toggle="modal" data-bs-target="#createEntryModal">
+        <i class="bi bi-plus me-1"></i>Add
+      </button>
+    </div>
   </div>
 
   <div class="modern-card data-table-card">
@@ -1059,6 +1085,28 @@ $(document).ready(function() {
     }); // end ajax
   }
   
+  function getFilterParams() {
+    return {
+      search: $('#filter_search').val(),
+      expense_id: $('#filter_expense').val(),
+      department_id: $('#filter_department').val(),
+      status: $('#filter_status').val(),
+      from_date: $('#filter_from_date').val(),
+      to_date: $('#filter_to_date').val(),
+      month: $('#filter_month').val()
+    };
+  }
+
+  $('#btnExportExcel').on('click', function() {
+    let params = $.param(getFilterParams());
+    window.location.href = "{{ route('petty-cash.export-excel') }}?" + params;
+  });
+
+  $('#btnExportPdf').on('click', function() {
+    let params = $.param(getFilterParams());
+    window.location.href = "{{ route('petty-cash.export-pdf') }}?" + params;
+  });
+
   // Expose loadData to global scope if needed
   window.loadData = loadData;
 
