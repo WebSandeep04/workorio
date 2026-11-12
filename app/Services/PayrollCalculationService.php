@@ -94,11 +94,19 @@ class PayrollCalculationService
 
         $grossSalary = round($fullGrossSalary * $proRataFactor);
 
+        // Calculate attendance factor based on attendance deduction days (absent + unpaid leaves + halfdays * 0.5)
+        $attendanceFactor = 1.0;
+        $deductionDays = (float) ($summary->total_deduction_days ?? 0);
+        if ($this->settings->attendance_based && $deductionDays > 0) {
+            // Standard working days divisor is 26
+            $attendanceFactor = max(0.0, 1.0 - ($deductionDays / 26));
+        }
+
         // Calculate Loss of Pay (LOP) based on total deduction days if setting is enabled
         $deductionAmount = 0;
-        if ($this->settings->attendance_based && $summary->total_deduction_days > 0) {
+        if ($this->settings->attendance_based && $deductionDays > 0) {
             $perDaySalary = $fullGrossSalary / 26;
-            $deductionAmount = round($perDaySalary * $summary->total_deduction_days);
+            $deductionAmount = round($perDaySalary * $deductionDays);
         }
 
         $calculatedComponents = [];
@@ -121,18 +129,21 @@ class PayrollCalculationService
         }
         $breakdown = is_array($breakdown) ? $breakdown : [];
 
+        // Combined factor for earning components: mid-month joining pro-rata * attendance factor
+        $earningProRataFactor = $proRataFactor * $attendanceFactor;
+
         // First Pass: Calculate all fixed and percentage earnings to build full context
         foreach ($components as $component) {
             if ($component->type === 'earning') {
                 $compSlug = strtolower(str_replace(' ', '_', $component->name));
                 if (isset($breakdown[$component->id]) && is_numeric($breakdown[$component->id])) {
-                    $amount = round((float) $breakdown[$component->id] * $proRataFactor);
+                    $amount = round((float) $breakdown[$component->id] * $earningProRataFactor);
                 } elseif (isset($breakdown[$compSlug]) && is_numeric($breakdown[$compSlug])) {
-                    $amount = round((float) $breakdown[$compSlug] * $proRataFactor);
+                    $amount = round((float) $breakdown[$compSlug] * $earningProRataFactor);
                 } else {
                     $amount = $this->calculateComponentValue($component, $context, $grossSalary);
-                    if ($component->calculation_type === 'fixed' && $isMidMonthJoiner) {
-                        $amount = round($amount * $proRataFactor);
+                    if ($component->calculation_type === 'fixed') {
+                        $amount = round($amount * $earningProRataFactor);
                     }
                 }
 
@@ -177,10 +188,8 @@ class PayrollCalculationService
         $employerEsi = $employerContributions['ESI'] ?? 0;
         $totalEmployer = $employerPf + $employerEsi;
 
-        // Apply LOP Deduction to total deductions
-        if ($deductionAmount > 0) {
-            $totalDeductions += $deductionAmount;
-        }
+        // Note: In Approach A, earning components are already adjusted for attendance/LOP,
+        // so $deductionAmount is tracked as the LOP value but not double-deducted from Net Salary.
 
         // Calculate Late Penalty
         $penaltyDays = 0;
