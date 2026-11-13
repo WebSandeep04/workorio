@@ -1176,8 +1176,16 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/petty-cash/approve-bulk', [PettyCashController::class, 'approveBulk'])->name('petty-cash.approve-bulk');
     Route::post('/petty-cash/{id}/toggle-approval', [PettyCashController::class, 'toggleApproval'])->name('petty-cash.toggle-approval');
     Route::get('/petty-cash/department-summary', [PettyCashController::class, 'departmentSummary'])->name('petty-cash.department-summary');
-    Route::get('/petty-cash/department/{id}/expenses', [PettyCashController::class, 'departmentExpenses'])->name('petty-cash.department.expenses');
-    Route::get('/petty-cash/department/{id?}/opening-balances', [PettyCashController::class, 'departmentOpeningBalances'])->name('petty-cash.department.opening-balances');
+    Route::get('/petty-cash/expenses', [PettyCashController::class, 'departmentExpenses'])->name('petty-cash.department.expenses');
+    Route::get('/petty-cash/department/{id}/expenses', [PettyCashController::class, 'departmentExpenses'])->name('petty-cash.department.expenses.id');
+    Route::get('/petty-cash/opening-balances', [PettyCashController::class, 'departmentOpeningBalances'])->name('petty-cash.department.opening-balances');
+    Route::get('/petty-cash/department/{id}/opening-balances', [PettyCashController::class, 'departmentOpeningBalances'])->name('petty-cash.department.opening-balances.id');
+    Route::get('/petty-cash/department//opening-balances', function() {
+        return redirect()->route('petty-cash.department.opening-balances');
+    });
+    Route::get('/petty-cash/department//expenses', function() {
+        return redirect()->route('petty-cash.department.expenses');
+    });
     Route::get('/petty-cash/opening-balance-history', [PettyCashController::class, 'openingBalanceHistory'])->name('petty-cash.opening-balance-history');
     Route::get('/petty-cash/export-excel', [PettyCashController::class, 'exportExcel'])->name('petty-cash.export-excel');
     Route::get('/petty-cash/export-pdf', [PettyCashController::class, 'exportPdf'])->name('petty-cash.export-pdf');

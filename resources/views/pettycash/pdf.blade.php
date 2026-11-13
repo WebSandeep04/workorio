@@ -4,11 +4,15 @@
     <meta charset="utf-8">
     <title>{{ $title }}</title>
     <style>
+        @page {
+            margin: 15px 20px;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'DejaVu Sans', sans-serif;
             font-size: 11px;
             color: #333;
-            margin: 20px;
+            margin: 0;
+            padding: 10px;
         }
         .header {
             text-align: center;
@@ -28,22 +32,21 @@
             color: #64748b;
             font-size: 11px;
         }
-        .summary-boxes {
-            margin-bottom: 20px;
+        .summary-table {
             width: 100%;
+            border-collapse: separate;
+            border-spacing: 12px 0;
+            margin-bottom: 20px;
+            margin-left: -12px;
+            margin-right: -12px;
         }
-        .summary-box {
-            display: inline-block;
-            width: 30%;
+        .summary-card-cell {
+            width: 33.33%;
             background-color: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 6px;
             padding: 10px 14px;
-            box-sizing: border-box;
-            margin-right: 3%;
-        }
-        .summary-box.last {
-            margin-right: 0;
+            vertical-align: top;
         }
         .summary-label {
             font-size: 9px;
@@ -117,20 +120,22 @@
     <p>Generated on: {{ now()->format('d M Y, h:i A') }}</p>
 </div>
 
-<div class="summary-boxes">
-    <div class="summary-box">
-        <div class="summary-label">Total Opening Balance</div>
-        <div class="summary-val">₹{{ number_format($totalOpeningBalance, 2) }}</div>
-    </div>
-    <div class="summary-box">
-        <div class="summary-label">Total Filtered Expense</div>
-        <div class="summary-val expense">₹{{ number_format($totalExpense, 2) }}</div>
-    </div>
-    <div class="summary-box last">
-        <div class="summary-label">Remaining Balance</div>
-        <div class="summary-val remaining">₹{{ number_format($remainingBalance, 2) }}</div>
-    </div>
-</div>
+<table class="summary-table">
+    <tr>
+        <td class="summary-card-cell">
+            <div class="summary-label">Total Opening Balance</div>
+            <div class="summary-val">Rs. {{ number_format($totalOpeningBalance, 2) }}</div>
+        </td>
+        <td class="summary-card-cell">
+            <div class="summary-label">Total Filtered Expense</div>
+            <div class="summary-val expense">Rs. {{ number_format($totalExpense, 2) }}</div>
+        </td>
+        <td class="summary-card-cell">
+            <div class="summary-label">Remaining Balance</div>
+            <div class="summary-val remaining">Rs. {{ number_format($remainingBalance, 2) }}</div>
+        </td>
+    </tr>
+</table>
 
 <table>
     <thead>
@@ -139,7 +144,7 @@
             <th style="width: 85px;">Date</th>
             <th>Wallet / Department</th>
             <th>Expense Name</th>
-            <th class="text-end" style="width: 90px;">Price (₹)</th>
+            <th class="text-end" style="width: 100px;">Price (Rs.)</th>
             <th>Remark</th>
             <th style="width: 75px;" class="text-center">Status</th>
         </tr>
@@ -153,7 +158,7 @@
                 <td>{{ $item->created_at ? $item->created_at->format('d M Y') : '-' }}</td>
                 <td>{{ $item->department ? $item->department->name : '-' }}</td>
                 <td>{{ $item->expense ? $item->expense->name : 'N/A' }}</td>
-                <td class="text-end">₹{{ number_format((float)$item->price, 2) }}</td>
+                <td class="text-end">{{ number_format((float)$item->price, 2) }}</td>
                 <td>{{ $item->remark ?? '-' }}</td>
                 <td class="text-center">
                     @if($item->is_approved)
@@ -172,7 +177,7 @@
     <tfoot>
         <tr class="total-row">
             <td colspan="4" class="text-end">Total:</td>
-            <td class="text-end">₹{{ number_format($grandTotal, 2) }}</td>
+            <td class="text-end">Rs. {{ number_format($grandTotal, 2) }}</td>
             <td colspan="2"></td>
         </tr>
     </tfoot>

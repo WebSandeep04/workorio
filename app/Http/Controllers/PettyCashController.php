@@ -222,35 +222,151 @@ class PettyCashController extends Controller
         return view('pettycash.department-summary', compact('summary'));
     }
 
-    public function departmentExpenses($id)
+    public function departmentExpenses(Request $request, $id = null)
     {
-        $department = \App\Models\Department::findOrFail($id);
-        $expenses = PettyCashData::with('expense')
-            ->where('department_id', $id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $departments = \App\Models\Department::all();
+        $query = PettyCashData::with(['expense', 'department'])->orderBy('created_at', 'desc');
 
-        return view('pettycash.department-expenses', compact('department', 'expenses'));
-    }
+        $selectedDeptId = $id ?: $request->department_id;
 
-    public function departmentOpeningBalances($id = null)
-    {
-        if ($id) {
-            $department = \App\Models\Department::findOrFail($id);
-            $balances = \App\Models\PettyOpeningBalance::with('department')
-                ->where('department_id', $id)
-                ->orderBy('created_at', 'desc')
-                ->get();
-            $title = $department->name . ' - Opening Balance History';
+        if ($selectedDeptId) {
+            $query->where('department_id', $selectedDeptId);
+        }
+
+        if ($request->has('from_date') && !empty($request->from_date)) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+
+        if ($request->has('to_date') && !empty($request->to_date)) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        if ($request->has('month') && !empty($request->month)) {
+            $query->whereMonth('created_at', $request->month)
+                  ->whereYear('created_at', date('Y'));
+        }
+
+        if ($request->has('status') && $request->status !== null && $request->status !== '') {
+            $query->where('is_approved', $request->status);
+        }
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('expense', function($sq) use ($search) {
+                    $sq->where('name', 'like', "%{$search}%");
+                })->orWhereHas('department', function($sq) use ($search) {
+                    $sq->where('name', 'like', "%{$search}%");
+                })->orWhere('remark', 'like', "%{$search}%");
+            });
+        }
+
+        $totalAmount = (clone $query)->sum('price');
+        $paginated = $query->paginate(15);
+
+        // Stats for summary cards
+        $totalOpeningBalance = \App\Models\PettyOpeningBalance::query()
+            ->when($selectedDeptId, function($q) use ($selectedDeptId) {
+                return $q->where('department_id', $selectedDeptId);
+            })
+            ->sum('amount');
+        $remainingBalance = $totalOpeningBalance - $totalAmount;
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'total_amount' => $totalAmount,
+                'total_opening_balance' => $totalOpeningBalance,
+                'remaining_balance' => $remainingBalance,
+                'data' => $paginated->items(),
+                'links' => $paginated->linkCollection()->toArray(),
+                'current_page' => $paginated->currentPage(),
+                'per_page' => $paginated->perPage()
+            ]);
+        }
+
+        $expenses = $paginated;
+
+        if ($selectedDeptId) {
+            $department = \App\Models\Department::find($selectedDeptId);
+            $title = ($department ? $department->name : 'Department') . ' - Expense History';
         } else {
             $department = null;
-            $balances = \App\Models\PettyOpeningBalance::with('department')
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $title = 'All Departments - Expense History';
+        }
+
+        return view('pettycash.department-expenses', compact('department', 'departments', 'expenses', 'title', 'selectedDeptId', 'totalAmount', 'totalOpeningBalance', 'remainingBalance'));
+    }
+
+    public function departmentOpeningBalances(Request $request, $id = null)
+    {
+        $departments = \App\Models\Department::all();
+        $query = \App\Models\PettyOpeningBalance::with('department')->orderBy('created_at', 'desc');
+
+        $selectedDeptId = $id ?: $request->department_id;
+
+        if ($selectedDeptId) {
+            $query->where('department_id', $selectedDeptId);
+        }
+
+        if ($request->has('from_date') && !empty($request->from_date)) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+
+        if ($request->has('to_date') && !empty($request->to_date)) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        if ($request->has('month') && !empty($request->month)) {
+            $query->whereMonth('created_at', $request->month)
+                  ->whereYear('created_at', date('Y'));
+        }
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->whereHas('department', function($sq) use ($search) {
+                    $sq->where('name', 'like', "%{$search}%");
+                })->orWhere('amount', 'like', "%{$search}%");
+            });
+        }
+
+        $totalAmount = (clone $query)->sum('amount');
+        $paginated = $query->paginate(15);
+
+        // Stats for summary cards
+        $totalExpense = PettyCashData::query()
+            ->when($selectedDeptId, function($q) use ($selectedDeptId) {
+                return $q->where('department_id', $selectedDeptId);
+            })
+            ->sum('price');
+        $remainingBalance = $totalAmount - $totalExpense;
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'total_amount' => $totalAmount,
+                'total_opening_balance' => $totalAmount,
+                'total_expense' => $totalExpense,
+                'remaining_balance' => $remainingBalance,
+                'data' => $paginated->items(),
+                'links' => $paginated->linkCollection()->toArray(),
+                'current_page' => $paginated->currentPage(),
+                'per_page' => $paginated->perPage()
+            ]);
+        }
+
+        $balances = $paginated;
+
+        if ($selectedDeptId) {
+            $department = \App\Models\Department::find($selectedDeptId);
+            $title = ($department ? $department->name : 'Department') . ' - Opening Balance History';
+        } else {
+            $department = null;
             $title = 'All Departments - Opening Balance History';
         }
 
-        return view('pettycash.department-opening-balances', compact('department', 'balances', 'title'));
+        return view('pettycash.department-opening-balances', compact('department', 'departments', 'balances', 'title', 'selectedDeptId', 'totalAmount', 'totalExpense', 'remainingBalance'));
     }
 
     public function openingBalanceHistory(Request $request)
@@ -390,7 +506,7 @@ class PettyCashController extends Controller
             'totalOpeningBalance',
             'totalExpense',
             'remainingBalance'
-        ))->setPaper('a4', 'portrait');
+        ))->setPaper('a4', 'landscape');
 
         $filename = 'petty_cash_report_' . date('Ymd_His') . '.pdf';
         return $pdf->download($filename);

@@ -578,11 +578,11 @@
           <div class="summary-card-label">Total Opening Balance</div>
           <div class="summary-card-value text-dark">₹<span id="stat_opening_balance">0.00</span></div>
         </div>
-        <div class="metric-arrow" title="View Department Summary" onclick="event.preventDefault(); window.location.href='{{ route('petty-cash.department-summary') }}';">
+        <div class="metric-arrow" title="View Opening Balance History">
             <i class="bi bi-arrow-right"></i>
         </div>
       </a>
-      <div class="summary-card card-5">
+      <a href="{{ route('petty-cash.department.expenses') }}" class="summary-card card-5 text-decoration-none" title="Click to view All Expenses History">
         <div class="summary-card-icon icon-rose">
           <i class="bi bi-cash-stack fs-5 text-white"></i>
         </div>
@@ -590,7 +590,10 @@
           <div class="summary-card-label">Total Expense</div>
           <div class="summary-card-value text-danger">₹<span id="stat_all_expense">0.00</span></div>
         </div>
-      </div>
+        <div class="metric-arrow" title="View All Expenses History">
+            <i class="bi bi-arrow-right"></i>
+        </div>
+      </a>
       <div class="summary-card card-1">
         <div class="summary-card-icon icon-sunrise">
           <i class="bi bi-piggy-bank fs-5 text-white"></i>
@@ -798,11 +801,6 @@
             <label class="form-label">Remark</label>
             <textarea class="form-control" name="remark" id="edit_remark" rows="2"></textarea>
           </div>
-           <!-- Attachment edit usually requires separate logic, omitted for now or handle update similarly -->
-          <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" name="is_approved" id="edit_is_approved" value="1">
-            <label class="form-check-label" for="edit_is_approved">Approved</label>
-          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -925,7 +923,6 @@ $(document).ready(function() {
     $('#edit_department_id').val($(this).data('department-id'));
     $('#edit_price').val($(this).data('price'));
     $('#edit_remark').val($(this).data('remark'));
-    $('#edit_is_approved').prop('checked', $(this).data('approved'));
     
     $('#editEntryModal').modal('show');
   });
@@ -1041,7 +1038,7 @@ $(document).ready(function() {
                     `<span style="cursor:pointer; text-decoration: underline dotted;" onclick="viewRemark(\`${item.remark.replace(/`/g, '\\`').replace(/\n/g, '\\n').replace(/\r/g, '\\r')}\`)">${item.remark.substring(0, 7)}...</span>` : 
                     item.remark) : '-'}
                 </td>
-                <td style="cursor:pointer;" onclick="toggleApproval(${item.id})">${statusBadge}</td>
+                <td>${statusBadge}</td>
                 <td>
                   ${item.is_approved == 0 ? `
                   <button class="btn-action edit-btn" 
