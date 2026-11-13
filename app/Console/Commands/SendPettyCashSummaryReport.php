@@ -109,10 +109,47 @@ class SendPettyCashSummaryReport extends Command
             $overallOpeningBalance = 0;
             $overallTotalExpense = 0;
 
+            $days = (int) ($this->option('days') ?: 10);
+            $startDate = Carbon::today('Asia/Kolkata')->subDays($days - 1)->startOfDay();
+            $endDate = Carbon::today('Asia/Kolkata')->endOfDay();
+
             foreach ($departments as $dept) {
                 $op = (float) PettyOpeningBalance::where('department_id', $dept->id)->sum('amount');
                 $exp = (float) PettyCashData::where('department_id', $dept->id)->sum('price');
                 $rem = $op - $exp;
+
+                $lastDeptOb = PettyOpeningBalance::where('department_id', $dept->id)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                $lastDeptTopUp = null;
+                if ($lastDeptOb) {
+                    $lastDeptTopUp = [
+                        'amount' => (float) $lastDeptOb->amount,
+                        'date' => $lastDeptOb->created_at ? $lastDeptOb->created_at->format('d M Y') : '-'
+                    ];
+                }
+
+                $deptEntries = PettyCashData::with(['expense'])
+                    ->where('department_id', $dept->id)
+                    ->where('created_at', '>=', $startDate)
+                    ->where('created_at', '<=', $endDate)
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+                $deptRecent = [];
+                $deptRecentTotal = 0;
+                foreach ($deptEntries as $e) {
+                    $deptRecentTotal += (float) $e->price;
+                    $deptRecent[] = [
+                        'id' => $e->id,
+                        'date' => $e->created_at ? $e->created_at->format('d M Y') : '-',
+                        'expense_name' => $e->expense ? $e->expense->name : 'N/A',
+                        'price' => (float) $e->price,
+                        'remark' => $e->remark,
+                        'is_approved' => (bool) $e->is_approved,
+                    ];
+                }
 
                 $overallOpeningBalance += $op;
                 $overallTotalExpense += $exp;
@@ -122,17 +159,26 @@ class SendPettyCashSummaryReport extends Command
                     'name' => $dept->name,
                     'opening_balance' => $op,
                     'total_expense' => $exp,
-                    'remaining_balance' => $rem
+                    'remaining_balance' => $rem,
+                    'last_top_up' => $lastDeptTopUp,
+                    'recent_entries' => $deptRecent,
+                    'recent_total_price' => $deptRecentTotal
                 ];
             }
 
             $overallRemainingBalance = $overallOpeningBalance - $overallTotalExpense;
 
-            // 2. Last N days complete entries table
-            $days = (int) ($this->option('days') ?: 10);
-            $startDate = Carbon::today('Asia/Kolkata')->subDays($days - 1)->startOfDay();
-            $endDate = Carbon::today('Asia/Kolkata')->endOfDay();
+            // 1b. Overall Last Opening Balance (Last Top-Up)
+            $lastOpeningBalance = PettyOpeningBalance::orderBy('created_at', 'desc')->first();
+            $lastTopUp = null;
+            if ($lastOpeningBalance) {
+                $lastTopUp = [
+                    'amount' => (float) $lastOpeningBalance->amount,
+                    'date' => $lastOpeningBalance->created_at ? $lastOpeningBalance->created_at->format('d M Y') : '-'
+                ];
+            }
 
+            // 2. All Last N days complete entries (for global reference if needed)
             $entries = PettyCashData::with(['department', 'expense'])
                 ->where('created_at', '>=', $startDate)
                 ->where('created_at', '<=', $endDate)
@@ -165,6 +211,7 @@ class SendPettyCashSummaryReport extends Command
                 'overall_opening_balance' => $overallOpeningBalance,
                 'overall_total_expense' => $overallTotalExpense,
                 'overall_remaining_balance' => $overallRemainingBalance,
+                'last_top_up' => $lastTopUp,
                 'recent_entries' => $recentEntries,
                 'recent_total_price' => $recentTotalPrice,
             ];

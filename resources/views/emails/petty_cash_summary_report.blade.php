@@ -160,7 +160,7 @@
                 </tr>
             </table>
 
-            <!-- Section 1: Department-wise Summary -->
+            <!-- 1. Department-wise Summary -->
             <div class="section-title">🏢 Department-wise Summary</div>
 
             <div class="table-wrap">
@@ -176,10 +176,10 @@
                     <tbody>
                         @forelse($payload['department_summary'] as $dept)
                             <tr style="background: {{ $loop->even ? '#f8fafc' : '#ffffff' }};">
-                                <td>{{ $dept['name'] }}</td>
+                                <td style="font-weight: 500;">{{ $dept['name'] }}</td>
                                 <td align="right">₹{{ number_format($dept['opening_balance'], 2) }}</td>
                                 <td align="right" style="color: #dc2626;">₹{{ number_format($dept['total_expense'], 2) }}</td>
-                                <td align="right" style="color: #2563eb;">₹{{ number_format($dept['remaining_balance'], 2) }}</td>
+                                <td align="right" style="color: #2563eb; font-weight: 600;">₹{{ number_format($dept['remaining_balance'], 2) }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -187,68 +187,121 @@
                             </tr>
                         @endforelse
                     </tbody>
+                    <!-- 2. Overall Total right after department summary -->
                     <tfoot>
                         <tr style="background: #f1f5f9; font-weight: 600;">
-                            <td style="text-transform: uppercase;">Total:</td>
+                            <td style="text-transform: uppercase;">Overall Total:</td>
                             <td align="right">₹{{ number_format($payload['overall_opening_balance'], 2) }}</td>
                             <td align="right" style="color: #dc2626;">₹{{ number_format($payload['overall_total_expense'], 2) }}</td>
-                            <td align="right" style="color: #2563eb;">₹{{ number_format($payload['overall_remaining_balance'], 2) }}</td>
+                            <td align="right" style="color: #2563eb; font-weight: 700;">₹{{ number_format($payload['overall_remaining_balance'], 2) }}</td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
 
-            <!-- Section 2: Last 10 Days Complete Table (Status removed, Remark added, small font, non-bold, fits without scroll) -->
-            <div class="section-title">📋 Last 10 Days Expense History</div>
-            <div class="section-sub">
-                Entries from {{ $payload['start_date'] }} to {{ $payload['end_date'] }} ({{ count($payload['recent_entries']) }} entries)
-            </div>
+            <!-- 3. Last Top-Up: Separate Table -->
+            <div class="section-title">💳 Latest Top-Up Details</div>
 
             <div class="table-wrap">
-                <table class="data-table table-dark-header">
+                <table class="data-table">
                     <thead>
                         <tr>
-                            <th align="center" style="width: 6%;">#</th>
-                            <th align="left" style="width: 20%;">Date</th>
-                            <th align="left" style="width: 20%;">Department</th>
-                            <th align="left" style="width: 25%;">Expense</th>
-                            <th align="right" style="width: 14%;">Price</th>
-                            <th align="left" style="width: 15%;">Remark</th>
+                            <th align="left" style="width: 40%;">Department</th>
+                            <th align="right" style="width: 30%;">Top-Up Amount</th>
+                            <th align="center" style="width: 30%;">Date</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($payload['recent_entries'] as $idx => $entry)
-                            <tr style="background: {{ $idx % 2 === 1 ? '#f8fafc' : '#ffffff' }};">
-                                <td align="center" style="color: #64748b;">{{ $idx + 1 }}</td>
-                                <td>{{ $entry['date'] }}</td>
-                                <td>{{ $entry['department'] }}</td>
-                                <td>{{ $entry['expense_name'] }}</td>
-                                <td align="right">₹{{ number_format($entry['price'], 2) }}</td>
-                                <td style="color: #64748b;">{{ $entry['remark'] ?: '-' }}</td>
-                            </tr>
-                        @empty
+                        @php $hasAnyTopUp = false; @endphp
+                        @foreach($payload['department_summary'] as $dept)
+                            @if(!empty($dept['last_top_up']))
+                                @php $hasAnyTopUp = true; @endphp
+                                <tr style="background: #ffffff;">
+                                    <td style="font-weight: 500;">{{ $dept['name'] }}</td>
+                                    <td align="right" style="color: #15803d; font-weight: 600;">
+                                        ₹{{ number_format($dept['last_top_up']['amount'], 2) }}
+                                    </td>
+                                    <td align="center" style="color: #475569;">
+                                        {{ $dept['last_top_up']['date'] }}
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                        @if(!$hasAnyTopUp)
                             <tr>
-                                <td colspan="6" align="center" style="padding: 10px; color: #64748b;">
-                                    No petty cash expense entries recorded in the last 10 days.
-                                </td>
+                                <td colspan="3" align="center" style="padding: 8px; color: #64748b;">No recent top-up records found.</td>
                             </tr>
-                        @endforelse
+                        @endif
                     </tbody>
-                    @if(count($payload['recent_entries']) > 0)
-                    <tfoot>
-                        <tr style="background: #f1f5f9; font-weight: 600;">
-                            <td colspan="4" align="right" style="text-transform: uppercase;">
-                                Total (Last 10 Days):
-                            </td>
-                            <td align="right" style="color: #dc2626;">
-                                ₹{{ number_format($payload['recent_total_price'], 2) }}
-                            </td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                    @endif
                 </table>
             </div>
+
+            <!-- 4. Department-wise Expense History (Last 10 Days) -->
+            <!-- Each Department: Department Summary followed by its Last 10 Days Expense History -->
+            <div class="section-title" style="margin-top: 16px; border-bottom: 2px solid #334155;">
+                📋 Department-wise Expense History (Last 10 Days)
+            </div>
+            <div class="section-sub">
+                Reporting period: {{ $payload['start_date'] }} to {{ $payload['end_date'] }}
+            </div>
+
+            @foreach($payload['department_summary'] as $dept)
+                <div style="margin-top: 14px; margin-bottom: 6px; padding: 6px 8px; background: #f1f5f9; border-left: 3px solid #434afa; font-size: 11px; font-weight: 700; color: #1e293b;">
+                    📁 {{ $dept['name'] }} Department (Last 10 Days)
+                </div>
+
+                <!-- Last 10 Days Expense History for this department -->
+                <div class="table-wrap" style="margin-bottom: 14px;">
+                    <table class="data-table table-dark-header">
+                        <thead>
+                            <tr>
+                                <th align="center" style="width: 10%;">#</th>
+                                <th align="left" style="width: 22%;">Date</th>
+                                <th align="left" style="width: 32%;">Expense Name</th>
+                                <th align="right" style="width: 16%;">Price</th>
+                                <th align="left" style="width: 20%;">Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($dept['recent_entries'] as $idx => $entry)
+                                <tr style="background: {{ $idx % 2 === 1 ? '#f8fafc' : '#ffffff' }};">
+                                    <td align="center" style="white-space: nowrap;">
+                                        <span style="color: #64748b;">{{ $idx + 1 }}</span>
+                                        @if($entry['is_approved'])
+                                            <span title="Approved" style="display: inline-block; padding: 1px 3px; font-size: 8px; font-weight: bold; border-radius: 2px; background: #dcfce7; color: #15803d; margin-left: 2px; line-height: 1;">A</span>
+                                        @else
+                                            <span title="Pending" style="display: inline-block; padding: 1px 3px; font-size: 8px; font-weight: bold; border-radius: 2px; background: #fef3c7; color: #b45309; margin-left: 2px; line-height: 1;">P</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $entry['date'] }}</td>
+                                    <td>{{ $entry['expense_name'] }}</td>
+                                    <td align="right">₹{{ number_format($entry['price'], 2) }}</td>
+                                    <td style="color: #64748b;">{{ $entry['remark'] ?: '-' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" align="center" style="padding: 8px; color: #64748b;">
+                                        No expenses recorded in the last 10 days for {{ $dept['name'] }}.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                        @if(count($dept['recent_entries']) > 0)
+                        <tfoot>
+                            <tr style="background: #f1f5f9; font-weight: 600;">
+                                <td colspan="3" align="right" style="text-transform: uppercase;">
+                                    Total (Last 10 Days - {{ $dept['name'] }}):
+                                </td>
+                                <td align="right" style="color: #dc2626;">
+                                    ₹{{ number_format($dept['recent_total_price'], 2) }}
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                        @endif
+                    </table>
+                </div>
+            @endforeach
 
         </div>
 

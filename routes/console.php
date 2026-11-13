@@ -128,6 +128,12 @@ Schedule::command('calling:send-analytic-report', ['--alert=11'])
     ->timezone('Asia/Kolkata')
     ->description('Send daily calling analytic reports to admins for all tenants');
 
+Schedule::command('pettycash:send-summary-report', ['--alert=15'])
+    ->daily()
+    ->at('20:00')
+    ->timezone('Asia/Kolkata')
+    ->description('Send daily petty cash summary report (department summary + 10 days history) to active admins (role_id = 1)');
+
 Schedule::command('attendance:send-night-mail', ['--alert=12'])
     ->daily()
     ->at('20:35')
