@@ -655,11 +655,16 @@ class PayrollCalculationService
         $daysAbsent = (float) ($summary['days_absent'] ?? (is_object($summary) ? $summary->days_absent : 0) ?? 0);
         $unpaidLeaves = (float) ($summary['total_unpaid_leaves'] ?? (is_object($summary) ? $summary->total_unpaid_leaves : 0) ?? 0);
         
+        // Unpaid half days (or fallback to total_halfday if not tracked yet)
+        $unpaidHalfday = isset($summary['total_unpaid_halfday']) 
+            ? (float) $summary['total_unpaid_halfday'] 
+            : (is_object($summary) && isset($summary->total_unpaid_halfday) ? (float) $summary->total_unpaid_halfday : $totalHalfday);
+
         // Base it strictly on Working Days (ignores Weekly Offs and Holidays)
         $workingDays = $totalWorkingDays - $daysAbsent - $unpaidLeaves;
         
-        // Deduct 0.5 for each half day
-        $workingDays -= ($totalHalfday * 0.5);
+        // Deduct 0.5 only for unpaid/unauthorized half days
+        $workingDays -= ($unpaidHalfday * 0.5);
 
         return round($workingDays, 1);
     }
@@ -673,10 +678,14 @@ class PayrollCalculationService
     public function calculateTotalDeductionDays($summary): float
     {
         $totalHalfday = (float) ($summary['total_halfday'] ?? (is_object($summary) ? $summary->total_halfday : 0) ?? 0);
+        $unpaidHalfday = isset($summary['total_unpaid_halfday']) 
+            ? (float) $summary['total_unpaid_halfday'] 
+            : (is_object($summary) && isset($summary->total_unpaid_halfday) ? (float) $summary->total_unpaid_halfday : $totalHalfday);
+
         $daysAbsent = (float) ($summary['days_absent'] ?? (is_object($summary) ? $summary->days_absent : 0) ?? 0);
         $unpaidLeaves = (float) ($summary['total_unpaid_leaves'] ?? (is_object($summary) ? $summary->total_unpaid_leaves : 0) ?? 0);
         
-        $deductionDays = $daysAbsent + $unpaidLeaves + ($totalHalfday * 0.5);
+        $deductionDays = $daysAbsent + $unpaidLeaves + ($unpaidHalfday * 0.5);
         
         return round($deductionDays, 1);
     }

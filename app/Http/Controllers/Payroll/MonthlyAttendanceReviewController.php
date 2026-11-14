@@ -232,6 +232,7 @@ class MonthlyAttendanceReviewController extends Controller
                     'total_present_combined' => $summary['total_present_combined'] ?? 0,
                     'total_present' => $summary['total_present'] ?? 0,
                     'total_halfday' => $summary['total_halfday'] ?? 0,
+                    'total_unpaid_halfday' => $summary['total_unpaid_halfday'] ?? 0,
                     'total_weekly_offs_worked' => $summary['total_sundays_worked'] ?? 0,
                     'total_holidays_worked' => $summary['total_holidays_worked'] ?? 0,
                     'days_on_leave' => $summary['days_on_leave'] ?? 0,

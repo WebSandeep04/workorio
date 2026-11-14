@@ -89,8 +89,9 @@ class PayrollReportApiController extends Controller
                 $normalizedComps[$uc] = isset($comps[$uc]) ? round($comps[$uc]) : 0;
             }
             
-            // Calculate deduction days and payable days
-            $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
+            // Calculate deduction days and payable days (only unpaid half days are penalized with LOP)
+            $unpaidHalfday = isset($summary->total_unpaid_halfday) ? (float) $summary->total_unpaid_halfday : (float) ($summary->total_halfday ?? 0);
+            $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + ($unpaidHalfday * 0.5);
             $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
             
             $empType = !empty($employeeEmploymentTypes[$summary->employee_id]) 

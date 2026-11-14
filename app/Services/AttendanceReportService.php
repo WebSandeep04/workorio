@@ -366,7 +366,8 @@ class AttendanceReportService
         $totalUnpaidLeaves = 0;
         $totalShortLeaves = 0;
         $presentDays = 0; 
-        $halfDays = 0; 
+        $halfDays = 0;
+        $unpaidHalfDays = 0; 
         $daysAbsent = 0;
         $preJoiningDays = 0;
         $totalSundays = 0;
@@ -416,6 +417,13 @@ class AttendanceReportService
             } elseif ($code === 'P2') {
                 $halfDays++;
                 $totalDaysWorked++;
+
+                // If this halfday is NOT covered by an approved paid leave, it is subject to LOP deduction
+                $leaveTypeOnDay = $dayData['leave_type'] ?? null;
+                $isPaidHalfDay = in_array($leaveTypeOnDay, ['HD', 'CL', 'EL', 'SL', 'RH']) && ($leaveTypeOnDay !== 'LWP');
+                if (!$isPaidHalfDay) {
+                    $unpaidHalfDays++;
+                }
             } elseif ($code === 'W/O-W' || $code === 'W/O-W<sub>wfh</sub>') {
                 $totalSundaysWorked++;
                 $totalDaysWorked++;
@@ -465,6 +473,7 @@ class AttendanceReportService
             'total_present_combined' => $presentDays + $halfDays + $totalHolidaysWorked + $totalSundaysWorked,
             'total_present' => $presentDays,
             'total_halfday' => $halfDays,
+            'total_unpaid_halfday' => $unpaidHalfDays,
             'total_sundays' => $totalSundays,
             'total_sundays_worked' => $totalSundaysWorked,
             'total_holidays' => $totalHolidays,
