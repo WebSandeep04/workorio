@@ -130,7 +130,7 @@ Schedule::command('calling:send-analytic-report', ['--alert=11'])
 
 Schedule::command('pettycash:send-summary-report', ['--alert=15'])
     ->daily()
-    ->at('20:00')
+    ->at('16:00')
     ->timezone('Asia/Kolkata')
     ->description('Send daily petty cash summary report (department summary + 10 days history) to active admins (role_id = 1)');
 
