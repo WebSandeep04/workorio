@@ -93,6 +93,7 @@ class TenantFeatureService
                 'setup_enabled' => (bool) ($tenant->is_task_setup_enabled ?? true),
                 'permissions' => [
                     'task.view' => 'Tasks: View All',
+                    'task.signal_tasks' => 'Tasks: Signal Tasks',
                     'task.my_tasks' => 'Tasks: Assigned to Me',
                     'task.my_created' => 'Tasks: Created by Me',
                     'setup.task_status' => 'Setup: Task Status',

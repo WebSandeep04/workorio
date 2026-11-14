@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class SignalTaskController extends Controller
 {
@@ -12,6 +13,11 @@ class SignalTaskController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('task.signal_tasks')) {
+            abort(403, 'Unauthorized access to Signal Tasks.');
+        }
+
         return view('worklog.signal-task');
     }
 
