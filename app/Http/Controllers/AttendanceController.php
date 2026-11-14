@@ -1232,6 +1232,10 @@ class AttendanceController extends Controller
             $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
         }
 
+        if ($endDate->isFuture()) {
+            $endDate = \Carbon\Carbon::today()->endOfDay();
+        }
+
         $user = \App\Models\User::with(['employee.shiftHistory.shift'])->find($userId);
         if (!$user || !$user->is_attendance) {
             return null;
@@ -1371,6 +1375,10 @@ class AttendanceController extends Controller
         } else {
             $startDateObj = \Carbon\Carbon::parse($date)->startOfDay();
             $endDateObj = $startDateObj->copy();
+        }
+
+        if ($endDateObj->isFuture()) {
+            $endDateObj = \Carbon\Carbon::today()->startOfDay();
         }
 
         $userIdsWithAttendance = \App\Models\Attendance::whereBetween('date', [$startDateObj->format('Y-m-d'), $endDateObj->format('Y-m-d')])
@@ -1704,6 +1712,10 @@ class AttendanceController extends Controller
         } else {
             $startDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->startOfMonth();
             $endDate = \Carbon\Carbon::createFromFormat('Y-m', $month)->endOfMonth();
+        }
+
+        if ($endDate->isFuture()) {
+            $endDate = \Carbon\Carbon::today()->endOfDay();
         }
 
         $dates = [];
