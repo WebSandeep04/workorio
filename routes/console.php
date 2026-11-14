@@ -122,6 +122,12 @@ Schedule::command('whatsapp:send-inbox-mail', ['--alert=10'])
     ->timezone('Asia/Kolkata')
     ->description('Send daily summary of the WhatsApp Inbox (All section) to Admins');
 
+Schedule::command('signal:send-pending-report', ['--alert=16'])
+    ->daily()
+    ->at('15:00')
+    ->timezone('Asia/Kolkata')
+    ->description('Send daily pending Signal tasks report (not converted) to Role ID 1 Admins');
+
 Schedule::command('calling:send-analytic-report', ['--alert=11'])
     ->daily()
     ->at('19:30')
