@@ -110,11 +110,25 @@ class WhatsappWebhookController extends Controller
             }
         }
 
+        // Parse Reaction / Emoji from top-level payload if present
+        if ($messageType === 'reaction' || isset($payload['reaction'])) {
+            $reactData = is_array($payload['reaction'] ?? null) ? $payload['reaction'] : json_decode($payload['reaction'] ?? '', true);
+            if (is_array($reactData)) {
+                $emoji = $reactData['emoji'] ?? $reactData['text'] ?? null;
+                $messageText = $emoji ? "Reacted {$emoji}" : 'Reacted with emoji';
+                $messageType = 'reaction';
+            }
+        }
+
         // Parse complex message payloads
         if (!$messageText && is_array($messageArray)) {
             $msgType = $messageArray['type'] ?? 'text';
             if ($msgType === 'text') {
                 $messageText = $messageArray['text']['body'] ?? ($messageArray['text'] ?? '');
+            } elseif ($msgType === 'reaction') {
+                $react = $messageArray['reaction'] ?? null;
+                $emoji = is_array($react) ? ($react['emoji'] ?? null) : (is_string($react) ? $react : null);
+                $messageText = $emoji ? "Reacted {$emoji}" : 'Reacted with emoji';
             } elseif ($msgType === 'button') {
                 $btn = $messageArray['button'] ?? null;
                 if (is_array($btn)) {

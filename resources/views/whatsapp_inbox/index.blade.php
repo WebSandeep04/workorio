@@ -286,7 +286,7 @@
 
                 let senderName = msg.sender_name || msg.sender_number;
                 let rawText = (msg.message_text && msg.message_text.trim() !== 'null') ? msg.message_text.trim() : '';
-                let text = rawText ? rawText : (msg.media_url ? 'Media message' : (msg.message_type === 'button' ? 'Button Clicked' : (msg.message_type && msg.message_type !== 'text' ? msg.message_type : 'No text')));
+                let text = rawText ? rawText : (msg.media_url ? 'Media message' : (msg.message_type === 'button' ? 'Button Clicked' : (msg.message_type === 'reaction' ? 'Reacted with emoji' : (msg.message_type && msg.message_type !== 'text' ? msg.message_type : 'No text'))));
                 
                 let time = new Date(msg.received_at);
                 let timeStr = time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -461,6 +461,8 @@
             if (!rawText && !msg.media_url) {
                 if (msg.message_type === 'button') {
                     textDisplay = '<span class="text-muted fst-italic">Button Clicked</span>';
+                } else if (msg.message_type === 'reaction') {
+                    textDisplay = '<span class="text-muted fst-italic">Reacted with emoji</span>';
                 } else {
                     textDisplay = '<span class="text-muted fst-italic">(No text)</span>';
                 }
