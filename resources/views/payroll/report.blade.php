@@ -283,6 +283,7 @@ $(document).ready(function() {
                                         <th class="text-center" style="min-width: 90px;">Total Present</th>
                                         <th class="text-center" style="min-width: 80px;">Full Day</th>
                                         <th class="text-center" style="min-width: 80px;">Half Day</th>
+                                        <th class="text-center text-danger" style="min-width: 105px;">Unpaid Half Day</th>
                                         <th class="text-center" style="min-width: 95px;">Sunday Work</th>
                                         <th class="text-center" style="min-width: 95px;">Holiday Work</th>
                                         <th class="text-center" style="min-width: 75px;">Leave</th>
@@ -358,6 +359,7 @@ $(document).ready(function() {
                         <td class="text-center">${row.total_present_combined || 0}</td>
                         <td class="text-center">${row.total_present || 0}</td>
                         <td class="text-center">${row.total_halfday || 0}</td>
+                        <td class="text-center text-danger">${row.total_unpaid_halfday || 0}</td>
                         <td class="text-center">${row.sunday_work || 0}</td>
                         <td class="text-center">${row.holiday_work || 0}</td>
                         <td class="text-center">${row.leave || 0}</td>

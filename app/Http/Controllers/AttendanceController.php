@@ -1272,10 +1272,10 @@ class AttendanceController extends Controller
             $lEnd = \Carbon\Carbon::parse($leave->end_date)->min($endDate);
             
             $lType = 'L';
-            if ($leave->is_half_day) $lType = 'HD';
+            if ($leave->leaveType && !$leave->leaveType->is_paid) $lType = 'LWP';
+            elseif ($leave->is_half_day) $lType = 'HD';
             elseif ($leave->is_sl) $lType = 'SL';
             elseif ($leave->is_rh) $lType = 'RH';
-            elseif ($leave->leaveType && !$leave->leaveType->is_paid) $lType = 'LWP';
             
             $curr = $lStart->copy();
             while ($curr->lte($lEnd)) {
@@ -1435,10 +1435,10 @@ class AttendanceController extends Controller
             $lEnd = \Carbon\Carbon::parse($leave->end_date)->min($endDateObj);
             
             $lType = 'L';
-            if ($leave->is_half_day) $lType = 'HD';
+            if ($leave->leaveType && !$leave->leaveType->is_paid) $lType = 'LWP';
+            elseif ($leave->is_half_day) $lType = 'HD';
             elseif ($leave->is_sl) $lType = 'SL';
             elseif ($leave->is_rh) $lType = 'RH';
-            elseif ($leave->leaveType && !$leave->leaveType->is_paid) $lType = 'LWP';
             
             $currL = $lStart->copy();
             while ($currL->lte($lEnd)) {
@@ -1784,10 +1784,10 @@ class AttendanceController extends Controller
             $lEnd = \Carbon\Carbon::parse($leave->end_date)->min($endDate);
             
             $lType = 'L';
-            if ($leave->is_half_day) $lType = 'HD';
+            if ($leave->leaveType && !$leave->leaveType->is_paid) $lType = 'LWP';
+            elseif ($leave->is_half_day) $lType = 'HD';
             elseif ($leave->is_sl) $lType = 'SL';
             elseif ($leave->is_rh) $lType = 'RH';
-            elseif ($leave->leaveType && !$leave->leaveType->is_paid) $lType = 'LWP';
             
             $currL = $lStart->copy();
             while ($currL->lte($lEnd)) {

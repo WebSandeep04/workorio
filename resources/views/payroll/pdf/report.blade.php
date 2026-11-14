@@ -38,6 +38,7 @@
                 <th>Total Present</th>
                 <th>Full Day</th>
                 <th>Half Day</th>
+                <th>Unpaid Half Day</th>
                 <th>Leave</th>
                 <th>Unpaid Leave</th>
                 <th>Absent</th>
@@ -86,7 +87,7 @@
                 $grandTotalPaidSalary = 0; 
                 $colTotals = [
                     'gross_salary' => 0,
-                    'working_days' => 0, 'total_present' => 0, 'full_day' => 0, 'half_day' => 0,
+                    'working_days' => 0, 'total_present' => 0, 'full_day' => 0, 'half_day' => 0, 'unpaid_half_day' => 0,
                     'leave' => 0, 'unpaid_leave' => 0, 'absent' => 0, 'weekly_offs' => 0, 'holidays' => 0,
                     'deduction_days' => 0, 'lop_deduction' => 0, 'advance_deduction' => 0, 'loan_deduction' => 0,
                     'pf_deduction' => 0, 'esi_deduction' => 0,
@@ -116,7 +117,8 @@
                     $penaltyAmount = $employeePenaltyAmounts[$summary->employee_id] ?? 0;
                     $totalLates = $employeeTotalLates[$summary->employee_id] ?? 0;
                     
-                    $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + (($summary->total_halfday ?? 0) * 0.5);
+                    $unpaidHalfday = isset($summary->total_unpaid_halfday) ? (float) $summary->total_unpaid_halfday : (float) ($summary->total_halfday ?? 0);
+                    $deductionDays = ($summary->total_unpaid_leaves ?? 0) + ($summary->days_absent ?? 0) + ($unpaidHalfday * 0.5);
                     $payableDays = ($summary->total_working_days ?? 0) - $deductionDays;
                     if ($paid !== null) {
                         $grandTotalPaidSalary += (float)((isset($withPenalty) && $withPenalty) ? $paid : ($paid + $penaltyAmount));
@@ -137,6 +139,7 @@
                     $colTotals['total_present'] += $summary->total_present_combined ?? 0;
                     $colTotals['full_day'] += $summary->total_present ?? 0;
                     $colTotals['half_day'] += $summary->total_halfday ?? 0;
+                    $colTotals['unpaid_half_day'] += $unpaidHalfday;
                     $colTotals['leave'] += $summary->days_on_leave ?? 0;
                     $colTotals['unpaid_leave'] += $summary->total_unpaid_leaves ?? 0;
                     $colTotals['absent'] += $summary->days_absent ?? 0;
@@ -193,6 +196,7 @@
                     <td>{{ $summary->total_present_combined ?? 0 }}</td>
                     <td>{{ $summary->total_present ?? 0 }}</td>
                     <td>{{ $summary->total_halfday ?? 0 }}</td>
+                    <td>{{ $unpaidHalfday }}</td>
                     <td>{{ $summary->days_on_leave ?? 0 }}</td>
                     <td>{{ $summary->total_unpaid_leaves ?? 0 }}</td>
                     <td>{{ $summary->days_absent ?? 0 }}</td>
@@ -248,6 +252,7 @@
                     <td>{{ $colTotals['total_present'] }}</td>
                     <td>{{ $colTotals['full_day'] }}</td>
                     <td>{{ $colTotals['half_day'] }}</td>
+                    <td>{{ $colTotals['unpaid_half_day'] }}</td>
                     <td>{{ $colTotals['leave'] }}</td>
                     <td>{{ $colTotals['unpaid_leave'] }}</td>
                     <td>{{ $colTotals['absent'] }}</td>

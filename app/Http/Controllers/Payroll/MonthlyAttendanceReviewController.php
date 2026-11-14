@@ -183,7 +183,9 @@ class MonthlyAttendanceReviewController extends Controller
                     } elseif ($req->is_sl) {
                         $type = 'SL';
                     } elseif ($req->is_half_day) {
-                        $type = 'HD';
+                        // If leave type is unpaid, mark as LWP (unpaid halfday), otherwise HD (paid halfday)
+                        $isPaid = $req->leaveType ? $req->leaveType->is_paid : true;
+                        $type = $isPaid ? 'HD' : 'LWP';
                     } else {
                         $type = 'L';
                     }

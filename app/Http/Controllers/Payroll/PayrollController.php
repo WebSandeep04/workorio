@@ -555,6 +555,7 @@ class PayrollController extends Controller
                 'total_present_combined' => $summary->total_present_combined ?? 0, // Total Present
                 'total_present' => $summary->total_present ?? 0, // Full Day
                 'total_halfday' => $summary->total_halfday ?? 0,
+                'total_unpaid_halfday' => $unpaidHalfday,
                 'sunday_work' => $summary->total_weekly_offs_worked ?? 0,
                 'holiday_work' => $summary->total_holidays_worked ?? 0,
                 'leave' => $summary->days_on_leave ?? 0,
@@ -724,7 +725,7 @@ class PayrollController extends Controller
             $earnedHeaders[] = 'Earned Gross';
 
             $baseColumns = [
-                'Total Working Days', 'Full Day', 'Half Day', 'Leave', 'Unpaid Leave', 
+                'Total Working Days', 'Full Day', 'Half Day', 'Unpaid Half Day', 'Leave', 'Unpaid Leave', 
                 'Absent', 'Total Weekly Off', 'Total Holidays', 'Holiday Work', 'Sunday Work', 
                 'Total Present', 'Deduction Days', 'Days deduction amount', 'Advance Deduction', 'Loan Deduction'
             ];
@@ -824,6 +825,7 @@ class PayrollController extends Controller
                 $colTotals[$colIdx++] += $summary->total_working_days ?? 0;
                 $colTotals[$colIdx++] += $summary->total_present ?? 0;
                 $colTotals[$colIdx++] += $summary->total_halfday ?? 0;
+                $colTotals[$colIdx++] += $unpaidHalfday;
                 $colTotals[$colIdx++] += $summary->days_on_leave ?? 0;
                 $colTotals[$colIdx++] += $summary->total_unpaid_leaves ?? 0;
                 $colTotals[$colIdx++] += $summary->days_absent ?? 0;
@@ -880,6 +882,7 @@ class PayrollController extends Controller
                     $summary->total_working_days ?? 0,
                     $summary->total_present ?? 0,
                     $summary->total_halfday ?? 0,
+                    $unpaidHalfday,
                     $summary->days_on_leave ?? 0,
                     $summary->total_unpaid_leaves ?? 0,
                     $summary->days_absent ?? 0,
