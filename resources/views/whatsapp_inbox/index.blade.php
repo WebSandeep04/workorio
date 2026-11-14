@@ -285,7 +285,8 @@
                 }
 
                 let senderName = msg.sender_name || msg.sender_number;
-                let text = msg.message_text ? msg.message_text : (msg.media_url ? 'Media message' : 'No text');
+                let rawText = (msg.message_text && msg.message_text.trim() !== 'null') ? msg.message_text.trim() : '';
+                let text = rawText ? rawText : (msg.media_url ? 'Media message' : (msg.message_type === 'button' ? 'Button Clicked' : (msg.message_type && msg.message_type !== 'text' ? msg.message_type : 'No text')));
                 
                 let time = new Date(msg.received_at);
                 let timeStr = time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -455,9 +456,14 @@
                 }
             }
 
-            let textDisplay = msg.message_text ? `<div class="mb-1 text-dark" style="font-size: 0.9rem;">${msg.message_text}</div>` : '';
-            if (!msg.message_text && !msg.media_url) {
-                textDisplay = '<span class="text-muted fst-italic">(No text)</span>';
+            let rawText = (msg.message_text && msg.message_text.trim() !== 'null') ? msg.message_text.trim() : '';
+            let textDisplay = rawText ? `<div class="mb-1 text-dark" style="font-size: 0.9rem;">${rawText}</div>` : '';
+            if (!rawText && !msg.media_url) {
+                if (msg.message_type === 'button') {
+                    textDisplay = '<span class="text-muted fst-italic">Button Clicked</span>';
+                } else {
+                    textDisplay = '<span class="text-muted fst-italic">(No text)</span>';
+                }
             }
             
             if (isReply) {

@@ -73,7 +73,14 @@ class WhatsappWebhookController extends Controller
             $sender = $data['customerNumber'] ?? $data['sender'] ?? null;
             $receiver = $data['integratedNumber'] ?? $data['receiver'] ?? null;
             $messageText = $data['text'] ?? null;
-            $messageArray = $data['message'] ?? null;
+            if (isset($data['messages']) && is_string($data['messages'])) {
+                $dec = json_decode($data['messages'], true);
+                if (is_array($dec) && !empty($dec)) {
+                    $messageArray = $dec[0];
+                }
+            } else {
+                $messageArray = $data['message'] ?? null;
+            }
         }
 
         if (!$sender) {
@@ -88,16 +95,58 @@ class WhatsappWebhookController extends Controller
         $messageType = $payload['contentType'] ?? $payload['messageType'] ?? 'text';
         $mediaUrl = $payload['url'] ?? null;
 
+        // Parse Button / Interactive clicks from top-level payload if present
+        if ($messageType === 'button' || $messageType === 'interactive' || $messageType === 'listReply' || isset($payload['button']) || isset($payload['interactive']) || isset($payload['listReply'])) {
+            if (isset($payload['button'])) {
+                $btnData = is_array($payload['button']) ? $payload['button'] : json_decode($payload['button'], true);
+                if (is_array($btnData)) {
+                    $messageText = $btnData['text'] ?? $btnData['payload'] ?? $btnData['title'] ?? $messageText;
+                }
+            } elseif (isset($payload['interactive'])) {
+                $intData = is_array($payload['interactive']) ? $payload['interactive'] : json_decode($payload['interactive'], true);
+                if (is_array($intData)) {
+                    $messageText = $intData['button_reply']['title'] ?? $intData['list_reply']['title'] ?? $intData['button_reply']['id'] ?? $intData['list_reply']['id'] ?? $messageText;
+                }
+            }
+        }
+
         // Parse complex message payloads
         if (!$messageText && is_array($messageArray)) {
             $msgType = $messageArray['type'] ?? 'text';
             if ($msgType === 'text') {
                 $messageText = $messageArray['text']['body'] ?? ($messageArray['text'] ?? '');
+            } elseif ($msgType === 'button') {
+                $btn = $messageArray['button'] ?? null;
+                if (is_array($btn)) {
+                    $messageText = $btn['text'] ?? $btn['payload'] ?? $btn['title'] ?? 'Button Clicked';
+                } elseif (is_string($btn)) {
+                    $btnDecoded = json_decode($btn, true);
+                    $messageText = is_array($btnDecoded) ? ($btnDecoded['text'] ?? $btnDecoded['payload'] ?? $btnDecoded['title'] ?? $btn) : $btn;
+                }
+            } elseif ($msgType === 'interactive') {
+                $interactive = $messageArray['interactive'] ?? null;
+                if (is_array($interactive)) {
+                    $messageText = $interactive['button_reply']['title'] ?? $interactive['list_reply']['title'] ?? $interactive['button_reply']['id'] ?? $interactive['list_reply']['id'] ?? 'Button Clicked';
+                } elseif (is_string($interactive)) {
+                    $intDecoded = json_decode($interactive, true);
+                    $messageText = is_array($intDecoded) ? ($intDecoded['button_reply']['title'] ?? $intDecoded['list_reply']['title'] ?? $intDecoded['button_reply']['id'] ?? $intDecoded['list_reply']['id'] ?? 'Button Clicked') : 'Button Clicked';
+                }
             } elseif (in_array($msgType, ['image', 'document', 'audio', 'video'])) {
                 $mediaUrl = $messageArray['media_url'] ?? ($messageArray[$msgType]['link'] ?? null);
                 $messageText = $messageArray['caption'] ?? null;
             }
             $messageType = $msgType;
+        }
+
+        // Format message_text safely: never store literal "null"
+        $finalMessageText = null;
+        if (is_string($messageText)) {
+            $trimmed = trim($messageText);
+            if (strtolower($trimmed) !== 'null' && $trimmed !== '') {
+                $finalMessageText = $trimmed;
+            }
+        } elseif (is_array($messageText) && !empty($messageText)) {
+            $finalMessageText = json_encode($messageText);
         }
 
         // Lookup sender contact name across Customer, Sales Record, or Campaign Members
@@ -131,7 +180,7 @@ class WhatsappWebhookController extends Controller
             'sender_number' => $sender,
             'sender_name' => $senderName,
             'receiver_number' => $receiver,
-            'message_text' => is_string($messageText) ? $messageText : json_encode($messageText),
+            'message_text' => $finalMessageText,
             'media_url' => $mediaUrl,
             'message_type' => $messageType,
             'msg91_message_id' => $payload['uuid'] ?? $payload['message_id'] ?? $payload['id'] ?? null,
