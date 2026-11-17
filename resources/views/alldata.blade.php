@@ -2361,8 +2361,49 @@
           });
         })
         .fail(function (xhr) {
-          showAlert('error', 'Something went wrong while adding prospect!');
-          console.log(xhr.responseText);
+          if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.error === 'duplicate') {
+            let p = xhr.responseJSON.prospect;
+            let detailHtml = `
+                <div class="text-start mt-2 p-2 border rounded" style="background:#f8f9fa; font-size: 0.88rem; line-height: 1.6;">
+                    <div><strong>Prospect Name:</strong> ${p.prospectus_name || '-'}</div>
+                    <div><strong>Contact Person:</strong> ${p.contact_person || '-'}</div>
+                    <div><strong>Contact Number:</strong> ${p.contact_number || '-'}</div>
+                    ${p.email ? `<div><strong>Email:</strong> ${p.email}</div>` : ''}
+                    ${p.address ? `<div><strong>Address:</strong> ${p.address}</div>` : ''}
+                    ${p.city ? `<div><strong>City / State:</strong> ${p.city}${p.state ? ', ' + p.state : ''}</div>` : ''}
+                    ${p.business_type ? `<div><strong>Business Type:</strong> ${p.business_type}</div>` : ''}
+                </div>
+            `;
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Prospect Already Exists!',
+                    html: `<p class="mb-2 text-danger fw-semibold">${xhr.responseJSON.message}</p>${detailHtml}`,
+                    confirmButtonText: 'Use This Existing Prospect',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancel',
+                    confirmButtonColor: '#434afa',
+                    cancelButtonColor: '#6c757d'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#addProspectusModal').modal('hide');
+                        $('#addProspectusForm')[0].reset();
+                        // Select this existing prospect in the lead form
+                        $.get("{{ route('getProspectus') }}", function(data) {
+                            alldataProspectsList = data || [];
+                            populateAlldataProspectDropdown(alldataProspectsList, p.id);
+                            $('#add_lead_prospectus').val(p.id).trigger('change');
+                        });
+                    }
+                });
+            } else {
+                alert(`${xhr.responseJSON.message}\nName: ${p.prospectus_name}\nPerson: ${p.contact_person}\nPhone: ${p.contact_number}`);
+            }
+          } else {
+            showAlert('error', 'Something went wrong while adding prospect!');
+            console.log(xhr.responseText);
+          }
         });
     }
 

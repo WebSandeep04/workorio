@@ -9,26 +9,62 @@ use App\Models\Prospectus;
 class ProspectusController extends Controller
 {
     public function store(Request $request)
-{
-    $validated = $request->validate([
-        'prospectus_name' => 'required|string|max:255',
-        'contact_person' => 'nullable|string|max:255',
-        'contact_number' => 'nullable|string',
-        'address' => 'nullable|string',
-        'state_id' => 'nullable|integer',
-        'city_id' => 'nullable|integer',
-        'email' => 'nullable|email',
-        'business_type_id' => 'nullable|integer',
-        'website_link' => 'nullable|string']);
+    {
+        $validated = $request->validate([
+            'prospectus_name' => 'required|string|max:255',
+            'contact_person' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string',
+            'address' => 'nullable|string',
+            'state_id' => 'nullable|integer',
+            'city_id' => 'nullable|integer',
+            'email' => 'nullable|email',
+            'business_type_id' => 'nullable|integer',
+            'website_link' => 'nullable|string'
+        ]);
 
-    $prospectus = Prospectus::create($validated);
+        // Check uniqueness by contact_number if provided
+        $contactNumber = trim($request->contact_number ?? '');
+        if (!empty($contactNumber)) {
+            // Strip common non-numeric formatting like spaces, dashes, parentheses to compare cleanly
+            $cleanNumber = preg_replace('/[^0-9]/', '', $contactNumber);
 
-    return response()->json([
-        'message' => 'Prospectus saved successfully.',
-        'id' => $prospectus->id,
-        'prospectus' => $prospectus
-    ]);
-}
+            $existing = Prospectus::with(['state', 'city', 'businessType'])
+                ->where(function($q) use ($contactNumber, $cleanNumber) {
+                    $q->where('contact_number', $contactNumber);
+                    if (!empty($cleanNumber)) {
+                        $q->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(contact_number, ' ', ''), '-', ''), '(', ''), ')', '') = ?", [$cleanNumber]);
+                    }
+                })
+                ->first();
+
+            if ($existing) {
+                return response()->json([
+                    'error' => 'duplicate',
+                    'message' => 'A prospect with this contact number already exists!',
+                    'prospect' => [
+                        'id' => $existing->id,
+                        'prospectus_name' => $existing->prospectus_name,
+                        'contact_person' => $existing->contact_person,
+                        'contact_number' => $existing->contact_number,
+                        'email' => $existing->email,
+                        'address' => $existing->address,
+                        'state' => $existing->state ? $existing->state->name : null,
+                        'city' => $existing->city ? $existing->city->name : null,
+                        'business_type' => $existing->businessType ? $existing->businessType->name : null,
+                        'website_link' => $existing->website_link,
+                    ]
+                ], 422);
+            }
+        }
+
+        $prospectus = Prospectus::create($validated);
+
+        return response()->json([
+            'message' => 'Prospectus saved successfully.',
+            'id' => $prospectus->id,
+            'prospectus' => $prospectus
+        ]);
+    }
 
 public function getProspectus(){
     $prospectus = Prospectus::orderBy('prospectus_name')->get();
