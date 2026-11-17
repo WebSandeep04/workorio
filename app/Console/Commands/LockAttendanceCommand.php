@@ -33,7 +33,7 @@ class LockAttendanceCommand extends Command
     {
         $this->info('Starting multi-tenant attendance locking...');
 
-        $tenants = Tenant::on('mysql')->where('is_sales_enabled', 1)->get();
+        $tenants = Tenant::on('mysql')->where('is_attendance_enabled', 1)->get();
 
         if ($tenants->isEmpty()) {
             $this->info("No active tenants found.");

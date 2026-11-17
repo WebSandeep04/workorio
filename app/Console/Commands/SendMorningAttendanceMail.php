@@ -37,7 +37,7 @@ class SendMorningAttendanceMail extends Command
     {
         $this->info('Starting morning attendance email generation...');
 
-        $tenants = Tenant::on('mysql')->where('is_sales_enabled', 1)->get();
+        $tenants = Tenant::on('mysql')->where('is_attendance_enabled', 1)->get();
 
         if ($tenants->isEmpty()) {
             $this->info("No tenants found.");
@@ -111,12 +111,11 @@ class SendMorningAttendanceMail extends Command
                 ];
             }
 
-            // Who gets the email? "Send to all active users - filter valid emails"
+            // Who gets the email? Send to active employees + role_id = 1 (Admins)
             $recipientEmails = User::where(function($q) {
-                    $q->where('is_attendance', 1)->orWhere('role_id', 1);
-                })
-                ->whereHas('employee', function ($q) {
-                    $q->where('status', 'active');
+                    $q->whereHas('employee', function ($eq) {
+                        $eq->where('status', 'active');
+                    })->orWhere('role_id', 1);
                 })->whereNotNull('email')->pluck('email')->filter(function ($email) {
                     return filter_var($email, FILTER_VALIDATE_EMAIL);
                 })->toArray();
