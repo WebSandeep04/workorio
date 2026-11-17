@@ -2429,8 +2429,51 @@
     });
     function openProspectusModal() {
       $('#addLeadModal .blur-target').addClass('blur-active');
-      $('#addProspectusModal').modal('show');
 
+      // Prefill from Add Lead form if values are present
+      let leadContactPerson = $('#add_lead_contactPerson').val();
+      let leadContactNumber = $('#add_lead_contactNumber').val();
+      let leadAddress = $('#add_lead_address').val();
+      let leadEmail = $('#add_lead_email').val();
+      let leadWebsite = $('#add_lead_website_link').val();
+      let leadBusinessType = $('#add_lead_business_type').val();
+      let leadState = $('#add_lead_state').val();
+      let leadCity = $('#add_lead_city').val();
+      let leadName = $('#add_lead_leadsName').val();
+
+      if (leadContactPerson && !$('#modal_contact_person').val()) {
+          $('#modal_contact_person').val(leadContactPerson);
+      }
+      if (leadContactNumber && !$('#modal_contact_number').val()) {
+          $('#modal_contact_number').val(leadContactNumber);
+      }
+      if (leadAddress && !$('#modal_address').val()) {
+          $('#modal_address').val(leadAddress);
+      }
+      if (leadEmail && !$('#modal_email').val()) {
+          $('#modal_email').val(leadEmail);
+      }
+      if (leadWebsite && !$('#modal_website_link').val()) {
+          $('#modal_website_link').val(leadWebsite);
+      }
+      if (leadBusinessType && !$('#modal_business_type').val()) {
+          $('#modal_business_type').val(leadBusinessType);
+      }
+      if (leadState && !$('#modal_state').val()) {
+          $('#modal_state').val(leadState).trigger('change');
+          if (leadCity) {
+              setTimeout(function() {
+                  $('#modal_city').val(leadCity);
+              }, 300);
+          }
+      }
+      if (leadName && !$('#modalnewProspectusName').val()) {
+          $('#modalnewProspectusName').val(leadName);
+      } else if (leadContactPerson && !$('#modalnewProspectusName').val()) {
+          $('#modalnewProspectusName').val(leadContactPerson);
+      }
+
+      $('#addProspectusModal').modal('show');
     }
 
     $(document).ready(function () {

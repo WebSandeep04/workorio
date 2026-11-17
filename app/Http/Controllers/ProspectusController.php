@@ -21,9 +21,13 @@ class ProspectusController extends Controller
         'business_type_id' => 'nullable|integer',
         'website_link' => 'nullable|string']);
 
-    Prospectus::create($validated);
+    $prospectus = Prospectus::create($validated);
 
-    return response()->json(['message' => 'Prospectus saved successfully.']);
+    return response()->json([
+        'message' => 'Prospectus saved successfully.',
+        'id' => $prospectus->id,
+        'prospectus' => $prospectus
+    ]);
 }
 
 public function getProspectus(){

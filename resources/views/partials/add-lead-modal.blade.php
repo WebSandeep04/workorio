@@ -569,19 +569,19 @@ function submitProspect(e) {
         $('#addProspectusModal').modal('hide');
         $('#addProspectusForm')[0].reset();
         showAlert('success', 'Prospect added successfully.');
-        // Refresh Prospect Dropdown in Add Lead Modal
+        // Refresh Prospect Dropdown in Add Lead Modal and auto-select newly created prospect
          $.get("{{ route('getProspectus') }}", function(data) {
             addLeadProspectsList = data || [];
-            let q = $('#search_prospect_input').val().toLowerCase().trim();
-            if (q) {
-                let filtered = addLeadProspectsList.filter(function(p) {
-                    return (p.prospectus_name || '').toLowerCase().includes(q) ||
-                           (p.contact_person || '').toLowerCase().includes(q) ||
-                           (p.contact_number || '').toLowerCase().includes(q);
-                });
-                populateProspectDropdown(filtered);
-            } else {
-                populateProspectDropdown(addLeadProspectsList);
+            let createdProspect = null;
+            if (response.id) {
+                createdProspect = addLeadProspectsList.find(p => p.id == response.id);
+            } else if (data.prospectus_name) {
+                createdProspect = addLeadProspectsList.find(p => p.prospectus_name === data.prospectus_name);
+            }
+            let selectedId = createdProspect ? createdProspect.id : (addLeadProspectsList[addLeadProspectsList.length - 1]?.id || null);
+            populateProspectDropdown(addLeadProspectsList, selectedId);
+            if (selectedId) {
+                $('#add_lead_prospectus').val(selectedId).trigger('change');
             }
         });
     })
@@ -654,9 +654,52 @@ $(document).on('keydown', '#search_prospect_input', function(e) {
     }
 });
 function openProspectusModal() {
-   $('#addLeadModal .blur-target').addClass('blur-active');
-    $('#addProspectusModal').modal('show');
+    $('#addLeadModal .blur-target').addClass('blur-active');
+    
+    // Prefill from Add Lead form if values are present
+    let leadContactPerson = $('#add_lead_contactPerson').val();
+    let leadContactNumber = $('#add_lead_contactNumber').val();
+    let leadAddress = $('#add_lead_address').val();
+    let leadEmail = $('#add_lead_email').val();
+    let leadWebsite = $('#add_lead_website_link').val();
+    let leadBusinessType = $('#add_lead_business_type').val();
+    let leadState = $('#add_lead_state').val();
+    let leadCity = $('#add_lead_city').val();
+    let leadName = $('#add_lead_leadsName').val();
 
+    if (leadContactPerson && !$('#modal_contact_person').val()) {
+        $('#modal_contact_person').val(leadContactPerson);
+    }
+    if (leadContactNumber && !$('#modal_contact_number').val()) {
+        $('#modal_contact_number').val(leadContactNumber);
+    }
+    if (leadAddress && !$('#modal_address').val()) {
+        $('#modal_address').val(leadAddress);
+    }
+    if (leadEmail && !$('#modal_email').val()) {
+        $('#modal_email').val(leadEmail);
+    }
+    if (leadWebsite && !$('#modal_website_link').val()) {
+        $('#modal_website_link').val(leadWebsite);
+    }
+    if (leadBusinessType && !$('#modal_business_type').val()) {
+        $('#modal_business_type').val(leadBusinessType);
+    }
+    if (leadState && !$('#modal_state').val()) {
+        $('#modal_state').val(leadState).trigger('change');
+        if (leadCity) {
+            setTimeout(function() {
+                $('#modal_city').val(leadCity);
+            }, 300);
+        }
+    }
+    if (leadName && !$('#modalnewProspectusName').val()) {
+        $('#modalnewProspectusName').val(leadName);
+    } else if (leadContactPerson && !$('#modalnewProspectusName').val()) {
+        $('#modalnewProspectusName').val(leadContactPerson);
+    }
+
+    $('#addProspectusModal').modal('show');
 }
 
 $(document).ready(function () {
