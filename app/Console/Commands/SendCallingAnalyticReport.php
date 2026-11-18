@@ -175,17 +175,27 @@ class SendCallingAnalyticReport extends Command
             }
 
             // Send Mail
-            Mail::to($recipientEmails)->send(new CallingAnalyticReport(
-                $userData, 
-                $globalStatusData, 
-                Carbon::today()->format('d M, Y'), 
-                $tenant->tenant_name,
-                $userStatusCounts,
-                $userLeads,
-                $allCallingTypes,
-                $this->option('alert')
-            ));
-            $this->info("  ✅ Report sent to: " . implode(', ', $recipientEmails));
+            $sent = \App\Services\EmailRecipientService::sendAndLog(
+                'CALLING_ANALYTICS',
+                $recipientEmails,
+                new CallingAnalyticReport(
+                    $userData, 
+                    $globalStatusData, 
+                    Carbon::today()->format('d M, Y'), 
+                    $tenant->tenant_name,
+                    $userStatusCounts,
+                    $userLeads,
+                    $allCallingTypes,
+                    $this->option('alert')
+                ),
+                ['users_count' => count($userData)]
+            );
+
+            if ($sent) {
+                $this->info("  ✅ Report sent to: " . implode(', ', $recipientEmails));
+            } else {
+                $this->error("  ❌ Failed to send calling analytics report (logged in audit table).");
+            }
 
         } catch (Exception $e) {
             $this->error("Failed to process tenant {$tenant->tenant_name}: " . $e->getMessage());

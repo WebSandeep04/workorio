@@ -179,11 +179,17 @@ class SendSubscriptionMail extends Command
                 'dateDisplay' => Carbon::now('Asia/Kolkata')->format('d M Y')
             ];
 
-            try {
-                Mail::to($recipientEmails)->send(new SubscriptionMailReport($payload));
+            $sent = \App\Services\EmailRecipientService::sendAndLog(
+                'FINANCE_SUBSCRIPTION',
+                $recipientEmails,
+                new SubscriptionMailReport($payload),
+                ['overdue_items' => count($overdueItems), 'total_receivable' => $totalReceivable]
+            );
+
+            if ($sent) {
                 $this->info("  ✅ Subscription report sent to " . count($recipientEmails) . " users.");
-            } catch (\Exception $e) {
-                $this->error("  ❌ Mailer Error: " . $e->getMessage());
+            } else {
+                $this->error("  ❌ Failed to send subscription report (logged in audit table).");
             }
 
         } catch (Exception $e) {

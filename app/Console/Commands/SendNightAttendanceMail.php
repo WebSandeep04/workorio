@@ -211,16 +211,22 @@ class SendNightAttendanceMail extends Command
                 return;
             }
 
-            try {
-                Mail::to($recipientEmails)->send(new NightAttendanceReport(
+            $sent = \App\Services\EmailRecipientService::sendAndLog(
+                'ATTENDANCE_NIGHT',
+                $recipientEmails,
+                new NightAttendanceReport(
                     $reportData, 
                     $todayStr, 
                     Carbon::parse($startOfMonthStr)->format('F Y'),
                     $this->option('alert')
-                ));
+                ),
+                ['total_records' => count($reportData)]
+            );
+
+            if ($sent) {
                 $this->info("  ✅ Night attendance report sent to " . count($recipientEmails) . " users.");
-            } catch (\Exception $e) {
-                $this->error("  ❌ Mailer Error: " . $e->getMessage());
+            } else {
+                $this->error("  ❌ Failed to send night attendance report (logged in audit table).");
             }
 
         } catch (Exception $e) {

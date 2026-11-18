@@ -211,11 +211,17 @@ class SendCalendarMail extends Command
                 'monthlyEvents' => $monthlyEvents
             ];
 
-            try {
-                Mail::to($recipientEmails)->send(new CalendarMailReport($payload, $endDate));
+            $sent = \App\Services\EmailRecipientService::sendAndLog(
+                $mailCode,
+                $recipientEmails,
+                new CalendarMailReport($payload, $endDate),
+                ['range_events' => count($rangeEvents), 'monthly_events' => count($monthlyEvents)]
+            );
+
+            if ($sent) {
                 $this->info("  ✅ Calendar report sent to " . count($recipientEmails) . " users.");
-            } catch (\Exception $e) {
-                $this->error("  ❌ Mailer Error: " . $e->getMessage());
+            } else {
+                $this->error("  ❌ Failed to send calendar report (logged in audit table).");
             }
 
         } catch (Exception $e) {

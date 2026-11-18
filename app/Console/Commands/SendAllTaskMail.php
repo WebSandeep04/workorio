@@ -141,11 +141,17 @@ class SendAllTaskMail extends Command
                 'timeDisplay' => Carbon::now('Asia/Kolkata')->format('F j, Y - g:i A'),
             ];
 
-            try {
-                Mail::to($recipientEmails)->send(new AllTaskMailReport($payload));
+            $sent = \App\Services\EmailRecipientService::sendAndLog(
+                'TASK_ALL_SUMMARY',
+                $recipientEmails,
+                new AllTaskMailReport($payload),
+                ['total_tasks' => $totalTasks, 'total_users' => $totalUsers]
+            );
+
+            if ($sent) {
                 $this->info("  ✅ All tasks report sent to " . count($recipientEmails) . " users.");
-            } catch (\Exception $e) {
-                $this->error("  ❌ Mailer Error: " . $e->getMessage());
+            } else {
+                $this->error("  ❌ Failed to send all tasks report (logged in audit table).");
             }
 
         } catch (Exception $e) {

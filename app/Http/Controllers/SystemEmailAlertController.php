@@ -78,6 +78,63 @@ class SystemEmailAlertController extends Controller
     }
 
     /**
+     * Display the Delivery Logs of sent system emails.
+     */
+    public function logs(Request $request)
+    {
+        $user = auth()->user();
+        if ($user && $user->role && $user->role->role_name !== 'admin' && !$user->hasPermission('setup.email_alerts')) {
+            abort(403, 'Unauthorized access to Email Alerts.');
+        }
+
+        $query = \App\Models\SystemEmailLog::with(['alert', 'user'])->orderBy('sent_at', 'desc');
+
+        // Filter by mail code
+        if ($request->filled('mail_code')) {
+            $query->where('mail_code', $request->mail_code);
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by date
+        if ($request->filled('date')) {
+            $query->whereDate('sent_at', $request->date);
+        }
+
+        // Filter by search (recipient email or name or subject)
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function($q) use ($search) {
+                $q->where('recipient_email', 'like', "%{$search}%")
+                  ->orWhere('recipient_name', 'like', "%{$search}%")
+                  ->orWhere('subject', 'like', "%{$search}%");
+            });
+        }
+
+        $logs = $query->paginate(25)->withQueryString();
+
+        // Get list of alerts for dropdown
+        $alerts = DB::table('system_email_alerts')->orderBy('name')->get();
+
+        // Metric summary for today
+        $today = now()->format('Y-m-d');
+        $todaySentCount = \App\Models\SystemEmailLog::whereDate('sent_at', $today)->where('status', 'sent')->count();
+        $todayFailedCount = \App\Models\SystemEmailLog::whereDate('sent_at', $today)->where('status', 'failed')->count();
+        $totalLogsCount = \App\Models\SystemEmailLog::count();
+
+        return view('software-setup.email-alerts.logs', compact(
+            'logs',
+            'alerts',
+            'todaySentCount',
+            'todayFailedCount',
+            'totalLogsCount'
+        ));
+    }
+
+    /**
      * Toggle a single user mapping for a mail code.
      */
     public function toggleRecipient(Request $request)

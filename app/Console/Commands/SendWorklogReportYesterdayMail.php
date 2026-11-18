@@ -135,11 +135,15 @@ class SendWorklogReportYesterdayMail extends Command
             ];
 
             foreach ($validRecipients as $recipient) {
-                try {
-                    Mail::to($recipient['email'], $recipient['name'])->send(new WorklogReportYesterdayMail($payload));
+                $sent = \App\Services\EmailRecipientService::sendAndLog(
+                    'TIMESHEET_YESTERDAY',
+                    $recipient['email'],
+                    new WorklogReportYesterdayMail($payload)
+                );
+                if ($sent) {
                     $this->line("  ✅ Mail sent to {$recipient['email']}");
-                } catch (\Exception $e) {
-                    $this->error("  ❌ Message could not be sent. Mailer Error: " . $e->getMessage());
+                } else {
+                    $this->error("  ❌ Failed to send mail to {$recipient['email']} (logged in audit table).");
                 }
             }
 

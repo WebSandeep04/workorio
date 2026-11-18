@@ -122,11 +122,17 @@ class SendAdminFollowUpReport extends Command
                 $summary[$user]++;
             }
 
-            try {
-                Mail::to($recipientEmails)->send(new AdminFollowUpReport($records, $newLeads, $completedToday, $today, $summary, $this->option('alert')));
+            $sent = \App\Services\EmailRecipientService::sendAndLog(
+                'SALES_ADMIN_FOLLOWUP',
+                $recipientEmails,
+                new AdminFollowUpReport($records, $newLeads, $completedToday, $today, $summary, $this->option('alert')),
+                ['total_records' => $records->count()]
+            );
+
+            if ($sent) {
                 $this->info("  ✅ Admin follow-up report sent to: " . implode(', ', $recipientEmails));
-            } catch (\Exception $e) {
-                $this->error("  ❌ Mailer Error: " . $e->getMessage());
+            } else {
+                $this->error("  ❌ Failed to send admin follow-up report (logged in audit table).");
             }
 
         } catch (Exception $e) {

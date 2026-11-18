@@ -161,11 +161,17 @@ class SendWhatsappInboxMail extends Command
                     'year' => Carbon::now('Asia/Kolkata')->format('Y')
                 ];
 
-                try {
-                    Mail::to($recipient['email'], $recipient['name'])->send(new WhatsappInboxMailReport($payload));
+                $sent = \App\Services\EmailRecipientService::sendAndLog(
+                    'WHATSAPP_INBOX',
+                    $recipient['email'],
+                    new WhatsappInboxMailReport($payload),
+                    ['messages_count' => count($uniqueMessages)]
+                );
+
+                if ($sent) {
                     $this->info("  ✅ Mail sent to {$recipient['email']}");
-                } catch (\Exception $e) {
-                    $this->error("  ❌ Message could not be sent to {$recipient['email']}. Mailer Error: " . $e->getMessage());
+                } else {
+                    $this->error("  ❌ Failed to send mail to {$recipient['email']} (logged in audit table).");
                 }
             }
 

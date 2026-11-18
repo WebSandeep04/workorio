@@ -88,11 +88,16 @@ class SendFollowUpReport extends Command
                     continue; // No leads to follow up on
                 }
 
-                try {
-                    Mail::to($user->email)->send(new FollowUpReport($user, $leads, $today, $this->option('alert')));
+                $sent = \App\Services\EmailRecipientService::sendAndLog(
+                    'SALES_USER_FOLLOWUP',
+                    $user->email,
+                    new FollowUpReport($user, $leads, $today, $this->option('alert')),
+                    ['leads_count' => $leads->count()]
+                );
+                if ($sent) {
                     $this->info("  ✅ Follow-up email sent to {$user->name} ({$user->email})");
-                } catch (\Exception $e) {
-                    $this->error("  ❌ Mailer Error for {$user->name}: " . $e->getMessage());
+                } else {
+                    $this->error("  ❌ Failed to send follow-up email to {$user->name} (logged in audit table).");
                 }
             }
 

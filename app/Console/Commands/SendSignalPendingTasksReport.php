@@ -182,11 +182,17 @@ class SendSignalPendingTasksReport extends Command
                     'recipient_name' => $recipient['name'],
                 ]);
 
-                try {
-                    Mail::to($recipient['email'])->send(new SignalPendingTasksReportMail($recipientPayload));
+                $sent = \App\Services\EmailRecipientService::sendAndLog(
+                    'TASK_SIGNAL_PENDING',
+                    $recipient['email'],
+                    new SignalPendingTasksReportMail($recipientPayload),
+                    ['total_pending' => $allTasks->count()]
+                );
+
+                if ($sent) {
                     $this->info("  ✓ Report sent successfully to: {$recipient['email']}");
-                } catch (Exception $mailEx) {
-                    $this->error("  ✗ Failed to send to {$recipient['email']}: " . $mailEx->getMessage());
+                } else {
+                    $this->error("  ✗ Failed to send to {$recipient['email']} (logged in audit table).");
                 }
             }
         } catch (Exception $e) {

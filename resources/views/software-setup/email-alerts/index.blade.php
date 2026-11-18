@@ -121,10 +121,24 @@
         </div>
         <div class="d-flex align-items-center gap-2">
             <span class="badge bg-primary px-3 py-2" style="font-size: 0.85rem;">
-                <i class="bi bi-clock me-1"></i> {{ count($alerts) }} Automated Reports Active
+                <i class="bi bi-clock me-1"></i> {{ count($alerts) }} Automated Reports Configured
             </span>
         </div>
     </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs nav-tabs-modern mb-3">
+        <li class="nav-item">
+            <a class="nav-link active" href="{{ route('software-setup.email-alerts.index') }}">
+                <i class="bi bi-grid-3x3-gap me-1"></i> Recipient Mapping Matrix
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ route('software-setup.email-alerts.logs') }}">
+                <i class="bi bi-clock-history me-1"></i> Delivery Audit Logs
+            </a>
+        </li>
+    </ul>
 
     <!-- Filters & Search Bar -->
     <div class="metric-card mb-3">

@@ -214,11 +214,17 @@ class SendPettyCashSummaryReport extends Command
 
             // 3. Send email to each recipient
             foreach ($recipients as $recipient) {
-                try {
-                    Mail::to($recipient['email'], $recipient['name'])->send(new PettyCashSummaryReportMail($payload));
+                $sent = \App\Services\EmailRecipientService::sendAndLog(
+                    'FINANCE_PETTY_CASH',
+                    $recipient['email'],
+                    new PettyCashSummaryReportMail($payload),
+                    ['overall_remaining' => $overallRemainingBalance]
+                );
+
+                if ($sent) {
                     $this->line("  ✅ Petty Cash report email sent successfully to {$recipient['email']}");
-                } catch (Exception $e) {
-                    $this->error("  ❌ Failed to send mail to {$recipient['email']}. Error: " . $e->getMessage());
+                } else {
+                    $this->error("  ❌ Failed to send mail to {$recipient['email']} (logged in audit table).");
                 }
             }
 

@@ -119,11 +119,17 @@ class SendMorningAttendanceMail extends Command
                 return;
             }
 
-            try {
-                Mail::to($recipientEmails)->send(new MorningAttendanceReport($reportData, $today, $this->option('alert')));
+            $sent = \App\Services\EmailRecipientService::sendAndLog(
+                'ATTENDANCE_MORNING',
+                $recipientEmails,
+                new MorningAttendanceReport($reportData, $today, $this->option('alert')),
+                ['total_records' => count($reportData)]
+            );
+
+            if ($sent) {
                 $this->info("  ✅ Morning attendance report sent to " . count($recipientEmails) . " users.");
-            } catch (\Exception $e) {
-                $this->error("  ❌ Mailer Error: " . $e->getMessage());
+            } else {
+                $this->error("  ❌ Failed to send morning attendance report (logged in audit table).");
             }
 
         } catch (Exception $e) {

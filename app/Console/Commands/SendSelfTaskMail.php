@@ -119,11 +119,16 @@ class SendSelfTaskMail extends Command
                         'year' => Carbon::now('Asia/Kolkata')->format('Y')
                     ];
 
-                    try {
-                        Mail::to($userEmail)->send(new SelfTaskMailReport($payload));
+                    $sent = \App\Services\EmailRecipientService::sendAndLog(
+                        'TASK_SELF_REMINDER',
+                        $userEmail,
+                        new SelfTaskMailReport($payload),
+                        ['total_tasks' => count($tasksData)]
+                    );
+                    if ($sent) {
                         $this->info("  ✅ Mail sent successfully to {$userEmail} ({$userName}) - " . count($tasksData) . " task(s).");
-                    } catch (\Exception $e) {
-                        $this->error("  ❌ Message could not be sent to {$userEmail}. Mailer Error: " . $e->getMessage());
+                    } else {
+                        $this->error("  ❌ Failed to send mail to {$userEmail} (logged in audit table).");
                     }
                 } else {
                     $this->info("  ℹ️ No pending tasks for {$userName} ({$userEmail})");
