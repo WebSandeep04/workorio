@@ -62,11 +62,18 @@ class SendFollowUpReport extends Command
             
             $today = Carbon::today()->format('Y-m-d');
             
-            $users = User::whereHas('employee', function ($q) {
+            // Fetch users with SALES_USER_FOLLOWUP alert enabled strictly via EmailRecipientService
+            $allowedEmails = \App\Services\EmailRecipientService::getRecipients('SALES_USER_FOLLOWUP');
+
+            if (empty($allowedEmails)) {
+                $this->info("  ⚠️ No users mapped in database for SALES_USER_FOLLOWUP in {$tenant->tenant_name}. Skipping.");
+                return;
+            }
+
+            $users = User::whereIn('email', $allowedEmails)
+                ->whereHas('employee', function ($q) {
                     $q->where('status', 'active');
                 })
-                ->where('is_sales', 1)
-                ->whereNotNull('email')
                 ->get();
 
             foreach ($users as $user) {

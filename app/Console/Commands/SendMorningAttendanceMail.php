@@ -111,14 +111,8 @@ class SendMorningAttendanceMail extends Command
                 ];
             }
 
-            // Who gets the email? Send to active employees + role_id = 1 (Admins)
-            $recipientEmails = User::where(function($q) {
-                    $q->whereHas('employee', function ($eq) {
-                        $eq->where('status', 'active');
-                    })->orWhere('role_id', 1);
-                })->whereNotNull('email')->pluck('email')->filter(function ($email) {
-                    return filter_var($email, FILTER_VALIDATE_EMAIL);
-                })->toArray();
+            // Fetch recipients strictly from database mapping via EmailRecipientService
+            $recipientEmails = \App\Services\EmailRecipientService::getRecipients('ATTENDANCE_MORNING');
 
             if (empty($recipientEmails)) {
                 $this->info("  No valid emails to send the report to in {$tenant->tenant_name}");

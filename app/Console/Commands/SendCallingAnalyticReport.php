@@ -48,14 +48,8 @@ class SendCallingAnalyticReport extends Command
             // Get all possible calling types for headers
             $allCallingTypes = DB::table('calling_types')->orderBy('name')->pluck('name')->toArray();
             
-            // Get recipients (Active administrators)
-            $recipientEmails = User::whereHas('employee', function ($q) {
-                    $q->where('status', 'active');
-                })
-                ->where('role_id', 1)
-                ->whereNotNull('email')
-                ->pluck('email')
-                ->toArray();
+            // Get recipients strictly from database mapping via EmailRecipientService
+            $recipientEmails = \App\Services\EmailRecipientService::getRecipients('CALLING_ANALYTICS');
 
             if (empty($recipientEmails)) {
                 $this->info("  No active admin recipients for {$tenant->tenant_name}.");

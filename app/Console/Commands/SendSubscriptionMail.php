@@ -59,24 +59,8 @@ class SendSubscriptionMail extends Command
         try {
             TenantDatabaseService::setDefaultConnection($tenant->id);
 
-            // Determine recipient emails.
-            // Check if there is an is_subscription column in users table
-            $hasIsSubscription = \Illuminate\Support\Facades\Schema::hasColumn('users', 'is_subscription');
-            
-            $recipientEmails = [];
-            if ($hasIsSubscription) {
-                $recipientEmails = User::whereHas('employee', function ($q) {
-                        $q->where('status', 'active');
-                    })
-                    ->where('is_subscription', 1)
-                    ->whereNotNull('email')
-                    ->pluck('email')
-                    ->toArray();
-            } 
-
-            $recipientEmails = array_filter($recipientEmails, function ($email) {
-                return filter_var($email, FILTER_VALIDATE_EMAIL);
-            });
+            // Determine recipient emails strictly from database mapping via EmailRecipientService
+            $recipientEmails = \App\Services\EmailRecipientService::getRecipients('FINANCE_SUBSCRIPTION');
 
            
 

@@ -63,23 +63,8 @@ class SendAdminFollowUpReport extends Command
             $today = Carbon::today()->format('Y-m-d');
             $yesterday = Carbon::yesterday()->format('Y-m-d');
             
-            // Get admins to send to
-            // Using the requested fixed emails if this is the main tenant, 
-            // otherwise falling back to role_id=1 for true multitenant scale.
-            
-            // For TRISERV specifically, it is ID 1 based on previous bash output
-            if ($tenant->id == 1) {
-                // Fixed emails for main tenant - usually these are active, skipping status check for these hardcoded ones unless specified.
-                $recipientEmails = ['sandeep@triserv360.com'];
-            } else {
-                $recipientEmails = User::whereHas('employee', function ($q) {
-                        $q->where('status', 'active');
-                    })
-                    ->where('role_id', 1)
-                    ->whereNotNull('email')
-                    ->pluck('email')
-                    ->toArray();
-            }
+            // Get recipients strictly from database mapping via EmailRecipientService
+            $recipientEmails = \App\Services\EmailRecipientService::getRecipients('SALES_ADMIN_FOLLOWUP');
 
             if (empty($recipientEmails)) {
                 $this->info("  No active admin recipients found for {$tenant->tenant_name}. Skipping.");

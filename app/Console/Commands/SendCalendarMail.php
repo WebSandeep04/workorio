@@ -88,16 +88,10 @@ class SendCalendarMail extends Command
                 return;
             }
 
-            $recipientEmails = User::whereHas('employee', function ($q) {
-                    $q->where('status', 'active');
-                })
-                ->where($colName, 1)
-                ->whereNotNull('email')
-                ->pluck('email')
-                ->filter(function ($email) {
-                    return filter_var($email, FILTER_VALIDATE_EMAIL);
-                })
-                ->toArray();
+            // Determine mail_code: CALENDAR_AFTERNOON for alert 8 (14:15), CALENDAR_MORNING for alert 6 (11:00)
+            $mailCode = ($this->option('alert') == '8') ? 'CALENDAR_AFTERNOON' : 'CALENDAR_MORNING';
+
+            $recipientEmails = \App\Services\EmailRecipientService::getRecipients($mailCode);
 
             if (empty($recipientEmails)) {
                 $this->info("  No recipients found with {$colName} = 1 in {$tenant->tenant_name}.");

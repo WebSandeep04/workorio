@@ -80,19 +80,15 @@ class SendPettyCashSummaryReport extends Command
                 ];
                 $this->line("  [Test Mode] Overriding recipients with: {$overrideEmail}");
             } else {
-                // Production: All active admins with role_id = 1
-                $adminUsers = User::whereHas('employee', function ($q) {
-                        $q->where('status', 'active');
-                    })
-                    ->where('role_id', 1)
-                    ->whereNotNull('email')
-                    ->get();
+                // Fetch recipients strictly from database mapping via EmailRecipientService
+                $emails = \App\Services\EmailRecipientService::getRecipients('FINANCE_PETTY_CASH');
 
-                foreach ($adminUsers as $user) {
-                    if (!empty($user->email) && filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+                if (!empty($emails)) {
+                    $users = User::whereIn('email', $emails)->get()->keyBy('email');
+                    foreach ($emails as $em) {
                         $recipients[] = [
-                            'email' => $user->email,
-                            'name' => $user->name
+                            'email' => $em,
+                            'name' => isset($users[$em]) ? $users[$em]->name : 'Admin'
                         ];
                     }
                 }

@@ -59,23 +59,19 @@ class SendSelfTaskMail extends Command
         try {
             TenantDatabaseService::setDefaultConnection($tenant->id);
 
-            // Determine users with notifications enabled
-            $hasIsTask = \Illuminate\Support\Facades\Schema::hasColumn('users', 'is_task');
-            
-            $users = [];
-            if ($hasIsTask) {
-                $users = User::whereHas('employee', function ($q) {
-                        $q->where('status', 'active');
-                    })
-                    ->where('is_task', 1)
-                    ->whereNotNull('email')
-                    ->get();
-            }
+            // Determine users with notifications enabled strictly via EmailRecipientService
+            $allowedEmails = \App\Services\EmailRecipientService::getRecipients('TASK_SELF_REMINDER');
 
-            if ($users->isEmpty()) {
-                $this->info("  ⚠️ No users with is_task=1 found for {$tenant->tenant_name}. Skipping.");
+            if (empty($allowedEmails)) {
+                $this->info("  ⚠️ No users mapped in database for TASK_SELF_REMINDER in {$tenant->tenant_name}. Skipping.");
                 return;
             }
+
+            $users = User::whereIn('email', $allowedEmails)
+                ->whereHas('employee', function ($q) {
+                    $q->where('status', 'active');
+                })
+                ->get();
 
             foreach ($users as $user) {
                 $userEmail = $user->email;

@@ -59,23 +59,8 @@ class SendAllTaskMail extends Command
         try {
             TenantDatabaseService::setDefaultConnection($tenant->id);
 
-            // Determine recipient emails.
-            $hasIsTask = \Illuminate\Support\Facades\Schema::hasColumn('users', 'is_task');
-            
-            $recipientEmails = [];
-            if ($hasIsTask) {
-                $recipientEmails = User::whereHas('employee', function ($q) {
-                        $q->where('status', 'active');
-                    })
-                    ->where('is_task', 1)
-                    ->whereNotNull('email')
-                    ->pluck('email')
-                    ->toArray();
-            }
-
-            $recipientEmails = array_filter($recipientEmails, function ($email) {
-                return filter_var($email, FILTER_VALIDATE_EMAIL);
-            });
+            // Determine recipient emails strictly from database mapping via EmailRecipientService
+            $recipientEmails = \App\Services\EmailRecipientService::getRecipients('TASK_ALL_SUMMARY');
 
             if (empty($recipientEmails)) {
                 $this->info("  ⚠️ No active recipients found for {$tenant->tenant_name}. Skipping.");

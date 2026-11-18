@@ -235,6 +235,7 @@ class TenantFeatureService
                     'documents.my_documents' => 'Documents: My Files',
                     'email_marketing.view' => 'Email Marketing: View',
                     'setup.notifications' => 'Setup: Broadcast Notifications',
+                    'setup.email_alerts' => 'Setup: Email Alerts Matrix',
                     'setup.posting_log' => 'Setup: System Logs',
                 ]
             ]

@@ -60,17 +60,16 @@ class SendWhatsappInboxMail extends Command
         try {
             TenantDatabaseService::setDefaultConnection($tenant->id);
 
-            // Send to users who have admin role (role_id = 1)
-            $recipientUsers = User::whereHas('employee', function ($q) {
-                $q->where('status', 'active');
-            })->where('role_id', 1)->get();
+            // Fetch recipients strictly from database mapping via EmailRecipientService
+            $emails = \App\Services\EmailRecipientService::getRecipients('WHATSAPP_INBOX');
 
             $validRecipients = [];
-            foreach ($recipientUsers as $user) {
-                if (!empty($user->email) && filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+            if (!empty($emails)) {
+                $usersMap = User::whereIn('email', $emails)->get()->keyBy('email');
+                foreach ($emails as $em) {
                     $validRecipients[] = [
-                        'email' => $user->email,
-                        'name' => $user->name
+                        'email' => $em,
+                        'name' => isset($usersMap[$em]) ? $usersMap[$em]->name : 'Admin'
                     ];
                 }
             }

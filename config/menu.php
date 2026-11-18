@@ -465,6 +465,7 @@ return [
                         ['route' => 'whatsapp-template.index', 'title' => 'Whatsapp Template', 'icon' => 'bi bi-whatsapp', 'permission' => 'setup.whatsapp_templates', 'feature_flag' => 'is_tally_calling_setup_enabled'],
                         ['route' => 'software-setup.msg91-settings.index', 'title' => 'WhatsApp MSG91 Settings', 'icon' => 'bi bi-gear-wide-connected', 'roles' => ['admin']],
                         ['route' => 'software-setup.notifications.index', 'title' => 'Notifications', 'icon' => 'bi bi-bell-fill', 'permission' => 'setup.notifications', 'feature_flag' => 'is_master_setup_enabled'],
+                        ['route' => 'software-setup.email-alerts.index', 'title' => 'Email Alerts', 'icon' => 'bi bi-envelope-check', 'permission' => 'setup.email_alerts', 'feature_flag' => 'is_master_setup_enabled'],
                     ]
                 ],
                 [

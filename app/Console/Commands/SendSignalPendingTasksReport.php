@@ -82,21 +82,15 @@ class SendSignalPendingTasksReport extends Command
                     'name' => 'Testing Admin'
                 ];
             } else {
-                // Fetch active users with role_id = 1
-                $users = User::whereHas('employee', function ($q) {
-                    $q->where('status', 'active');
-                })->where('role_id', 1)->get();
+                // Fetch recipients strictly from database mapping via EmailRecipientService
+                $emails = \App\Services\EmailRecipientService::getRecipients('TASK_SIGNAL_PENDING');
 
-                // Fallback: If no employee record linked, check active role_id = 1 directly
-                if ($users->isEmpty()) {
-                    $users = User::where('role_id', 1)->get();
-                }
-
-                foreach ($users as $user) {
-                    if (!empty($user->email) && filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+                if (!empty($emails)) {
+                    $usersMap = User::whereIn('email', $emails)->get()->keyBy('email');
+                    foreach ($emails as $em) {
                         $recipients[] = [
-                            'email' => $user->email,
-                            'name' => $user->name ?: 'Admin'
+                            'email' => $em,
+                            'name' => isset($usersMap[$em]) ? $usersMap[$em]->name : 'Admin'
                         ];
                     }
                 }

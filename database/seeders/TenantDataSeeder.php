@@ -40,6 +40,7 @@ class TenantDataSeeder extends Seeder
             TenantAssetStatusSeeder::class,
             TenantLeaveTypeSeeder::class,
             TenantTaskPrioritiesSeeder::class,
+            TenantEmailAlertSeeder::class,
         ]);
         
         $this->command->info('Minimal tenant data seeded successfully.');

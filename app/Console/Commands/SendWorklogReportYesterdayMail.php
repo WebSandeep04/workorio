@@ -59,25 +59,16 @@ class SendWorklogReportYesterdayMail extends Command
         try {
             TenantDatabaseService::setDefaultConnection($tenant->id);
 
-            // Fetch recipients: active employees with worklog access or admin role
-            $hasIsWorklog = \Illuminate\Support\Facades\Schema::hasColumn('users', 'is_worklog');
-            
-            $recipientUsers = User::whereHas('employee', function ($q) {
-                $q->where('status', 'active');
-            })->where(function($q) use ($hasIsWorklog) {
-                if ($hasIsWorklog) {
-                    $q->where('is_worklog', 1)->orWhere('role_id', 1);
-                } else {
-                    $q->where('role_id', 1);
-                }
-            })->get();
+            // Fetch recipients strictly from database mapping via EmailRecipientService
+            $emails = \App\Services\EmailRecipientService::getRecipients('TIMESHEET_YESTERDAY');
 
             $validRecipients = [];
-            foreach ($recipientUsers as $user) {
-                if (!empty($user->email) && filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+            if (!empty($emails)) {
+                $usersMap = User::whereIn('email', $emails)->get()->keyBy('email');
+                foreach ($emails as $em) {
                     $validRecipients[] = [
-                        'email' => $user->email,
-                        'name' => $user->name
+                        'email' => $em,
+                        'name' => isset($usersMap[$em]) ? $usersMap[$em]->name : 'Team Member'
                     ];
                 }
             }

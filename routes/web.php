@@ -591,6 +591,12 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::get('/software-setup/notifications', [NotificationController::class, 'index'])->name('software-setup.notifications.index');
     Route::post('/software-setup/notifications/send', [NotificationController::class, 'send'])->name('software-setup.notifications.send');
 
+    // Centralized Email Alerts Management (Software Setup)
+    Route::get('/software-setup/email-alerts', [\App\Http\Controllers\SystemEmailAlertController::class, 'index'])->name('software-setup.email-alerts.index');
+    Route::post('/software-setup/email-alerts/toggle-recipient', [\App\Http\Controllers\SystemEmailAlertController::class, 'toggleRecipient'])->name('software-setup.email-alerts.toggle-recipient');
+    Route::post('/software-setup/email-alerts/bulk-assign', [\App\Http\Controllers\SystemEmailAlertController::class, 'bulkAssign'])->name('software-setup.email-alerts.bulk-assign');
+    Route::post('/software-setup/email-alerts/toggle-status', [\App\Http\Controllers\SystemEmailAlertController::class, 'toggleAlertStatus'])->name('software-setup.email-alerts.toggle-status');
+
     // Map API Settings (Software Setup)
     Route::get('/software-setup/map-settings', [TrackingController::class, 'mapSettingsView'])->name('software-setup.map-settings.index');
     Route::post('/software-setup/map-settings', [TrackingController::class, 'saveMapSettings'])->name('software-setup.map-settings.save');
