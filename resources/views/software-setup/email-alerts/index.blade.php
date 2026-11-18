@@ -49,43 +49,68 @@
         background: #fff;
         z-index: 2;
         min-width: 250px;
+        max-width: 250px;
         box-shadow: 2px 0 5px rgba(0,0,0,0.03);
     }
-    .matrix-table thead th.user-sticky-col {
-        background: #f1f5f9;
+    .matrix-table th.user-sticky-col {
         z-index: 3;
+        background: #f1f5f9;
     }
-    .badge-time {
-        font-size: 0.7rem;
-        font-weight: 500;
-        background: #e0e7ff;
-        color: #3730a3;
-        padding: 2px 6px;
-        border-radius: 4px;
+    .user-info-text {
+        line-height: 1.25;
     }
-    .badge-category {
-        font-size: 0.65rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #64748b;
+    .user-name {
         font-weight: 600;
+        color: #1e293b;
+        font-size: 0.85rem;
     }
-    .custom-switch-lg .form-check-input {
-        width: 2.2rem;
-        height: 1.15rem;
-        cursor: pointer;
+    .user-email {
+        font-size: 0.75rem;
+        color: #64748b;
     }
-    .custom-switch-lg .form-check-input:checked {
-        background-color: #434afa;
-        border-color: #434afa;
+    .user-meta {
+        font-size: 0.7rem;
+        color: #94a3b8;
     }
     .column-header-box {
         min-width: 170px;
-        max-width: 210px;
+        max-width: 170px;
+        white-space: normal;
+    }
+    .badge-category {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6366f1;
+        background: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    .badge-time {
+        font-size: 0.7rem;
+        color: #0284c7;
+        background: #e0f2fe;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+    .checkbox-cell {
+        vertical-align: middle;
+    }
+    .recipient-toggle {
+        cursor: pointer;
+        width: 1.15rem;
+        height: 1.15rem;
+    }
+    .recipient-toggle:checked {
+        background-color: #434afa;
+        border-color: #434afa;
     }
     .nav-tabs-modern {
         border-bottom: 2px solid #e2e8f0;
-        gap: 0.5rem;
+        gap: 0.25rem;
     }
     .nav-tabs-modern .nav-link {
         border: none;
@@ -105,6 +130,17 @@
         color: #434afa;
         border-bottom: 3px solid #434afa;
         background: #fff;
+    }
+    .loading-overlay {
+        position: relative;
+    }
+    .loading-overlay::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(255, 255, 255, 0.65);
+        z-index: 10;
+        border-radius: 8px;
     }
 </style>
 @endpush
@@ -140,17 +176,17 @@
         </li>
     </ul>
 
-    <!-- Filters & Search Bar -->
+    <!-- Filters & Search Bar (AJAX Enabled) -->
     <div class="metric-card mb-3">
-        <form method="GET" action="{{ route('software-setup.email-alerts.index') }}" class="row g-2 align-items-center">
+        <form id="filterMatrixForm" class="row g-2 align-items-center">
             <div class="col-md-4">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="Search employee name, code, or email..." value="{{ request('search') }}">
+                    <input type="text" id="searchFilter" name="search" class="form-control" placeholder="Search employee name, code, or email..." value="{{ request('search') }}" autocomplete="off">
                 </div>
             </div>
             <div class="col-md-3">
-                <select name="branch_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select id="branchFilter" name="branch_id" class="form-select form-select-sm">
                     <option value="">All Branches</option>
                     @foreach($branches as $b)
                         <option value="{{ $b->id }}" {{ request('branch_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
@@ -158,7 +194,7 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <select name="department_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select id="deptFilter" name="department_id" class="form-select form-select-sm">
                     <option value="">All Departments</option>
                     @foreach($departments as $d)
                         <option value="{{ $d->id }}" {{ request('department_id') == $d->id ? 'selected' : '' }}>{{ $d->name }}</option>
@@ -167,9 +203,7 @@
             </div>
             <div class="col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-filter me-1"></i>Filter</button>
-                @if(request()->anyFilled(['search', 'branch_id', 'department_id']))
-                    <a href="{{ route('software-setup.email-alerts.index') }}" class="btn btn-sm btn-outline-secondary" title="Reset Filters"><i class="bi bi-x-circle"></i></a>
-                @endif
+                <button type="button" id="btnResetFilters" class="btn btn-sm btn-outline-secondary" title="Reset Filters"><i class="bi bi-x-circle"></i></button>
             </div>
         </form>
     </div>
@@ -177,32 +211,22 @@
     <!-- Category Tabs Navigation -->
     <ul class="nav nav-tabs nav-tabs-modern mb-3" id="emailCategoryTabs" role="tablist">
         <li class="nav-item">
-            <a class="nav-link active" id="tab-all-link" data-bs-toggle="tab" href="#tab-all" role="tab">
+            <a class="nav-link active category-filter-tab" data-category="all" href="#tab-all" role="tab">
                 <i class="bi bi-grid-3x3-gap-fill me-1"></i> All Reports ({{ count($alerts) }})
             </a>
         </li>
         @foreach($categories as $categoryName => $catAlerts)
             <li class="nav-item">
-                <a class="nav-link" id="tab-{{ Str::slug($categoryName) }}-link" data-bs-toggle="tab" href="#tab-{{ Str::slug($categoryName) }}" role="tab">
+                <a class="nav-link category-filter-tab" data-category="{{ Str::slug($categoryName) }}" href="#tab-{{ Str::slug($categoryName) }}" role="tab">
                     {{ $categoryName }} ({{ count($catAlerts) }})
                 </a>
             </li>
         @endforeach
     </ul>
 
-    <!-- Tabs Content Container -->
-    <div class="tab-content" id="emailCategoryTabsContent">
-        <!-- ALL TAB -->
-        <div class="tab-pane fade show active" id="tab-all" role="tabpanel">
-            @include('software-setup.email-alerts.matrix-table', ['tableAlerts' => $alerts, 'users' => $users, 'recipientMap' => $recipientMap])
-        </div>
-
-        <!-- PER CATEGORY TABS -->
-        @foreach($categories as $categoryName => $catAlerts)
-            <div class="tab-pane fade" id="tab-{{ Str::slug($categoryName) }}" role="tabpanel">
-                @include('software-setup.email-alerts.matrix-table', ['tableAlerts' => $catAlerts, 'users' => $users, 'recipientMap' => $recipientMap])
-            </div>
-        @endforeach
+    <!-- Matrix Table Container (Refreshed via AJAX) -->
+    <div id="matrixTableWrapper">
+        @include('software-setup.email-alerts.matrix-table', ['tableAlerts' => $alerts, 'users' => $users, 'recipientMap' => $recipientMap])
     </div>
 </div>
 @endsection
@@ -210,6 +234,85 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    let activeCategory = 'all';
+    let filterDebounceTimer = null;
+
+    // Apply category column visibility
+    function applyCategoryFilter() {
+        if (activeCategory === 'all') {
+            $('#matrixTableWrapper th[data-category], #matrixTableWrapper td[data-category]').show();
+        } else {
+            $('#matrixTableWrapper th[data-category], #matrixTableWrapper td[data-category]').hide();
+            $(`#matrixTableWrapper th[data-category="${activeCategory}"], #matrixTableWrapper td[data-category="${activeCategory}"]`).show();
+        }
+    }
+
+    // Category Tabs click
+    $(document).on('click', '.category-filter-tab', function(e) {
+        e.preventDefault();
+        $('.category-filter-tab').removeClass('active');
+        $(this).addClass('active');
+        activeCategory = $(this).data('category');
+        applyCategoryFilter();
+    });
+
+    // AJAX Filter Function
+    function fetchMatrixData() {
+        const $wrapper = $('#matrixTableWrapper');
+        $wrapper.addClass('loading-overlay');
+
+        const params = {
+            search: $('#searchFilter').val(),
+            branch_id: $('#branchFilter').val(),
+            department_id: $('#deptFilter').val()
+        };
+
+        $.ajax({
+            url: "{{ route('software-setup.email-alerts.index') }}",
+            type: "GET",
+            data: params,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(resp) {
+                $wrapper.html(resp.html);
+                applyCategoryFilter();
+            },
+            error: function(xhr) {
+                console.error("Failed to fetch matrix data:", xhr);
+                showToast('Error', 'Failed to filter matrix table', 'danger');
+            },
+            complete: function() {
+                $wrapper.removeClass('loading-overlay');
+            }
+        });
+    }
+
+    // Form submit prevention (pure AJAX)
+    $('#filterMatrixForm').on('submit', function(e) {
+        e.preventDefault();
+        fetchMatrixData();
+    });
+
+    // Instant filter on select change
+    $('#branchFilter, #deptFilter').on('change', function() {
+        fetchMatrixData();
+    });
+
+    // Debounced search on typing
+    $('#searchFilter').on('input', function() {
+        clearTimeout(filterDebounceTimer);
+        filterDebounceTimer = setTimeout(function() {
+            fetchMatrixData();
+        }, 350);
+    });
+
+    // Reset filters
+    $('#btnResetFilters').on('click', function() {
+        $('#searchFilter').val('');
+        $('#branchFilter').val('');
+        $('#deptFilter').val('');
+        fetchMatrixData();
+    });
+
     // 1. Checkbox toggle event with AJAX
     $(document).on('change', '.recipient-toggle', function() {
         let $checkbox = $(this);
@@ -230,7 +333,6 @@ $(document).ready(function() {
                 if (resp.success) {
                     showToast('Saved', 'Recipient updated successfully', 'success');
                     $(`.badge-count-${mailCode}`).text(resp.new_count);
-                    // Sync any duplicate checkboxes across tabs
                     $(`.recipient-toggle[data-mail-code="${mailCode}"][data-user-id="${userId}"]`).prop('checked', isChecked == 1);
                 }
             },
@@ -293,8 +395,8 @@ $(document).ready(function() {
                 if (resp.success) {
                     showToast('Bulk Update', resp.message, 'success');
                     $(`.badge-count-${mailCode}`).text(resp.new_count);
-                    // Reload table smoothly or update checks
-                    location.reload();
+                    // Refresh table without reloading page
+                    fetchMatrixData();
                 }
             },
             error: function(xhr) {

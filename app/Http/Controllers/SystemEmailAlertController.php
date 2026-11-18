@@ -67,6 +67,18 @@ class SystemEmailAlertController extends Controller
         $branches = Branch::orderBy('name')->get();
         $departments = Department::orderBy('name')->get();
 
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('software-setup.email-alerts.matrix-table', compact(
+                    'alerts',
+                    'categories',
+                    'users',
+                    'recipientMap'
+                ))->render(),
+                'user_count' => $users->count()
+            ]);
+        }
+
         return view('software-setup.email-alerts.index', compact(
             'alerts',
             'categories',
@@ -124,6 +136,13 @@ class SystemEmailAlertController extends Controller
         $todaySentCount = \App\Models\SystemEmailLog::whereDate('sent_at', $today)->where('status', 'sent')->count();
         $todayFailedCount = \App\Models\SystemEmailLog::whereDate('sent_at', $today)->where('status', 'failed')->count();
         $totalLogsCount = \App\Models\SystemEmailLog::count();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('software-setup.email-alerts.logs-table', compact('logs'))->render(),
+                'total' => $logs->total(),
+            ]);
+        }
 
         return view('software-setup.email-alerts.logs', compact(
             'logs',

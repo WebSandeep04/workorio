@@ -79,6 +79,17 @@
         font-weight: 600;
         border: 1px solid #fecaca;
     }
+    .loading-overlay {
+        position: relative;
+    }
+    .loading-overlay::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(255, 255, 255, 0.65);
+        z-index: 10;
+        border-radius: 8px;
+    }
 </style>
 @endpush
 
@@ -147,14 +158,14 @@
         </div>
     </div>
 
-    <!-- Filters Bar -->
+    <!-- Filters Bar (AJAX Enabled) -->
     <div class="metric-card mb-3">
-        <form method="GET" action="{{ route('software-setup.email-alerts.logs') }}" class="row g-2 align-items-center">
+        <form id="logsFilterForm" class="row g-2 align-items-center">
             <div class="col-md-3">
-                <input type="text" name="search" class="form-control form-control-sm" placeholder="Search recipient email, name or subject..." value="{{ request('search') }}">
+                <input type="text" id="logSearch" name="search" class="form-control form-control-sm" placeholder="Search recipient email, name or subject..." value="{{ request('search') }}" autocomplete="off">
             </div>
             <div class="col-md-3">
-                <select name="mail_code" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select id="logMailCode" name="mail_code" class="form-select form-select-sm">
                     <option value="">All Mail Types</option>
                     @foreach($alerts as $alert)
                         <option value="{{ $alert->mail_code }}" {{ request('mail_code') == $alert->mail_code ? 'selected' : '' }}>
@@ -164,109 +175,29 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select id="logStatus" name="status" class="form-select form-select-sm">
                     <option value="">All Statuses</option>
                     <option value="sent" {{ request('status') == 'sent' ? 'selected' : '' }}>🟢 Sent</option>
                     <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>🔴 Failed</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <input type="date" name="date" class="form-control form-control-sm" value="{{ request('date') }}" onchange="this.form.submit()">
+                <input type="date" id="logDate" name="date" class="form-control form-control-sm" value="{{ request('date') }}">
             </div>
             <div class="col-md-2 d-flex gap-1">
                 <button type="submit" class="btn btn-sm btn-primary flex-fill">
                     <i class="bi bi-funnel me-1"></i> Filter
                 </button>
-                @if(request()->anyFilled(['search', 'mail_code', 'status', 'date']))
-                    <a href="{{ route('software-setup.email-alerts.logs') }}" class="btn btn-sm btn-outline-secondary" title="Reset Filters">
-                        <i class="bi bi-x-circle"></i>
-                    </a>
-                @endif
+                <button type="button" id="btnResetLogsFilter" class="btn btn-sm btn-outline-secondary" title="Reset Filters">
+                    <i class="bi bi-x-circle"></i>
+                </button>
             </div>
         </form>
     </div>
 
-    <!-- Logs Table Card -->
-    <div class="logs-table-card">
-        <div class="table-responsive">
-            <table class="table logs-table">
-                <thead>
-                    <tr>
-                        <th style="width: 130px;">Status</th>
-                        <th style="width: 170px;">Sent At</th>
-                        <th>Mail Alert Type</th>
-                        <th>Recipient</th>
-                        <th>Subject</th>
-                        <th style="width: 100px;" class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($logs as $log)
-                        <tr>
-                            <td>
-                                @if($log->status === 'sent')
-                                    <span class="badge badge-soft-success px-2 py-1">
-                                        <i class="bi bi-check2-circle me-1"></i>Sent
-                                    </span>
-                                @else
-                                    <span class="badge badge-soft-danger px-2 py-1">
-                                        <i class="bi bi-x-circle me-1"></i>Failed
-                                    </span>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="fw-semibold text-dark">{{ $log->sent_at ? $log->sent_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') : '-' }}</span>
-                            </td>
-                            <td>
-                                <div class="fw-bold text-dark">{{ $log->alert ? $log->alert->name : $log->mail_code }}</div>
-                                <code class="small text-muted" style="font-size: 0.72rem;">{{ $log->mail_code }}</code>
-                            </td>
-                            <td>
-                                <div class="fw-semibold text-dark">{{ $log->recipient_name ?: ($log->user ? $log->user->name : 'Recipient') }}</div>
-                                <a href="mailto:{{ $log->recipient_email }}" class="text-muted small text-decoration-none">
-                                    <i class="bi bi-envelope me-1"></i>{{ $log->recipient_email }}
-                                </a>
-                            </td>
-                            <td>
-                                <span class="text-truncate d-inline-block" style="max-width: 320px;" title="{{ $log->subject }}">
-                                    {{ $log->subject ?: 'Report Mail' }}
-                                </span>
-                            </td>
-                            <td class="text-end">
-                                <button type="button" 
-                                        class="btn btn-sm btn-outline-primary py-0 px-2 btn-view-log"
-                                        data-log="{{ json_encode([
-                                            'mail_code' => $log->mail_code,
-                                            'alert_name' => $log->alert ? $log->alert->name : $log->mail_code,
-                                            'recipient_email' => $log->recipient_email,
-                                            'recipient_name' => $log->recipient_name ?: ($log->user ? $log->user->name : 'N/A'),
-                                            'subject' => $log->subject,
-                                            'status' => $log->status,
-                                            'error_message' => $log->error_message,
-                                            'sent_at' => $log->sent_at ? $log->sent_at->timezone('Asia/Kolkata')->format('d M Y, h:i:s A') : '-',
-                                            'meta' => $log->meta
-                                        ]) }}">
-                                    <i class="bi bi-eye"></i> Details
-                                </button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
-                                No email logs found matching your filters.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        
-        @if($logs->hasPages())
-            <div class="p-3 border-top">
-                {{ $logs->links() }}
-            </div>
-        @endif
+    <!-- Logs Table Container (AJAX Enabled) -->
+    <div class="logs-table-card" id="logsTableWrapper">
+        @include('software-setup.email-alerts.logs-table', ['logs' => $logs])
     </div>
 </div>
 
@@ -293,66 +224,132 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
+    let logDebounceTimer = null;
     const logModal = new bootstrap.Modal(document.getElementById('logDetailsModal'));
     const modalBody = document.getElementById('logModalBody');
 
-    document.querySelectorAll('.btn-view-log').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const data = JSON.parse(this.getAttribute('data-log'));
+    function fetchLogs(pageUrl = null) {
+        const $wrapper = $('#logsTableWrapper');
+        $wrapper.addClass('loading-overlay');
 
-            let statusBadge = data.status === 'sent' 
-                ? '<span class="badge badge-soft-success px-2 py-1"><i class="bi bi-check2-circle me-1"></i>Sent Successfully</span>'
-                : '<span class="badge badge-soft-danger px-2 py-1"><i class="bi bi-x-circle me-1"></i>Failed Delivery</span>';
+        const url = pageUrl || "{{ route('software-setup.email-alerts.logs') }}";
+        const data = pageUrl ? {} : {
+            search: $('#logSearch').val(),
+            mail_code: $('#logMailCode').val(),
+            status: $('#logStatus').val(),
+            date: $('#logDate').val()
+        };
 
-            let html = `
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="text-muted small fw-semibold">Alert Type</label>
-                        <div class="fw-bold text-dark">${data.alert_name} <code class="small">(${data.mail_code})</code></div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted small fw-semibold">Delivery Status</label>
-                        <div>${statusBadge}</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted small fw-semibold">Recipient</label>
-                        <div class="fw-bold">${data.recipient_name} &lt;${data.recipient_email}&gt;</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted small fw-semibold">Dispatched At</label>
-                        <div class="fw-bold">${data.sent_at}</div>
-                    </div>
-                    <div class="col-12">
-                        <label class="text-muted small fw-semibold">Subject</label>
-                        <div class="p-2 bg-light border rounded text-dark">${data.subject || 'N/A'}</div>
-                    </div>
-            `;
-
-            if (data.status === 'failed' && data.error_message) {
-                html += `
-                    <div class="col-12">
-                        <label class="text-danger small fw-semibold">Error Message / SMTP Trace</label>
-                        <div class="p-2 bg-danger bg-opacity-10 border border-danger rounded text-danger small font-monospace">
-                            ${data.error_message}
-                        </div>
-                    </div>
-                `;
+        $.ajax({
+            url: url,
+            type: "GET",
+            data: data,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(resp) {
+                $wrapper.html(resp.html);
+            },
+            error: function(xhr) {
+                console.error("Failed to load logs:", xhr);
+            },
+            complete: function() {
+                $wrapper.removeClass('loading-overlay');
             }
-
-            if (data.meta && Object.keys(data.meta).length > 0) {
-                html += `
-                    <div class="col-12">
-                        <label class="text-muted small fw-semibold">Context Metadata</label>
-                        <pre class="p-2 bg-light border rounded small mb-0 font-monospace">${JSON.stringify(data.meta, null, 2)}</pre>
-                    </div>
-                `;
-            }
-
-            html += `</div>`;
-            modalBody.innerHTML = html;
-            logModal.show();
         });
+    }
+
+    // Submit form AJAX
+    $('#logsFilterForm').on('submit', function(e) {
+        e.preventDefault();
+        fetchLogs();
+    });
+
+    // Dropdown and Date changes
+    $('#logMailCode, #logStatus, #logDate').on('change', function() {
+        fetchLogs();
+    });
+
+    // Debounced text search
+    $('#logSearch').on('input', function() {
+        clearTimeout(logDebounceTimer);
+        logDebounceTimer = setTimeout(function() {
+            fetchLogs();
+        }, 350);
+    });
+
+    // Reset filters
+    $('#btnResetLogsFilter').on('click', function() {
+        $('#logSearch').val('');
+        $('#logMailCode').val('');
+        $('#logStatus').val('');
+        $('#logDate').val('');
+        fetchLogs();
+    });
+
+    // Pagination clicks AJAX
+    $(document).on('click', '#logsTableWrapper .pagination a', function(e) {
+        e.preventDefault();
+        let pageUrl = $(this).attr('href');
+        if (pageUrl) {
+            fetchLogs(pageUrl);
+        }
+    });
+
+    // View Details Modal
+    $(document).on('click', '.btn-view-log', function() {
+        const data = JSON.parse(this.getAttribute('data-log'));
+
+        let statusBadge = data.status === 'sent' 
+            ? '<span class="badge badge-soft-success px-2 py-1"><i class="bi bi-check2-circle me-1"></i>Sent Successfully</span>'
+            : '<span class="badge badge-soft-danger px-2 py-1"><i class="bi bi-x-circle me-1"></i>Failed Delivery</span>';
+
+        let html = `
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="text-muted small fw-semibold">Alert Type</label>
+                    <div class="fw-bold text-dark">${data.alert_name} <code class="small">(${data.mail_code})</code></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-muted small fw-semibold">Delivery Status</label>
+                    <div>${statusBadge}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-muted small fw-semibold">Recipient</label>
+                    <div class="fw-bold">${data.recipient_name} &lt;${data.recipient_email}&gt;</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-muted small fw-semibold">Dispatched At</label>
+                    <div class="fw-bold">${data.sent_at}</div>
+                </div>
+                <div class="col-12">
+                    <label class="text-muted small fw-semibold">Subject</label>
+                    <div class="p-2 bg-light border rounded text-dark">${data.subject || 'N/A'}</div>
+                </div>
+        `;
+
+        if (data.status === 'failed' && data.error_message) {
+            html += `
+                <div class="col-12">
+                    <label class="text-danger small fw-semibold">Error Message / SMTP Trace</label>
+                    <div class="p-2 bg-danger bg-opacity-10 border border-danger rounded text-danger small font-monospace">
+                        ${data.error_message}
+                    </div>
+                </div>
+            `;
+        }
+
+        if (data.meta && Object.keys(data.meta).length > 0) {
+            html += `
+                <div class="col-12">
+                    <label class="text-muted small fw-semibold">Context Metadata</label>
+                    <pre class="p-2 bg-light border rounded small mb-0 font-monospace">${JSON.stringify(data.meta, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        html += `</div>`;
+        modalBody.innerHTML = html;
+        logModal.show();
     });
 });
 </script>
