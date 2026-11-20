@@ -483,6 +483,7 @@ return [
                     'icon' => 'bi bi-journal-text',
                     'roles' => ['admin'],
                     'items' => [
+                        ['route' => 'software-setup.email-alerts.logs', 'title' => 'Email Delivery Log', 'icon' => 'bi bi-envelope-paper-heart', 'permission' => 'setup.email_alerts', 'feature_flag' => 'is_master_setup_enabled'],
                         ['route' => 'posting-log.index', 'title' => 'Posting Log', 'icon' => 'bi bi-file-earmark-bar-graph', 'permission' => 'setup.posting_log', 'feature_flag' => 'is_master_setup_enabled'],
                         ['route' => 'ai-task-log.index', 'title' => 'AI Task Log', 'icon' => 'bi bi-robot', 'permission' => 'setup.posting_log', 'feature_flag' => 'is_master_setup_enabled'],
                     ]

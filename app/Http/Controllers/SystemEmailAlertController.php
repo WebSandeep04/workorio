@@ -69,12 +69,12 @@ class SystemEmailAlertController extends Controller
 
         if ($request->ajax()) {
             return response()->json([
-                'html' => view('software-setup.email-alerts.matrix-table', compact(
-                    'alerts',
-                    'categories',
-                    'users',
-                    'recipientMap'
-                ))->render(),
+                'html' => view('software-setup.email-alerts.matrix-table', [
+                    'tableAlerts' => $alerts,
+                    'categories' => $categories,
+                    'users' => $users,
+                    'recipientMap' => $recipientMap
+                ])->render(),
                 'user_count' => $users->count()
             ]);
         }

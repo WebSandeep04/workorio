@@ -162,24 +162,10 @@
         </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <ul class="nav nav-tabs nav-tabs-modern mb-3">
-        <li class="nav-item">
-            <a class="nav-link active" href="{{ route('software-setup.email-alerts.index') }}">
-                <i class="bi bi-grid-3x3-gap me-1"></i> Recipient Mapping Matrix
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('software-setup.email-alerts.logs') }}">
-                <i class="bi bi-clock-history me-1"></i> Delivery Audit Logs
-            </a>
-        </li>
-    </ul>
-
     <!-- Filters & Search Bar (AJAX Enabled) -->
     <div class="metric-card mb-3">
         <form id="filterMatrixForm" class="row g-2 align-items-center">
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
                     <input type="text" id="searchFilter" name="search" class="form-control" placeholder="Search employee name, code, or email..." value="{{ request('search') }}" autocomplete="off">
@@ -201,9 +187,10 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-filter me-1"></i>Filter</button>
-                <button type="button" id="btnResetFilters" class="btn btn-sm btn-outline-secondary" title="Reset Filters"><i class="bi bi-x-circle"></i></button>
+            <div class="col-md-1 d-flex justify-content-end">
+                <button type="button" id="btnResetFilters" class="btn btn-sm btn-outline-secondary w-100" title="Reset Filters">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                </button>
             </div>
         </form>
     </div>
