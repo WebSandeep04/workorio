@@ -1020,6 +1020,9 @@ Route::middleware(['auth.or.session'])->group(function () {
     Route::post('/calling/todays/filter', [TodaysCallingController::class, 'filterCallings'])->name('calling.todays.filter');
     Route::get('/calling/todays/filter-options', [TodaysCallingController::class, 'getFilterOptions'])->name('calling.todays.filter-options');
     Route::get('/calling/todays/cities/{stateId}', [TodaysCallingController::class, 'getCitiesByState'])->name('calling.todays.cities');
+    Route::get('/calling/todays/my-campaigns', [TodaysCallingController::class, 'getMyCampaigns'])->name('calling.todays.my-campaigns');
+    Route::post('/calling/todays/reassign', [TodaysCallingController::class, 'reassignCalling'])->name('calling.todays.reassign');
+    Route::get('/calling/todays/team-members', [TodaysCallingController::class, 'getTeamMembers'])->name('calling.todays.team-members');
     Route::get('/calling/{id}/remarks', [CallingController::class, 'remarks'])->name('calling.remarks.show');
     Route::post('/calling/{id}/remarks', [CallingController::class, 'storeRemark'])->name('calling.remarks.store');
     Route::post('/calling/remarks/{id}/update', [CallingController::class, 'updateRemark'])->name('calling.remarks.update');
