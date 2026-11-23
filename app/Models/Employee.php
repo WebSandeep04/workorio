@@ -93,7 +93,7 @@ class Employee extends Model
         'experience_years' => 'decimal:2',
         'is_place_allowed' => 'boolean',
         'is_tracking' => 'boolean',
-        'is_field_attendance_enable' => 'boolean',
+        'is_field_attendance_enable' => 'integer',
     ];
 
     public function approver()

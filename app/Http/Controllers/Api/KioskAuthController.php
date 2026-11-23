@@ -89,8 +89,10 @@ class KioskAuthController extends Controller
                             'token' => $token,
                             'version' => '1.0',
                             'employee_id' => $user->employee_id,
+                            'is_field_attendance_enable' => $employee && $employee->is_field_attendance_enable ? 1 : 0,
                             'employee_details' => $employee ? [
                                 'date_of_birth' => $employee->date_of_birth,
+                                'is_field_attendance_enable' => $employee->is_field_attendance_enable ? 1 : 0,
                                 'shift' => $shiftDetails
                             ] : null,
                             'feature_flags' => [
