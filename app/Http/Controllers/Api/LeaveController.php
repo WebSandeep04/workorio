@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LeaveStatusMail;
+use App\Jobs\SendLeaveStatusNotification;
+use App\Jobs\SendLeaveAppliedNotification;
 
 class LeaveController extends Controller
 {
@@ -363,22 +365,22 @@ class LeaveController extends Controller
 
             DB::commit();
 
-            // Send email to admin and managers
+            // Dispatch queued email notification to admin and managers
             try {
-                $admins = \App\Models\User::where('role_id', 1)->whereNotNull('email')->get();
-                $managers = $user->managers()->whereNotNull('email')->get();
-                
-                $recipients = $admins->merge($managers)->unique('id');
+                $admins = \App\Models\User::where('role_id', 1)->whereNotNull('email')->pluck('id');
+                $managers = $user->managers()->whereNotNull('email')->pluck('users.id');
+                $recipientIds = $admins->merge($managers)->unique()->values()->toArray();
 
-                foreach ($recipients as $recipient) {
-                    \Illuminate\Support\Facades\Mail::to($recipient->email)->send(new \App\Mail\LeaveApplicationMail([
-                        'leave_request_id' => $leaveReq->id,
-                        'applicant_id' => $user->id,
-                        'recipient_name' => $recipient->name
-                    ]));
+                if (!empty($recipientIds)) {
+                    SendLeaveAppliedNotification::dispatch(
+                        $leaveReq->id,
+                        $user->id,
+                        $recipientIds,
+                        DB::getDefaultConnection()
+                    );
                 }
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Failed to send API leave application email: " . $e->getMessage());
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to dispatch queued leave application email: " . $e->getMessage());
             }
 
             return response()->json([
@@ -567,17 +569,17 @@ class LeaveController extends Controller
 
             DB::commit();
 
-            // Optional: Mailer Notification
-            if ($leaveReq->user && $leaveReq->user->email && ($leaveReq->user->employee && $leaveReq->user->employee->status === 'active')) {
-                try {
-                    Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
-                        'leave_request_id' => $leaveReq->id,
-                        'user_id' => $leaveReq->user->id,
-                        'status' => 'approved'
-                    ]));
-                } catch (\Exception $e) {
-                    \Log::error("Failed to send API leave approval email: " . $e->getMessage());
-                }
+            // Dispatch queued email notification
+            try {
+                SendLeaveStatusNotification::dispatch(
+                    $leaveReq->id,
+                    $leaveReq->user_id,
+                    'approved',
+                    null,
+                    DB::getDefaultConnection()
+                );
+            } catch (\Throwable $e) {
+                \Log::error("Failed to dispatch queued leave approval email: " . $e->getMessage());
             }
 
             return response()->json(['success' => true, 'message' => 'Leave request approved successfully.']);
@@ -642,17 +644,17 @@ class LeaveController extends Controller
 
             DB::commit();
 
-            if ($leaveReq->user && $leaveReq->user->email && ($leaveReq->user->employee && $leaveReq->user->employee->status === 'active')) {
-                try {
-                    Mail::to($leaveReq->user->email)->send(new LeaveStatusMail([
-                        'leave_request_id' => $leaveReq->id,
-                        'user_id' => $leaveReq->user->id,
-                        'status' => 'rejected',
-                        'reason' => $request->reason
-                    ]));
-                } catch (\Exception $e) {
-                    \Log::error("Failed to send API leave rejection email: " . $e->getMessage());
-                }
+            // Dispatch queued email notification
+            try {
+                SendLeaveStatusNotification::dispatch(
+                    $leaveReq->id,
+                    $leaveReq->user_id,
+                    'rejected',
+                    $request->reason,
+                    DB::getDefaultConnection()
+                );
+            } catch (\Throwable $e) {
+                \Log::error("Failed to dispatch queued leave rejection email: " . $e->getMessage());
             }
 
             return response()->json(['success' => true, 'message' => 'Leave request rejected successfully.']);
