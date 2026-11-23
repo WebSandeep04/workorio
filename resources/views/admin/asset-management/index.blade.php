@@ -510,7 +510,7 @@
        <div class="d-flex flex-column flex-grow-1">
            <label class="form-label-modern">Employee</label>
            <select class="form-control-modern w-100 arrow-white" id="filter_employee_id">
-                <option value="">All Employees</option>
+                <option value="">All Employes</option>
                 @foreach($employees as $employee)
                      <option value="{{ $employee->id }}">{{ $employee->name }}</option>
                  @endforeach
