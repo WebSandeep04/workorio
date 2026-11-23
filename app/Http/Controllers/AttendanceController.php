@@ -207,9 +207,9 @@ class AttendanceController extends Controller
             ]);
 
             // --- Location Validation Start ---
-            // Validate ONLY on first punch-in of the day
+            // Validate ONLY on first punch-in of the day for OFFICE movement. Field movement is exempt from place geofence.
             $detectedPlaceName = null;
-            if (!$hasAnyIn) {
+            if (!$hasAnyIn && $request->movement_type === 'office') {
                 // Ensure user->employee relation is loaded/accessible
                 $employee = null;
                 if ($user instanceof \App\Models\User) {
@@ -582,8 +582,9 @@ class AttendanceController extends Controller
         }
 
         // --- Location Validation Start ---
+        // Validate ONLY for OFFICE punch-out. Field punch-out is exempt from place geofence.
         $detectedPlaceName = null;
-        if (in_array($request->movement_type, ['office', 'field'])) {
+        if ($request->movement_type === 'office') {
             $employee = null;
             if ($user instanceof \App\Models\User) {
                 $employee = $user->employee;
