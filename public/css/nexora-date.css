@@ -1,0 +1,299 @@
+/* ==========================================================================
+   Workorio — Global Nexora Rounded Date Picker (.nx-date-wrap)
+   ========================================================================== */
+
+.nx-date-wrap {
+    position: relative;
+    width: 100%;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.nx-date-trigger {
+    width: 100%;
+    min-height: 38px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: #FFFFFF;
+    border: 1px solid #D4D8E1;
+    border-radius: 10px;
+    font-size: 13.5px;
+    line-height: 1.35;
+    color: #09090B;
+    cursor: pointer;
+    text-align: left;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nx-date-wrap.nx-sm .nx-date-trigger {
+    min-height: 34px;
+    padding: 4px 10px;
+    font-size: 12.5px;
+    border-radius: 8px;
+}
+
+.nx-date-trigger:hover:not(:disabled) {
+    border-color: #B8C0CC;
+}
+
+.nx-date-trigger:disabled {
+    background: #F4F4F5;
+    color: #A1A1AA;
+    cursor: not-allowed;
+}
+
+.nx-date-wrap.open .nx-date-trigger {
+    border-color: #434AFA;
+    box-shadow: 0 0 0 3px rgba(67, 74, 250, 0.12);
+}
+
+.nx-date-val {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.nx-date-val.is-placeholder {
+    color: #71717A;
+    font-weight: 400;
+}
+
+.nx-date-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    color: #64748B;
+}
+
+.nx-date-clear {
+    display: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #94A3B8;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.nx-date-clear:hover {
+    background: #F1F5F9;
+    color: #09090B;
+}
+
+.nx-date-wrap.has-value .nx-date-clear {
+    display: inline-flex;
+}
+
+.nx-date-cal-ic {
+    font-size: 13px;
+    color: #64748B;
+}
+
+.nx-date-wrap.open .nx-date-cal-ic {
+    color: #434AFA;
+}
+
+/* Visually hide native date input while keeping form value & validation */
+input.nx-date-native-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Floating Nexora Calendar Popover (portal in body so never clipped) */
+.nx-date-popover {
+    position: fixed;
+    z-index: 2600;
+    width: 276px;
+    background: #FFFFFF;
+    border: 1px solid #E4E7EC;
+    border-radius: 14px;
+    box-shadow: 0 16px 38px -8px rgba(15, 23, 42, 0.18), 0 0 1px rgba(15, 23, 42, 0.06);
+    padding: 12px;
+    display: none;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    user-select: none;
+}
+
+.nx-date-popover.show {
+    display: block;
+    animation: nxDatePopIn 0.13s ease-out;
+}
+
+@keyframes nxDatePopIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.nx-dp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.nx-dp-nav {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid #E4E7EC;
+    background: #FFFFFF;
+    color: #3F3F46;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.12s ease;
+}
+
+.nx-dp-nav:hover {
+    background: #F4F4F5;
+    border-color: #CBD5E1;
+    color: #09090B;
+}
+
+.nx-dp-title {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.nx-dp-select {
+    border: 1px solid transparent;
+    background: #F8FAFC;
+    border-radius: 7px;
+    padding: 3px 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #09090B;
+    cursor: pointer;
+    outline: none;
+    font-family: inherit;
+}
+
+.nx-dp-select:hover,
+.nx-dp-select:focus {
+    background: #EEF2FF;
+    color: #434AFA;
+    border-color: #C7D2FE;
+}
+
+.nx-dp-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.nx-dp-weekdays span {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94A3B8;
+    padding: 3px 0;
+}
+
+.nx-dp-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.nx-dp-day {
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 9px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #18181B;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s ease, color 0.12s ease;
+    font-variant-numeric: tabular-nums;
+}
+
+.nx-dp-day:hover:not(:disabled) {
+    background: #F4F4F5;
+    color: #09090B;
+}
+
+.nx-dp-day.is-other {
+    color: #A1A1AA;
+}
+
+.nx-dp-day.is-today {
+    background: #EEF2FF;
+    color: #434AFA;
+    font-weight: 700;
+}
+
+.nx-dp-day.is-selected {
+    background: #434AFA !important;
+    color: #FFFFFF !important;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(67, 74, 250, 0.3);
+}
+
+.nx-dp-day:disabled {
+    color: #D4D4D8;
+    cursor: not-allowed;
+}
+
+.nx-dp-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #F1F5F9;
+}
+
+.nx-dp-foot-btn {
+    border: none;
+    background: transparent;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.nx-dp-foot-btn.is-clear {
+    color: #71717A;
+}
+
+.nx-dp-foot-btn.is-clear:hover {
+    background: #F4F4F5;
+    color: #09090B;
+}
+
+.nx-dp-foot-btn.is-today-btn {
+    color: #434AFA;
+    background: #EEF2FF;
+}
+
+.nx-dp-foot-btn.is-today-btn:hover {
+    background: #E0E7FF;
+}

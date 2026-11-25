@@ -1,84 +1,159 @@
-
 @push('styles')
 <style>
-
-
-  /* Modal Styles */
-  .modal-content {
-      border-radius: 0px !important;
-      border: none;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-      overflow: hidden;
-  }
-  
-  .modal-header {
-      border-radius: 0px !important;
-      background: #434AFA !important;
-      color: white;
-      border-bottom: none;
-      padding: 0.6rem 1rem;
-  }
-  
-  .modal-footer {
-      border-top: 1px solid #f0f0f0;
-      padding: 0.6rem 1rem;
-      background: #fff;
+  /* Modern Nexora Modal Styling */
+  #addLeadModal .modal-content,
+  #addProspectusModal .modal-content {
+    border-radius: 16px !important;
+    border: 1px solid #E4E7EC;
+    box-shadow: 0 20px 48px -12px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+    background: #FFFFFF;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
-  .form-label-modern {
-      color: #434AFA;
-      font-weight: 600;
-      margin-bottom: 0.2rem;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.75rem;
-      font-family: Montserrat, sans-serif;
+  #addLeadModal .modal-header,
+  #addProspectusModal .modal-header {
+    background: #FFFFFF !important;
+    color: #09090B;
+    border-bottom: 1px solid #F1F5F9;
+    padding: 16px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
-  
-  .form-control-modern, .form-select-modern {
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
-      padding: 0.4rem 0.6rem;
-      transition: all 0.3s ease;
-      font-size: 0.8rem;
-      font-family: Montserrat, sans-serif;
+
+  #addLeadModal .modal-title,
+  #addProspectusModal .modal-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #09090B;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
   }
-  
-  .form-control-modern:focus, .form-select-modern:focus {
-      border-color: #434AFA;
-      box-shadow: 0 0 0 2px rgba(67, 74, 250, 0.1);
-      outline: none;
+
+  #addLeadModal .modal-title i,
+  #addProspectusModal .modal-title i {
+    color: #434AFA;
+    font-size: 16px;
   }
-  
-  .btn-modern {
-      padding: 0.4rem 1.2rem;
-      border-radius: 4px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      border: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.8rem;
-      font-family: Montserrat, sans-serif;
+
+  #addLeadModal .btn-close,
+  #addProspectusModal .btn-close {
+    opacity: 0.55;
+    transition: opacity 0.15s ease;
+    filter: none;
   }
-  
-  .btn-modern-primary {
-      background: #434AFA;
-      color: white;
+
+  #addLeadModal .btn-close:hover,
+  #addProspectusModal .btn-close:hover {
+    opacity: 1;
   }
-  
-  .btn-modern-primary:hover {
-      background: #3538d4;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(67, 74, 250, 0.2);
-      color: white;
+
+  #addLeadModal .modal-body,
+  #addProspectusModal .modal-body {
+    padding: 20px 22px;
+    background: #FFFFFF;
+  }
+
+  #addLeadModal .modal-footer,
+  #addProspectusModal .modal-footer {
+    border-top: 1px solid #F1F5F9;
+    padding: 14px 22px;
+    background: #F8FAFC;
+  }
+
+  #addLeadModal .form-label-modern,
+  #addProspectusModal .form-label-modern {
+    color: #3F3F46;
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  #addLeadModal .form-control-modern,
+  #addLeadModal .form-select-modern,
+  #addProspectusModal .form-control-modern,
+  #addProspectusModal .form-select-modern {
+    height: 38px;
+    border: 1px solid #D4D8E1;
+    border-radius: 9px;
+    padding: 6px 12px;
+    background: #FFFFFF;
+    color: #09090B;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    font-size: 13px;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    width: 100%;
+  }
+
+  #addLeadModal textarea.form-control-modern {
+    height: auto;
+    min-height: 38px;
+    resize: none;
+  }
+
+  #addLeadModal .form-control-modern:focus,
+  #addLeadModal .form-select-modern:focus,
+  #addProspectusModal .form-control-modern:focus,
+  #addProspectusModal .form-select-modern:focus {
+    outline: none;
+    border-color: #434AFA;
+    box-shadow: 0 0 0 3px rgba(67, 74, 250, 0.12);
+  }
+
+  #addLeadModal .btn-modern-primary,
+  #addProspectusModal .btn-modern-primary {
+    background: #434AFA;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 9px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+    box-shadow: 0 4px 12px rgba(67, 74, 250, 0.22);
+    cursor: pointer;
+  }
+
+  #addLeadModal .btn-modern-primary:hover,
+  #addProspectusModal .btn-modern-primary:hover {
+    background: #3138D8;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(67, 74, 250, 0.3);
+    color: #FFFFFF;
+  }
+
+  #addLeadModal .btn-modern-cancel,
+  #addProspectusModal .btn-modern-cancel {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 9px;
+    border: 1px solid #D4D8E1;
+    background: #FFFFFF;
+    color: #3F3F46;
+    font-weight: 600;
+    font-size: 13px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  #addLeadModal .btn-modern-cancel:hover,
+  #addProspectusModal .btn-modern-cancel:hover {
+    background: #F4F4F5;
+    border-color: #CBD5E1;
   }
 
   .blur-active {
     filter: blur(2px);
-    transition: filter 0.3s ease;
+    transition: filter 0.2s ease;
     pointer-events: none;
   }
 
@@ -90,191 +165,142 @@
   .modal-backdrop.show {
     background-color: rgba(15, 23, 42, 0.55);
   }
-
-  .prospect-search-wrapper {
-      width: 215px;
-      max-width: 60%;
-  }
-  .prospect-search-box {
-      border: 1px solid #d8dbe0;
-      border-radius: 4px;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      height: 28px;
-      padding: 0 8px;
-      transition: all 0.2s ease;
-  }
-  .prospect-search-box:focus-within {
-      border-color: #434AFA;
-      box-shadow: 0 0 0 2px rgba(67, 74, 250, 0.12);
-  }
-  .prospect-search-box input {
-      border: none !important;
-      outline: none !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      font-size: 0.76rem !important;
-      font-family: Montserrat, sans-serif !important;
-      width: 100%;
-      padding: 0 6px !important;
-      color: #334155;
-      height: 100%;
-  }
-  .prospect-search-box input::placeholder {
-      color: #94a3b8;
-  }
-  .prospect-search-box .search-icon {
-      color: #434AFA;
-      font-size: 0.72rem;
-      flex-shrink: 0;
-  }
-  .prospect-search-box .clear-btn {
-      background: none;
-      border: none;
-      padding: 0 2px;
-      color: #94a3b8;
-      font-size: 0.72rem;
-      cursor: pointer;
-      display: none;
-      flex-shrink: 0;
-      line-height: 1;
-  }
-  .prospect-search-box .clear-btn:hover {
-      color: #475569;
-  }
 </style>
 @endpush
+
 <!-- Add Lead Modal -->
 <div class="modal fade" id="addLeadModal" tabindex="-1" aria-labelledby="addLeadModalLabel" aria-hidden="true" data-bs-backdrop="static">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width: 1040px;">
     <div class="modal-content blur-target">
       <div class="modal-header">
-        <h5 class="modal-title" id="addLeadModalLabel" style="font-size: 1rem;">
-            <i class="bi bi-person-plus-fill text-white me-2"></i>Add New Lead
+        <h5 class="modal-title" id="addLeadModalLabel">
+          <i class="bi bi-person-plus-fill"></i> Add New Lead
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body py-2">
+      <div class="modal-body py-3">
         <form method="POST" action="" id="addLeadForm">
-          <div class="row g-2">
-            <!-- Column 1 -->
-            <div class="col-md-6">
-              <div class="mb-2">
-                <div class="d-flex justify-content-between align-items-center mb-1" style="min-height: 28px;">
-                  <label for="add_lead_prospectus" class="form-label-modern mb-0">Prospect <span class="text-danger">*</span></label>
-                  <div class="prospect-search-wrapper">
-                    <div class="prospect-search-box">
-                      <i class="bi bi-search search-icon"></i>
-                      <input type="text" id="search_prospect_input" placeholder="Search prospect..." autocomplete="off">
-                      <button type="button" id="clear_prospect_search" class="clear-btn" title="Clear">
-                        <i class="bi bi-x-circle-fill"></i>
-                      </button>
-                    </div>
-                  </div>
+          <div class="row g-3">
+            <!-- Row 1 -->
+            <div class="col-md-4">
+              <label for="add_lead_prospectus" class="form-label-modern">Prospect <span class="text-danger">*</span></label>
+              <div class="d-flex align-items-center gap-2">
+                <div class="flex-grow-1" style="min-width: 0;">
+                  <select class="form-select form-select-modern" id="add_lead_prospectus" name="prospectus" required>
+                    <option value="">Select Prospect</option>
+                  </select>
                 </div>
-                <div class="input-group input-group-sm">
-                    <select class="form-select form-select-modern" id="add_lead_prospectus" name="prospectus" required>
-                      <option value="">Select Prospect</option>
-                    </select>
-                    <button class="btn btn-outline-secondary btn-sm" type="button" onclick="openProspectusModal()" title="Add New Prospect">
-                        <i class="bi bi-plus-lg"></i>
-                    </button>
-                </div>
-              </div>
-
-              <div class="mb-2">
-                <label for="add_lead_leadsName" class="form-label-modern">Lead Name</label>
-                <input type="text" class="form-control form-control-modern" id="add_lead_leadsName" name="leads_name" placeholder="Enter Lead Name">
-              </div>
-
-              <div class="mb-2">
-                <label for="add_lead_contactPerson" class="form-label-modern">Contact Person</label>
-                <input type="text" class="form-control form-control-modern" id="add_lead_contactPerson" name="contact_person" placeholder="Enter Contact Person Name">
-              </div>
-
-              <div class="mb-2">
-                <label for="add_lead_contactNumber" class="form-label-modern">Contact Number</label>
-                <input type="tel" class="form-control form-control-modern" id="add_lead_contactNumber" name="contact_number" placeholder="Enter Contact Number">
-              </div>
-
-              <div class="mb-2">
-                <label for="add_lead_sales_status" class="form-label-modern">Status <span class="text-danger">*</span></label>
-                <select class="form-select form-select-modern" id="add_lead_sales_status" name="sales_status" required>
-                  <option value="">Loading...</option>
-                </select>
-              </div>
-
-              <div class="mb-2">
-                <label for="add_lead_address" class="form-label-modern">Address</label>
-                <input type="text" class="form-control form-control-modern" id="add_lead_address" name="address" placeholder="Enter Address">
-              </div>
-
-              <div class="mb-2">
-                <label for="add_lead_state" class="form-label-modern">State</label>
-                <select class="form-select form-select-modern" id="add_lead_state" name="state">
-                  <option value="">Select State</option>
-                </select>
-              </div>
-
-              <div class="mb-2">
-                <label for="add_lead_city" class="form-label-modern">City</label>
-                <select class="form-select form-select-modern" id="add_lead_city" name="city">
-                  <option value="">Select City</option>
-                </select>
+                <button class="btn btn-sm d-inline-flex align-items-center justify-content-center flex-shrink-0" type="button"
+                  onclick="openProspectusModal()" title="Add New Prospect"
+                  style="width: 38px; height: 38px; border-radius: 9px; border: 1px solid #C7D2FE; background: #EEF2FF; color: #434AFA;">
+                  <i class="bi bi-plus-lg"></i>
+                </button>
               </div>
             </div>
-            
-            <!-- Column 2 -->
-            <div class="col-md-6">
-              <div class="mb-2">
-                <label for="add_lead_email" class="form-label-modern">Email ID</label>
-                <input type="email" class="form-control form-control-modern" id="add_lead_email" name="email" placeholder="Enter Email ID">
-              </div>
 
-              <div class="mb-2">
-                <label for="add_lead_website_link" class="form-label-modern">Website</label>
-                <input type="url" class="form-control form-control-modern" id="add_lead_website_link" name="website_link" placeholder="Enter Website URL">
-              </div>
-              
-              <div class="mb-2">
-                <label for="add_lead_next_follow_up" class="form-label-modern">Next Follow-up Date <span class="text-danger">*</span></label>
-                <input type="date" class="form-control form-control-modern" id="add_lead_next_follow_up" name="next_follow_up_date" required>
-              </div>
+            <div class="col-md-4">
+              <label for="add_lead_leadsName" class="form-label-modern">Lead Name</label>
+              <input type="text" class="form-control form-control-modern" id="add_lead_leadsName" name="leads_name"
+                placeholder="Enter Lead Name">
+            </div>
 
-              <div class="mb-2">
-                <label for="add_lead_business_type" class="form-label-modern">Business Type</label>
-                <select class="form-select form-select-modern" id="add_lead_business_type" name="business_type">
-                  <option value="">Loading...</option>
-                </select>
-              </div>
+            <div class="col-md-4">
+              <label for="add_lead_contactPerson" class="form-label-modern">Contact Person</label>
+              <input type="text" class="form-control form-control-modern" id="add_lead_contactPerson"
+                name="contact_person" placeholder="Enter Contact Person Name">
+            </div>
 
-              <div class="mb-2">
-                <label for="add_lead_lead_source" class="form-label-modern">Lead Sources</label>
-                <select class="form-select form-select-modern" id="add_lead_lead_source" name="lead_source">
-                  <option value="">Loading...</option>
-                </select>
-              </div>
+            <!-- Row 2 -->
+            <div class="col-md-4">
+              <label for="add_lead_contactNumber" class="form-label-modern">Contact Number</label>
+              <input type="tel" class="form-control form-control-modern" id="add_lead_contactNumber"
+                name="contact_number" placeholder="Enter Contact Number">
+            </div>
 
-              <div class="mb-2">
-                <label for="add_lead_product_type" class="form-label-modern">Product Type</label>
-                <select class="form-select form-select-modern" id="add_lead_product_type" name="product_type">
-                  <option value="">Loading...</option>
-                </select>
-              </div>
+            <div class="col-md-4">
+              <label for="add_lead_email" class="form-label-modern">Email ID</label>
+              <input type="email" class="form-control form-control-modern" id="add_lead_email" name="email"
+                placeholder="Enter Email ID">
+            </div>
 
-              <div class="mb-2">
-                <label for="add_lead_remark" class="form-label-modern">Remark <span class="text-danger">*</span></label>
-                <textarea class="form-control form-control-modern" id="add_lead_remark" name="remark" placeholder="Enter Remark" rows="2" required></textarea>
-              </div>
+            <div class="col-md-4">
+              <label for="add_lead_website_link" class="form-label-modern">Website</label>
+              <input type="url" class="form-control form-control-modern" id="add_lead_website_link"
+                name="website_link" placeholder="Enter Website URL">
+            </div>
+
+            <!-- Row 3 -->
+            <div class="col-md-4">
+              <label for="add_lead_address" class="form-label-modern">Address</label>
+              <input type="text" class="form-control form-control-modern" id="add_lead_address" name="address"
+                placeholder="Enter Address">
+            </div>
+
+            <div class="col-md-4">
+              <label for="add_lead_state" class="form-label-modern">State</label>
+              <select class="form-select form-select-modern" id="add_lead_state" name="state">
+                <option value="">Select State</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="add_lead_city" class="form-label-modern">City</label>
+              <select class="form-select form-select-modern" id="add_lead_city" name="city">
+                <option value="">Select City</option>
+              </select>
+            </div>
+
+            <!-- Row 4 -->
+            <div class="col-md-4">
+              <label for="add_lead_business_type" class="form-label-modern">Business Type</label>
+              <select class="form-select form-select-modern" id="add_lead_business_type" name="business_type">
+                <option value="">Loading...</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="add_lead_lead_source" class="form-label-modern">Lead Sources</label>
+              <select class="form-select form-select-modern" id="add_lead_lead_source" name="lead_source">
+                <option value="">Loading...</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="add_lead_product_type" class="form-label-modern">Product Type</label>
+              <select class="form-select form-select-modern" id="add_lead_product_type" name="product_type">
+                <option value="">Loading...</option>
+              </select>
+            </div>
+
+            <!-- Row 5 -->
+            <div class="col-md-4">
+              <label for="add_lead_sales_status" class="form-label-modern">Status <span class="text-danger">*</span></label>
+              <select class="form-select form-select-modern" id="add_lead_sales_status" name="sales_status" required>
+                <option value="">Loading...</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="add_lead_next_follow_up" class="form-label-modern">Next Follow-up Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control form-control-modern" id="add_lead_next_follow_up"
+                name="next_follow_up_date" required>
+            </div>
+
+            <div class="col-md-4">
+              <label for="add_lead_remark" class="form-label-modern">Remark <span class="text-danger">*</span></label>
+              <textarea class="form-control form-control-modern" id="add_lead_remark" name="remark"
+                placeholder="Enter Remark" rows="1" required></textarea>
             </div>
           </div>
         </form>
       </div>
-      <div class="modal-footer">
-         <button type="submit" onclick="submitLead(event)" class="btn-modern btn-modern-primary w-100 justify-content-center" form="addLeadForm">
-            <i class="bi bi-check-circle"></i> Submit Lead
-         </button>
+      <div class="modal-footer d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-modern-cancel" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="submit" onclick="submitLead(event)" class="btn-modern-primary" form="addLeadForm">
+          <i class="bi bi-check-circle"></i> Submit Lead
+        </button>
       </div>
     </div>
   </div>
@@ -285,15 +311,15 @@
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="addProspectusModalLabel" style="font-size: 1rem;">
-            <i class="bi bi-building-add text-white me-2"></i>Add New Prospect
+        <h5 class="modal-title" id="addProspectusModalLabel">
+          <i class="bi bi-building-add"></i> Add New Prospect
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
-      <div class="modal-body py-2">
+      <div class="modal-body py-3">
         <form id="addProspectusForm">
-          <div class="row g-2">
+          <div class="row g-3">
             <div class="col-md-6">
               <label for="modalnewProspectusName" class="form-label-modern">Prospect Name <span class="text-danger">*</span></label>
               <input type="text" class="form-control form-control-modern" id="modalnewProspectusName" name="modal_new_prospectus_name" placeholder="Enter Prospect Name" required>
@@ -330,7 +356,7 @@
               <label for="modal_website_link" class="form-label-modern">Website</label>
               <input type="url" class="form-control form-control-modern" id="modal_website_link" name="modal_website_link" placeholder="Enter Website URL">
             </div>
-            <div class="col-md-6">
+            <div class="col-md-12">
               <label for="modal_business_type" class="form-label-modern">Business Type</label>
               <select class="form-select form-select-modern" id="modal_business_type" name="modal_business_type">
                 <option value="">Loading...</option>
@@ -340,13 +366,17 @@
         </form>
       </div>
 
-      <div class="modal-footer">
-        <button type="submit" onclick="submitProspect(event)" class="btn-modern btn-modern-primary w-100 justify-content-center" form="addProspectusForm">
-            <i class="bi bi-check-circle"></i> Save Prospect
+      <div class="modal-footer d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-modern-cancel" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="submit" onclick="submitProspect(event)" class="btn-modern-primary" form="addProspectusForm">
+          <i class="bi bi-check-circle"></i> Save Prospect
         </button>
       </div>
     </div>
   </div>
+</div>
 
 @push('scripts')
 <script>
@@ -363,9 +393,12 @@ function populateProspectDropdown(list, selectedVal = null, placeholder = 'Selec
     let currentVal = selectedVal !== null ? selectedVal : $('#add_lead_prospectus').val();
     let hasSelected = false;
     $.each(list, function(key, val) {
+        if (!val || !val.id) return;
+        let name = (val.prospectus_name || '').trim();
+        if (!name) return;
         let isSelected = (currentVal && currentVal == val.id) ? 'selected' : '';
         if (isSelected) hasSelected = true;
-        opts += `<option value="${val.id}" ${isSelected}>${val.prospectus_name}</option>`;
+        opts += `<option value="${val.id}" ${isSelected}>${name}</option>`;
     });
     $('#add_lead_prospectus').html(opts);
     if (selectedVal) {
@@ -465,20 +498,20 @@ $(document).on('change', '#add_lead_prospectus', function() {
     let id = $(this).val();
     if(id) {
         $.get('/fillprospectus/' + id, function(data) {
-            $('#add_lead_contactPerson').val(data.contact_person);
-            $('#add_lead_contactNumber').val(data.contact_number);
-            $('#add_lead_address').val(data.address);
-            $('#add_lead_leadsName').val(data.prospectus_name);
-            $('#add_lead_email').val(data.email);
-            $('#add_lead_website_link').val(data.website_link);
-            $('#add_lead_business_type').val(data.business_type_id);
-            $('#add_lead_state').val(data.state_id); 
+            $('#add_lead_contactPerson').val(data.contact_person || '');
+            $('#add_lead_contactNumber').val(data.contact_number || '');
+            $('#add_lead_address').val(data.address || '');
+            $('#add_lead_leadsName').val(data.prospectus_name || '');
+            $('#add_lead_email').val(data.email || '');
+            $('#add_lead_website_link').val(data.website_link || '');
+            $('#add_lead_business_type').val(data.business_type_id || '');
+            $('#add_lead_state').val(data.state_id || ''); 
             
              if(data.state_id){
                  $.get("/city/" + data.state_id, function(cities) {
                      let opts = '<option value="">Select City</option>';
                      $.each(cities, function(id, name) { opts += `<option value="${id}">${name}</option>`; });
-                     $('#add_lead_city').html(opts).val(data.city_id);
+                     $('#add_lead_city').html(opts).val(data.city_id || '');
                  });
              }
         });
@@ -515,8 +548,6 @@ function submitLead(e) {
          $btn.prop('disabled', false).html(originalText);
          showAlert('success', 'Sales record submitted successfully!');
          $('#addLeadForm')[0].reset();
-         $('#search_prospect_input').val('');
-         $('#clear_prospect_search').hide();
          populateProspectDropdown(addLeadProspectsList);
          $('#addLeadModal').modal('hide');
          if (typeof loadMyLeads === 'function') loadMyLeads(); 
@@ -531,8 +562,8 @@ function submitLead(e) {
                  sender_number: senderNumber
              }).done(function() {
                  if (typeof loadMessages === 'function') {
-                     loadMessages(); // refresh contact list to show Converted badge
-                     $('#btnConvertToLead').hide(); // Hide the button
+                     loadMessages();
+                     $('#btnConvertToLead').hide();
                  }
              });
          }
@@ -633,67 +664,6 @@ function submitProspect(e) {
     });
 }
 
-// Search filter for Prospect dropdown with auto-select on single match
-function filterAddLeadProspects(q) {
-    if (!q) {
-        populateProspectDropdown(addLeadProspectsList);
-        return;
-    }
-    let filtered = addLeadProspectsList.filter(function(p) {
-        let name = (p.prospectus_name || '').toLowerCase();
-        let person = (p.contact_person || '').toLowerCase();
-        let phone = (p.contact_number || '').toLowerCase();
-        let email = (p.email || '').toLowerCase();
-        return name.includes(q) || person.includes(q) || phone.includes(q) || email.includes(q);
-    });
-
-    if (filtered.length === 0) {
-        populateProspectDropdown([], null, `No match for "${q}"`);
-    } else if (filtered.length === 1) {
-        // Auto-select single match and auto-fill lead details!
-        populateProspectDropdown(filtered, filtered[0].id);
-        $('#add_lead_prospectus').val(filtered[0].id).trigger('change');
-    } else {
-        populateProspectDropdown(filtered, null, `Select Prospect (${filtered.length} found)`);
-    }
-}
-
-$(document).on('input', '#search_prospect_input', function() {
-    let raw = $(this).val();
-    if (raw.length > 0) {
-        $('#clear_prospect_search').show();
-    } else {
-        $('#clear_prospect_search').hide();
-    }
-    filterAddLeadProspects(raw.toLowerCase().trim());
-});
-
-$(document).on('click', '#clear_prospect_search', function() {
-    $('#search_prospect_input').val('');
-    $(this).hide();
-    filterAddLeadProspects('');
-    $('#search_prospect_input').focus();
-});
-
-// Press Enter to pick first match immediately
-$(document).on('keydown', '#search_prospect_input', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        let q = $(this).val().toLowerCase().trim();
-        if (!q) return;
-        let filtered = addLeadProspectsList.filter(function(p) {
-            let name = (p.prospectus_name || '').toLowerCase();
-            let person = (p.contact_person || '').toLowerCase();
-            let phone = (p.contact_number || '').toLowerCase();
-            let email = (p.email || '').toLowerCase();
-            return name.includes(q) || person.includes(q) || phone.includes(q) || email.includes(q);
-        });
-        if (filtered.length > 0) {
-            populateProspectDropdown(filtered, filtered[0].id);
-            $('#add_lead_prospectus').val(filtered[0].id).trigger('change');
-        }
-    }
-});
 function openProspectusModal() {
     $('#addLeadModal .blur-target').addClass('blur-active');
     
@@ -744,11 +714,9 @@ function openProspectusModal() {
 }
 
 $(document).ready(function () {
-
     $('#addProspectusModal').on('hidden.bs.modal', function () {
         $('#addLeadModal .blur-target').removeClass('blur-active');
     });
-
 });
 
 function showAlert(type, message) {

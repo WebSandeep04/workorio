@@ -534,6 +534,110 @@ public function calendarSummary(Request $request)
         }
         $absentNames = DB::table('users')->whereIn('id', $absentUserIds)->pluck('name')->toArray();
 
+        // My Attendance Details for logged-in user
+        $myAttendance = ['marked' => false];
+        $currentUserId = $this->getCurrentUserId();
+        $isTracking = false;
+        $canFieldPunch = false;
+        if ($currentUserId) {
+            $uObj = DB::table('users')->where('id', $currentUserId)->first();
+            $empObj = null;
+            if (Schema::hasTable('employees')) {
+                if (Schema::hasColumn('employees', 'user_id')) {
+                    $empObj = DB::table('employees')->where('user_id', $currentUserId)->first();
+                } elseif ($uObj && isset($uObj->employee_id)) {
+                    $empObj = DB::table('employees')->where('id', $uObj->employee_id)->first();
+                }
+            }
+            $isTracking = (!empty($uObj->is_tracking) || (!empty($empObj->is_tracking)));
+            $canFieldPunch = !empty($empObj->is_field_attendance_enable);
+        }
+        $myAttendance['can_web_punch'] = !$isTracking;
+        $myAttendance['can_field_punch'] = $canFieldPunch;
+        $myAttendance['is_tracking'] = $isTracking;
+
+        if ($currentUserId && Schema::hasTable('attendance')) {
+            $todayDate = Carbon::today('Asia/Kolkata')->toDateString();
+            $myAttRecord = DB::table('attendance')
+                ->where('user_id', $currentUserId)
+                ->where(function ($q) use ($todayDate, $today) {
+                    $q->whereDate('date', $todayDate)
+                      ->orWhereDate('date', $today);
+                })
+                ->first();
+
+            if ($myAttRecord) {
+                $myAttendance['marked'] = true;
+                $myAttendance['late_minutes'] = (int) ($myAttRecord->late_minutes ?? 0);
+
+                if (Schema::hasTable('movements')) {
+                    $movs = DB::table('movements')
+                        ->where('attendance_id', $myAttRecord->id)
+                        ->orderBy('time', 'asc')
+                        ->get();
+
+                    if ($movs->isNotEmpty()) {
+                        $firstIn = $movs->where('movement_action', 'in')->first();
+                        $lastMov = $movs->last();
+
+                        if (!empty($myAttRecord->is_wfh)) {
+                            $myAttendance['mode'] = 'WFH';
+                        } elseif ($firstIn && !empty($firstIn->movement_type)) {
+                            $myAttendance['mode'] = ucfirst($firstIn->movement_type);
+                        } else {
+                            $myAttendance['mode'] = 'Office';
+                        }
+
+                        if ($firstIn && !empty($firstIn->time)) {
+                            $myAttendance['in_time'] = Carbon::parse($firstIn->time)->setTimezone('Asia/Kolkata')->format('h:i A');
+                            $myAttendance['first_in_raw'] = Carbon::parse($firstIn->time)->setTimezone('Asia/Kolkata')->toIso8601String();
+                        } elseif (!empty($myAttRecord->created_at)) {
+                            $myAttendance['in_time'] = Carbon::parse($myAttRecord->created_at)->setTimezone('Asia/Kolkata')->format('h:i A');
+                            $myAttendance['first_in_raw'] = Carbon::parse($myAttRecord->created_at)->setTimezone('Asia/Kolkata')->toIso8601String();
+                        } else {
+                            $myAttendance['in_time'] = 'Marked';
+                        }
+
+                        if ($lastMov && $lastMov->movement_type === 'break' && $lastMov->movement_action === 'start') {
+                            $myAttendance['state'] = 'on_break';
+                        } elseif ($lastMov && $lastMov->movement_action === 'out') {
+                            $myAttendance['state'] = 'punched_out';
+                            $myAttendance['out_time'] = Carbon::parse($lastMov->time)->setTimezone('Asia/Kolkata')->format('h:i A');
+                        } else {
+                            $myAttendance['state'] = 'in';
+                        }
+
+                        // Calculate worked hours so far
+                        $workMinutes = 0;
+                        try {
+                            $reportService = app(\App\Services\AttendanceReportService::class);
+                            $totalHours = $reportService->calculateTotalHours($movs, null, $todayDate);
+                            $workMinutes = (int) round($totalHours * 60);
+                        } catch (\Throwable $e) {
+                            if ($firstIn && !empty($firstIn->time)) {
+                                $startT = Carbon::parse($firstIn->time);
+                                $endT = ($lastMov && $lastMov->movement_action === 'out') ? Carbon::parse($lastMov->time) : Carbon::now('Asia/Kolkata');
+                                $workMinutes = max(0, $startT->diffInMinutes($endT));
+                            }
+                        }
+                        $wh = intdiv($workMinutes, 60);
+                        $wm = $workMinutes % 60;
+                        $myAttendance['work_minutes'] = $workMinutes;
+                        $myAttendance['work_hours_formatted'] = ($wh > 0 ? ($wh . 'h ') : '') . $wm . 'm';
+                        $myAttendance['work_hours_clock'] = sprintf('%d:%02d', $wh, $wm);
+                    } else {
+                        $myAttendance['state'] = 'in';
+                        $myAttendance['mode'] = !empty($myAttRecord->is_wfh) ? 'WFH' : 'Office';
+                        $myAttendance['in_time'] = !empty($myAttRecord->created_at) ? Carbon::parse($myAttRecord->created_at)->setTimezone('Asia/Kolkata')->format('h:i A') : 'Marked';
+                    }
+                } else {
+                    $myAttendance['state'] = 'in';
+                    $myAttendance['mode'] = !empty($myAttRecord->is_wfh) ? 'WFH' : 'Office';
+                    $myAttendance['in_time'] = !empty($myAttRecord->created_at) ? Carbon::parse($myAttRecord->created_at)->setTimezone('Asia/Kolkata')->format('h:i A') : 'Marked';
+                }
+            }
+        }
+
         return response()->json([
             'present' => $present,
             'absent' => $absent,
@@ -543,7 +647,8 @@ public function calendarSummary(Request $request)
             'remote' => $remote,
             'wfh' => $wfh,
             'present_names' => $presentNames,
-            'absent_names' => $absentNames
+            'absent_names' => $absentNames,
+            'my_attendance' => $myAttendance
         ]);
     }
 
@@ -937,7 +1042,7 @@ public function calendarSummary(Request $request)
             $list = DB::table('holidays')
                 ->whereDate('holiday_date', '>=', $today)
                 ->orderBy('holiday_date', 'asc')
-                ->limit(5)
+                ->limit(6)
                 ->get();
         }
         return response()->json(['list' => $list]);
@@ -948,89 +1053,82 @@ public function calendarSummary(Request $request)
         $list = [];
         if (Schema::hasTable('employees')) {
             $today = Carbon::today();
-            $rangeEnd = $today->copy()->addDays(60); 
-            
-            $todayMD = $today->format('m-d');
-            $endMD = $rangeEnd->format('m-d');
 
-            $bQuery = DB::table('employees')->where('status', 'active');
-            if ($endMD < $todayMD) {
-                $bQuery->where(function($q) use ($todayMD, $endMD) {
-                    $q->whereRaw("DATE_FORMAT(date_of_birth, '%m-%d') >= ?", [$todayMD])
-                      ->orWhereRaw("DATE_FORMAT(date_of_birth, '%m-%d') <= ?", [$endMD]);
-                });
-            } else {
-                $bQuery->whereRaw("DATE_FORMAT(date_of_birth, '%m-%d') >= ?", [$todayMD])
-                       ->whereRaw("DATE_FORMAT(date_of_birth, '%m-%d') <= ?", [$endMD]);
-            }
-            $birthdays = $bQuery->select('name', 'date_of_birth as date', DB::raw("'birthday' as type"), 'profile_picture')->get();
+            $birthdays = DB::table('employees')
+                ->where('status', 'active')
+                ->whereNotNull('date_of_birth')
+                ->select('name', 'date_of_birth as date', DB::raw("'birthday' as type"), 'profile_picture')
+                ->get();
 
-            $aQuery = DB::table('employees')->where('status', 'active');
-            if ($endMD < $todayMD) {
-                $aQuery->where(function($q) use ($todayMD, $endMD) {
-                    $q->whereRaw("DATE_FORMAT(date_of_joining, '%m-%d') >= ?", [$todayMD])
-                      ->orWhereRaw("DATE_FORMAT(date_of_joining, '%m-%d') <= ?", [$endMD]);
-                });
-            } else {
-                $aQuery->whereRaw("DATE_FORMAT(date_of_joining, '%m-%d') >= ?", [$todayMD])
-                       ->whereRaw("DATE_FORMAT(date_of_joining, '%m-%d') <= ?", [$endMD]);
-            }
-            $anniversaries = $aQuery->select('name', 'date_of_joining as date', DB::raw("'work_anniversary' as type"), 'profile_picture', 'date_of_joining')->get();
+            $anniversaries = DB::table('employees')
+                ->where('status', 'active')
+                ->whereNotNull('date_of_joining')
+                ->select('name', 'date_of_joining as date', DB::raw("'work_anniversary' as type"), 'profile_picture', 'date_of_joining')
+                ->get();
 
             $marriageAnniversaries = collect();
             if (Schema::hasColumn('employees', 'anniversary_date')) {
-                $mQuery = DB::table('employees')->where('status', 'active')->whereNotNull('anniversary_date');
-                if ($endMD < $todayMD) {
-                    $mQuery->where(function($q) use ($todayMD, $endMD) {
-                        $q->whereRaw("DATE_FORMAT(anniversary_date, '%m-%d') >= ?", [$todayMD])
-                          ->orWhereRaw("DATE_FORMAT(anniversary_date, '%m-%d') <= ?", [$endMD]);
-                    });
-                } else {
-                    $mQuery->whereRaw("DATE_FORMAT(anniversary_date, '%m-%d') >= ?", [$todayMD])
-                           ->whereRaw("DATE_FORMAT(anniversary_date, '%m-%d') <= ?", [$endMD]);
-                }
-                $marriageAnniversaries = $mQuery->select('name', 'anniversary_date as date', DB::raw("'anniversary' as type"), 'profile_picture', 'anniversary_date')->get();
+                $marriageAnniversaries = DB::table('employees')
+                    ->where('status', 'active')
+                    ->whereNotNull('anniversary_date')
+                    ->select('name', 'anniversary_date as date', DB::raw("'anniversary' as type"), 'profile_picture', 'anniversary_date')
+                    ->get();
             }
-            
+
             $merged = collect();
-            
+
             foreach ($birthdays as $bd) {
-                $bd->label = "Birthday";
-                $bDate = Carbon::parse($bd->date)->year($today->year);
-                if ($bDate->lt($today)) $bDate->addYear();
-                $bd->days_until = $today->diffInDays($bDate);
-                $merged->push($bd);
+                if (empty($bd->date)) continue;
+                try {
+                    $orig = Carbon::parse($bd->date);
+                    $bDate = $orig->copy()->year($today->year)->startOfDay();
+                    if ($bDate->lt($today)) $bDate->addYear();
+                    $bd->label = "Birthday";
+                    $bd->days_until = $today->diffInDays($bDate);
+                    $merged->push($bd);
+                } catch (\Throwable $e) {
+                }
             }
 
             foreach ($anniversaries as $ann) {
-                $joinDate = Carbon::parse($ann->date_of_joining);
-                $years = $today->year - $joinDate->year;
-                $annDate = $joinDate->copy()->year($today->year);
-                if ($annDate->lt($today)) {
-                    $annDate->addYear();
-                    $years++;
+                if (empty($ann->date_of_joining)) continue;
+                try {
+                    $joinDate = Carbon::parse($ann->date_of_joining);
+                    if ($joinDate->year < 1950) continue;
+                    $years = $today->year - $joinDate->year;
+                    $annDate = $joinDate->copy()->year($today->year)->startOfDay();
+                    if ($annDate->lt($today)) {
+                        $annDate->addYear();
+                        $years++;
+                    }
+                    if ($years <= 0) continue;
+                    $suffix = ($years == 1 ? 'st' : ($years == 2 ? 'nd' : ($years == 3 ? 'rd' : 'th')));
+                    $ann->label = $years . $suffix . " Work Anniversary";
+                    $ann->days_until = $today->diffInDays($annDate);
+                    $merged->push($ann);
+                } catch (\Throwable $e) {
                 }
-                $suffix = ($years == 1 ? 'st' : ($years == 2 ? 'nd' : ($years == 3 ? 'rd' : 'th')));
-                $ann->label = $years > 0 ? ($years . $suffix . " Work Anniversary") : "Work Anniversary";
-                $ann->days_until = $today->diffInDays($annDate);
-                $merged->push($ann);
             }
 
             foreach ($marriageAnniversaries as $mAnn) {
-                $mDate = Carbon::parse($mAnn->anniversary_date);
-                $years = $today->year - $mDate->year;
-                $curMDate = $mDate->copy()->year($today->year);
-                if ($curMDate->lt($today)) {
-                    $curMDate->addYear();
-                    $years++;
+                if (empty($mAnn->anniversary_date)) continue;
+                try {
+                    $mDate = Carbon::parse($mAnn->anniversary_date);
+                    $years = $today->year - $mDate->year;
+                    $curMDate = $mDate->copy()->year($today->year)->startOfDay();
+                    if ($curMDate->lt($today)) {
+                        $curMDate->addYear();
+                        $years++;
+                    }
+                    $suffix = ($years == 1 ? 'st' : ($years == 2 ? 'nd' : ($years == 3 ? 'rd' : 'th')));
+                    $mAnn->label = $years > 0 ? ($years . $suffix . " Marriage Anniversary") : "Marriage Anniversary";
+                    $mAnn->days_until = $today->diffInDays($curMDate);
+                    $merged->push($mAnn);
+                } catch (\Throwable $e) {
                 }
-                $suffix = ($years == 1 ? 'st' : ($years == 2 ? 'nd' : ($years == 3 ? 'rd' : 'th')));
-                $mAnn->label = $years > 0 ? ($years . $suffix . " Marriage Anniversary") : "Marriage Anniversary";
-                $mAnn->days_until = $today->diffInDays($curMDate);
-                $merged->push($mAnn);
             }
-            
-            $list = $merged->sortBy('days_until')->values();
+
+            $list = $merged->sortBy('days_until')->take(6)->values();
         }
         return response()->json(['list' => $list]);
     }
@@ -1038,6 +1136,9 @@ public function calendarSummary(Request $request)
     public function upcomingLeavesSummary(Request $request)
     {
         $list = [];
+        $balances = [];
+        $userId = $this->getCurrentUserId();
+
         if (Schema::hasTable('leave_requests')) {
             $today = \Carbon\Carbon::today();
             $query = DB::table('leave_requests as lr')
@@ -1051,7 +1152,6 @@ public function calendarSummary(Request $request)
                     ->where('e.status', 'active');
             }
 
-            $userId = $this->getCurrentUserId();
             $isAdmin = false;
             if (Auth::check()) {
                 $isAdmin = Auth::user()->role_id == 1;
@@ -1077,10 +1177,91 @@ public function calendarSummary(Request $request)
                     'lt.name as leave_type_name'
                 )
                 ->orderBy('lr.start_date', 'asc')
-                ->limit(5)
+                ->limit(6)
                 ->get();
         }
-        return response()->json(['list' => $list]);
+
+        // Fetch current user's available leave balances (Short Leave, Earned Leave, CL, SL, etc.)
+        if ($userId && Schema::hasTable('leave_types')) {
+            try {
+                $userModel = \App\Models\User::with('employee')->find($userId);
+                $empTypeId = $userModel && $userModel->employee ? ($userModel->employee->employment_type_id ?? null) : null;
+
+                $ltQuery = \App\Models\LeaveType::where('status', true)->orderBy('name');
+                if (!empty($empTypeId) && Schema::hasTable('employment_type_leave_rules')) {
+                    $allowedLeaveIds = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                        ->pluck('leave_type_id');
+                    $ltQuery->whereIn('id', $allowedLeaveIds);
+                }
+
+                $leaveTypes = $ltQuery->get();
+                $balanceService = app(\App\Services\LeaveBalanceService::class);
+
+                foreach ($leaveTypes as $type) {
+                    // Exclude LWP (Leave Without Pay / Loss of Pay) from Available Leaves
+                    $isLwp = preg_match('/lwp|without\s*pay|loss\s*of\s*pay/i', $type->name) || preg_match('/lwp/i', $type->code ?? '');
+                    if ($isLwp) {
+                        continue;
+                    }
+
+                    $totalAllowed = 0;
+                    $isUnlimited = false;
+                    if (!empty($empTypeId) && Schema::hasTable('employment_type_leave_rules')) {
+                        $rule = \App\Models\EmploymentTypeLeaveRule::where('employment_type_id', $empTypeId)
+                            ->where('leave_type_id', $type->id)
+                            ->first();
+                        if ($rule) {
+                            $totalAllowed = (float) $rule->value;
+                            if (($rule->generation_type ?? '') === 'unlimited') {
+                                $isUnlimited = true;
+                            }
+                        }
+                    }
+
+                    $balance = 0.0;
+                    if (($type->quota_type ?? '') === 'monthly') {
+                        $takenThisMonth = Schema::hasTable('leave_requests')
+                            ? \App\Models\LeaveRequest::where('user_id', $userId)
+                                ->where('leave_type_id', $type->id)
+                                ->whereIn('status', ['pending', 'approved'])
+                                ->whereYear('start_date', now()->year)
+                                ->whereMonth('start_date', now()->month)
+                                ->count()
+                            : 0;
+                        $balance = max(0, $totalAllowed - $takenThisMonth);
+                    } elseif (Schema::hasTable('leave_ledgers')) {
+                        $balance = (float) $balanceService->getBalance($userId, $type->id);
+                    }
+
+                    if ($isUnlimited || $balance > 0) {
+                        $balances[] = [
+                            'id' => $type->id,
+                            'name' => $type->name,
+                            'code' => $type->code ?? null,
+                            'balance' => round($balance, 2),
+                            'total_allowed' => $totalAllowed,
+                            'is_unlimited' => $isUnlimited,
+                            'is_short_leave' => (bool) ($type->is_short_leave ?? false),
+                            'quota_type' => $type->quota_type ?? null,
+                        ];
+                    }
+                }
+            } catch (\Throwable $e) {
+                $balances = [];
+            }
+        }
+
+        $earnedLeaveDays = 0;
+        if ($userId && Schema::hasTable('leave_accrual_counters')) {
+            $elCounter = \App\Models\LeaveAccrualCounter::where('user_id', $userId)->first();
+            $earnedLeaveDays = $elCounter ? floatval($elCounter->valid_days_count) : 0;
+        }
+
+        return response()->json([
+            'list' => $list,
+            'balances' => $balances,
+            'earned_leave_days' => $earnedLeaveDays
+        ]);
     }
 
     public function piedata()

@@ -29,6 +29,17 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Check if user is allowed to punch via Web App.
+     * Employees with tracking enabled are restricted to the Mobile App.
+     */
+    private function isWebPunchAllowed($user): bool
+    {
+        if (!$user) return false;
+        $isTracking = !empty($user->is_tracking) || (!empty($user->employee) && !empty($user->employee->is_tracking));
+        return !$isTracking;
+    }
+
+    /**
      * Check if user can perform attendance actions based on worklog completion
      * Users with isWorklog = 1 must complete previous day's worklog before attendance
      */
@@ -134,6 +145,21 @@ class AttendanceController extends Controller
             'long' => $request->longitude,
         ]);
         
+        // Check if user is allowed to punch from webapp
+        if (!$this->isWebPunchAllowed($user)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Web attendance is not allowed because tracking is enabled on your profile. Please punch in from the mobile app.'
+            ], 403);
+        }
+
+        if ($request->movement_type === 'field' && empty(optional($user->employee)->is_field_attendance_enable)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Field attendance is not enabled for your account.'
+            ], 403);
+        }
+
         // Check if user can perform attendance actions
         $attendanceCheck = $this->canPerformAttendanceAction();
         if (!$attendanceCheck['can_perform']) {
@@ -496,6 +522,13 @@ class AttendanceController extends Controller
 
         $user = $this->getCurrentUser();
         
+        if (!$this->isWebPunchAllowed($user)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Web attendance is not allowed because tracking is enabled on your profile. Please punch out from the mobile app.'
+            ], 403);
+        }
+
         // Check if user can perform attendance actions
         $attendanceCheck = $this->canPerformAttendanceAction();
         if (!$attendanceCheck['can_perform']) {
@@ -518,9 +551,10 @@ class AttendanceController extends Controller
             ], 403);
         }
 
-        // Check for pending tasks not updated today (Blocker)
+        // Check for pending tasks not updated today (non-blocking reminder)
         // Only valid for 'office' and 'field' punch outs
-        if (in_array($request->movement_type, ['office', 'field'])) {
+        $notUpdatedTasksCount = 0;
+        if (in_array($request->movement_type, ['office', 'field']) && Schema::hasTable('tasks')) {
             $notUpdatedTasksCount = \App\Models\Task::where('user_id', $user->id)
                 ->where(function($query) {
                     $query->where('task_status_id', '!=', 3) // Not Completed
@@ -533,13 +567,6 @@ class AttendanceController extends Controller
                 ->whereDate('due_date', '<=', $today) // Only check tasks due today or older
                 ->where('updated_at', '<', $today) // Updated before today
                 ->count();
-
-            if ($notUpdatedTasksCount > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "You have {$notUpdatedTasksCount} pending task(s) that were not updated today. Please update your tasks status or add remarks before punching out."
-                ], 422);
-            }
         }
         
         // Check if user is currently on break - if so, prevent punch out actions
@@ -682,6 +709,7 @@ class AttendanceController extends Controller
             'movement' => $movement,
             'cycle' => $currentCycle,
             'show_task_reminder' => $hasPendingTasks,
+            'not_updated_tasks_count' => $notUpdatedTasksCount,
             'punch_type' => 'out'
         ]);
     }
@@ -692,6 +720,13 @@ class AttendanceController extends Controller
 
         $user = $this->getCurrentUser();
         
+        if (!$this->isWebPunchAllowed($user)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Web attendance is not allowed because tracking is enabled on your profile. Please punch out from the mobile app.'
+            ], 403);
+        }
+
         // Check if user can perform attendance actions
         $attendanceCheck = $this->canPerformAttendanceAction();
         if (!$attendanceCheck['can_perform']) {
@@ -762,6 +797,13 @@ class AttendanceController extends Controller
 
         $user = $this->getCurrentUser();
         
+        if (!$this->isWebPunchAllowed($user)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Web attendance is not allowed because tracking is enabled on your profile. Please punch out from the mobile app.'
+            ], 403);
+        }
+
         // Check if user can perform attendance actions
         $attendanceCheck = $this->canPerformAttendanceAction();
         if (!$attendanceCheck['can_perform']) {

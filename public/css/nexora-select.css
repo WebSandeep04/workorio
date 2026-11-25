@@ -1,0 +1,265 @@
+/* ==========================================================================
+   Workorio — Global Nexora Searchable Dropdown (.nx-auto-select)
+   ========================================================================== */
+
+.nx-auto-select {
+    position: relative;
+    width: 100%;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.input-group > .nx-auto-select {
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+}
+
+.nx-auto-trigger {
+    width: 100%;
+    min-height: 38px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: #FFFFFF;
+    border: 1px solid #D4D8E1;
+    border-radius: 10px;
+    font-size: 13.5px;
+    line-height: 1.35;
+    color: #09090B;
+    cursor: pointer;
+    text-align: left;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.nx-auto-select.nx-sm .nx-auto-trigger {
+    min-height: 32px;
+    padding: 4px 10px;
+    font-size: 12.5px;
+    border-radius: 8px;
+}
+
+.nx-auto-select.nx-lg .nx-auto-trigger {
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 14px;
+}
+
+.nx-auto-trigger:hover:not(:disabled) {
+    border-color: #B8C0CC;
+}
+
+.nx-auto-trigger:disabled {
+    background: #F4F4F5;
+    color: #A1A1AA;
+    cursor: not-allowed;
+    opacity: 0.85;
+}
+
+.nx-auto-select.open .nx-auto-trigger {
+    border-color: #434AFA;
+    box-shadow: 0 0 0 3px rgba(67, 74, 250, 0.12);
+}
+
+.nx-auto-val {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.nx-auto-val.is-placeholder {
+    color: #71717A;
+    font-weight: 400;
+}
+
+.nx-auto-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+    color: #64748B;
+}
+
+.nx-auto-clear {
+    display: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #94A3B8;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.nx-auto-clear:hover {
+    background: #F1F5F9;
+    color: #09090B;
+}
+
+.nx-auto-select.has-clear.has-value .nx-auto-clear {
+    display: inline-flex;
+}
+
+.nx-auto-chev {
+    font-size: 11.5px;
+    transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.nx-auto-select.open .nx-auto-chev {
+    transform: rotate(180deg);
+    color: #434AFA;
+}
+
+.nx-auto-menu {
+    position: fixed;
+    z-index: 2650;
+    min-width: 190px;
+    background: #FFFFFF;
+    border: 1px solid #E4E7EC;
+    border-radius: 14px;
+    box-shadow: 0 16px 38px -8px rgba(15, 23, 42, 0.18), 0 0 1px rgba(15, 23, 42, 0.06);
+    padding: 6px;
+    display: none;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.nx-auto-menu.show {
+    display: block;
+    animation: nxAutoDropFade 0.13s ease-out;
+}
+
+@keyframes nxAutoDropFade {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.nx-auto-search-wrap {
+    position: relative;
+    padding: 2px 2px 6px;
+    border-bottom: 1px solid #F1F5F9;
+    margin-bottom: 4px;
+}
+
+.nx-auto-search-wrap > i {
+    position: absolute;
+    left: 11px;
+    top: calc(50% - 2px);
+    transform: translateY(-50%);
+    color: #94A3B8;
+    font-size: 12.5px;
+    pointer-events: none;
+}
+
+.nx-auto-search {
+    width: 100%;
+    height: 34px;
+    padding: 5px 10px 5px 30px;
+    border: 1px solid #E4E7EC;
+    border-radius: 9px;
+    background: #F8FAFC;
+    font-size: 12.5px;
+    color: #09090B;
+    outline: none;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.nx-auto-search:focus {
+    background: #FFFFFF;
+    border-color: #434AFA;
+    box-shadow: 0 0 0 2px rgba(67, 74, 250, 0.1);
+}
+
+.nx-auto-list {
+    max-height: 230px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px 0;
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+}
+
+.nx-auto-list::-webkit-scrollbar { width: 4px; }
+.nx-auto-list::-webkit-scrollbar-track { background: transparent; }
+.nx-auto-list::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 999px; }
+
+.nx-auto-item {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 7px 10px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    color: #18181B;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.nx-auto-item:hover:not(:disabled),
+.nx-auto-item.is-focused {
+    background: #F4F4F5;
+}
+
+.nx-auto-item.is-active {
+    background: #EEF2FF;
+    color: #434AFA;
+    font-weight: 600;
+}
+
+.nx-auto-item:disabled {
+    color: #A1A1AA;
+    cursor: not-allowed;
+}
+
+.nx-auto-item-text {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nx-auto-check {
+    color: #434AFA;
+    font-size: 13.5px;
+    flex-shrink: 0;
+    display: none;
+}
+
+.nx-auto-item.is-active .nx-auto-check {
+    display: inline-block;
+}
+
+.nx-auto-empty {
+    padding: 14px 10px;
+    text-align: center;
+    font-size: 12.5px;
+    color: #71717A;
+}
+
+/* Visually hide original select while preserving native form submission */
+select.nx-native-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    pointer-events: none !important;
+}

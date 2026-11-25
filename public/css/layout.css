@@ -2,13 +2,16 @@
 body {
     font-family: 'Poppins', sans-serif;
     margin: 0;
-    overflow-x: hidden; /* Prevent horizontal scrolling globally */
+    overflow-x: hidden;
+    /* Prevent horizontal scrolling globally */
     background-color: #fafafa;
     box-sizing: border-box;
 }
 
 /* Ensure all elements use border-box sizing */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
 }
 
@@ -231,9 +234,17 @@ body {
     transition: transform 0.2s ease;
 }
 
-.hamburger span:nth-child(1) { top: 0; }
-.hamburger span:nth-child(2) { top: 5px; }
-.hamburger span:nth-child(3) { top: 10px; }
+.hamburger span:nth-child(1) {
+    top: 0;
+}
+
+.hamburger span:nth-child(2) {
+    top: 5px;
+}
+
+.hamburger span:nth-child(3) {
+    top: 10px;
+}
 
 .sidebar-toggle:hover {
     background: #ededf9;
@@ -243,7 +254,7 @@ body {
 
 .sidebar.collapsed .sidebar-toggle i {
     transform: rotate(180deg);
-    
+
 }
 
 .sidebar-user {
@@ -516,7 +527,7 @@ body {
     align-items: center;
 }
 
-.sidebar.collapsed .side-items > .menu-section:first-child {
+.sidebar.collapsed .side-items>.menu-section:first-child {
     margin-top: 0.75rem;
 }
 
@@ -533,7 +544,7 @@ body {
     border-radius: 18px;
     background: transparent;
     border: none;
-    box-shadow: none; 
+    box-shadow: none;
 }
 
 .sidebar.collapsed .sidebar-link.active,
@@ -1007,17 +1018,20 @@ body {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 1055; /* Above Bootstrap modals and other content */
+    z-index: 1055;
+    /* Above Bootstrap modals and other content */
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 10px;
     max-width: 100%;
-    pointer-events: none; /* Allows clicks to pass through if needed */
+    pointer-events: none;
+    /* Allows clicks to pass through if needed */
 }
 
 .custom-alert {
-    pointer-events: auto; /* Enables clicking on close button */
+    pointer-events: auto;
+    /* Enables clicking on close button */
     position: relative;
     width: 300px;
     padding: 12px 18px;
@@ -1033,10 +1047,22 @@ body {
     transition: transform 0.3s ease-in-out;
 }
 
-.custom-alert-success { background-color: #198754; }
-.custom-alert-error   { background-color: #dc3545; }
-.custom-alert-warning { background-color: #ffc107; color: #212529; }
-.custom-alert-info    { background-color: #0dcaf0; }
+.custom-alert-success {
+    background-color: #198754;
+}
+
+.custom-alert-error {
+    background-color: #dc3545;
+}
+
+.custom-alert-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.custom-alert-info {
+    background-color: #0dcaf0;
+}
 
 .custom-alert-close {
     background: transparent;
@@ -1051,7 +1077,7 @@ body {
 /* button */
 
 .btn.button {
-    background: linear-gradient(135deg, #0d6efd, #1e90ff); 
+    background: linear-gradient(135deg, #0d6efd, #1e90ff);
     color: #fff;
     font-weight: 500;
     margin-bottom: 10px;
@@ -1131,27 +1157,37 @@ body {
     }
 
     /* Smaller menu text/icons on mobile for better fit */
-    .side-items a { font-size: 13px; }
-    .side-items a i.bi { font-size: 1.1rem; }
+    .side-items a {
+        font-size: 13px;
+    }
+
+    .side-items a i.bi {
+        font-size: 1.1rem;
+    }
 
     /* Stack icon above label on mobile */
-    .side-items a > span {
+    .side-items a>span {
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 6px;
         text-align: center;
     }
-    .side-items a { justify-content: space-between; }
-    
+
+    .side-items a {
+        justify-content: space-between;
+    }
+
     /* Mobile scrollbar adjustments */
     .side-items {
         max-height: calc(100vh - 120px);
-        scrollbar-width: auto; /* Show scrollbar on mobile */
+        scrollbar-width: auto;
+        /* Show scrollbar on mobile */
     }
-    
+
     .side-items::-webkit-scrollbar {
-        width: 12px; /* Wider for touch devices */
+        width: 12px;
+        /* Wider for touch devices */
     }
 
     .neo-dashboard {
@@ -1161,28 +1197,63 @@ body {
 
 /* ─────────────── Tablet (md) ─────────────── */
 @media (min-width: 768px) and (max-width: 991.98px) {
-    .sidebar { width: 220px; }
-    .sidebar.collapsed { width: 110px !important; }
-    .content { margin-left: 220px; width: calc(100% - 220px); }
-    .main { padding-top: 72px; }
+    .sidebar {
+        width: 220px;
+    }
+
+    .sidebar.collapsed {
+        width: 110px !important;
+    }
+
+    .content {
+        margin-left: 220px;
+        width: calc(100% - 220px);
+    }
+
+    .main {
+        padding-top: 72px;
+    }
 }
 
 /* ─────────────── Large (lg) ─────────────── */
 @media (min-width: 992px) and (max-width: 1199.98px) {
-    .sidebar { width: 260px; }
-    .content { margin-left: 260px; width: calc(100% - 260px); }
+    .sidebar {
+        width: 260px;
+    }
+
+    .content {
+        margin-left: 260px;
+        width: calc(100% - 260px);
+    }
 }
 
 /* ─────────────── Extra Large (xl+) ─────────────── */
 @media (min-width: 1200px) {
-    .container, .container-fluid { max-width: 100%; }
+
+    .container,
+    .container-fluid {
+        max-width: 100%;
+    }
 }
 
 /* ─────────────── Tables on small screens ─────────────── */
 @media (max-width: 575.98px) {
-    .custom-table th, .custom-table td { font-size: 11px; padding: 0.3rem 0.4rem; }
-    .btn.button { padding: 8px 14px; font-size: 14px; }
-    .filterBox, .filterBox2 { padding: 12px; }
+
+    .custom-table th,
+    .custom-table td {
+        font-size: 11px;
+        padding: 0.3rem 0.4rem;
+    }
+
+    .btn.button {
+        padding: 8px 14px;
+        font-size: 14px;
+    }
+
+    .filterBox,
+    .filterBox2 {
+        padding: 12px;
+    }
 }
 
 /* ─────────────── Content Area Improvements ─────────────── */
@@ -1196,7 +1267,18 @@ body {
     margin-right: 0 !important;
 }
 
-.col, .col-12, .col-md-3, .col-md-4, .col-md-6, .col-md-8, .col-md-9, .col-lg-3, .col-lg-4, .col-lg-6, .col-lg-8, .col-lg-9 {
+.col,
+.col-12,
+.col-md-3,
+.col-md-4,
+.col-md-6,
+.col-md-8,
+.col-md-9,
+.col-lg-3,
+.col-lg-4,
+.col-lg-6,
+.col-lg-8,
+.col-lg-9 {
     padding-left: 15px !important;
     padding-right: 15px !important;
 }
@@ -1218,3 +1300,1244 @@ body {
 }
 
 
+
+
+/* ==========================================================================
+   Nexora Modern Theme - Header & Sidebar Redesign Overrides
+   ========================================================================== */
+
+/* Modern Font & Global Canvas (Exact Nexora Shell Architecture) */
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background-color: #F4F5F7 !important;
+    /* Soft distinct canvas tone behind sidebar & main card */
+    color: #0F172A;
+    margin: 0;
+    padding: 0;
+}
+
+/* Sidebar isolated in its clean canvas */
+.sidebar {
+    width: 250px !important;
+    height: 100vh !important;
+    background: transparent !important;
+    border-right: none !important;
+    box-shadow: none !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 1001;
+    overflow: visible !important;
+}
+
+.sidebar.collapsed {
+    width: 72px !important;
+}
+
+.sidebar-inner {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem 1rem !important;
+    gap: 0.5rem;
+    overflow: visible !important;
+}
+
+/* ────────────── Unified White Floating Card (Header + Content in ONE box) ────────────── */
+.content {
+    margin-left: 250px !important;
+    width: calc(100% - 250px) !important;
+    background: #F4F5F7 !important;
+    box-sizing: border-box;
+}
+
+.content.expanded {
+    margin-left: 72px !important;
+    width: calc(100% - 72px) !important;
+}
+
+/* Header base look */
+.app-header {
+    height: 60px;
+    flex-shrink: 0;
+    padding: 0 1.5rem !important;
+    background: #FFFFFF !important;
+    border: none !important;
+    border-bottom: 1px solid #F1F5F9 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.main {
+    background: #FFFFFF !important;
+    padding: 24px 28px !important;
+}
+
+/* Desktop: fixed-height shell, the white card scrolls internally */
+@media (min-width: 768px) {
+
+    html,
+    body {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .content {
+        height: 100vh;
+        padding: 10px 10px 10px 0 !important;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .app-shell-card {
+        flex: 1;
+        min-height: 0;
+        background: #FFFFFF;
+        border: 1px solid #E4E7EC;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Header always stays on top of the card */
+    .app-shell-card>.app-header {
+        position: relative;
+        top: auto;
+    }
+
+    /* Content area is the scroll container – native scrollbar with up/down arrows */
+    .app-shell-card>.main {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        margin: 0 2px 8px 0;
+        /* keep arrows clear of the rounded corner */
+    }
+}
+
+/* Mobile: normal page flow, no card */
+@media (max-width: 767.98px) {
+    .app-shell-card {
+        background: #FFFFFF;
+    }
+}
+
+.header-toggle-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.05rem;
+}
+
+.header-toggle-btn:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+    border-color: #CBD5E1;
+}
+
+.header-page-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #0F172A;
+    letter-spacing: -0.01em;
+}
+
+/* Header Search Box */
+/* Header Search Box (Clean Nexora pill, exact alignment) */
+.header-search-box {
+    position: relative;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 0 10px;
+    height: 36px;
+    width: 240px;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.header-search-box:focus-within {
+    background: #FFFFFF;
+    border-color: #0F172A;
+    box-shadow: 0 0 0 1px #0F172A;
+    width: 270px;
+}
+
+.header-search-box .search-icon {
+    font-size: 13px;
+    color: #94A3B8;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.header-search-box .search-input {
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    outline: none;
+    width: 100%;
+    height: 100%;
+    color: #0F172A;
+    padding: 0;
+}
+
+.header-search-box .search-kbd {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: inherit;
+    color: #64748B;
+    padding: 2px 5px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+    margin-left: 6px;
+    flex-shrink: 0;
+}
+
+.header-action-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.header-action-icon:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #EF4444;
+    border: 1.5px solid #FFFFFF;
+}
+
+/* Create Header Button (Exact #434AFA, 36px Height, Nexora Style) */
+.btn-create-header {
+    background: #434AFA !important;
+    color: #FFFFFF !important;
+    border-radius: 20px !important;
+    height: 30px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 0 14px !important;
+    border: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 6px rgba(67, 74, 250, 0.25) !important;
+}
+
+.btn-create-header:hover {
+    background: #363ddb !important;
+    transform: translateY(-0.5px);
+    box-shadow: 0 4px 10px rgba(67, 74, 250, 0.35) !important;
+    color: #FFFFFF !important;
+}
+
+.modern-action-dropdown {
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 0 1px 1px rgba(15, 23, 42, 0.03);
+    padding: 6px;
+    min-width: 200px;
+    margin-top: 6px !important;
+}
+
+.modern-action-dropdown .dropdown-item {
+    font-size: 13.5px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s ease;
+}
+
+.modern-action-dropdown .dropdown-item:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+}
+
+.nav-dropdown-icon {
+    font-size: 15px;
+    color: #64748B;
+    min-width: 18px;
+    text-align: center;
+}
+
+.modern-action-dropdown .dropdown-item:hover .nav-dropdown-icon {
+    color: #434AFA;
+}
+
+/* (Sidebar base rules are defined in the Nexora shell block above) */
+
+/* Brand Workspace Switcher Card */
+.sidebar-header-brand {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #F1F5F9;
+    margin-bottom: 0.25rem;
+}
+
+.brand-workspace-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    transition: background 0.15s ease;
+}
+
+.brand-workspace-card:hover {
+    background: #F8FAFC;
+}
+
+.brand-avatar-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: transparent !important;
+    /* Removed black background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.brand-avatar-img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+}
+
+.brand-workspace-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+    overflow: hidden;
+}
+
+.workspace-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0F172A;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+
+.workspace-sub {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: #94A3B8;
+    white-space: nowrap;
+}
+
+.workspace-switch-icon {
+    font-size: 13px;
+    color: #94A3B8;
+}
+
+/* Nav Menu Area - Ultra Smooth & Crisp Typography (Exact Nexora Match) */
+.side-items {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-right: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: #E2E8F0 transparent;
+}
+
+.side-items::-webkit-scrollbar {
+    width: 4px;
+}
+
+.side-items::-webkit-scrollbar-thumb {
+    background: #E2E8F0;
+    border-radius: 10px;
+}
+
+.menu-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.group-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.01em;
+    color: #94A3B8;
+    padding: 6px 10px 4px;
+}
+
+/* Nav Link Item */
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    color: #52525B;
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sidebar-nav-item:hover {
+    background: #F4F4F5;
+    color: #09090B;
+}
+
+/* Exact Nexora Selected Tab Card Highlight */
+.sidebar-nav-item.active {
+    background: #FFFFFF !important;
+    color: #09090B !important;
+    font-weight: 600 !important;
+    border: 1px solid #E4E4E7 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+.sidebar-nav-item.active-parent {
+    color: #09090B !important;
+    font-weight: 600 !important;
+}
+
+.sidebar-nav-item .nav-icon {
+    font-size: 16px;
+    color: #71717A;
+    min-width: 18px;
+    text-align: center;
+    transition: color 0.15s ease;
+}
+
+.sidebar-nav-item:hover .nav-icon,
+.sidebar-nav-item.active .nav-icon {
+    color: #09090B !important;
+}
+
+.sidebar-nav-item .nav-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-nav-item .chevron-icon {
+    font-size: 11px;
+    color: #A1A1AA;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-nav-item[aria-expanded="true"] .chevron-icon {
+    transform: rotate(90deg);
+}
+
+/* Sub-items (Nexora selected sub-item) */
+.sub-nav-collapse {
+    padding-left: 1.25rem;
+    margin-top: 2px;
+}
+
+.sub-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #71717A;
+    text-decoration: none;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.sub-nav-item:hover {
+    color: #09090B;
+    background: #F4F4F5;
+}
+
+.sub-nav-item.active {
+    color: #09090B !important;
+    font-weight: 600 !important;
+    background: #FFFFFF !important;
+    border: 1px solid #E4E4E7 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+.sub-nav-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #CBD5E1;
+}
+
+.sub-nav-item.active .sub-nav-dot {
+    background: #09090B !important;
+}
+
+/* ────────────── Bottom User Profile Card (Nexora Exact) ────────────── */
+.sidebar-footer-user {
+    padding-top: 0.75rem;
+    border-top: 1px solid #F1F5F9;
+}
+
+.user-profile-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+}
+
+.user-profile-button:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+}
+
+.user-avatar-wrap {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #EFF6FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.user-avatar-initial {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2563EB;
+    line-height: 1;
+}
+
+.user-info-meta {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    line-height: 1.25;
+    flex: 1;
+}
+
+.user-display-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #09090B;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-display-email {
+    font-size: 11px;
+    color: #A1A1AA;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-more-icon {
+    font-size: 13px;
+    color: #A1A1AA;
+    margin-left: auto;
+}
+
+/* User Popover Flyout Menu (Side Flyout Dropend - Exact Nexora) */
+.modern-user-dropdown {
+    position: absolute !important;
+    left: calc(100% + 12px) !important;
+    bottom: 0 !important;
+    top: auto !important;
+    transform: none !important;
+    border-radius: 14px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.15), 0 0 1px 1px rgba(15, 23, 42, 0.05);
+    padding: 8px;
+    min-width: 230px;
+    z-index: 99999 !important;
+    background: #FFFFFF !important;
+}
+
+.dropdown-header-info {
+    padding: 8px 10px;
+}
+
+.modern-user-dropdown .dropdown-item {
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: #334155;
+    transition: all 0.15s ease;
+}
+
+.modern-user-dropdown .dropdown-item:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+}
+
+.modern-user-dropdown .dropdown-item.text-danger:hover {
+    background: #FEF2F2;
+    color: #DC2626 !important;
+}
+
+/* Collapsed Sidebar Adjustments */
+.sidebar.collapsed .brand-workspace-info,
+.sidebar.collapsed .workspace-switch-icon,
+.sidebar.collapsed .group-label,
+.sidebar.collapsed .nav-text,
+.sidebar.collapsed .chevron-icon,
+.sidebar.collapsed .sub-nav-collapse,
+.sidebar.collapsed .user-info-meta,
+.sidebar.collapsed .user-more-icon {
+    display: none !important;
+}
+
+.sidebar.collapsed .sidebar-header-brand {
+    display: flex;
+    justify-content: center;
+}
+
+.sidebar.collapsed .user-profile-button {
+    padding: 4px;
+    justify-content: center;
+    border-color: transparent;
+}
+
+
+/* ────────────── Nexora Spotlight Modal (Command + K) ────────────── */
+.spotlight-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 99999;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12vh;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.spotlight-dialog {
+    background: #FFFFFF;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 580px;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 1px 1px rgba(15, 23, 42, 0.05);
+    border: 1px solid #E2E8F0;
+    overflow: hidden;
+    animation: slideDown 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spotlight-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #F1F5F9;
+    gap: 12px;
+}
+
+.spotlight-search-icon {
+    font-size: 16px;
+    color: #64748B;
+}
+
+.spotlight-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    width: 100%;
+    color: #0F172A;
+    font-family: inherit;
+}
+
+.spotlight-input::placeholder {
+    color: #94A3B8;
+}
+
+.spotlight-esc-badge {
+    background: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748B;
+    padding: 2px 6px;
+    cursor: pointer;
+}
+
+.spotlight-body {
+    max-height: 380px;
+    overflow-y: auto;
+    padding: 10px 12px;
+}
+
+.spotlight-group {
+    margin-bottom: 12px;
+}
+
+.spotlight-group-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94A3B8;
+    padding: 6px 10px;
+    display: block;
+}
+
+.spotlight-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #334155;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.spotlight-item:hover {
+    background: #F8FAFC;
+    color: #0F172A;
+}
+
+.spotlight-item-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.spotlight-icon {
+    font-size: 15px;
+}
+
+.spotlight-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748B;
+    background: #F1F5F9;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.spotlight-footer {
+    padding: 10px 18px;
+    background: #FAFAFA;
+    border-top: 1px solid #F1F5F9;
+    font-size: 11.5px;
+    color: #94A3B8;
+}
+
+.spotlight-kbd {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 10px;
+    color: #64748B;
+}
+
+.search-placeholder-text {
+    font-size: 13px;
+    color: #94A3B8;
+    font-weight: 400;
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* ────────────── Nexora Spotlight Modal (Command + K) ────────────── */
+.spotlight-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 99999;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12vh;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.spotlight-dialog {
+    background: #FFFFFF;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 580px;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 1px 1px rgba(15, 23, 42, 0.05);
+    border: 1px solid #E2E8F0;
+    overflow: hidden;
+    animation: slideDown 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spotlight-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #F1F5F9;
+    gap: 12px;
+}
+
+.spotlight-search-icon {
+    font-size: 16px;
+    color: #64748B;
+}
+
+.spotlight-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    width: 100%;
+    color: #0F172A;
+    font-family: inherit;
+}
+
+.spotlight-input::placeholder {
+    color: #94A3B8;
+}
+
+.spotlight-esc-badge {
+    background: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748B;
+    padding: 2px 6px;
+    cursor: pointer;
+}
+
+.spotlight-body {
+    max-height: 380px;
+    overflow-y: auto;
+    padding: 10px 12px;
+}
+
+.spotlight-group {
+    margin-bottom: 12px;
+}
+
+.spotlight-group-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94A3B8;
+    padding: 6px 10px;
+    display: block;
+}
+
+.spotlight-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #334155;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.spotlight-item:hover {
+    background: #F8FAFC;
+    color: #0F172A;
+}
+
+.spotlight-item-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.spotlight-icon {
+    font-size: 15px;
+}
+
+.spotlight-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: #64748B;
+    background: #F1F5F9;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.spotlight-footer {
+    padding: 10px 18px;
+    background: #FAFAFA;
+    border-top: 1px solid #F1F5F9;
+    font-size: 11.5px;
+    color: #94A3B8;
+}
+
+.spotlight-kbd {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 10px;
+    color: #64748B;
+}
+
+.search-placeholder-text {
+    font-size: 13px;
+    color: #94A3B8;
+    font-weight: 400;
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* ────────────── Main 4 Hubs Accordion Behavior ────────────── */
+.hub-header-trigger {
+    background: #FAFAFA;
+    border: 1px solid #F1F5F9;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    margin-bottom: 2px;
+}
+
+.hub-header-trigger:hover {
+    background: #F4F4F5;
+    border-color: #E4E4E7;
+}
+
+/* Open Hub Header */
+.hub-header-trigger:not(.collapsed) {
+    background: #F8FAFC;
+    border-color: #E2E8F0;
+}
+
+.hub-header-trigger:not(.collapsed) .group-label {
+    color: #0F172A;
+    font-weight: 700;
+}
+
+/* Closed / Collapsed Hub Tabs (Clean Subtle Highlight Badge) */
+.hub-header-trigger.collapsed {
+    background: #F8FAFC;
+    border: 1px solid #EEF2F6;
+    opacity: 0.95;
+}
+
+.hub-header-trigger.collapsed:hover {
+    background: #FFFFFF;
+    border-color: #CBD5E1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    opacity: 1;
+}
+
+.hub-header-trigger.collapsed .group-label {
+    color: #475569;
+    font-weight: 600;
+}
+
+.hub-header-trigger.collapsed .hub-chevron {
+    color: #64748B;
+    transform: rotate(-90deg);
+}
+
+.hub-chevron {
+    font-size: 11px;
+    color: #94A3B8;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hub-collapse-body {
+    transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* ────────────── Hub Icons (shown in collapsed sidebar) ────────────── */
+.hub-icon {
+    display: none;
+    font-size: 18px;
+    color: #475569;
+    line-height: 1;
+}
+
+.sidebar.collapsed .hub-group-accordion {
+    align-items: center;
+}
+
+.sidebar.collapsed .hub-header-trigger {
+    width: auto !important;
+    justify-content: center !important;
+    gap: 4px;
+    padding: 10px 8px !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    box-shadow: none !important;
+    margin: 4px auto;
+}
+
+.sidebar.collapsed .hub-header-trigger:hover {
+    background: #FFFFFF !important;
+    border-color: #E4E4E7 !important;
+}
+
+.sidebar.collapsed .hub-header-trigger:not(.collapsed) {
+    background: #FFFFFF !important;
+    border-color: #E4E4E7 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+.sidebar.collapsed .hub-icon {
+    display: inline-block;
+}
+
+.sidebar.collapsed .hub-header-trigger:not(.collapsed) .hub-icon {
+    color: #09090B;
+}
+
+.sidebar.collapsed .hub-chevron {
+    display: inline-block !important;
+    font-size: 10px;
+    transform: none !important;
+}
+
+.sidebar.collapsed .hub-header-trigger:not(.collapsed) .hub-chevron {
+    transform: rotate(180deg) !important;
+}
+
+/* Centre the section icons inside an open hub when collapsed */
+.sidebar.collapsed .sidebar-nav-item {
+    justify-content: center;
+    padding: 9px 0;
+}
+
+
+/* ────────────── Collapsed rail: icons only, clean & professional ────────────── */
+/* Hide the open hub's inner list when the rail is collapsed – only hub icons show */
+.sidebar.collapsed .hub-collapse-body {
+    display: none !important;
+}
+
+.sidebar.collapsed .side-items {
+    gap: 4px;
+    align-items: center;
+}
+
+.sidebar.collapsed .menu-group {
+    width: 100%;
+    align-items: center;
+}
+
+/* Tooltip-like cursor feel */
+.sidebar.collapsed .hub-header-trigger,
+.sidebar.collapsed .sidebar-nav-item {
+    cursor: pointer;
+}
+
+/* Smooth fade for labels when sidebar expands back */
+.sidebar .group-label,
+.sidebar .nav-text,
+.sidebar .brand-workspace-info,
+.sidebar .user-info-meta {
+    animation: sidebarLabelFade 0.25s ease;
+}
+
+@keyframes sidebarLabelFade {
+    from {
+        opacity: 0;
+        transform: translateX(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ────────────── Global Synced Top Horizontal Scrollbar for Wide Tables ────────────── */
+.nx-table-scroll-host {
+    position: relative;
+}
+
+.nx-top-scroll {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 6;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 8px;
+    background: transparent;
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+}
+
+.nx-top-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.nx-top-scroll::-webkit-scrollbar-track {
+    background: #F1F5F9;
+}
+
+.nx-top-scroll::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 999px;
+}
+
+.nx-top-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+.nx-top-scroll-inner {
+    height: 1px;
+}
+
+/* ────────────── Global Sleek Hover Tooltip for Truncated Table Cells ────────────── */
+.nx-cell-tooltip {
+    position: fixed;
+    z-index: 2700;
+    max-width: 340px;
+    padding: 7px 11px;
+    border-radius: 9px;
+    background: #18181B;
+    color: #FFFFFF;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    word-break: break-word;
+    box-shadow: 0 12px 26px -6px rgba(15, 23, 42, 0.28);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(3px);
+    transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s ease;
+}
+
+.nx-cell-tooltip.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}

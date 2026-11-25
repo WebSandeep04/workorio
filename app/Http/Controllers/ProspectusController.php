@@ -66,8 +66,23 @@ class ProspectusController extends Controller
         ]);
     }
 
-public function getProspectus(){
-    $prospectus = Prospectus::orderBy('prospectus_name')->get();
+public function getProspectus(Request $request){
+    $query = Prospectus::query()
+        ->whereNotNull('prospectus_name')
+        ->whereRaw("TRIM(prospectus_name) != ''");
+
+    $q = trim((string) $request->query('q', ''));
+    if ($q !== '') {
+        $like = '%' . $q . '%';
+        $query->where(function ($sub) use ($like) {
+            $sub->where('prospectus_name', 'like', $like)
+                ->orWhere('contact_person', 'like', $like)
+                ->orWhere('contact_number', 'like', $like)
+                ->orWhere('email', 'like', $like);
+        })->limit(60);
+    }
+
+    $prospectus = $query->orderBy('prospectus_name')->get();
     return response()->json($prospectus);
 }
 

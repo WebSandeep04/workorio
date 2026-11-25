@@ -975,6 +975,8 @@ class TaskController extends Controller
             'remark' => $request->remark
         ]);
 
+        Task::where('id', $request->task_id)->update(['updated_at' => now()]);
+
         return response()->json([
             'success' => true,
             'message' => 'Remark added successfully',

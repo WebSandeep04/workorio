@@ -1096,4 +1096,241 @@ class WorklogController extends Controller
             'message' => "All entries for {$request->user_name} on {$request->work_date} have been rejected."
         ]);
     }
+
+    /**
+     * Aggregated dashboard payload for Quick Timesheet drawer & header status pill.
+     */
+    public function dashboardWidget(Request $request)
+    {
+        $user = $this->getCurrentUser();
+        if (!$user || empty($user->is_worklog)) {
+            return response()->json(['enabled' => false]);
+        }
+
+        $tz = 'Asia/Kolkata';
+        $todayCarbon = \Carbon\Carbon::today($tz);
+        $today = $todayCarbon->toDateString();
+
+        // 1. Chronological missing worklog dates (attended prior to today with no worklog and no approved leave)
+        $missingDates = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('attendance')) {
+            $attQuery = DB::table('attendance')
+                ->where('user_id', $user->id)
+                ->whereDate('date', '<', $today);
+
+            if (!empty($user->created_at)) {
+                $createdDate = \Carbon\Carbon::parse($user->created_at)->setTimezone($tz)->toDateString();
+                $attQuery->whereDate('date', '>=', $createdDate);
+            }
+
+            $attendedDates = $attQuery->orderBy('date', 'asc')->pluck('date')
+                ->map(fn ($d) => \Carbon\Carbon::parse($d)->toDateString())
+                ->unique()
+                ->values();
+
+            if ($attendedDates->isNotEmpty()) {
+                $filledMap = Worklog::where('user_id', $user->id)
+                    ->whereDate('work_date', '<', $today)
+                    ->pluck('work_date')
+                    ->mapWithKeys(fn ($d) => [\Carbon\Carbon::parse($d)->toDateString() => true]);
+
+                $approvedLeaves = \Illuminate\Support\Facades\Schema::hasTable('leave_requests')
+                    ? LeaveRequest::where('user_id', $user->id)
+                        ->where('status', 'approved')
+                        ->get(['start_date', 'end_date'])
+                    : collect();
+
+                foreach ($attendedDates as $attDate) {
+                    if (isset($filledMap[$attDate])) {
+                        continue;
+                    }
+                    $onLeave = $approvedLeaves->contains(function ($lv) use ($attDate) {
+                        $s = \Carbon\Carbon::parse($lv->start_date)->toDateString();
+                        $e = \Carbon\Carbon::parse($lv->end_date)->toDateString();
+                        return $attDate >= $s && $attDate <= $e;
+                    });
+                    if (!$onLeave) {
+                        $missingDates[] = $attDate;
+                    }
+                }
+            }
+        }
+        $firstMissingDate = $missingDates[0] ?? null;
+
+        // 2. Today's already submitted worklogs
+        $todayWorklogs = Worklog::where('user_id', $user->id)
+            ->whereDate('work_date', $today)
+            ->orderBy('id', 'asc')
+            ->get([
+                'id',
+                'entry_type_name',
+                'customer_name',
+                'customer_project_name',
+                'service_name',
+                'module_name',
+                'hours',
+                'minutes',
+                'description',
+                'status',
+            ]);
+        $todaySubmittedMinutes = (int) $todayWorklogs->sum(fn ($w) => ((int) $w->hours * 60) + (int) $w->minutes);
+        $todaySubmitted = $todayWorklogs->isNotEmpty();
+
+        // 3. Attendance punch & work minutes helper for a given date
+        $getAttInfo = function ($dateStr) use ($user) {
+            $info = [
+                'marked' => false,
+                'punched_out' => false,
+                'work_minutes' => 0,
+            ];
+            if (!\Illuminate\Support\Facades\Schema::hasTable('attendance')) {
+                return $info;
+            }
+            $attRec = DB::table('attendance')
+                ->where('user_id', $user->id)
+                ->whereDate('date', $dateStr)
+                ->first();
+            if (!$attRec) {
+                return $info;
+            }
+            $info['marked'] = true;
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('movements')) {
+                $movs = DB::table('movements')
+                    ->where('attendance_id', $attRec->id)
+                    ->orderBy('id', 'asc')
+                    ->get();
+                if ($movs->isNotEmpty()) {
+                    $lastMov = $movs->last();
+                    $info['punched_out'] = ($lastMov && $lastMov->movement_action === 'out');
+                    try {
+                        $reportService = app(\App\Services\AttendanceReportService::class);
+                        $hrs = $reportService->calculateTotalHours($movs, null, $dateStr);
+                        $info['work_minutes'] = (int) round($hrs * 60);
+                    } catch (\Throwable $e) {
+                        $info['work_minutes'] = 0;
+                    }
+                }
+            }
+            return $info;
+        };
+
+        $todayAtt = $getAttInfo($today);
+        $targetDate = $firstMissingDate ?? $today;
+        $targetAtt = $firstMissingDate ? $getAttInfo($firstMissingDate) : $todayAtt;
+
+        // 4. Entry types + smart suggestion based on worked minutes
+        $entryTypes = EntryType::orderBy('working_hours', 'desc')->get(['id', 'name', 'working_hours']);
+        $suggestedEntryTypeId = null;
+        if ($entryTypes->isNotEmpty()) {
+            $targetMins = (int) $targetAtt['work_minutes'];
+            if ($targetMins > 0) {
+                $sortedAsc = $entryTypes->sortBy('working_hours')->values();
+                $picked = $sortedAsc->first();
+                foreach ($sortedAsc as $et) {
+                    if (($et->working_hours * 60) <= ($targetMins + 45)) {
+                        $picked = $et;
+                    }
+                }
+                $suggestedEntryTypeId = $picked->id;
+            } else {
+                $suggestedEntryTypeId = $entryTypes->first()->id;
+            }
+        }
+
+        // 5. Current session draft (shared with /worklog)
+        $sessionEntries = array_values(Session::get('worklog_entries_' . $user->id, []));
+
+        // 6. Recent unique Customer / Project / Service / Module combos for 1-click fill
+        $recentCombos = Worklog::where('user_id', $user->id)
+            ->orderByDesc('id')
+            ->limit(30)
+            ->get([
+                'customer_id',
+                'customer_name',
+                'customer_project_name',
+                'service_id',
+                'service_name',
+                'module_id',
+                'module_name',
+            ])
+            ->unique(fn ($w) => ($w->customer_id ?? '') . '|' . ($w->customer_project_name ?? '') . '|' . ($w->service_id ?? '') . '|' . ($w->module_id ?? ''))
+            ->take(5)
+            ->values();
+
+        // 7. Today's / pending tasks helper (non-blocking reminder + inline update)
+        $todayTasks = [];
+        $taskStatuses = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('tasks')) {
+            $tasksQuery = \App\Models\Task::with(['status:id,name,color'])
+                ->where('user_id', $user->id)
+                ->where(function ($q) {
+                    $q->where('task_status_id', '!=', 3)->orWhereNull('task_status_id');
+                })
+                ->where(function ($q) {
+                    $q->where('is_done', 0)->orWhereNull('is_done');
+                })
+                ->where(function ($q) use ($today) {
+                    $q->whereDate('due_date', '<=', $today)
+                      ->orWhereDate('created_at', $today);
+                })
+                ->orderBy('due_date', 'asc')
+                ->orderByDesc('id')
+                ->limit(15)
+                ->get();
+
+            $latestRemarks = collect();
+            if ($tasksQuery->isNotEmpty() && \Illuminate\Support\Facades\Schema::hasTable('task_remarks')) {
+                $taskIds = $tasksQuery->pluck('id')->all();
+                $latestRemarks = DB::table('task_remarks')
+                    ->whereIn('task_id', $taskIds)
+                    ->orderByDesc('id')
+                    ->get(['task_id', 'remark'])
+                    ->unique('task_id')
+                    ->keyBy('task_id');
+            }
+
+            foreach ($tasksQuery as $t) {
+                $updatedToday = $t->updated_at
+                    ? (\Carbon\Carbon::parse($t->updated_at)->setTimezone($tz)->toDateString() === $today)
+                    : false;
+                $todayTasks[] = [
+                    'id' => $t->id,
+                    'title' => $t->task_name ?: $t->task,
+                    'due_date' => $t->due_date ? \Carbon\Carbon::parse($t->due_date)->format('d M') : null,
+                    'is_overdue' => $t->due_date ? (\Carbon\Carbon::parse($t->due_date)->toDateString() < $today) : false,
+                    'task_status_id' => $t->task_status_id,
+                    'status_name' => $t->status->name ?? 'Pending',
+                    'status_color' => $t->status->color ?? '#64748B',
+                    'updated_today' => $updatedToday,
+                    'latest_remark' => optional($latestRemarks->get($t->id))->remark,
+                ];
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('task_statuses')) {
+                $taskStatuses = \App\Models\TaskStatus::orderBy('order')->get(['id', 'name', 'color']);
+            }
+        }
+
+        return response()->json([
+            'enabled' => true,
+            'today' => $today,
+            'missing_dates' => $missingDates,
+            'first_missing_date' => $firstMissingDate,
+            'suggested_date' => $targetDate,
+            'today_submitted' => $todaySubmitted,
+            'today_submitted_minutes' => $todaySubmittedMinutes,
+            'today_submitted_entries' => $todayWorklogs,
+            'today_marked' => $todayAtt['marked'],
+            'today_punched_out' => $todayAtt['punched_out'],
+            'today_work_minutes' => $todayAtt['work_minutes'],
+            'target_work_minutes' => $targetAtt['work_minutes'],
+            'entry_types' => $entryTypes,
+            'suggested_entry_type_id' => $suggestedEntryTypeId,
+            'session_entries' => $sessionEntries,
+            'recent_combos' => $recentCombos,
+            'today_tasks' => $todayTasks,
+            'task_statuses' => $taskStatuses,
+        ]);
+    }
 }

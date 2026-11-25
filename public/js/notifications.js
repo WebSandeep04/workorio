@@ -248,11 +248,17 @@ class NotificationManager {
                 dropdown.style.visibility = 'visible';
                 dropdown.style.opacity = '1';
                 dropdown.style.position = 'absolute';
-                dropdown.style.top = '40px';
+                dropdown.style.top = '46px';
                 dropdown.style.right = '0';
                 dropdown.style.zIndex = '99999';
                 dropdown.style.background = 'white';
-                dropdown.style.border = '2px solid #007bff';
+                dropdown.style.border = '1px solid #E2E8F0';
+                dropdown.style.borderRadius = '14px';
+                dropdown.style.boxShadow = '0 10px 30px -5px rgba(15, 23, 42, 0.15), 0 0 1px 1px rgba(15, 23, 42, 0.05)';
+                dropdown.style.width = '380px';
+                dropdown.style.maxWidth = '90vw';
+                dropdown.style.overflow = 'hidden';
+                this.renderNotifications();
             } else {
                 // Hide dropdown
                 dropdown.style.display = 'none';

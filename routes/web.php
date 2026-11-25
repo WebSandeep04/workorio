@@ -850,6 +850,7 @@ Route::middleware(['auth.or.session'])->group(function () {
 
     // Worklog
     Route::get('/worklog', [WorklogController::class, 'index'])->name('worklog');
+    Route::get('/worklog/dashboard-widget', [WorklogController::class, 'dashboardWidget'])->name('worklog.dashboard-widget');
     Route::get('/worklog/entry-types', [WorklogController::class, 'getEntryTypes'])->name('worklog.entry-types');
     Route::get('/worklog/customers', [WorklogController::class, 'getCustomers'])->name('worklog.customers');
     Route::get('/worklog/projects', [WorklogController::class, 'getProjects'])->name('worklog.projects');

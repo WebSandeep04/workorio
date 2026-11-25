@@ -17,7 +17,7 @@
     $isSuperAdmin = $headerUser && $headerUser->role_id == 3 && $isMasterConnection;
     $logoutRoute = $isSuperAdmin ? 'superadmin.logout' : 'logout';
 
-    // Find Employee for Profile Picture - only if not on master connection
+    // Find Employee for Profile Picture
     $headerEmployee = null;
     if (!$isMasterConnection && $headerUser) {
         $headerEmployee = $headerUser->employee;
@@ -26,7 +26,7 @@
         }
     }
 
-    $displayDesignation = 'No Defined';
+    $displayDesignation = 'Team Member';
     if ($headerEmployee) {
         if ($headerEmployee->designationRelation) {
             $displayDesignation = $headerEmployee->designationRelation->title;
@@ -35,65 +35,276 @@
         }
     }
 @endphp
-<div class="app-header d-none d-md-flex align-items-center justify-content-between">
-    <div class="app-header-text">
-        <h4 class="header-title">@yield('page_title', 'Dashboard')</h4>
+
+<!-- Modern Nexora-Style Top Bar -->
+<header class="app-header d-none d-md-flex align-items-center justify-content-between">
+    <!-- Left: Sidebar Toggle + Breadcrumb Title -->
+    <div class="d-flex align-items-center gap-3">
+        <button id="toggleSidebar" class="header-toggle-btn" type="button" aria-label="Toggle sidebar" title="Toggle Sidebar (⌘B)">
+            <i class="bi bi-layout-sidebar"></i>
+        </button>
+        <div class="header-breadcrumb-area">
+            <span class="header-page-title">@yield('page_title', 'Dashboard')</span>
+        </div>
     </div>
-    <div class="app-header-actions">
+
+    <!-- Right: Quick Search, Notifications, Actions -->
+    <div class="d-flex align-items-center gap-2">
+        
+        <!-- Search Trigger Button with Command Pill (Nexora Style) -->
+        <button type="button" class="header-search-box d-none d-lg-flex align-items-center" id="openSpotlightSearchBtn">
+            <i class="bi bi-search search-icon"></i>
+            <span class="search-placeholder-text">Search leads, contacts, tasks...</span>
+            <kbd class="search-kbd">⌘K</kbd>
+        </button>
+
         @if($headerRole === 'admin')
-        <a href="{{ route('role-master') }}" class="header-icon" title="Software Setup" style="text-decoration: none;">
+        <a href="{{ route('role-master') }}" class="header-action-icon" title="Software Setup">
             <i class="bi bi-gear"></i>
         </a>
         @endif
-        <div class="header-icon" id="notification-bell" style="position: relative;">
-            <button id="bell-btn" class="border-0 bg-transparent p-0 w-100 h-100 d-flex align-items-center justify-content-center" style="cursor: pointer;">
+
+        <!-- Notifications -->
+        <div class="position-relative" id="notification-bell">
+            <button id="bell-btn" class="header-action-icon position-relative" aria-label="Notifications" type="button">
                 <i class="bi bi-bell"></i>
+                <span id="notification-count" class="notification-badge" style="display: none;">0</span>
             </button>
-            <span id="notification-count" style="position: absolute; top: -2px; right: -2px; background: #ff4444; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: none; align-items: center; justify-content: center; font-weight: 600;">0</span>
-            <div id="notification-dropdown" style="position: absolute; top: 50px; right: 0; background: white; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 350px; max-height: 400px; display: none; z-index: 1000; overflow: hidden;">
-                <div style="padding: 12px 16px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;">
-                    <span style="font-weight: 600; font-size: 15px; color: #333;">Notifications</span>
-                    <div>
-                        <button id="mark-all-read-btn" class="btn btn-sm btn-link p-0 me-2" style="font-size: 12px; text-decoration: none; color: #5b59f7;" title="Mark all as read">Mark all read</button>
-                        <button id="clear-all-btn" class="btn btn-sm btn-link p-0 text-danger" style="font-size: 12px; text-decoration: none;" title="Clear all">Clear all</button>
+            
+            <!-- Notification Dropdown -->
+            <div id="notification-dropdown" style="display: none; position: absolute; top: 46px; right: 0; width: 380px; max-width: 90vw; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.15), 0 0 1px 1px rgba(15, 23, 42, 0.05); z-index: 99999; overflow: hidden;">
+                <div style="padding: 12px 16px; border-bottom: 1px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; background: #FFFFFF;">
+                    <span style="font-weight: 700; font-size: 14px; color: #0F172A;">Notifications</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="mark-all-read-btn" type="button" class="btn btn-sm btn-link p-0 text-decoration-none" style="font-size: 12px; font-weight: 500; color: #434AFA;">Mark all read</button>
+                        <button id="clear-all-btn" type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-danger" style="font-size: 12px; font-weight: 500;">Clear all</button>
                     </div>
                 </div>
-                <div id="notification-list" style="max-height: 340px; overflow-y: auto;"></div>
+                <div id="notification-list" style="max-height: 360px; overflow-y: auto; background: #FFFFFF;"></div>
             </div>
         </div>
-        <form method="POST" action="{{ route($logoutRoute) }}" class="m-0">
-            @csrf
-            <button type="submit" class="header-icon header-logout-btn" title="Logout">
-                <i class="bi bi-power"></i>
+
+        <!-- Create Quick Action Button (Nexora Style with #434AFA) -->
+        <div class="dropdown">
+            <button class="btn btn-create-header d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-plus-lg fs-7"></i>
+                <span>Create</span>
             </button>
-        </form>
-        <div class="header-profile minimal dropdown">
-            <button class="btn dropdown-toggle d-flex align-items-center gap-2 p-0 border-0 bg-transparent" type="button" id="headerProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="gap: 12px;">
-                <div class="profile-avatar">
-                    @if($headerEmployee && $headerEmployee->profile_picture)
-                        <img src="{{ route('profile.picture', $headerEmployee->id) }}?t={{ time() }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                    @else
-                        <img src="{{ asset('img/avatar.png') }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                    @endif
-                </div>
-                <div class="profile-meta">
-                    <span class="profile-name">{{ $headerName }}</span>
-                    <small class="profile-role">{{ $displayDesignation }}</small>
-                </div>
-                <!-- <i class="bi bi-chevron-down"></i> -->
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="headerProfileDropdown" style="border-radius: 8px;">
+            <ul class="dropdown-menu dropdown-menu-end modern-action-dropdown">
+                @if(Route::has('lead'))
                 <li>
-                    <a class="dropdown-item py-2" href="{{ route('profile.index') }}">
-                        <i class="bi bi-person me-2 text-primary"></i> My Profile
+                    <a class="dropdown-item" href="{{ route('lead') }}">
+                        <i class="bi bi-person-plus nav-dropdown-icon"></i>
+                        <span>New Lead</span>
                     </a>
                 </li>
+                @endif
+                
+                @if(Route::has('worklog.index'))
                 <li>
-                    <a class="dropdown-item py-2" href="{{ route('profile.change-password') }}">
-                        <i class="bi bi-shield-lock me-2 text-primary"></i> Change Password
+                    <a class="dropdown-item" href="{{ route('worklog.index') }}">
+                        <i class="bi bi-check2-square nav-dropdown-icon"></i>
+                        <span>New Task</span>
                     </a>
                 </li>
+                @elseif(Route::has('all-task'))
+                <li>
+                    <a class="dropdown-item" href="{{ route('all-task') }}">
+                        <i class="bi bi-check2-square nav-dropdown-icon"></i>
+                        <span>New Task</span>
+                    </a>
+                </li>
+                @endif
+
+                @if(Route::has('customer'))
+                <li>
+                    <a class="dropdown-item" href="{{ route('customer') }}">
+                        <i class="bi bi-people nav-dropdown-icon"></i>
+                        <span>New Customer</span>
+                    </a>
+                </li>
+                @endif
+
+                @if(Route::has('whatsapp-campaigns.index'))
+                <li>
+                    <a class="dropdown-item" href="{{ route('whatsapp-campaigns.index') }}">
+                        <i class="bi bi-chat-dots nav-dropdown-icon"></i>
+                        <span>WhatsApp Campaign</span>
+                    </a>
+                </li>
+                @endif
+
+                @if(Route::has('followup'))
+                <li>
+                    <a class="dropdown-item" href="{{ route('followup') }}">
+                        <i class="bi bi-journal-text nav-dropdown-icon"></i>
+                        <span>Log Follow-up</span>
+                    </a>
+                </li>
+                @endif
             </ul>
+        </div>
+
+    </div>
+</header>
+
+<!-- Nexora-Style Spotlight Command Modal (Ctrl+K / Cmd+K) -->
+<div class="spotlight-backdrop" id="spotlightBackdrop" style="display: none;">
+    <div class="spotlight-dialog">
+        <!-- Search Input -->
+        <div class="spotlight-header">
+            <i class="bi bi-search spotlight-search-icon"></i>
+            <input type="text" class="spotlight-input" id="spotlightInput" placeholder="Search leads, contacts, tasks, modules..." autocomplete="off">
+            <span class="spotlight-esc-badge" id="closeSpotlightBtn">ESC</span>
+        </div>
+
+        <!-- Search Results / Quick Suggestions -->
+        <div class="spotlight-body" id="spotlightBody">
+            <div class="spotlight-group">
+                <span class="spotlight-group-title">Quick Actions</span>
+                @if(Route::has('lead'))
+                <a href="{{ route('lead') }}" class="spotlight-item">
+                    <div class="spotlight-item-left">
+                        <i class="bi bi-person-plus spotlight-icon text-primary"></i>
+                        <span class="spotlight-text">All Leads & Prospects</span>
+                    </div>
+                    <span class="spotlight-badge">Leads</span>
+                </a>
+                @endif
+                @if(Route::has('customer'))
+                <a href="{{ route('customer') }}" class="spotlight-item">
+                    <div class="spotlight-item-left">
+                        <i class="bi bi-people spotlight-icon text-success"></i>
+                        <span class="spotlight-text">Customer Directory</span>
+                    </div>
+                    <span class="spotlight-badge">Contacts</span>
+                </a>
+                @endif
+                @if(Route::has('followup'))
+                <a href="{{ route('followup') }}" class="spotlight-item">
+                    <div class="spotlight-item-left">
+                        <i class="bi bi-telephone-outbound spotlight-icon text-warning"></i>
+                        <span class="spotlight-text">Daily Follow-ups & Calling</span>
+                    </div>
+                    <span class="spotlight-badge">Calling</span>
+                </a>
+                @endif
+                @if(Route::has('whatsapp-inbox.index'))
+                <a href="{{ route('whatsapp-inbox.index') }}" class="spotlight-item">
+                    <div class="spotlight-item-left">
+                        <i class="bi bi-whatsapp spotlight-icon text-success"></i>
+                        <span class="spotlight-text">WhatsApp Inbox</span>
+                    </div>
+                    <span class="spotlight-badge">Messages</span>
+                </a>
+                @endif
+            </div>
+
+            <div class="spotlight-group">
+                <span class="spotlight-group-title">Navigation Shortcuts</span>
+                <a href="{{ url('/dashboard') }}" class="spotlight-item">
+                    <div class="spotlight-item-left">
+                        <i class="bi bi-grid-1x2 spotlight-icon text-secondary"></i>
+                        <span class="spotlight-text">Main Dashboard</span>
+                    </div>
+                    <span class="spotlight-badge">Overview</span>
+                </a>
+                @if(Route::has('role-master'))
+                <a href="{{ route('role-master') }}" class="spotlight-item">
+                    <div class="spotlight-item-left">
+                        <i class="bi bi-gear spotlight-icon text-secondary"></i>
+                        <span class="spotlight-text">Software Configuration</span>
+                    </div>
+                    <span class="spotlight-badge">Settings</span>
+                </a>
+                @endif
+            </div>
+        </div>
+
+        <div class="spotlight-footer">
+            <div class="d-flex align-items-center gap-3">
+                <span><kbd class="spotlight-kbd">↑</kbd> <kbd class="spotlight-kbd">↓</kbd> to navigate</span>
+                <span><kbd class="spotlight-kbd">↵</kbd> to select</span>
+                <span><kbd class="spotlight-kbd">esc</kbd> to close</span>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Spotlight Modal JS with Ctrl+K / Cmd+K Interception -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const backdrop = document.getElementById('spotlightBackdrop');
+    const input = document.getElementById('spotlightInput');
+    const triggerBtn = document.getElementById('openSpotlightSearchBtn');
+    const closeBtn = document.getElementById('closeSpotlightBtn');
+
+    function openSpotlight() {
+        if (!backdrop) return;
+        backdrop.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+        }, 50);
+    }
+
+    function closeSpotlight() {
+        if (!backdrop) return;
+        backdrop.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // Intercept Ctrl+K or Cmd+K globally so Google Chrome address bar DOES NOT OPEN!
+    window.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+            e.preventDefault(); // Stop browser address bar search
+            e.stopPropagation();
+            if (backdrop.style.display === 'flex') {
+                closeSpotlight();
+            } else {
+                openSpotlight();
+            }
+        } else if (e.key === 'Escape' && backdrop && backdrop.style.display === 'flex') {
+            closeSpotlight();
+        }
+    });
+
+    if (triggerBtn) {
+        triggerBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openSpotlight();
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeSpotlight);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', function (e) {
+            if (e.target === backdrop) {
+                closeSpotlight();
+            }
+        });
+    }
+
+    // Live filter inside spotlight items
+    if (input) {
+        input.addEventListener('input', function() {
+            const query = input.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.spotlight-item');
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (text.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
