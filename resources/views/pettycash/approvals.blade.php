@@ -468,13 +468,14 @@
               <th>Date</th>
               <th>Expense Name</th>
               <th>Price (₹)</th>
+              <th>Remark</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td colspan="6" class="text-center py-4">
+              <td colspan="7" class="text-center py-4">
                 <i class="bi bi-arrow-repeat spin"></i> Loading data...
               </td>
             </tr>
@@ -511,6 +512,10 @@
             <label class="form-label">Price <span class="text-danger">*</span></label>
             <input type="number" step="0.01" class="form-control" name="price" id="edit_price" required>
           </div>
+          <div class="mb-3">
+            <label class="form-label">Remark</label>
+            <textarea class="form-control" name="remark" id="edit_remark" rows="2"></textarea>
+          </div>
           <div class="form-check mb-3">
              <input class="form-check-input" type="checkbox" name="is_approved" id="edit_is_approved" value="1">
              <label class="form-check-label" for="edit_is_approved">Approve Immediately</label>
@@ -538,6 +543,24 @@
       <div class="custom-modal-footer">
         <button type="button" class="btn btn-custom-cancel" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-custom-confirm" id="btnConfirmAction">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Remark View Modal -->
+<div class="modal fade" id="viewRemarkModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Full Remark</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="full_remark_text" style="white-space: pre-wrap; word-break: break-word;"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -598,18 +621,23 @@ $(document).ready(function() {
                day: '2-digit', month: 'short', year: 'numeric'
             });
 
+            let remarkDisplay = entry.remark ? (entry.remark.length > 25 ? 
+              `<span style="cursor:pointer; text-decoration: underline dotted;" onclick="viewRemark(\`${entry.remark.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, ' ').replace(/\r/g, '')}\`)">${entry.remark.substring(0, 25)}...</span>` : 
+              entry.remark) : '-';
+
             rows += `
               <tr>
                 <td><input type="checkbox" class="row-checkbox" value="${entry.id}"></td>
                 <td>${date}</td>
                 <td>${entry.expense ? entry.expense.name : 'N/A'}</td>
                 <td class="fw-bold">₹${parseFloat(entry.price).toFixed(2)}</td>
+                <td>${remarkDisplay}</td>
                 <td><span class="badge badge-pending">Pending</span></td>
                 <td>
                   <button class="btn-action text-success" title="Approve" onclick="approveEntry(this, ${entry.id})">
                     <i class="bi bi-check-lg"></i>
                   </button>
-                  <button class="btn-action text-primary" title="Edit" onclick="editEntry(${entry.id}, ${entry.expense_id}, ${entry.price})">
+                  <button class="btn-action text-primary" title="Edit" onclick="editEntry(${entry.id}, ${entry.expense_id}, ${entry.price}, \`${(entry.remark || '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">
                     <i class="bi bi-pencil"></i>
                   </button>
                   <button class="btn-action text-danger" title="Delete" onclick="deleteEntry(${entry.id})">
@@ -620,7 +648,7 @@ $(document).ready(function() {
             `;
           });
         } else {
-          rows = `<tr><td colspan="6" class="text-center py-4 text-muted">No pending approvals found</td></tr>`;
+          rows = `<tr><td colspan="7" class="text-center py-4 text-muted">No pending approvals found</td></tr>`;
         }
         $('#pettyCashTable tbody').html(rows);
         toggleBulkButtons();
@@ -645,11 +673,18 @@ $(document).ready(function() {
     }); // end ajax
   }
 
+  // View Full Remark
+  window.viewRemark = function(remark) {
+      $('#full_remark_text').text(remark || 'No remark provided.');
+      $('#viewRemarkModal').modal('show');
+  }
+
   // Edit Entry
-  window.editEntry = function(id, expense_id, price) {
+  window.editEntry = function(id, expense_id, price, remark = '') {
       $('#edit_entry_id').val(id);
       $('#edit_expense_id').val(expense_id);
       $('#edit_price').val(price);
+      $('#edit_remark').val(remark);
       $('#edit_is_approved').prop('checked', false); // Default unchecked as it is pending list
       $('#editEntryModal').modal('show');
   }

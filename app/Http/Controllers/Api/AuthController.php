@@ -161,10 +161,10 @@ class AuthController extends Controller
                         'version' => env('MOBILE_APP_VERSION'),
                         'employee_id' => $user->employee_id,
                         'image' => $employee && $employee->profile_picture ? url('storage/' . $employee->profile_picture) : null,
-                        'is_field_attendance_enable' => $employee ? ($employee->is_field_attendance_enable ?? 0) : 0,
+                        'is_field_attendance_enable' => $employee && $employee->is_field_attendance_enable ? 1 : 0,
                         'employee_details' => $employee ? [
                             'date_of_birth' => $employee->date_of_birth,
-                            'is_field_attendance_enable' => $employee->is_field_attendance_enable ?? 0,
+                            'is_field_attendance_enable' => $employee->is_field_attendance_enable ? 1 : 0,
                             'shift' => $shiftDetails
                         ] : null,
                         'feature_flags' => [
